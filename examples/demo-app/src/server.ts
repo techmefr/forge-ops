@@ -2,6 +2,7 @@ import express, { type Request, type Response } from 'express'
 import { NotesStore } from './notes.js'
 
 const DEFAULT_PORT = 5100
+const DEFAULT_HOST = 'starfleet.local'
 
 export function createDemoApp(store: NotesStore = new NotesStore()): express.Express {
   const app = express()
@@ -45,8 +46,9 @@ export function createDemoApp(store: NotesStore = new NotesStore()): express.Exp
 
 function main(): void {
   const port = process.env.DEMO_APP_PORT ? Number(process.env.DEMO_APP_PORT) : DEFAULT_PORT
+  const host = process.env.DEMO_APP_HOST ?? DEFAULT_HOST
   createDemoApp().listen(port, () => {
-    console.log(`demo-app disponible sur http://localhost:${port}`)
+    console.log(`demo-app disponible sur http://${host}:${port}`)
   })
 }
 

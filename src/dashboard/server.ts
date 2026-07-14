@@ -6,6 +6,7 @@ import { listTasks } from '../db/tasks.js'
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url))
 const PUBLIC_DIR = join(MODULE_DIR, 'public')
 const DEFAULT_DASHBOARD_PORT = 4999
+const DEFAULT_DASHBOARD_HOST = 'starfleet.local'
 
 export function createDashboardApp(): express.Express {
   const app = express()
@@ -23,9 +24,10 @@ function main(): void {
   const port = process.env.STARFLEET_DASHBOARD_PORT
     ? Number(process.env.STARFLEET_DASHBOARD_PORT)
     : DEFAULT_DASHBOARD_PORT
+  const host = process.env.STARFLEET_DASHBOARD_HOST ?? DEFAULT_DASHBOARD_HOST
   const app = createDashboardApp()
   app.listen(port, () => {
-    console.log(`Dashboard starfleet en lecture seule disponible sur http://localhost:${port}`)
+    console.log(`Dashboard starfleet en lecture seule disponible sur http://${host}:${port}`)
   })
 }
 

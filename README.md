@@ -230,6 +230,7 @@ Tool MCP `check_doc_freshness(package)` : compare la version d'une dépendance u
 ### Prerequis
 
 - Node.js 22+
+- Entree `/etc/hosts` : `127.0.0.1 starfleet.local` (une fois, sudo) — pour ne jamais exposer "localhost" dans les URLs des outils starfleet
 
 ### Installation
 
@@ -244,7 +245,7 @@ npm run db:init
 |---|---|
 | `npm run db:init` | Applique le schema SQLite (mode WAL) |
 | `npm run mcp` | Demarre le serveur MCP en stdio |
-| `npm run dashboard` | Demarre le dashboard en lecture seule (`http://localhost:4999`) |
+| `npm run dashboard` | Demarre le dashboard en lecture seule (`http://starfleet.local:4999`) |
 | `npm test` | Lance la suite de tests |
 | `npm run build` | Compile le TypeScript |
 
