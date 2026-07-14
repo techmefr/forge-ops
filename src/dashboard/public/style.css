@@ -1,0 +1,64 @@
+:root {
+  color-scheme: light dark;
+  --color-created: #6b7280;
+  --color-testing: #2563eb;
+  --color-failed: #dc2626;
+  --color-done: #16a34a;
+  --color-escalated: #d97706;
+  --color-awaiting-human: #7c3aed;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  margin: 2rem;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+#last-refresh {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.status-badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  color: white;
+  font-size: 0.8rem;
+}
+
+.status-created {
+  background: var(--color-created);
+}
+.status-testing {
+  background: var(--color-testing);
+}
+.status-failed {
+  background: var(--color-failed);
+}
+.status-done {
+  background: var(--color-done);
+}
+.status-escalated {
+  background: var(--color-escalated);
+}
+.status-awaiting_human {
+  background: var(--color-awaiting-human);
+}

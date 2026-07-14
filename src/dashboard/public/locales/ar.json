@@ -1,0 +1,17 @@
+{
+  "title": "Starfleet",
+  "columns": {
+    "branch": "الفرع",
+    "port": "المنفذ",
+    "status": "الحالة",
+    "checkpoint": "نقطة التحقق",
+    "attempts": "المحاولات",
+    "actions": "الإجراءات",
+    "model": "النموذج",
+    "heartbeat": "النبض"
+  },
+  "emptyState": "لا توجد مهام متتبعة حاليا.",
+  "lastRefresh": "اخر تحديث: {{time}}",
+  "connectionLost": "انقطع الاتصال بلوحة التحكم، جارية اعادة المحاولة...",
+  "never": "ابدا"
+}
