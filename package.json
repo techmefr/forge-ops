@@ -1,0 +1,29 @@
+{
+  "name": "starfleet",
+  "version": "0.1.0",
+  "description": "Socle methodologique et orchestration bas niveau pour developpement assiste par agents IA",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "db:init": "tsx db/init.ts",
+    "mcp": "tsx src/mcp/server.ts",
+    "dashboard": "tsx src/dashboard/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "better-sqlite3": "^11.9.1",
+    "express": "^4.21.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.8"
+  }
+}
