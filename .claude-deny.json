@@ -1,0 +1,8 @@
+{
+  "deny": [
+    "rm -rf*",
+    "git push --force*",
+    "DROP TABLE*",
+    "> /dev/*"
+  ]
+}
