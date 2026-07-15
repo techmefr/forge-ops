@@ -8,12 +8,21 @@ import {
 } from './i18n.js'
 
 const POLL_INTERVAL_MS = 1000
+const FONT_SCALE_KEY = 'starfleet_font_scale'
+const THEME_KEY = 'starfleet_theme'
+const DEFAULT_FONT_SCALE = '1'
+const DEFAULT_THEME = 'auto'
 
 const tasksBody = document.getElementById('tasks-body')
 const emptyState = document.getElementById('empty-state')
 const lastRefresh = document.getElementById('last-refresh')
 const localeSelect = document.getElementById('locale-select')
 const appTitle = document.getElementById('app-title')
+const settingsBtn = document.getElementById('settings-btn')
+const settingsPanel = document.getElementById('settings-panel')
+const fontSizeSlider = document.getElementById('font-size-slider')
+const themeGroup = document.getElementById('theme-group')
+const refreshBtn = document.getElementById('refresh-btn')
 
 let currentTranslations = null
 let currentLocale = detectLocale()
@@ -24,7 +33,52 @@ function applyStaticTranslations() {
   for (const node of document.querySelectorAll('[data-i18n]')) {
     node.textContent = translate(currentTranslations, node.dataset.i18n)
   }
+  refreshBtn.setAttribute('aria-label', translate(currentTranslations, 'refresh'))
   localeSelect.value = currentLocale
+}
+
+function formatDate(value) {
+  if (value === null) {
+    return '—'
+  }
+  return new Date(`${value}Z`).toLocaleString(currentLocale)
+}
+
+function escapeHtml(value) {
+  return value.replace(/[&<>"]/g, (char) => {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]
+  })
+}
+
+function notesCell(task) {
+  if (task.escalationReason !== null) {
+    return `<span class="notes notes-escalated" title="${escapeHtml(task.escalationReason)}">⚠ ${escapeHtml(task.escalationReason)}</span>`
+  }
+  if (task.contextSummary !== null) {
+    return `<span class="notes" title="${escapeHtml(task.contextSummary)}">${escapeHtml(task.contextSummary)}</span>`
+  }
+  return '—'
+}
+
+function liveDot(task) {
+  const label = translate(currentTranslations, task.live ? 'online' : 'offline')
+  const cls = task.live ? 'live-dot is-live' : 'live-dot'
+  return `<span class="${cls}" title="${label}" aria-label="${label}"></span>`
+}
+
+function tasksCell(task) {
+  const items = task.items ?? []
+  if (items.length === 0) {
+    return '—'
+  }
+  const done = items.filter((item) => item.done).length
+  const list = items.map((item) => `${item.done ? '✓' : '○'} ${item.label}`).join('\n')
+  return `<span class="tasks-count" title="${escapeHtml(list)}">${done}/${items.length}</span>`
+}
+
+function openCell(task) {
+  const label = translate(currentTranslations, 'columns.open')
+  return `<a class="open-link" href="${escapeHtml(task.url)}" target="_blank" rel="noopener">${label} ↗</a>`
 }
 
 function renderTasks(tasks) {
@@ -35,10 +89,16 @@ function renderTasks(tasks) {
   for (const task of tasks) {
     const row = document.createElement('tr')
     row.innerHTML = `
-      <td>${task.branch}</td>
-      <td>${task.port}</td>
-      <td><span class="status-badge status-${task.status}">${task.status}</span></td>
-      <td>${task.lastCheckpoint ?? '—'}</td>
+      <td>${escapeHtml(task.project)}</td>
+      <td>${escapeHtml(task.branch)}</td>
+      <td class="col-muted">${task.feature ? escapeHtml(task.feature) : '—'}</td>
+      <td class="col-port">${task.port}</td>
+      <td class="col-status">${liveDot(task)}<span class="status-badge status-${task.status}">${task.status}</span></td>
+      <td class="col-muted col-nowrap">${task.lastCheckpoint ?? '—'}</td>
+      <td class="col-muted col-nowrap">${tasksCell(task)}</td>
+      <td class="col-muted col-nowrap">${formatDate(task.updatedAt)}</td>
+      <td class="col-notes">${notesCell(task)}</td>
+      <td class="col-open">${openCell(task)}</td>
     `
     tasksBody.appendChild(row)
   }
@@ -65,13 +125,82 @@ async function setLocale(locale) {
   await refreshTasks()
 }
 
+function markActive(group, matches) {
+  for (const button of group.querySelectorAll('button')) {
+    button.classList.toggle('is-active', matches(button))
+  }
+}
+
+function applyFontScale(scale) {
+  document.documentElement.style.setProperty('--font-scale', scale)
+  fontSizeSlider.value = scale
+}
+
+function applyTheme(theme) {
+  if (theme === 'auto') {
+    document.documentElement.removeAttribute('data-theme')
+  } else {
+    document.documentElement.setAttribute('data-theme', theme)
+  }
+  markActive(themeGroup, (button) => button.dataset.themeChoice === theme)
+}
+
+function toggleSettings(open) {
+  const shouldOpen = open ?? settingsPanel.hidden
+  settingsPanel.hidden = !shouldOpen
+  settingsBtn.setAttribute('aria-expanded', String(shouldOpen))
+}
+
 localeSelect.addEventListener('change', (event) => {
-  const locale = event.target.value
-  persistLocale(locale)
-  setLocale(locale)
+  persistLocale(event.target.value)
+  setLocale(event.target.value)
+})
+
+fontSizeSlider.addEventListener('input', (event) => {
+  localStorage.setItem(FONT_SCALE_KEY, event.target.value)
+  document.documentElement.style.setProperty('--font-scale', event.target.value)
+})
+
+themeGroup.addEventListener('click', (event) => {
+  const button = event.target.closest('button')
+  if (button === null) {
+    return
+  }
+  localStorage.setItem(THEME_KEY, button.dataset.themeChoice)
+  applyTheme(button.dataset.themeChoice)
+})
+
+refreshBtn.addEventListener('click', () => {
+  refreshBtn.classList.add('is-spinning')
+  refreshTasks().finally(() => {
+    setTimeout(() => refreshBtn.classList.remove('is-spinning'), 400)
+  })
+})
+
+settingsBtn.addEventListener('click', (event) => {
+  event.stopPropagation()
+  toggleSettings()
+})
+
+settingsPanel.addEventListener('click', (event) => {
+  event.stopPropagation()
+})
+
+document.addEventListener('click', () => {
+  if (!settingsPanel.hidden) {
+    toggleSettings(false)
+  }
+})
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    toggleSettings(false)
+  }
 })
 
 async function main() {
+  applyFontScale(localStorage.getItem(FONT_SCALE_KEY) ?? DEFAULT_FONT_SCALE)
+  applyTheme(localStorage.getItem(THEME_KEY) ?? DEFAULT_THEME)
   await setLocale(currentLocale)
   setInterval(refreshTasks, POLL_INTERVAL_MS)
 }

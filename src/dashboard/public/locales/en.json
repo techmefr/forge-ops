@@ -1,12 +1,32 @@
 {
   "title": "Starfleet",
   "columns": {
+    "project": "Project",
     "branch": "Branch",
     "port": "Port",
     "status": "Status",
-    "checkpoint": "Checkpoint"
+    "checkpoint": "Checkpoint",
+    "updated": "Updated",
+    "notes": "Notes",
+    "feature": "Feature",
+    "tasks": "Tasks",
+    "open": "Open"
   },
   "emptyState": "No task tracked yet.",
   "lastRefresh": "Last refresh: {{time}}",
-  "connectionLost": "Connection to the dashboard lost, retrying..."
+  "connectionLost": "Connection to the dashboard lost, retrying...",
+  "settings": {
+    "language": "Language",
+    "fontSize": "Text size",
+    "theme": "Theme",
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large",
+    "auto": "Auto",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "refresh": "Refresh",
+  "online": "Online",
+  "offline": "Offline"
 }

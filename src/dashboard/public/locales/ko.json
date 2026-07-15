@@ -1,12 +1,32 @@
 {
   "title": "Starfleet",
   "columns": {
+    "project": "프로젝트",
     "branch": "브랜치",
     "port": "포트",
     "status": "상태",
-    "checkpoint": "체크포인트"
+    "checkpoint": "체크포인트",
+    "updated": "업데이트",
+    "notes": "메모",
+    "feature": "기능",
+    "tasks": "작업",
+    "open": "열기"
   },
   "emptyState": "추적 중인 작업이 없습니다.",
   "lastRefresh": "마지막 갱신: {{time}}",
-  "connectionLost": "대시보드 연결이 끊어졌습니다. 재시도 중..."
+  "connectionLost": "대시보드 연결이 끊어졌습니다. 재시도 중...",
+  "settings": {
+    "language": "언어",
+    "fontSize": "글자 크기",
+    "theme": "테마",
+    "small": "작게",
+    "medium": "보통",
+    "large": "크게",
+    "auto": "자동",
+    "light": "라이트",
+    "dark": "다크"
+  },
+  "refresh": "새로고침",
+  "online": "온라인",
+  "offline": "오프라인"
 }

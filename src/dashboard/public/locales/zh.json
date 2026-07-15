@@ -1,12 +1,32 @@
 {
   "title": "Starfleet",
   "columns": {
+    "project": "项目",
     "branch": "分支",
     "port": "端口",
     "status": "状态",
-    "checkpoint": "检查点"
+    "checkpoint": "检查点",
+    "updated": "更新时间",
+    "notes": "备注",
+    "feature": "功能",
+    "tasks": "任务",
+    "open": "打开"
   },
   "emptyState": "暂无跟踪任务。",
   "lastRefresh": "最后刷新：{{time}}",
-  "connectionLost": "与仪表盘的连接已断开，正在重试..."
+  "connectionLost": "与仪表盘的连接已断开，正在重试...",
+  "settings": {
+    "language": "语言",
+    "fontSize": "文字大小",
+    "theme": "主题",
+    "small": "小",
+    "medium": "中",
+    "large": "大",
+    "auto": "自动",
+    "light": "浅色",
+    "dark": "深色"
+  },
+  "refresh": "刷新",
+  "online": "在线",
+  "offline": "离线"
 }

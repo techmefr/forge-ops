@@ -1,12 +1,32 @@
 {
   "title": "Starfleet",
   "columns": {
+    "project": "Projeto",
     "branch": "Ramo",
     "port": "Porta",
     "status": "Estado",
-    "checkpoint": "Ponto de controlo"
+    "checkpoint": "Ponto de controlo",
+    "updated": "Atualizado",
+    "notes": "Notas",
+    "feature": "Feature",
+    "tasks": "Tarefas",
+    "open": "Abrir"
   },
   "emptyState": "Nenhuma tarefa acompanhada por enquanto.",
   "lastRefresh": "Ultima atualizacao: {{time}}",
-  "connectionLost": "Ligacao ao painel perdida, a tentar novamente..."
+  "connectionLost": "Ligacao ao painel perdida, a tentar novamente...",
+  "settings": {
+    "language": "Idioma",
+    "fontSize": "Tamanho do texto",
+    "theme": "Tema",
+    "small": "Pequeno",
+    "medium": "Médio",
+    "large": "Grande",
+    "auto": "Auto",
+    "light": "Claro",
+    "dark": "Escuro"
+  },
+  "refresh": "Atualizar",
+  "online": "Online",
+  "offline": "Offline"
 }

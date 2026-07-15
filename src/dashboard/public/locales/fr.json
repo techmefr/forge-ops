@@ -1,12 +1,32 @@
 {
   "title": "Starfleet",
   "columns": {
+    "project": "Projet",
     "branch": "Branche",
     "port": "Port",
     "status": "Statut",
-    "checkpoint": "Checkpoint"
+    "checkpoint": "Checkpoint",
+    "updated": "Mis a jour",
+    "notes": "Notes",
+    "feature": "Feature",
+    "tasks": "Taches",
+    "open": "Ouvrir"
   },
   "emptyState": "Aucune tache suivie pour le moment.",
   "lastRefresh": "Derniere actualisation : {{time}}",
-  "connectionLost": "Connexion au dashboard perdue, nouvelle tentative..."
+  "connectionLost": "Connexion au dashboard perdue, nouvelle tentative...",
+  "settings": {
+    "language": "Langue",
+    "fontSize": "Taille du texte",
+    "theme": "Thème",
+    "small": "Petite",
+    "medium": "Moyenne",
+    "large": "Grande",
+    "auto": "Auto",
+    "light": "Clair",
+    "dark": "Sombre"
+  },
+  "refresh": "Actualiser",
+  "online": "En ligne",
+  "offline": "Hors ligne"
 }

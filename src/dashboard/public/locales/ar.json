@@ -1,12 +1,32 @@
 {
   "title": "Starfleet",
   "columns": {
+    "project": "المشروع",
     "branch": "الفرع",
     "port": "المنفذ",
     "status": "الحالة",
-    "checkpoint": "نقطة التحقق"
+    "checkpoint": "نقطة التحقق",
+    "updated": "آخر تحديث",
+    "notes": "ملاحظات",
+    "feature": "الميزة",
+    "tasks": "المهام",
+    "open": "فتح"
   },
   "emptyState": "لا توجد مهام متتبعة حاليا.",
   "lastRefresh": "اخر تحديث: {{time}}",
-  "connectionLost": "انقطع الاتصال بلوحة التحكم، جارية اعادة المحاولة..."
+  "connectionLost": "انقطع الاتصال بلوحة التحكم، جارية اعادة المحاولة...",
+  "settings": {
+    "language": "اللغة",
+    "fontSize": "حجم الخط",
+    "theme": "السمة",
+    "small": "صغير",
+    "medium": "متوسط",
+    "large": "كبير",
+    "auto": "تلقائي",
+    "light": "فاتح",
+    "dark": "داكن"
+  },
+  "refresh": "تحديث",
+  "online": "متصل",
+  "offline": "غير متصل"
 }

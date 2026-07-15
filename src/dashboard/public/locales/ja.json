@@ -1,12 +1,32 @@
 {
   "title": "Starfleet",
   "columns": {
+    "project": "プロジェクト",
     "branch": "ブランチ",
     "port": "ポート",
     "status": "ステータス",
-    "checkpoint": "チェックポイント"
+    "checkpoint": "チェックポイント",
+    "updated": "更新",
+    "notes": "メモ",
+    "feature": "機能",
+    "tasks": "タスク",
+    "open": "開く"
   },
   "emptyState": "追跡中のタスクはありません。",
   "lastRefresh": "最終更新: {{time}}",
-  "connectionLost": "ダッシュボードとの接続が失われました。再試行しています..."
+  "connectionLost": "ダッシュボードとの接続が失われました。再試行しています...",
+  "settings": {
+    "language": "言語",
+    "fontSize": "文字サイズ",
+    "theme": "テーマ",
+    "small": "小",
+    "medium": "中",
+    "large": "大",
+    "auto": "自動",
+    "light": "ライト",
+    "dark": "ダーク"
+  },
+  "refresh": "更新",
+  "online": "オンライン",
+  "offline": "オフライン"
 }
