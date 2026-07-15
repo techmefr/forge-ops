@@ -51,7 +51,8 @@ Le workflow d'origine documentait trois frictions :
 ```sql
 CREATE TABLE tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  branch TEXT NOT NULL UNIQUE,
+  project TEXT NOT NULL,         -- identite stable du repo (remote git ou racine)
+  branch TEXT NOT NULL,
   port INTEGER NOT NULL,
   status TEXT NOT NULL DEFAULT 'created',
     -- created | in_progress | done | escalated | awaiting_human
@@ -60,9 +61,12 @@ CREATE TABLE tasks (
   context_summary TEXT,          -- notes de worktree lisibles, tenues a jour par le dev
   escalation_reason TEXT,        -- renseigne quand un dev escalade manuellement
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (project, branch)       -- + index unique sur port : jamais deux fois le meme port
 );
 ```
+
+**Pourquoi `project` dans la cle.** Le port est alloue par `hash("<project>::<branch>")` et resolu contre **tous** les ports deja pris (tous projets confondus). Deux projets differents ne peuvent donc plus reserver le meme port, meme s'ils ont une branche du meme nom (`main`, `develop`...). Le port retourne par `create_task` doit etre **applique** au serveur lance (`--port`, variable `PORT`, ou entree `launch.json`) — starfleet fournit le numero, le lancement doit le consommer.
 
 Le mode WAL et le `busy_timeout` sont appliques a l'ouverture de la connexion (`src/db/connection.ts`), pas dans le schema.
 
@@ -88,12 +92,18 @@ Sequence conseillee, chaque etape ecrit son checkpoint. Ce sont des **garde-fous
 
 ## 6. Outils MCP exposes
 
-- `create_task(branch)` — enregistre une worktree, port deterministe anti-collision.
-- `update_checkpoint(branch, checkpoint, contextSummary)` — franchit un checkpoint.
-- `list_worktrees(status?)` — liste les taches suivies.
-- `get_worktree_status(branch)` — statut complet d'une worktree.
-- `escalate(branch, reason)` — flag manuel « bloquee, besoin d'un humain ».
-- `cleanup(branch)` — **supprime reellement la worktree git** (`git worktree remove`) puis la ligne en base.
+- `create_task(project, branch, repoPath?, runCommand?, feature?)` — enregistre une worktree, port deterministe unique tous projets confondus. `repoPath`/`runCommand` debloquent le lancement reel ; `feature` relie plusieurs worktrees (front + back).
+- `launch_worktree(project, branch)` — cree reellement la worktree git (`git worktree add`) dans `<repo>-worktrees/<slug>`.
+- `start_server(project, branch)` — lance `runCommand` en injectant le port (`PORT`), garde le PID.
+- `stop_server(project, branch)` — tue le serveur lance par starfleet.
+- `add_task_item(project, branch, label)` / `toggle_task_item(itemId, done)` — taches associees a une worktree.
+- `update_checkpoint(project, branch, checkpoint, contextSummary)` — franchit un checkpoint.
+- `list_worktrees(status?)` — liste les taches suivies (tous projets).
+- `get_worktree_status(project, branch)` — statut complet d'une worktree.
+- `escalate(project, branch, reason)` — flag manuel « bloquee, besoin d'un humain ».
+- `cleanup(project, branch)` — arrete le serveur, supprime la worktree git (`git worktree remove`) puis la ligne en base.
+
+Le **dashboard** affiche en plus : etat **live/down** (sonde TCP du port), lien **Ouvrir** vers le front (`http://<STARFLEET_URL_HOST|localhost>:<port>`), la **feature** de groupe et l'avancement des **taches associees**. La navigation d'**architecture** de chaque projet est deleguee a graphify (non reimplemente ici).
 
 ---
 
