@@ -27,13 +27,6 @@ function applyStaticTranslations() {
   localeSelect.value = currentLocale
 }
 
-function formatHeartbeat(heartbeat) {
-  if (heartbeat === null) {
-    return translate(currentTranslations, 'never')
-  }
-  return new Date(`${heartbeat}Z`).toLocaleString(currentLocale)
-}
-
 function renderTasks(tasks) {
   tasksBody.innerHTML = ''
   emptyState.hidden = tasks.length > 0
@@ -46,10 +39,6 @@ function renderTasks(tasks) {
       <td>${task.port}</td>
       <td><span class="status-badge status-${task.status}">${task.status}</span></td>
       <td>${task.lastCheckpoint ?? '—'}</td>
-      <td>${task.attemptCount}</td>
-      <td>${task.actionCount}</td>
-      <td>${task.recommendedModel ?? '—'}</td>
-      <td>${formatHeartbeat(task.heartbeat)}</td>
     `
     tasksBody.appendChild(row)
   }

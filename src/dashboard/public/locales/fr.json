@@ -4,14 +4,9 @@
     "branch": "Branche",
     "port": "Port",
     "status": "Statut",
-    "checkpoint": "Checkpoint",
-    "attempts": "Tentatives",
-    "actions": "Actions",
-    "model": "Modele",
-    "heartbeat": "Heartbeat"
+    "checkpoint": "Checkpoint"
   },
   "emptyState": "Aucune tache suivie pour le moment.",
   "lastRefresh": "Derniere actualisation : {{time}}",
-  "connectionLost": "Connexion au dashboard perdue, nouvelle tentative...",
-  "never": "jamais"
+  "connectionLost": "Connexion au dashboard perdue, nouvelle tentative..."
 }

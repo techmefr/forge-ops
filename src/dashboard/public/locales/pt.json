@@ -4,14 +4,9 @@
     "branch": "Ramo",
     "port": "Porta",
     "status": "Estado",
-    "checkpoint": "Ponto de controlo",
-    "attempts": "Tentativas",
-    "actions": "Acoes",
-    "model": "Modelo",
-    "heartbeat": "Pulsacao"
+    "checkpoint": "Ponto de controlo"
   },
   "emptyState": "Nenhuma tarefa acompanhada por enquanto.",
   "lastRefresh": "Ultima atualizacao: {{time}}",
-  "connectionLost": "Ligacao ao painel perdida, a tentar novamente...",
-  "never": "nunca"
+  "connectionLost": "Ligacao ao painel perdida, a tentar novamente..."
 }

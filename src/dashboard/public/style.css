@@ -1,8 +1,7 @@
 :root {
   color-scheme: light dark;
   --color-created: #6b7280;
-  --color-testing: #2563eb;
-  --color-failed: #dc2626;
+  --color-in-progress: #2563eb;
   --color-done: #16a34a;
   --color-escalated: #d97706;
   --color-awaiting-human: #7c3aed;
@@ -47,11 +46,8 @@ td {
 .status-created {
   background: var(--color-created);
 }
-.status-testing {
-  background: var(--color-testing);
-}
-.status-failed {
-  background: var(--color-failed);
+.status-in_progress {
+  background: var(--color-in-progress);
 }
 .status-done {
   background: var(--color-done);
