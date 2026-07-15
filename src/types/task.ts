@@ -1,7 +1,6 @@
 export type TaskStatus =
   | 'created'
-  | 'testing'
-  | 'failed'
+  | 'in_progress'
   | 'done'
   | 'escalated'
   | 'awaiting_human'
@@ -21,13 +20,7 @@ export interface ITask {
   port: number
   status: TaskStatus
   lastCheckpoint: TaskCheckpoint | null
-  heartbeat: string | null
   contextSummary: string | null
-  attemptCount: number
-  actionCount: number
-  lastErrorHash: string | null
-  recommendedModel: string | null
-  currentModel: string | null
   escalationReason: string | null
   createdAt: string
   updatedAt: string

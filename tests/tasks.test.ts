@@ -4,16 +4,11 @@ process.env.STARFLEET_DB_PATH = ':memory:'
 
 const { getDb } = await import('../src/db/connection.js')
 const {
-  ACTION_CAP,
-  ATTEMPT_CAP,
   cleanupTask,
   createTask,
   escalateTask,
-  findStaleTasks,
   getTaskByBranch,
-  incrementAction,
-  incrementAttempt,
-  recordError,
+  getUsedPorts,
   updateCheckpoint,
 } = await import('../src/db/tasks.js')
 
@@ -30,17 +25,31 @@ describe('createTask / getTaskByBranch', () => {
     expect(task.lastCheckpoint).toBeNull()
   })
 
+  it('keeps the original port when the same branch is created again', () => {
+    createTask('feature/login', 4123)
+    const again = createTask('feature/login', 9999)
+    expect(again.port).toBe(4123)
+  })
+
   it('returns null for an unknown branch', () => {
     expect(getTaskByBranch('does/not-exist')).toBeNull()
   })
 })
 
+describe('getUsedPorts', () => {
+  it('returns every allocated port', () => {
+    createTask('feature/a', 4001)
+    createTask('feature/b', 4002)
+    expect(getUsedPorts().sort()).toEqual([4001, 4002])
+  })
+})
+
 describe('updateCheckpoint', () => {
-  it('moves status to testing on intermediate checkpoints', () => {
+  it('moves status to in_progress on intermediate checkpoints', () => {
     createTask('feature/login', 4123)
     const task = updateCheckpoint('feature/login', 'spec_done', 'perimetre acte')
     expect(task?.lastCheckpoint).toBe('spec_done')
-    expect(task?.status).toBe('testing')
+    expect(task?.status).toBe('in_progress')
     expect(task?.contextSummary).toBe('perimetre acte')
   })
 
@@ -51,75 +60,17 @@ describe('updateCheckpoint', () => {
   })
 })
 
-describe('incrementAttempt', () => {
-  it('escalates once the attempt cap is reached', () => {
-    createTask('feature/login', 4123)
-    let result
-    for (let i = 0; i < ATTEMPT_CAP; i += 1) {
-      result = incrementAttempt('feature/login')
-    }
-    expect(result?.capExceeded).toBe(true)
-    expect(result?.task.status).toBe('escalated')
-  })
-})
-
-describe('incrementAction', () => {
-  it('escalates once the action cap is reached regardless of test status', () => {
-    createTask('feature/login', 4123)
-    let result
-    for (let i = 0; i < ACTION_CAP; i += 1) {
-      result = incrementAction('feature/login')
-    }
-    expect(result?.capExceeded).toBe(true)
-    expect(result?.task.status).toBe('escalated')
-    expect(result?.task.escalationReason).toBe('action_limit_exceeded')
-  })
-})
-
-describe('recordError', () => {
-  it('detects a repeated error loop across two consecutive attempts', () => {
-    createTask('feature/login', 4123)
-    const first = recordError('feature/login', 'hash-abc')
-    expect(first.isRepeatedLoop).toBe(false)
-    const second = recordError('feature/login', 'hash-abc')
-    expect(second.isRepeatedLoop).toBe(true)
-    expect(second.task.status).toBe('escalated')
-  })
-
-  it('does not treat a different error hash as a loop', () => {
-    createTask('feature/login', 4123)
-    recordError('feature/login', 'hash-abc')
-    const second = recordError('feature/login', 'hash-def')
-    expect(second.isRepeatedLoop).toBe(false)
-  })
-})
-
 describe('escalateTask / cleanupTask', () => {
   it('escalates with a reason', () => {
     createTask('feature/login', 4123)
-    const task = escalateTask('feature/login', 'manual_escalation')
+    const task = escalateTask('feature/login', 'blocage_infra')
     expect(task?.status).toBe('escalated')
-    expect(task?.escalationReason).toBe('manual_escalation')
+    expect(task?.escalationReason).toBe('blocage_infra')
   })
 
   it('removes the task row', () => {
     createTask('feature/login', 4123)
     expect(cleanupTask('feature/login')).toBe(true)
     expect(getTaskByBranch('feature/login')).toBeNull()
-  })
-})
-
-describe('findStaleTasks', () => {
-  it('flags tasks with no heartbeat as stale', () => {
-    createTask('feature/login', 4123)
-    const stale = findStaleTasks(15)
-    expect(stale.some((task) => task.branch === 'feature/login')).toBe(true)
-  })
-
-  it('excludes done and escalated tasks', () => {
-    createTask('feature/escalated', 4200)
-    escalateTask('feature/escalated', 'manual_escalation')
-    const stale = findStaleTasks(15)
-    expect(stale.some((task) => task.branch === 'feature/escalated')).toBe(false)
   })
 })
