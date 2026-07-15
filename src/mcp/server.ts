@@ -5,6 +5,8 @@ import { registerGetWorktreeStatus } from './tools/getWorktreeStatus.js'
 import { registerEscalate } from './tools/escalate.js'
 import { registerCleanup } from './tools/cleanup.js'
 import { registerTaskLifecycle } from './tools/taskLifecycle.js'
+import { registerWorktreeOps } from './tools/worktreeOps.js'
+import { registerTaskItems } from './tools/taskItems.js'
 
 async function main(): Promise<void> {
   const server = new McpServer({
@@ -17,6 +19,8 @@ async function main(): Promise<void> {
   registerEscalate(server)
   registerCleanup(server)
   registerTaskLifecycle(server)
+  registerWorktreeOps(server)
+  registerTaskItems(server)
 
   const transport = new StdioServerTransport()
   await server.connect(transport)

@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { basename, dirname, join } from 'node:path'
 
 export interface IWorktreeRemoval {
   removed: boolean
@@ -6,19 +7,69 @@ export interface IWorktreeRemoval {
   detail: string
 }
 
+export interface IWorktreeCreation {
+  created: boolean
+  path: string | null
+  detail: string
+}
+
+function git(repoPath: string | null, args: string[]): string {
+  const fullArgs = repoPath !== null ? ['-C', repoPath, ...args] : args
+  return execFileSync('git', fullArgs, { encoding: 'utf-8' })
+}
+
+function slugify(branch: string): string {
+  return branch
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 /**
- * Retrouve le chemin de la worktree git rattachee a une branche via
- * `git worktree list --porcelain`, puis la supprime avec `git worktree remove`.
- * Sans ca, `cleanup` ne faisait que supprimer la ligne SQLite en laissant la
- * worktree et son port vivants — exactement le desynchronisation etat/reel que
- * starfleet est cense empecher.
+ * Chemin ou sera creee la worktree : dossier voisin du repo,
+ * `<repo>-worktrees/<slug-de-branche>`. Fonction pure, testable.
  */
-export function removeWorktreeForBranch(branch: string): IWorktreeRemoval {
+export function worktreePathFor(repoPath: string, branch: string): string {
+  const parent = dirname(repoPath)
+  const base = basename(repoPath)
+  return join(parent, `${base}-worktrees`, slugify(branch))
+}
+
+function branchExists(repoPath: string, branch: string): boolean {
+  try {
+    git(repoPath, ['rev-parse', '--verify', '--quiet', `refs/heads/${branch}`])
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Cree reellement la worktree git pour une branche (`git worktree add`).
+ * C'est la symetrie manquante de `removeWorktreeForBranch` : jusqu'ici
+ * starfleet enregistrait un port mais ne creait jamais la worktree.
+ */
+export function addWorktreeForBranch(repoPath: string, branch: string): IWorktreeCreation {
+  const path = worktreePathFor(repoPath, branch)
+  try {
+    const args = branchExists(repoPath, branch)
+      ? ['worktree', 'add', path, branch]
+      : ['worktree', 'add', '-b', branch, path]
+    git(repoPath, args)
+    return { created: true, path, detail: `Worktree creee: ${path}` }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    return { created: false, path, detail: `git worktree add a echoue: ${message}` }
+  }
+}
+
+export function removeWorktreeForBranch(
+  branch: string,
+  repoPath: string | null = null,
+): IWorktreeRemoval {
   let porcelain: string
   try {
-    porcelain = execFileSync('git', ['worktree', 'list', '--porcelain'], {
-      encoding: 'utf-8',
-    })
+    porcelain = git(repoPath, ['worktree', 'list', '--porcelain'])
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     return { removed: false, path: null, detail: `git worktree list a echoue: ${message}` }
@@ -30,7 +81,7 @@ export function removeWorktreeForBranch(branch: string): IWorktreeRemoval {
   }
 
   try {
-    execFileSync('git', ['worktree', 'remove', path], { encoding: 'utf-8' })
+    git(repoPath, ['worktree', 'remove', path])
     return { removed: true, path, detail: `Worktree supprimee: ${path}` }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)

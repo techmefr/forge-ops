@@ -9,15 +9,18 @@ export function registerEscalate(server: McpServer): void {
       title: 'Escalader vers un humain',
       description: 'Passe une tache en statut escalated avec une raison explicite',
       inputSchema: {
+        project: z.string().min(1),
         branch: z.string().min(1),
         reason: z.string().min(1),
       },
     },
     (args) => {
-      const task = escalateTask(args.branch, args.reason)
+      const task = escalateTask(args.project, args.branch, args.reason)
       if (task === null) {
         return {
-          content: [{ type: 'text', text: `Aucune tache trouvee pour la branche ${args.branch}` }],
+          content: [
+            { type: 'text', text: `Aucune tache trouvee pour ${args.project} / ${args.branch}` },
+          ],
           isError: true,
         }
       }

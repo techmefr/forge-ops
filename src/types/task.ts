@@ -14,14 +14,29 @@ export type TaskCheckpoint =
   | 'simplified'
   | 'mr_draft_pushed'
 
+export interface ITaskItem {
+  id: number
+  taskId: number
+  label: string
+  done: boolean
+  createdAt: string
+}
+
 export interface ITask {
   id: number
+  project: string
   branch: string
   port: number
+  repoPath: string | null
+  worktreePath: string | null
+  runCommand: string | null
+  pid: number | null
+  feature: string | null
   status: TaskStatus
   lastCheckpoint: TaskCheckpoint | null
   contextSummary: string | null
   escalationReason: string | null
   createdAt: string
   updatedAt: string
+  items?: ITaskItem[]
 }

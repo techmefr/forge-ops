@@ -25,6 +25,7 @@ export function getDb(dbPath: string = DEFAULT_DB_PATH): Database.Database {
   const db = new Database(dbPath)
   db.pragma('journal_mode = WAL')
   db.pragma(`busy_timeout = ${BUSY_TIMEOUT_MS}`)
+  db.pragma('foreign_keys = ON')
   applySchema(db)
   dbInstance = db
   return dbInstance
