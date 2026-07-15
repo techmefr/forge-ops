@@ -86,18 +86,19 @@ function renderTasks(tasks) {
   emptyState.hidden = tasks.length > 0
   emptyState.textContent = translate(currentTranslations, 'emptyState')
 
+  const label = (key) => translate(currentTranslations, `columns.${key}`)
   for (const task of tasks) {
     const row = document.createElement('tr')
     row.innerHTML = `
-      <td>${escapeHtml(task.project)}</td>
-      <td>${escapeHtml(task.branch)}</td>
-      <td class="col-muted">${task.feature ? escapeHtml(task.feature) : '—'}</td>
-      <td class="col-port">${task.port}</td>
-      <td class="col-status">${liveDot(task)}<span class="status-badge status-${task.status}">${task.status}</span></td>
-      <td class="col-muted col-nowrap">${task.lastCheckpoint ?? '—'}</td>
-      <td class="col-muted col-nowrap">${tasksCell(task)}</td>
-      <td class="col-muted col-nowrap">${formatDate(task.updatedAt)}</td>
-      <td class="col-notes">${notesCell(task)}</td>
+      <td data-label="${label('project')}">${escapeHtml(task.project)}</td>
+      <td data-label="${label('branch')}">${escapeHtml(task.branch)}</td>
+      <td data-label="${label('feature')}" class="col-muted">${task.feature ? escapeHtml(task.feature) : '—'}</td>
+      <td data-label="${label('port')}" class="col-port">${task.port}</td>
+      <td data-label="${label('status')}" class="col-status">${liveDot(task)}<span class="status-badge status-${task.status}">${task.status}</span></td>
+      <td data-label="${label('checkpoint')}" class="col-muted col-nowrap">${task.lastCheckpoint ?? '—'}</td>
+      <td data-label="${label('tasks')}" class="col-muted col-nowrap">${tasksCell(task)}</td>
+      <td data-label="${label('updated')}" class="col-muted col-nowrap">${formatDate(task.updatedAt)}</td>
+      <td data-label="${label('notes')}" class="col-notes">${notesCell(task)}</td>
       <td class="col-open">${openCell(task)}</td>
     `
     tasksBody.appendChild(row)

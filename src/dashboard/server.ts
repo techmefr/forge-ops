@@ -31,9 +31,8 @@ export function createDashboardApp(): express.Express {
 }
 
 function main(): void {
-  const port = process.env.STARFLEET_DASHBOARD_PORT
-    ? Number(process.env.STARFLEET_DASHBOARD_PORT)
-    : DEFAULT_DASHBOARD_PORT
+  const portEnv = process.env.STARFLEET_DASHBOARD_PORT ?? process.env.PORT
+  const port = portEnv ? Number(portEnv) : DEFAULT_DASHBOARD_PORT
   const host = process.env.STARFLEET_DASHBOARD_HOST ?? DEFAULT_DASHBOARD_HOST
   const app = createDashboardApp()
   app.listen(port, () => {
