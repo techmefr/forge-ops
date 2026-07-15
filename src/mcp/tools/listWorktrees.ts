@@ -5,8 +5,7 @@ import type { TaskStatus } from '../../types/task.js'
 
 const STATUS_VALUES: [TaskStatus, ...TaskStatus[]] = [
   'created',
-  'testing',
-  'failed',
+  'in_progress',
   'done',
   'escalated',
   'awaiting_human',
