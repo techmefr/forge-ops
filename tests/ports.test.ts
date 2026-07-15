@@ -41,6 +41,14 @@ describe('resolvePort', () => {
     expect(port).toBeLessThan(DEFAULT_BASE_PORT + DEFAULT_PORT_RANGE)
   })
 
+  it('gives two projects with the same branch name distinct ports', () => {
+    const used = new Set<number>()
+    const a = resolvePort('stacktim::main', used)
+    used.add(a)
+    const b = resolvePort('formation-laravel::main', used)
+    expect(a).not.toBe(b)
+  })
+
   it('throws when the whole range is taken', () => {
     const full = new Set<number>()
     for (let p = DEFAULT_BASE_PORT; p < DEFAULT_BASE_PORT + DEFAULT_PORT_RANGE; p += 1) {
