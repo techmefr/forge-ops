@@ -26,6 +26,7 @@ const refreshBtn = document.getElementById('refresh-btn')
 const statsEl = document.getElementById('stats')
 const searchInput = document.getElementById('search')
 const statusFilter = document.getElementById('status-filter')
+const createForm = document.getElementById('create-form')
 
 let currentTranslations = null
 let currentLocale = detectLocale()
@@ -39,7 +40,23 @@ function applyStaticTranslations() {
   }
   refreshBtn.setAttribute('aria-label', translate(currentTranslations, 'refresh'))
   searchInput.setAttribute('placeholder', translate(currentTranslations, 'filter.search'))
+  for (const name of ['project', 'branch', 'repoPath', 'runCommand', 'feature']) {
+    createForm.elements[name].setAttribute('placeholder', translate(currentTranslations, `form.${name}`))
+  }
   localeSelect.value = currentLocale
+}
+
+async function apiPost(url, body) {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  const payload = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    window.alert(payload.detail ?? payload.error ?? `Erreur ${response.status}`)
+  }
+  await refreshTasks()
 }
 
 function renderStats(tasks) {
@@ -105,17 +122,34 @@ function liveDot(task) {
 
 function tasksCell(task) {
   const items = task.items ?? []
-  if (items.length === 0) {
-    return '—'
-  }
   const done = items.filter((item) => item.done).length
-  const list = items.map((item) => `${item.done ? '✓' : '○'} ${item.label}`).join('\n')
-  return `<span class="tasks-count" title="${escapeHtml(list)}">${done}/${items.length}</span>`
+  const list = items
+    .map(
+      (item) =>
+        `<label class="item"><input type="checkbox" data-item-id="${item.id}" ${item.done ? 'checked' : ''} /> <span class="${item.done ? 'item-done' : ''}">${escapeHtml(item.label)}</span></label>`,
+    )
+    .join('')
+  return `<div class="items" data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}">
+    ${list ? `<div class="items-list">${list}</div>` : ''}
+    <button type="button" class="mini-btn" data-action="add-item">＋ ${done}/${items.length}</button>
+  </div>`
 }
 
-function openCell(task) {
-  const label = translate(currentTranslations, 'columns.open')
-  return `<a class="open-link" href="${escapeHtml(task.url)}" target="_blank" rel="noopener">${label} ↗</a>`
+function actionsCell(task) {
+  const t = (key) => translate(currentTranslations, key)
+  const open = `<a class="open-link" href="${escapeHtml(task.url)}" target="_blank" rel="noopener">${t('columns.open')} ↗</a>`
+  const buttons = [open]
+  if (task.worktreePath === null && task.repoPath !== null) {
+    buttons.push(`<button type="button" class="mini-btn" data-action="launch">${t('actions.launch')}</button>`)
+  }
+  if (task.pid !== null) {
+    buttons.push(`<button type="button" class="mini-btn" data-action="stop">${t('actions.stop')}</button>`)
+  } else if (task.runCommand !== null) {
+    buttons.push(`<button type="button" class="mini-btn" data-action="start">${t('actions.start')}</button>`)
+  }
+  buttons.push(`<button type="button" class="mini-btn" data-action="escalate">${t('actions.escalate')}</button>`)
+  buttons.push(`<button type="button" class="mini-btn danger" data-action="cleanup">${t('actions.cleanup')}</button>`)
+  return `<div class="actions" data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}">${buttons.join('')}</div>`
 }
 
 function renderTasks(tasks) {
@@ -133,10 +167,10 @@ function renderTasks(tasks) {
       <td data-label="${label('port')}" class="col-port">${task.port}</td>
       <td data-label="${label('status')}" class="col-status">${liveDot(task)}<span class="status-badge status-${task.status}">${task.status}</span></td>
       <td data-label="${label('checkpoint')}" class="col-muted col-nowrap">${task.lastCheckpoint ?? '—'}</td>
-      <td data-label="${label('tasks')}" class="col-muted col-nowrap">${tasksCell(task)}</td>
+      <td data-label="${label('tasks')}" class="col-tasks">${tasksCell(task)}</td>
       <td data-label="${label('updated')}" class="col-muted col-nowrap">${formatDate(task.updatedAt)}</td>
       <td data-label="${label('notes')}" class="col-notes">${notesCell(task)}</td>
-      <td class="col-open">${openCell(task)}</td>
+      <td class="col-actions">${actionsCell(task)}</td>
     `
     tasksBody.appendChild(row)
   }
@@ -217,6 +251,75 @@ refreshBtn.addEventListener('click', () => {
 
 searchInput.addEventListener('input', applyAndRender)
 statusFilter.addEventListener('change', applyAndRender)
+
+createForm.addEventListener('submit', async (event) => {
+  event.preventDefault()
+  const body = {}
+  for (const [key, value] of new FormData(createForm).entries()) {
+    if (value) {
+      body[key] = value
+    }
+  }
+  await apiPost('/api/tasks', body)
+  createForm.reset()
+  const details = createForm.closest('details')
+  if (details) {
+    details.open = false
+  }
+})
+
+tasksBody.addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-action]')
+  if (button === null) {
+    return
+  }
+  const holder = button.closest('[data-project]')
+  const project = holder.dataset.project
+  const branch = holder.dataset.branch
+  switch (button.dataset.action) {
+    case 'launch':
+      await apiPost('/api/worktree/launch', { project, branch })
+      break
+    case 'start':
+      await apiPost('/api/server/start', { project, branch })
+      break
+    case 'stop':
+      await apiPost('/api/server/stop', { project, branch })
+      break
+    case 'escalate': {
+      const reason = window.prompt(translate(currentTranslations, 'actions.escalateReason'))
+      if (reason) {
+        await apiPost('/api/escalate', { project, branch, reason })
+      }
+      break
+    }
+    case 'cleanup':
+      if (window.confirm(translate(currentTranslations, 'actions.cleanupConfirm'))) {
+        await apiPost('/api/cleanup', { project, branch })
+      }
+      break
+    case 'add-item': {
+      const label = window.prompt(translate(currentTranslations, 'actions.addItemLabel'))
+      if (label) {
+        await apiPost('/api/task-items', { project, branch, label })
+      }
+      break
+    }
+  }
+})
+
+tasksBody.addEventListener('change', async (event) => {
+  const checkbox = event.target.closest('input[data-item-id]')
+  if (checkbox === null) {
+    return
+  }
+  await fetch(`/api/task-items/${checkbox.dataset.itemId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ done: checkbox.checked }),
+  })
+  await refreshTasks()
+})
 
 settingsBtn.addEventListener('click', (event) => {
   event.stopPropagation()

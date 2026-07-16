@@ -73,6 +73,17 @@
     </header>
     <section id="stats" class="stats" aria-live="polite"></section>
     <div class="filters">
+      <details class="create">
+        <summary data-i18n="form.new"></summary>
+        <form id="create-form">
+          <input name="project" required />
+          <input name="branch" required />
+          <input name="repoPath" />
+          <input name="runCommand" />
+          <input name="feature" />
+          <button type="submit" data-i18n="form.create"></button>
+        </form>
+      </details>
       <input id="search" type="search" />
       <select id="status-filter">
         <option value="" data-i18n="filter.allStatuses"></option>
@@ -96,7 +107,7 @@
             <th data-i18n="columns.tasks"></th>
             <th data-i18n="columns.updated"></th>
             <th data-i18n="columns.notes"></th>
-            <th data-i18n="columns.open"></th>
+            <th data-i18n="columns.actions"></th>
           </tr>
         </thead>
         <tbody id="tasks-body"></tbody>

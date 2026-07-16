@@ -10,7 +10,7 @@
     "notes": "Notas",
     "feature": "Feature",
     "tasks": "Tarefas",
-    "open": "Abrir"
+    "actions": "Ações"
   },
   "emptyState": "Nenhuma tarefa acompanhada por enquanto.",
   "lastRefresh": "Ultima atualizacao: {{time}}",
@@ -38,5 +38,24 @@
   "filter": {
     "search": "Buscar…",
     "allStatuses": "Todos os status"
+  },
+  "actions": {
+    "launch": "Lançar",
+    "start": "Iniciar",
+    "stop": "Parar",
+    "escalate": "Escalar",
+    "cleanup": "Limpar",
+    "escalateReason": "Motivo do escalonamento?",
+    "cleanupConfirm": "Limpar esta worktree (servidor + worktree git)?",
+    "addItemLabel": "Nova tarefa?"
+  },
+  "form": {
+    "new": "＋ Nova worktree",
+    "project": "Projeto",
+    "branch": "Branch",
+    "repoPath": "Caminho do repo",
+    "runCommand": "Comando (ex. npm run dev)",
+    "feature": "Feature",
+    "create": "Criar"
   }
 }

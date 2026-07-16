@@ -484,6 +484,103 @@ tbody tr:hover {
   text-decoration: underline;
 }
 
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.mini-btn {
+  padding: var(--sp-xs) var(--sp-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--sp-sm);
+  background: var(--surface-alt);
+  color: var(--text);
+  font-size: var(--f-caption);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mini-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.mini-btn.danger:hover {
+  border-color: var(--escalated-fg);
+  color: var(--escalated-fg);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-xs);
+}
+
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  font-size: var(--f-caption);
+  cursor: pointer;
+}
+
+.item-done {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.filters .create {
+  margin-right: auto;
+}
+
+.filters .create summary {
+  display: inline-block;
+  padding: var(--sp-sm) var(--sp-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: var(--f-base);
+  font-weight: 500;
+  list-style: none;
+}
+
+#create-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-sm);
+}
+
+#create-form input {
+  padding: var(--sp-sm) var(--sp-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--f-base);
+}
+
+#create-form button {
+  padding: var(--sp-sm) var(--sp-xl);
+  border: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .notes {
   display: inline-block;
   max-width: 380px;

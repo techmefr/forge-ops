@@ -10,7 +10,7 @@
     "notes": "ملاحظات",
     "feature": "الميزة",
     "tasks": "المهام",
-    "open": "فتح"
+    "actions": "إجراءات"
   },
   "emptyState": "لا توجد مهام متتبعة حاليا.",
   "lastRefresh": "اخر تحديث: {{time}}",
@@ -38,5 +38,24 @@
   "filter": {
     "search": "بحث…",
     "allStatuses": "كل الحالات"
+  },
+  "actions": {
+    "launch": "تشغيل",
+    "start": "بدء",
+    "stop": "إيقاف",
+    "escalate": "تصعيد",
+    "cleanup": "تنظيف",
+    "escalateReason": "سبب التصعيد؟",
+    "cleanupConfirm": "تنظيف شجرة العمل (الخادم + شجرة git)؟",
+    "addItemLabel": "مهمة جديدة؟"
+  },
+  "form": {
+    "new": "＋ شجرة عمل جديدة",
+    "project": "المشروع",
+    "branch": "الفرع",
+    "repoPath": "مسار المستودع",
+    "runCommand": "الأمر (مثل npm run dev)",
+    "feature": "الميزة",
+    "create": "إنشاء"
   }
 }

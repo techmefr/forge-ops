@@ -10,7 +10,7 @@
     "notes": "备注",
     "feature": "功能",
     "tasks": "任务",
-    "open": "打开"
+    "actions": "操作"
   },
   "emptyState": "暂无跟踪任务。",
   "lastRefresh": "最后刷新：{{time}}",
@@ -38,5 +38,24 @@
   "filter": {
     "search": "搜索…",
     "allStatuses": "所有状态"
+  },
+  "actions": {
+    "launch": "启动",
+    "start": "开始",
+    "stop": "停止",
+    "escalate": "升级",
+    "cleanup": "清理",
+    "escalateReason": "升级原因？",
+    "cleanupConfirm": "清理此工作树（服务器 + git 工作树）？",
+    "addItemLabel": "新任务？"
+  },
+  "form": {
+    "new": "＋ 新建工作树",
+    "project": "项目",
+    "branch": "分支",
+    "repoPath": "仓库路径",
+    "runCommand": "命令（如 npm run dev）",
+    "feature": "功能",
+    "create": "创建"
   }
 }

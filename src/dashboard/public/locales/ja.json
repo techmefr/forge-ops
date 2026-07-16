@@ -10,7 +10,7 @@
     "notes": "メモ",
     "feature": "機能",
     "tasks": "タスク",
-    "open": "開く"
+    "actions": "操作"
   },
   "emptyState": "追跡中のタスクはありません。",
   "lastRefresh": "最終更新: {{time}}",
@@ -38,5 +38,24 @@
   "filter": {
     "search": "検索…",
     "allStatuses": "すべてのステータス"
+  },
+  "actions": {
+    "launch": "作成",
+    "start": "開始",
+    "stop": "停止",
+    "escalate": "エスカレーション",
+    "cleanup": "クリーンアップ",
+    "escalateReason": "エスカレーションの理由は？",
+    "cleanupConfirm": "このワークツリー（サーバー + git ワークツリー）を削除しますか？",
+    "addItemLabel": "新しいタスク？"
+  },
+  "form": {
+    "new": "＋ 新規ワークツリー",
+    "project": "プロジェクト",
+    "branch": "ブランチ",
+    "repoPath": "リポジトリのパス",
+    "runCommand": "コマンド（例 npm run dev）",
+    "feature": "機能",
+    "create": "作成"
   }
 }
