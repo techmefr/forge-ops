@@ -7,7 +7,13 @@
 
 Socle **piloté par un humain** pour aider les devs à travailler avec les Git Worktrees,
 avec une **source de vérité unique** (SQLite) sur l'état de chaque worktree, exposée via
-un serveur MCP + un dashboard read-only. Pas de pipeline autonome.
+un serveur MCP + un dashboard **interactif**. Pas de pipeline autonome.
+
+**Architecture clé : une logique, deux transports.** Toute l'orchestration vit dans
+`src/operations.ts` (create/launch/start/stop/cleanup/escalate/checkpoint/items). Le serveur
+MCP (outils) **et** le dashboard (endpoints HTTP) appellent cette même couche — aucune
+duplication. Le dashboard n'est donc plus read-only : il crée/lance/démarre/arrête/nettoie/
+escalade et gère les tâches, exactement comme les outils MCP.
 
 ## 2. Décisions structurantes (déjà appliquées)
 
