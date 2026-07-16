@@ -25,6 +25,7 @@ export function registerTaskLifecycle(server: McpServer): void {
         repoPath: z.string().min(1).optional(),
         runCommand: z.string().min(1).optional(),
         feature: z.string().min(1).optional(),
+        role: z.enum(['front', 'back', 'service', 'other']).optional(),
       },
     },
     (args) => {

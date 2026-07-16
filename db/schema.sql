@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   run_command TEXT,      -- commande de lancement du serveur (le port lui est injecte via PORT)
   pid INTEGER,           -- PID du serveur lance par starfleet (null si arrete)
   feature TEXT,          -- groupe reliant plusieurs worktrees d'une meme feature (front + back)
+  role TEXT,             -- front | back | service | other : role de la worktree dans la feature
 
   status TEXT NOT NULL DEFAULT 'created',
     -- created | in_progress | done | escalated | awaiting_human

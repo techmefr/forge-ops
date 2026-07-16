@@ -12,6 +12,7 @@ interface ITaskRow {
   run_command: string | null
   pid: number | null
   feature: string | null
+  role: string | null
   status: string
   last_checkpoint: string | null
   context_summary: string | null
@@ -39,6 +40,7 @@ function rowToTask(row: ITaskRow): ITask {
     runCommand: row.run_command,
     pid: row.pid,
     feature: row.feature,
+    role: row.role,
     status: row.status as TaskStatus,
     lastCheckpoint: row.last_checkpoint as TaskCheckpoint | null,
     contextSummary: row.context_summary,
@@ -69,17 +71,19 @@ export interface ICreateTaskInput {
   repoPath?: string | null
   runCommand?: string | null
   feature?: string | null
+  role?: string | null
 }
 
 export function createTask(input: ICreateTaskInput): ITask {
   const row = db()
     .prepare(
-      `INSERT INTO tasks (project, branch, port, repo_path, run_command, feature)
-       VALUES (@project, @branch, @port, @repoPath, @runCommand, @feature)
+      `INSERT INTO tasks (project, branch, port, repo_path, run_command, feature, role)
+       VALUES (@project, @branch, @port, @repoPath, @runCommand, @feature, @role)
        ON CONFLICT(project, branch) DO UPDATE SET
          repo_path = coalesce(excluded.repo_path, repo_path),
          run_command = coalesce(excluded.run_command, run_command),
          feature = coalesce(excluded.feature, feature),
+         role = coalesce(excluded.role, role),
          updated_at = CURRENT_TIMESTAMP
        RETURNING *`,
     )
@@ -90,6 +94,7 @@ export function createTask(input: ICreateTaskInput): ITask {
       repoPath: input.repoPath ?? null,
       runCommand: input.runCommand ?? null,
       feature: input.feature ?? null,
+      role: input.role ?? null,
     }) as ITaskRow
   return rowToTask(row)
 }

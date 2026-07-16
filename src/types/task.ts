@@ -32,6 +32,7 @@ export interface ITask {
   runCommand: string | null
   pid: number | null
   feature: string | null
+  role: string | null
   status: TaskStatus
   lastCheckpoint: TaskCheckpoint | null
   contextSummary: string | null

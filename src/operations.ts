@@ -36,6 +36,7 @@ export interface ICreateInput {
   repoPath?: string | null
   runCommand?: string | null
   feature?: string | null
+  role?: string | null
 }
 
 export function createWorktree(input: ICreateInput): IOpResult<ITask> {

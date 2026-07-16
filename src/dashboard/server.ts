@@ -43,11 +43,11 @@ export function createDashboardApp(): express.Express {
   })
 
   app.post('/api/tasks', (req: Request, res: Response) => {
-    const { project, branch, repoPath, runCommand, feature } = req.body ?? {}
+    const { project, branch, repoPath, runCommand, feature, role } = req.body ?? {}
     if (!project || !branch) {
       return res.status(400).json({ ok: false, error: 'project et branch requis' })
     }
-    send(res, createWorktree({ project, branch, repoPath, runCommand, feature }))
+    send(res, createWorktree({ project, branch, repoPath, runCommand, feature, role }))
   })
 
   app.post('/api/worktree/launch', (req: Request, res: Response) => {
