@@ -48,7 +48,8 @@
     "cleanup": "Clean up",
     "escalateReason": "Escalation reason?",
     "cleanupConfirm": "Clean up this worktree (server + git worktree)?",
-    "addItemLabel": "New task?"
+    "addItemLabel": "New task?",
+    "open": "Open"
   },
   "form": {
     "new": "＋ New worktree",

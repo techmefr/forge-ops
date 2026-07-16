@@ -426,6 +426,21 @@ main {
   padding: var(--sp-xl);
 }
 
+.card--enter {
+  animation: cardIn 0.42s var(--ease) both;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .card-top {
   display: flex;
   align-items: center;

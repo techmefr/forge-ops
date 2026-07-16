@@ -48,7 +48,8 @@
     "cleanup": "تنظيف",
     "escalateReason": "سبب التصعيد؟",
     "cleanupConfirm": "تنظيف شجرة العمل (الخادم + شجرة git)؟",
-    "addItemLabel": "مهمة جديدة؟"
+    "addItemLabel": "مهمة جديدة؟",
+    "open": "فتح"
   },
   "form": {
     "new": "＋ شجرة عمل جديدة",

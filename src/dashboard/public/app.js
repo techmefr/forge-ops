@@ -33,6 +33,7 @@ let currentTranslations = null
 let currentLocale = detectLocale()
 let allTasks = []
 const expandedKeys = new Set()
+const seenKeys = new Set()
 
 function applyStaticTranslations() {
   appTitle.textContent = translate(currentTranslations, 'title')
@@ -186,23 +187,37 @@ function itemsPanel(task) {
   </div>`
 }
 
+// Icones Lucide (ISC) inline en SVG stroke — pas d'emoji/glyphe comme icone.
+const ICONS = {
+  open: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  launch: '<line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
+  start: '<polygon points="6 3 20 12 6 21 6 3"/>',
+  stop: '<rect x="3" y="3" width="18" height="18" rx="2"/>',
+  escalate: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>',
+  cleanup: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
+}
+
+function svg(name) {
+  return `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`
+}
+
 function actionsCell(task) {
   const t = (key) => translate(currentTranslations, key)
-  const icon = (symbol, action, label, danger) =>
-    `<button type="button" class="icon-btn${danger ? ' danger' : ''}" data-action="${action}" title="${label}" aria-label="${label}">${symbol}</button>`
+  const btn = (name, action, label, danger) =>
+    `<button type="button" class="icon-btn${danger ? ' danger' : ''}" data-action="${action}" title="${label}" aria-label="${label}">${svg(name)}</button>`
   const parts = [
-    `<a class="icon-btn" href="${escapeHtml(task.url)}" target="_blank" rel="noopener" title="${t('columns.open')}" aria-label="${t('columns.open')}">↗</a>`,
+    `<a class="icon-btn" href="${escapeHtml(task.url)}" target="_blank" rel="noopener" title="${t('actions.open')}" aria-label="${t('actions.open')}">${svg('open')}</a>`,
   ]
   if (task.worktreePath === null && task.repoPath !== null) {
-    parts.push(icon('⊕', 'launch', t('actions.launch')))
+    parts.push(btn('launch', 'launch', t('actions.launch')))
   }
   if (task.pid !== null) {
-    parts.push(icon('◼', 'stop', t('actions.stop')))
+    parts.push(btn('stop', 'stop', t('actions.stop')))
   } else if (task.runCommand !== null) {
-    parts.push(icon('▶', 'start', t('actions.start')))
+    parts.push(btn('start', 'start', t('actions.start')))
   }
-  parts.push(icon('⚑', 'escalate', t('actions.escalate')))
-  parts.push(icon('✕', 'cleanup', t('actions.cleanup'), true))
+  parts.push(btn('escalate', 'escalate', t('actions.escalate')))
+  parts.push(btn('cleanup', 'cleanup', t('actions.cleanup'), true))
   return `<div class="actions" data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}">${parts.join('')}</div>`
 }
 
@@ -215,10 +230,18 @@ function renderTasks(tasks) {
   emptyState.hidden = tasks.length > 0
   emptyState.textContent = translate(currentTranslations, 'emptyState')
 
+  let newIndex = 0
   for (const task of tasks) {
     const card = document.createElement('article')
     card.className = 'card'
     card.style.setProperty('--chip-h', hueFor(task.project))
+    const key = `${task.project}::${task.branch}`
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key)
+      card.classList.add('card--enter')
+      card.style.animationDelay = `${newIndex * 45}ms`
+      newIndex += 1
+    }
     const chips = task.feature || task.role ? `<div class="card-chips">${featureCell(task)}</div>` : ''
     const notes =
       task.escalationReason !== null || task.contextSummary !== null

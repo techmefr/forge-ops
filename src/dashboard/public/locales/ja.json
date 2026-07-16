@@ -48,7 +48,8 @@
     "cleanup": "クリーンアップ",
     "escalateReason": "エスカレーションの理由は？",
     "cleanupConfirm": "このワークツリー（サーバー + git ワークツリー）を削除しますか？",
-    "addItemLabel": "新しいタスク？"
+    "addItemLabel": "新しいタスク？",
+    "open": "開く"
   },
   "form": {
     "new": "＋ 新規ワークツリー",

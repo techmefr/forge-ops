@@ -48,7 +48,8 @@
     "cleanup": "Limpiar",
     "escalateReason": "¿Motivo del escalado?",
     "cleanupConfirm": "¿Limpiar esta worktree (servidor + worktree git)?",
-    "addItemLabel": "¿Nueva tarea?"
+    "addItemLabel": "¿Nueva tarea?",
+    "open": "Abrir"
   },
   "form": {
     "new": "＋ Nueva worktree",
