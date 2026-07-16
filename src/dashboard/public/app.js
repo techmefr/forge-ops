@@ -67,11 +67,11 @@ function renderStats(tasks) {
   const escalated = tasks.filter((task) => task.status === 'escalated').length
   const review = tasks.filter((task) => task.status === 'awaiting_human').length
   const tiles = [
-    { value: projects, label: translate(currentTranslations, 'stats.projects'), hue: 262 },
-    { value: tasks.length, label: translate(currentTranslations, 'stats.worktrees'), hue: 200 },
-    { value: online, label: translate(currentTranslations, 'online'), hue: 150 },
-    { value: escalated, label: translate(currentTranslations, 'stats.escalated'), hue: 28 },
-    { value: review, label: translate(currentTranslations, 'stats.review'), hue: 288 },
+    { value: projects, label: translate(currentTranslations, 'stats.projects'), hue: 250 },
+    { value: tasks.length, label: translate(currentTranslations, 'stats.worktrees'), hue: 211 },
+    { value: online, label: translate(currentTranslations, 'online'), hue: 120 },
+    { value: escalated, label: translate(currentTranslations, 'stats.escalated'), hue: 1 },
+    { value: review, label: translate(currentTranslations, 'stats.review'), hue: 16 },
   ]
   statsEl.innerHTML = tiles
     .map(
@@ -126,12 +126,18 @@ function escapeHtml(value) {
   })
 }
 
+// Teintes derivees de la palette categorielle validee (dataviz), ordre CVD-safe :
+// bleu, aqua, jaune, vert, violet, rouge, magenta, orange.
+const CATEGORICAL_HUES = [211, 160, 41, 120, 250, 1, 340, 16]
+
+// La couleur suit le projet (stable par nom, jamais recyclee arbitrairement) :
+// on mappe le nom vers un slot fixe de la palette plutot que de generer une teinte.
 function hueFor(text) {
   let hash = 0
   for (let i = 0; i < text.length; i += 1) {
-    hash = (hash * 31 + text.charCodeAt(i)) % 360
+    hash = (hash * 31 + text.charCodeAt(i)) >>> 0
   }
-  return hash
+  return CATEGORICAL_HUES[hash % CATEGORICAL_HUES.length]
 }
 
 function projectChip(project) {
