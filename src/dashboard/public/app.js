@@ -32,8 +32,6 @@ const createForm = document.getElementById('create-form')
 let currentTranslations = null
 let currentLocale = detectLocale()
 let allTasks = []
-const expandedKeys = new Set()
-const seenKeys = new Set()
 
 function applyStaticTranslations() {
   appTitle.textContent = translate(currentTranslations, 'title')
@@ -167,12 +165,6 @@ function liveDot(task) {
   return `<span class="${cls}" title="${label}" aria-label="${label}"></span>`
 }
 
-function tasksCell(task) {
-  const items = task.items ?? []
-  const done = items.filter((item) => item.done).length
-  return `<button type="button" class="tasks-count" data-action="toggle-items">☑ ${done}/${items.length}</button>`
-}
-
 function itemsPanel(task) {
   const items = task.items ?? []
   const list = items
@@ -225,29 +217,13 @@ function metaCell(labelKey, value) {
   return `<div><dt>${translate(currentTranslations, `columns.${labelKey}`)}</dt><dd>${value}</dd></div>`
 }
 
-function renderTasks(tasks) {
-  tasksBody.innerHTML = ''
-  emptyState.hidden = tasks.length > 0
-  emptyState.textContent = translate(currentTranslations, 'emptyState')
-
-  let newIndex = 0
-  for (const task of tasks) {
-    const card = document.createElement('article')
-    card.className = 'card'
-    card.style.setProperty('--chip-h', hueFor(task.project))
-    const key = `${task.project}::${task.branch}`
-    if (!seenKeys.has(key)) {
-      seenKeys.add(key)
-      card.classList.add('card--enter')
-      card.style.animationDelay = `${newIndex * 45}ms`
-      newIndex += 1
-    }
-    const chips = task.feature || task.role ? `<div class="card-chips">${featureCell(task)}</div>` : ''
-    const notes =
-      task.escalationReason !== null || task.contextSummary !== null
-        ? `<div class="card-notes">${notesCell(task)}</div>`
-        : ''
-    card.innerHTML = `
+function cardInner(task) {
+  const chips = task.feature || task.role ? `<div class="card-chips">${featureCell(task)}</div>` : ''
+  const notes =
+    task.escalationReason !== null || task.contextSummary !== null
+      ? `<div class="card-notes">${notesCell(task)}</div>`
+      : ''
+  return `
       <div class="card-top">
         ${projectChip(task.project)}
         <span class="status-badge status-${task.status}">${liveDot(task)}${task.status}</span>
@@ -261,9 +237,53 @@ function renderTasks(tasks) {
       </dl>
       <div class="card-tasks">${itemsPanel(task)}</div>
       ${notes}
-      <div class="card-foot">${actionsCell(task)}</div>
-    `
-    tasksBody.appendChild(card)
+      <div class="card-foot">${actionsCell(task)}</div>`
+}
+
+// Mise a jour differentielle : on ne touche que les cards qui changent, on
+// ajoute les nouvelles (avec animation d'entree), on retire les disparues, on
+// preserve l'ordre. Evite le rebuild total chaque seconde (flicker, perte du
+// survol/focus) et ne rejoue l'animation que sur les vraies nouvelles cards.
+function renderTasks(tasks) {
+  emptyState.hidden = tasks.length > 0
+  emptyState.textContent = translate(currentTranslations, 'emptyState')
+
+  const existing = new Map()
+  for (const el of tasksBody.children) {
+    existing.set(el.dataset.key, el)
+  }
+
+  const used = new Set()
+  let previous = null
+  let newIndex = 0
+  for (const task of tasks) {
+    const key = `${task.project}::${task.branch}`
+    used.add(key)
+    const html = cardInner(task)
+    let card = existing.get(key)
+    if (card === undefined) {
+      card = document.createElement('article')
+      card.className = 'card card--enter'
+      card.dataset.key = key
+      card.style.animationDelay = `${newIndex * 45}ms`
+      newIndex += 1
+    }
+    if (card.dataset.sig !== html) {
+      card.innerHTML = html
+      card.dataset.sig = html
+      card.style.setProperty('--chip-h', hueFor(task.project))
+    }
+    const anchor = previous === null ? tasksBody.firstChild : previous.nextSibling
+    if (anchor !== card) {
+      tasksBody.insertBefore(card, anchor)
+    }
+    previous = card
+  }
+
+  for (const [key, el] of existing) {
+    if (!used.has(key)) {
+      el.remove()
+    }
   }
 }
 
@@ -363,19 +383,6 @@ createForm.addEventListener('submit', async (event) => {
 tasksBody.addEventListener('click', async (event) => {
   const button = event.target.closest('button[data-action]')
   if (button === null) {
-    return
-  }
-  if (button.dataset.action === 'toggle-items') {
-    const row = button.closest('tr')
-    const detail = row.nextElementSibling
-    if (detail !== null && detail.classList.contains('detail-row')) {
-      detail.hidden = !detail.hidden
-      if (detail.hidden) {
-        expandedKeys.delete(row.dataset.key)
-      } else {
-        expandedKeys.add(row.dataset.key)
-      }
-    }
     return
   }
   const holder = button.closest('[data-project]')
