@@ -37,7 +37,8 @@
   },
   "filter": {
     "search": "검색…",
-    "allStatuses": "모든 상태"
+    "allStatuses": "모든 상태",
+    "allProjects": "모든 프로젝트"
   },
   "actions": {
     "launch": "실행",
@@ -56,6 +57,7 @@
     "repoPath": "저장소 경로",
     "runCommand": "명령 (예: npm run dev)",
     "feature": "기능",
-    "create": "생성"
+    "create": "생성",
+    "role": "역할…"
   }
 }

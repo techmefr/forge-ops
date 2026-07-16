@@ -26,6 +26,7 @@ const refreshBtn = document.getElementById('refresh-btn')
 const statsEl = document.getElementById('stats')
 const searchInput = document.getElementById('search')
 const statusFilter = document.getElementById('status-filter')
+const projectFilter = document.getElementById('project-filter')
 const createForm = document.getElementById('create-form')
 
 let currentTranslations = null
@@ -79,13 +80,33 @@ function renderStats(tasks) {
     .join('')
 }
 
+function populateProjectFilter() {
+  const projects = [...new Set(allTasks.map((task) => task.project))].sort()
+  const signature = `${currentLocale}|${projects.join('|')}`
+  if (projectFilter.dataset.sig === signature) {
+    return
+  }
+  projectFilter.dataset.sig = signature
+  const current = projectFilter.value
+  const allLabel = translate(currentTranslations, 'filter.allProjects')
+  projectFilter.innerHTML =
+    `<option value="">${allLabel}</option>` +
+    projects.map((p) => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('')
+  if (projects.includes(current)) {
+    projectFilter.value = current
+  }
+}
+
 function applyAndRender() {
+  populateProjectFilter()
   const query = searchInput.value.trim().toLowerCase()
   const status = statusFilter.value
+  const project = projectFilter.value
   const filtered = allTasks.filter((task) => {
     const matchStatus = status === '' || task.status === status
+    const matchProject = project === '' || task.project === project
     const haystack = `${task.project} ${task.branch} ${task.feature ?? ''}`.toLowerCase()
-    return matchStatus && (query === '' || haystack.includes(query))
+    return matchStatus && matchProject && (query === '' || haystack.includes(query))
   })
   renderStats(allTasks)
   renderTasks(filtered)
@@ -102,6 +123,24 @@ function escapeHtml(value) {
   return value.replace(/[&<>"]/g, (char) => {
     return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]
   })
+}
+
+function hueFor(text) {
+  let hash = 0
+  for (let i = 0; i < text.length; i += 1) {
+    hash = (hash * 31 + text.charCodeAt(i)) % 360
+  }
+  return hash
+}
+
+function projectChip(project) {
+  return `<span class="chip chip-project" style="--chip-h:${hueFor(project)}">${escapeHtml(project)}</span>`
+}
+
+function featureCell(task) {
+  const role = task.role ? `<span class="chip role-${escapeHtml(task.role)}">${escapeHtml(task.role)}</span>` : ''
+  const feature = task.feature ? `<span class="feature-name">${escapeHtml(task.feature)}</span>` : ''
+  return role || feature ? `${role}${feature}` : '—'
 }
 
 function notesCell(task) {
@@ -161,9 +200,9 @@ function renderTasks(tasks) {
   for (const task of tasks) {
     const row = document.createElement('tr')
     row.innerHTML = `
-      <td data-label="${label('project')}">${escapeHtml(task.project)}</td>
+      <td data-label="${label('project')}">${projectChip(task.project)}</td>
       <td data-label="${label('branch')}">${escapeHtml(task.branch)}</td>
-      <td data-label="${label('feature')}" class="col-muted">${task.feature ? escapeHtml(task.feature) : '—'}</td>
+      <td data-label="${label('feature')}" class="col-feature">${featureCell(task)}</td>
       <td data-label="${label('port')}" class="col-port">${task.port}</td>
       <td data-label="${label('status')}" class="col-status">${liveDot(task)}<span class="status-badge status-${task.status}">${task.status}</span></td>
       <td data-label="${label('checkpoint')}" class="col-muted col-nowrap">${task.lastCheckpoint ?? '—'}</td>
@@ -251,6 +290,7 @@ refreshBtn.addEventListener('click', () => {
 
 searchInput.addEventListener('input', applyAndRender)
 statusFilter.addEventListener('change', applyAndRender)
+projectFilter.addEventListener('change', applyAndRender)
 
 createForm.addEventListener('submit', async (event) => {
   event.preventDefault()

@@ -37,7 +37,8 @@
   },
   "filter": {
     "search": "Rechercher…",
-    "allStatuses": "Tous les statuts"
+    "allStatuses": "Tous les statuts",
+    "allProjects": "Tous les projets"
   },
   "actions": {
     "launch": "Lancer",
@@ -56,6 +57,7 @@
     "repoPath": "Chemin du repo",
     "runCommand": "Commande (ex. npm run dev)",
     "feature": "Feature",
-    "create": "Créer"
+    "create": "Créer",
+    "role": "Rôle…"
   }
 }

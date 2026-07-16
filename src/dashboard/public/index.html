@@ -81,10 +81,18 @@
           <input name="repoPath" />
           <input name="runCommand" />
           <input name="feature" />
+          <select name="role">
+            <option value="" data-i18n="form.role"></option>
+            <option value="front">front</option>
+            <option value="back">back</option>
+            <option value="service">service</option>
+            <option value="other">other</option>
+          </select>
           <button type="submit" data-i18n="form.create"></button>
         </form>
       </details>
       <input id="search" type="search" />
+      <select id="project-filter"></select>
       <select id="status-filter">
         <option value="" data-i18n="filter.allStatuses"></option>
         <option value="created">created</option>

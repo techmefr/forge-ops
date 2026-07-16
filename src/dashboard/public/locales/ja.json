@@ -37,7 +37,8 @@
   },
   "filter": {
     "search": "検索…",
-    "allStatuses": "すべてのステータス"
+    "allStatuses": "すべてのステータス",
+    "allProjects": "すべてのプロジェクト"
   },
   "actions": {
     "launch": "作成",
@@ -56,6 +57,7 @@
     "repoPath": "リポジトリのパス",
     "runCommand": "コマンド（例 npm run dev）",
     "feature": "機能",
-    "create": "作成"
+    "create": "作成",
+    "role": "役割…"
   }
 }

@@ -382,7 +382,8 @@ input[type='range']::-moz-range-thumb {
 }
 
 #search,
-#status-filter {
+#status-filter,
+#project-filter {
   padding: var(--sp-sm) var(--sp-lg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -596,13 +597,62 @@ tbody tr:hover {
   font-weight: 600;
 }
 
+.chip,
 .status-badge {
-  display: inline-block;
-  padding: var(--sp-xs) var(--sp-sm);
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
   border-radius: var(--radius-pill);
-  font-size: var(--f-caption);
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.col-feature {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-xs);
+}
+
+.feature-name {
+  font-size: var(--f-caption);
+  color: var(--text-muted);
+}
+
+.chip-project {
+  background: hsl(var(--chip-h) 55% 91%);
+  color: hsl(var(--chip-h) 85% 19%);
+}
+
+.role-front {
+  background: var(--in-progress-bg);
+  color: var(--in-progress-fg);
+}
+.role-back {
+  background: var(--awaiting-human-bg);
+  color: var(--awaiting-human-fg);
+}
+.role-service {
+  background: var(--done-bg);
+  color: var(--done-fg);
+}
+.role-other {
+  background: var(--created-bg);
+  color: var(--created-fg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .chip-project {
+    background: hsl(var(--chip-h) 30% 24%);
+    color: hsl(var(--chip-h) 68% 82%);
+  }
+}
+
+:root[data-theme='dark'] .chip-project {
+  background: hsl(var(--chip-h) 30% 24%);
+  color: hsl(var(--chip-h) 68% 82%);
 }
 
 .status-created {

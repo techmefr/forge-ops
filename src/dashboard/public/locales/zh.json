@@ -37,7 +37,8 @@
   },
   "filter": {
     "search": "搜索…",
-    "allStatuses": "所有状态"
+    "allStatuses": "所有状态",
+    "allProjects": "所有项目"
   },
   "actions": {
     "launch": "启动",
@@ -56,6 +57,7 @@
     "repoPath": "仓库路径",
     "runCommand": "命令（如 npm run dev）",
     "feature": "功能",
-    "create": "创建"
+    "create": "创建",
+    "role": "角色…"
   }
 }

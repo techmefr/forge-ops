@@ -37,7 +37,8 @@
   },
   "filter": {
     "search": "بحث…",
-    "allStatuses": "كل الحالات"
+    "allStatuses": "كل الحالات",
+    "allProjects": "كل المشاريع"
   },
   "actions": {
     "launch": "تشغيل",
@@ -56,6 +57,7 @@
     "repoPath": "مسار المستودع",
     "runCommand": "الأمر (مثل npm run dev)",
     "feature": "الميزة",
-    "create": "إنشاء"
+    "create": "إنشاء",
+    "role": "الدور…"
   }
 }
