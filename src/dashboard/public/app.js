@@ -67,16 +67,16 @@ function renderStats(tasks) {
   const escalated = tasks.filter((task) => task.status === 'escalated').length
   const review = tasks.filter((task) => task.status === 'awaiting_human').length
   const tiles = [
-    { value: projects, label: translate(currentTranslations, 'stats.projects') },
-    { value: tasks.length, label: translate(currentTranslations, 'stats.worktrees') },
-    { value: online, label: translate(currentTranslations, 'online') },
-    { value: escalated, label: translate(currentTranslations, 'stats.escalated') },
-    { value: review, label: translate(currentTranslations, 'stats.review') },
+    { value: projects, label: translate(currentTranslations, 'stats.projects'), hue: 262 },
+    { value: tasks.length, label: translate(currentTranslations, 'stats.worktrees'), hue: 200 },
+    { value: online, label: translate(currentTranslations, 'online'), hue: 150 },
+    { value: escalated, label: translate(currentTranslations, 'stats.escalated'), hue: 28 },
+    { value: review, label: translate(currentTranslations, 'stats.review'), hue: 288 },
   ]
   statsEl.innerHTML = tiles
     .map(
       (tile) =>
-        `<div class="stat"><span class="stat-value">${tile.value}</span><span class="stat-label">${tile.label}</span></div>`,
+        `<div class="stat" style="--chip-h:${tile.hue}"><span class="stat-value">${tile.value}</span><span class="stat-label">${tile.label}</span></div>`,
     )
     .join('')
 }

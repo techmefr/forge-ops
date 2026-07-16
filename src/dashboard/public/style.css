@@ -342,9 +342,6 @@ input[type='range']::-moz-range-thumb {
   flex-direction: column;
   gap: var(--sp-xs);
   padding: var(--sp-lg);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
 }
 
 .stat-value {
@@ -398,42 +395,34 @@ main {
   gap: var(--sp-xl);
 }
 
+/* Effet partage : fond en degrade depuis le haut-droit (teinte par --chip-h)
+   + neon colore dessous. Applique aux cards worktree et aux tuiles KPI. */
+.card,
+.stat {
+  border: 1px solid var(--border);
+  border-radius: 22px 6px 22px 6px;
+  background:
+    radial-gradient(
+      135% 105% at 100% 0%,
+      hsl(var(--chip-h, 220) 82% 56% / 0.22),
+      transparent 58%
+    ),
+    var(--surface);
+  box-shadow: 0 14px 30px -14px hsl(var(--chip-h, 220) 82% 52% / 0.45);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.card:hover,
+.stat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px -12px hsl(var(--chip-h, 220) 82% 52% / 0.62);
+}
+
 .card {
   display: flex;
   flex-direction: column;
   gap: var(--sp-sm);
   padding: var(--sp-xl);
-  border: 1.5px solid transparent;
-  border-radius: 26px 6px 26px 6px;
-  background:
-    linear-gradient(var(--surface), var(--surface)) padding-box,
-    linear-gradient(
-        215deg,
-        hsl(var(--chip-h) 78% 55%) 0%,
-        hsl(var(--chip-h) 78% 55% / 0.18) 38%,
-        var(--border) 78%
-      )
-      border-box;
-  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.05);
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow);
-}
-
-.card:nth-child(even) {
-  border-radius: 6px 26px 6px 26px;
-  background:
-    linear-gradient(var(--surface), var(--surface)) padding-box,
-    linear-gradient(
-        155deg,
-        hsl(var(--chip-h) 78% 55%) 0%,
-        hsl(var(--chip-h) 78% 55% / 0.18) 38%,
-        var(--border) 78%
-      )
-      border-box;
 }
 
 .card-top {
