@@ -78,7 +78,8 @@
   },
   "tabs": {
     "worktrees": "Worktrees",
-    "arch": "Arquitectura"
+    "arch": "Arquitectura",
+    "graphSoon": "Grafo (pronto)"
   },
   "arch": {
     "empty": "Sin arquitectura definida. Los agentes la rellenan en la etapa de arquitectura."

@@ -78,7 +78,8 @@
   },
   "tabs": {
     "worktrees": "工作树",
-    "arch": "架构"
+    "arch": "架构",
+    "graphSoon": "图谱（即将）"
   },
   "arch": {
     "empty": "尚未定义架构。代理在架构阶段填充它。"

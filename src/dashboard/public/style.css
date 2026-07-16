@@ -105,11 +105,97 @@ html {
 
 body {
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  padding: var(--sp-2xl) var(--sp-xl);
+  padding: 0;
   background: transparent;
   color: var(--text);
   line-height: 1.5;
   font-size: var(--f-base);
+}
+
+.app {
+  display: flex;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+  width: 232px;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xl);
+  padding: var(--sp-xl) var(--sp-lg);
+  border-right: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  width: 100%;
+  padding: var(--sp-sm) var(--sp-lg);
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--f-base);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.18s var(--ease), background-color 0.18s var(--ease);
+}
+
+.nav-item svg {
+  flex-shrink: 0;
+}
+
+.nav-item:hover {
+  background: var(--surface-alt);
+  color: var(--text);
+}
+
+.nav-item.is-active {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.nav-soon {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: none;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  padding: var(--sp-xl);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-sm);
+  max-width: var(--content-max);
+  margin: 0 auto var(--sp-lg);
+}
+
+.topbar .refresh-row {
+  min-width: 0;
 }
 
 :focus-visible {
@@ -925,7 +1011,28 @@ tbody td {
 }
 
 @media (max-width: 900px) {
-  body {
+  .app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: static;
+    width: auto;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--sp-lg);
+    padding: var(--sp-sm) var(--sp-lg);
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .nav {
+    flex-direction: row;
+  }
+
+  .content {
     padding: var(--sp-lg) var(--sp-sm);
   }
 

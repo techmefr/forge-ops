@@ -78,7 +78,8 @@
   },
   "tabs": {
     "worktrees": "Worktrees",
-    "arch": "Architecture"
+    "arch": "Architecture",
+    "graphSoon": "Graphe (bientôt)"
   },
   "arch": {
     "empty": "Aucune architecture définie. Les agents la remplissent à l'étape archi."

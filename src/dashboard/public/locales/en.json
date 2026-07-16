@@ -78,7 +78,8 @@
   },
   "tabs": {
     "worktrees": "Worktrees",
-    "arch": "Architecture"
+    "arch": "Architecture",
+    "graphSoon": "Graph (soon)"
   },
   "arch": {
     "empty": "No architecture defined yet. Agents fill it during the archi step."
