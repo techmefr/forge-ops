@@ -2,6 +2,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import express, { type Request, type Response } from 'express'
 import { listTaskItems, listTasks } from '../db/tasks.js'
+import { listArchNodes } from '../db/arch.js'
 import { isPortListening } from '../health.js'
 import {
   addItem,
@@ -41,6 +42,10 @@ export function createDashboardApp(): express.Express {
       })),
     )
     res.json(enriched)
+  })
+
+  app.get('/api/arch', (_req: Request, res: Response) => {
+    res.json(listArchNodes())
   })
 
   app.post('/api/tasks', (req: Request, res: Response) => {

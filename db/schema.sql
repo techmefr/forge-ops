@@ -43,3 +43,17 @@ CREATE TABLE IF NOT EXISTS task_items (
 );
 
 CREATE INDEX IF NOT EXISTS idx_task_items_task ON task_items(task_id);
+
+CREATE TABLE IF NOT EXISTS arch_nodes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project TEXT NOT NULL,
+  path TEXT NOT NULL,          -- ou ira le fichier/module
+  purpose TEXT,                -- a quoi il sert
+  status TEXT NOT NULL DEFAULT 'planned',  -- planned | in_progress | done
+  feature TEXT,                -- feature/worktree qui le livre
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (project, path)
+);
+
+CREATE INDEX IF NOT EXISTS idx_arch_project ON arch_nodes(project);

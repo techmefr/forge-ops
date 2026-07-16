@@ -14,6 +14,19 @@ export type TaskCheckpoint =
   | 'simplified'
   | 'mr_draft_pushed'
 
+export type ArchStatus = 'planned' | 'in_progress' | 'done'
+
+export interface IArchNode {
+  id: number
+  project: string
+  path: string
+  purpose: string | null
+  status: ArchStatus
+  feature: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export interface ITaskItem {
   id: number
   taskId: number

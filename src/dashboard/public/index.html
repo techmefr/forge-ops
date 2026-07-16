@@ -74,7 +74,11 @@
       </div>
     </header>
     <section id="stats" class="stats" aria-live="polite"></section>
-    <div class="filters">
+    <div class="tabs" role="tablist">
+      <button id="tab-worktrees" class="tab is-active" data-tab="worktrees" data-i18n="tabs.worktrees"></button>
+      <button id="tab-arch" class="tab" data-tab="arch" data-i18n="tabs.arch"></button>
+    </div>
+    <div id="filters" class="filters">
       <details class="create">
         <summary data-i18n="form.new"></summary>
         <form id="create-form">
@@ -124,6 +128,7 @@
       </table>
       <p id="empty-state" hidden></p>
     </main>
+    <section id="arch-view" hidden></section>
     <script type="module" src="/app.js"></script>
     <script type="module" src="/starfield.js"></script>
   </body>

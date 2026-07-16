@@ -75,5 +75,17 @@
     "stop": "starfleet이 시작한 서버 중지",
     "escalate": "차단됨으로 표시 — 사람 필요",
     "cleanup": "서버 중지 + git 워크트리 삭제 + 행 삭제"
+  },
+  "tabs": {
+    "worktrees": "워크트리",
+    "arch": "아키텍처"
+  },
+  "arch": {
+    "empty": "아키텍처가 아직 없습니다. 에이전트가 아키 단계에서 채웁니다."
+  },
+  "archStatus": {
+    "planned": "예정",
+    "in_progress": "진행 중",
+    "done": "완료"
   }
 }

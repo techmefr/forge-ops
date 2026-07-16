@@ -75,5 +75,17 @@
     "stop": "starfleet が起動したサーバーを停止",
     "escalate": "ブロックとして記録 — 人手が必要",
     "cleanup": "サーバー停止 + git ワークツリー削除 + 行削除"
+  },
+  "tabs": {
+    "worktrees": "ワークツリー",
+    "arch": "アーキテクチャ"
+  },
+  "arch": {
+    "empty": "アーキテクチャ未定義。エージェントがアーキ工程で記入します。"
+  },
+  "archStatus": {
+    "planned": "予定",
+    "in_progress": "進行中",
+    "done": "完了"
   }
 }

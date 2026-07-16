@@ -12,6 +12,9 @@ import {
   updateCheckpoint,
 } from './db/tasks.js'
 import { addWorktreeForBranch, removeWorktreeForBranch, updateBaseBranch } from './git/worktree.js'
+import { markArchFeatureDone, setArchNode } from './db/arch.js'
+import type { ISetArchInput } from './db/arch.js'
+import type { IArchNode } from './types/task.js'
 import { isProcessAlive, startServer, stopServer } from './process/runner.js'
 import type { ITask, ITaskItem, TaskCheckpoint } from './types/task.js'
 
@@ -152,6 +155,9 @@ export function finishTask(
     task.repoPath !== null
       ? updateBaseBranch(task.repoPath, base)
       : { updated: false, detail: 'repoPath manquant' }
+  if (task.feature !== null) {
+    markArchFeatureDone(task.feature)
+  }
   const rowDeleted = cleanupTask(project, branch)
   return {
     ok: rowDeleted,
@@ -164,6 +170,10 @@ export function finishTask(
       rowDeleted,
     },
   }
+}
+
+export function setArch(input: ISetArchInput): IOpResult<IArchNode> {
+  return { ok: true, data: setArchNode(input) }
 }
 
 export function escalate(project: string, branch: string, reason: string): IOpResult<ITask> {

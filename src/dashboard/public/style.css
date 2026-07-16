@@ -1060,3 +1060,101 @@ tbody td {
     transform: none;
   }
 }
+
+/* --- Onglets + vue Architecture --- */
+.tabs {
+  display: flex;
+  gap: var(--sp-sm);
+  max-width: var(--content-max);
+  margin: 0 auto var(--sp-lg);
+}
+
+.tab {
+  padding: var(--sp-sm) var(--sp-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: var(--f-caption);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.18s var(--ease), background-color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+
+.tab.is-active {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+
+#arch-view {
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.arch-group {
+  margin-bottom: var(--sp-xl);
+}
+
+.arch-group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  margin-bottom: var(--sp-sm);
+  font-weight: 700;
+}
+
+.arch-list {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.arch-node {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-lg);
+  padding: var(--sp-sm) var(--sp-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.arch-node:last-child {
+  border-bottom: none;
+}
+
+.arch-node:hover {
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+
+.arch-path {
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Code", monospace;
+  font-size: var(--f-caption);
+}
+
+.arch-purpose {
+  flex: 1;
+  min-width: 140px;
+  color: var(--text-muted);
+  font-size: var(--f-caption);
+}
+
+.arch-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: var(--sp-3xl);
+}
+
+.arch-planned {
+  background: var(--created-bg);
+  color: var(--created-fg);
+}
+.arch-in_progress {
+  background: var(--in-progress-bg);
+  color: var(--in-progress-fg);
+}
+.arch-done {
+  background: var(--done-bg);
+  color: var(--done-fg);
+}

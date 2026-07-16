@@ -75,5 +75,17 @@
     "stop": "Arrêter le serveur lancé par starfleet",
     "escalate": "Marquer bloquée — besoin d'un humain",
     "cleanup": "Arrêter le serveur + supprimer la worktree git + la ligne"
+  },
+  "tabs": {
+    "worktrees": "Worktrees",
+    "arch": "Architecture"
+  },
+  "arch": {
+    "empty": "Aucune architecture définie. Les agents la remplissent à l'étape archi."
+  },
+  "archStatus": {
+    "planned": "En attente",
+    "in_progress": "En cours",
+    "done": "Fini"
   }
 }

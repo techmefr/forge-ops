@@ -28,6 +28,11 @@ const searchInput = document.getElementById('search')
 const statusFilter = document.getElementById('status-filter')
 const projectFilter = document.getElementById('project-filter')
 const createForm = document.getElementById('create-form')
+const tabWorktrees = document.getElementById('tab-worktrees')
+const tabArch = document.getElementById('tab-arch')
+const filtersEl = document.getElementById('filters')
+const mainEl = document.querySelector('main')
+const archView = document.getElementById('arch-view')
 
 let currentTranslations = null
 let currentLocale = detectLocale()
@@ -45,6 +50,61 @@ function applyStaticTranslations() {
     createForm.elements[name].setAttribute('placeholder', translate(currentTranslations, `form.${name}`))
   }
   localeSelect.value = currentLocale
+  if (!archView.hidden) {
+    renderArch()
+  }
+}
+
+async function renderArch() {
+  const t = (key) => translate(currentTranslations, key)
+  let nodes = []
+  try {
+    nodes = await (await fetch('/api/arch')).json()
+  } catch (error) {
+    nodes = []
+  }
+  if (nodes.length === 0) {
+    archView.innerHTML = `<p class="arch-empty">${t('arch.empty')}</p>`
+    return
+  }
+  const byProject = new Map()
+  for (const node of nodes) {
+    if (!byProject.has(node.project)) {
+      byProject.set(node.project, [])
+    }
+    byProject.get(node.project).push(node)
+  }
+  archView.innerHTML = [...byProject.keys()]
+    .sort()
+    .map((project) => {
+      const rows = byProject
+        .get(project)
+        .map(
+          (n) => `<div class="arch-node">
+            <code class="arch-path">${escapeHtml(n.path)}</code>
+            <span class="arch-purpose">${n.purpose ? escapeHtml(n.purpose) : '—'}</span>
+            <span class="chip arch-${n.status}">${t(`archStatus.${n.status}`)}</span>
+          </div>`,
+        )
+        .join('')
+      return `<div class="arch-group" style="--chip-h:${hueFor(project)}">
+        <div class="arch-group-head">${projectChip(project)}<span class="group-name">${escapeHtml(project)}</span></div>
+        <div class="arch-list">${rows}</div>
+      </div>`
+    })
+    .join('')
+}
+
+function setTab(tab) {
+  const arch = tab === 'arch'
+  tabWorktrees.classList.toggle('is-active', !arch)
+  tabArch.classList.toggle('is-active', arch)
+  filtersEl.hidden = arch
+  mainEl.hidden = arch
+  archView.hidden = !arch
+  if (arch) {
+    renderArch()
+  }
 }
 
 async function apiPost(url, body) {
@@ -391,6 +451,8 @@ refreshBtn.addEventListener('click', () => {
 searchInput.addEventListener('input', applyAndRender)
 statusFilter.addEventListener('change', applyAndRender)
 projectFilter.addEventListener('change', applyAndRender)
+tabWorktrees.addEventListener('click', () => setTab('worktrees'))
+tabArch.addEventListener('click', () => setTab('arch'))
 
 createForm.addEventListener('submit', async (event) => {
   event.preventDefault()

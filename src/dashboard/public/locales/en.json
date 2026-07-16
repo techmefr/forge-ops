@@ -75,5 +75,17 @@
     "stop": "Stop the server started by starfleet",
     "escalate": "Flag as blocked — needs a human",
     "cleanup": "Stop the server + remove the git worktree + the row"
+  },
+  "tabs": {
+    "worktrees": "Worktrees",
+    "arch": "Architecture"
+  },
+  "arch": {
+    "empty": "No architecture defined yet. Agents fill it during the archi step."
+  },
+  "archStatus": {
+    "planned": "Planned",
+    "in_progress": "In progress",
+    "done": "Done"
   }
 }

@@ -75,5 +75,17 @@
     "stop": "停止 starfleet 启动的服务器",
     "escalate": "标记为受阻 — 需要人工",
     "cleanup": "停止服务器 + 删除 git 工作树 + 该行"
+  },
+  "tabs": {
+    "worktrees": "工作树",
+    "arch": "架构"
+  },
+  "arch": {
+    "empty": "尚未定义架构。代理在架构阶段填充它。"
+  },
+  "archStatus": {
+    "planned": "待定",
+    "in_progress": "进行中",
+    "done": "完成"
   }
 }
