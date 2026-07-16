@@ -200,34 +200,41 @@ function actionsCell(task) {
   return `<div class="actions" data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}">${parts.join('')}</div>`
 }
 
+function metaCell(labelKey, value) {
+  return `<div><dt>${translate(currentTranslations, `columns.${labelKey}`)}</dt><dd>${value}</dd></div>`
+}
+
 function renderTasks(tasks) {
   tasksBody.innerHTML = ''
   emptyState.hidden = tasks.length > 0
   emptyState.textContent = translate(currentTranslations, 'emptyState')
 
-  const label = (key) => translate(currentTranslations, `columns.${key}`)
   for (const task of tasks) {
-    const row = document.createElement('tr')
-    row.dataset.key = `${task.project}::${task.branch}`
-    row.innerHTML = `
-      <td data-label="${label('project')}">${projectChip(task.project)}</td>
-      <td data-label="${label('branch')}">${escapeHtml(task.branch)}</td>
-      <td data-label="${label('feature')}" class="col-feature">${featureCell(task)}</td>
-      <td data-label="${label('port')}" class="col-port">${task.port}</td>
-      <td data-label="${label('status')}" class="col-status">${liveDot(task)}<span class="status-badge status-${task.status}">${task.status}</span></td>
-      <td data-label="${label('checkpoint')}" class="col-muted col-nowrap">${task.lastCheckpoint ?? '—'}</td>
-      <td data-label="${label('tasks')}" class="col-tasks">${tasksCell(task)}</td>
-      <td data-label="${label('updated')}" class="col-muted col-nowrap">${formatDate(task.updatedAt)}</td>
-      <td data-label="${label('notes')}" class="col-notes">${notesCell(task)}</td>
-      <td class="col-actions">${actionsCell(task)}</td>
+    const card = document.createElement('article')
+    card.className = 'card'
+    card.style.setProperty('--chip-h', hueFor(task.project))
+    const chips = task.feature || task.role ? `<div class="card-chips">${featureCell(task)}</div>` : ''
+    const notes =
+      task.escalationReason !== null || task.contextSummary !== null
+        ? `<div class="card-notes">${notesCell(task)}</div>`
+        : ''
+    card.innerHTML = `
+      <div class="card-top">
+        ${projectChip(task.project)}
+        <span class="status-badge status-${task.status}">${liveDot(task)}${task.status}</span>
+      </div>
+      <div class="card-branch">${escapeHtml(task.branch)}</div>
+      ${chips}
+      <dl class="card-meta">
+        ${metaCell('port', task.port)}
+        ${metaCell('checkpoint', task.lastCheckpoint ?? '—')}
+        ${metaCell('updated', formatDate(task.updatedAt))}
+      </dl>
+      <div class="card-tasks">${itemsPanel(task)}</div>
+      ${notes}
+      <div class="card-foot">${actionsCell(task)}</div>
     `
-    tasksBody.appendChild(row)
-
-    const detail = document.createElement('tr')
-    detail.className = 'detail-row'
-    detail.hidden = !expandedKeys.has(`${task.project}::${task.branch}`)
-    detail.innerHTML = `<td colspan="10">${itemsPanel(task)}</td>`
-    tasksBody.appendChild(detail)
+    tasksBody.appendChild(card)
   }
 }
 
