@@ -8,6 +8,7 @@ import {
   cleanupWorktree,
   createWorktree,
   escalate,
+  finishTask,
   launchWorktree,
   startWorktreeServer,
   stopWorktreeServer,
@@ -72,6 +73,10 @@ export function createDashboardApp(): express.Express {
 
   app.post('/api/cleanup', (req: Request, res: Response) => {
     send(res, cleanupWorktree(req.body?.project, req.body?.branch))
+  })
+
+  app.post('/api/finish', (req: Request, res: Response) => {
+    send(res, finishTask(req.body?.project, req.body?.branch, req.body?.base ?? 'develop'))
   })
 
   app.post('/api/task-items', (req: Request, res: Response) => {

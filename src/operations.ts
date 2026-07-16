@@ -11,7 +11,7 @@ import {
   toggleTaskItem,
   updateCheckpoint,
 } from './db/tasks.js'
-import { addWorktreeForBranch, removeWorktreeForBranch } from './git/worktree.js'
+import { addWorktreeForBranch, removeWorktreeForBranch, updateBaseBranch } from './git/worktree.js'
 import { isProcessAlive, startServer, stopServer } from './process/runner.js'
 import type { ITask, ITaskItem, TaskCheckpoint } from './types/task.js'
 
@@ -118,6 +118,49 @@ export function cleanupWorktree(project: string, branch: string): IOpResult<ICle
       serverStopped,
       worktreeRemoved: worktree.removed,
       worktreePath: worktree.path,
+      rowDeleted,
+    },
+  }
+}
+
+export interface IFinishResult {
+  serverStopped: boolean
+  worktreeRemoved: boolean
+  baseUpdated: boolean
+  base: string
+  rowDeleted: boolean
+}
+
+// Post-merge : cloture d'une tache une fois la MR mergee — arrete le serveur,
+// retire la worktree git, met a jour la branche d'integration (develop), puis
+// supprime la ligne. Ferme la boucle du pipeline.
+export function finishTask(
+  project: string,
+  branch: string,
+  base = 'develop',
+): IOpResult<IFinishResult> {
+  const task = getTask(project, branch)
+  if (task === null) {
+    return fail('not_found')
+  }
+  let serverStopped = false
+  if (task.pid !== null && isProcessAlive(task.pid)) {
+    serverStopped = stopServer(task.pid).stopped
+  }
+  const worktree = removeWorktreeForBranch(branch, task.repoPath)
+  const baseUpdate =
+    task.repoPath !== null
+      ? updateBaseBranch(task.repoPath, base)
+      : { updated: false, detail: 'repoPath manquant' }
+  const rowDeleted = cleanupTask(project, branch)
+  return {
+    ok: rowDeleted,
+    detail: `${worktree.detail} | ${baseUpdate.detail}`,
+    data: {
+      serverStopped,
+      worktreeRemoved: worktree.removed,
+      baseUpdated: baseUpdate.updated,
+      base,
       rowDeleted,
     },
   }

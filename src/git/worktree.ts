@@ -89,6 +89,32 @@ export function removeWorktreeForBranch(
   }
 }
 
+export interface IBaseUpdate {
+  updated: boolean
+  detail: string
+}
+
+/**
+ * Apres merge de la MR : bascule le repo sur la branche d'integration (develop
+ * par defaut) et la met a jour (fast-forward). Le pull peut echouer sans remote
+ * ou sans upstream : on le rapporte sans planter la finition.
+ */
+export function updateBaseBranch(repoPath: string, base: string): IBaseUpdate {
+  try {
+    git(repoPath, ['checkout', base])
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    return { updated: false, detail: `checkout ${base} a echoue: ${message}` }
+  }
+  try {
+    git(repoPath, ['pull', '--ff-only'])
+    return { updated: true, detail: `${base} mis a jour (fast-forward)` }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    return { updated: false, detail: `bascule sur ${base} OK, pull impossible: ${message}` }
+  }
+}
+
 function findWorktreePath(porcelain: string, branch: string): string | null {
   const target = `refs/heads/${branch}`
   let currentPath: string | null = null

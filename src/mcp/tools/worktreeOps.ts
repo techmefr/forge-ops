@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { launchWorktree, startWorktreeServer, stopWorktreeServer } from '../../operations.js'
+import { finishTask, launchWorktree, startWorktreeServer, stopWorktreeServer } from '../../operations.js'
 import type { ITask } from '../../types/task.js'
 import type { IOpResult } from '../../operations.js'
 
@@ -40,5 +40,23 @@ export function registerWorktreeOps(server: McpServer): void {
       inputSchema: { project: z.string().min(1), branch: z.string().min(1) },
     },
     (args) => present(stopWorktreeServer(args.project, args.branch)),
+  )
+
+  server.registerTool(
+    'finish_task',
+    {
+      title: 'Cloturer une tache (post-merge)',
+      description:
+        'Apres merge de la MR : arrete le serveur, supprime la worktree git, met a jour la branche d integration (develop par defaut) et supprime la ligne.',
+      inputSchema: {
+        project: z.string().min(1),
+        branch: z.string().min(1),
+        base: z.string().min(1).optional(),
+      },
+    },
+    (args) => {
+      const result = finishTask(args.project, args.branch, args.base ?? 'develop')
+      return { content: [{ type: 'text', text: JSON.stringify({ ...result.data, detail: result.detail }, null, 2) }] }
+    },
   )
 }

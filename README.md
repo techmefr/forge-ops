@@ -102,6 +102,7 @@ Sequence conseillee, chaque etape ecrit son checkpoint. Ce sont des **garde-fous
 - `get_worktree_status(project, branch)` — statut complet d'une worktree.
 - `escalate(project, branch, reason)` — flag manuel « bloquee, besoin d'un humain ».
 - `cleanup(project, branch)` — arrete le serveur, supprime la worktree git (`git worktree remove`) puis la ligne en base.
+- `finish_task(project, branch, base?)` — post-merge : arrete le serveur, supprime la worktree git, met a jour la branche d'integration (`develop` par defaut, fast-forward) et supprime la ligne. Ferme la boucle du pipeline.
 
 Le **dashboard** affiche en plus : etat **live/down** (sonde TCP du port), lien **Ouvrir** vers le front (`http://<STARFLEET_URL_HOST|localhost>:<port>`), la **feature** de groupe et l'avancement des **taches associees**. La navigation d'**architecture** de chaque projet est deleguee a graphify (non reimplemente ici).
 
