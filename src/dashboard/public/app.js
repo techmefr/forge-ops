@@ -251,13 +251,32 @@ function rowInner(task) {
     <td class="col-actions">${actionsCell(task)}</td>`
 }
 
-// Mise a jour differentielle : on ne touche que les cards qui changent, on
-// ajoute les nouvelles (avec animation d'entree), on retire les disparues, on
-// preserve l'ordre. Evite le rebuild total chaque seconde (flicker, perte du
-// survol/focus) et ne rejoue l'animation que sur les vraies nouvelles cards.
+function groupHeaderInner(project, count) {
+  return `<td class="group-cell" colspan="10">${projectChip(project)}<span class="group-name">${escapeHtml(project)}</span><span class="group-count">${count}</span></td>`
+}
+
+// Regroupe par projet (en-tete de section + lignes), puis mise a jour
+// differentielle : on ne touche que ce qui change, on preserve l'ordre, pas de
+// rebuild total chaque seconde (flicker, perte du survol/focus).
 function renderTasks(tasks) {
   emptyState.hidden = tasks.length > 0
   emptyState.textContent = translate(currentTranslations, 'emptyState')
+
+  const byProject = new Map()
+  for (const task of tasks) {
+    if (!byProject.has(task.project)) {
+      byProject.set(task.project, [])
+    }
+    byProject.get(task.project).push(task)
+  }
+  const items = []
+  for (const project of [...byProject.keys()].sort()) {
+    const group = byProject.get(project)
+    items.push({ key: `group::${project}`, group: true, project, count: group.length })
+    for (const task of group) {
+      items.push({ key: `${task.project}::${task.branch}`, task })
+    }
+  }
 
   const existing = new Map()
   for (const el of tasksBody.children) {
@@ -266,19 +285,21 @@ function renderTasks(tasks) {
 
   const used = new Set()
   let previous = null
-  for (const task of tasks) {
-    const key = `${task.project}::${task.branch}`
-    used.add(key)
-    const html = rowInner(task)
-    let row = existing.get(key)
+  for (const item of items) {
+    used.add(item.key)
+    const html = item.group ? groupHeaderInner(item.project, item.count) : rowInner(item.task)
+    let row = existing.get(item.key)
     if (row === undefined) {
       row = document.createElement('tr')
-      row.dataset.key = key
+      row.dataset.key = item.key
+      if (item.group) {
+        row.className = 'group-row'
+      }
     }
     if (row.dataset.sig !== html) {
       row.innerHTML = html
       row.dataset.sig = html
-      row.style.setProperty('--chip-h', hueFor(task.project))
+      row.style.setProperty('--chip-h', hueFor(item.group ? item.project : item.task.project))
     }
     const anchor = previous === null ? tasksBody.firstChild : previous.nextSibling
     if (anchor !== row) {

@@ -580,6 +580,38 @@ tbody tr:hover {
   background: color-mix(in srgb, var(--accent) 7%, var(--surface));
 }
 
+.group-row:hover {
+  background: transparent;
+}
+
+.group-row td {
+  padding: var(--sp-lg) var(--sp-lg) var(--sp-xs);
+  border-bottom: none;
+}
+
+.group-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.group-name {
+  font-weight: 700;
+}
+
+.group-count {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 2px var(--sp-sm);
+  text-align: center;
+  font-size: var(--f-caption);
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+}
+
 .col-port {
   font-variant-numeric: tabular-nums;
   font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Code', monospace;
@@ -967,6 +999,18 @@ tbody td {
 
   .col-open {
     justify-content: flex-end;
+  }
+
+  .group-row {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    margin: var(--sp-lg) 0 0;
+    padding: 0;
+  }
+
+  .group-row td {
+    padding: 0;
   }
 }
 
