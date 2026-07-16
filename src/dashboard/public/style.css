@@ -11,6 +11,7 @@
   --radius: 12px;
   --radius-pill: 999px;
   --content-max: 80%;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
 
   --font-scale: 1;
   --phi: 1.618;
@@ -409,7 +410,7 @@ main {
     ),
     var(--surface);
   box-shadow: 0 14px 30px -14px hsl(var(--chip-h, 220) 82% 52% / 0.45);
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  transition: transform 0.28s var(--ease), box-shadow 0.28s var(--ease);
 }
 
 .card:hover,
@@ -904,5 +905,52 @@ tbody td {
 
   .col-open {
     justify-content: flex-end;
+  }
+}
+
+/* --- Polish (ui-ux-pro-max « Modern Dark » + frontend-design) --- */
+
+/* Micro-interactions douces (150-300ms) au lieu de changements instantanes */
+.icon-btn,
+.mini-btn,
+.tasks-count,
+#settings-btn,
+#refresh-btn,
+.segmented button,
+.open-link,
+#locale-select,
+#search,
+#status-filter,
+#project-filter {
+  transition: color 0.18s var(--ease), background-color 0.18s var(--ease),
+    border-color 0.18s var(--ease);
+}
+
+/* Glassmorphism sur le panneau reglages (flou d'arriere-plan premium) */
+#settings-panel {
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+}
+
+/* Grands nombres KPI : plus resserres, plus premium */
+.stat-value {
+  letter-spacing: -0.02em;
+}
+
+/* Respect de prefers-reduced-motion (accessibilite) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  .card:hover,
+  .stat:hover {
+    transform: none;
   }
 }
