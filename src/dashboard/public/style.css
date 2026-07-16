@@ -92,10 +92,21 @@
   --awaiting-human-fg: #e3ddfe;
 }
 
+html {
+  background: var(--bg);
+}
+
+#starfield {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
 body {
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   padding: var(--sp-2xl) var(--sp-xl);
-  background: var(--bg);
+  background: transparent;
   color: var(--text);
   line-height: 1.5;
   font-size: var(--f-base);
