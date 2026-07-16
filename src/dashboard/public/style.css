@@ -408,7 +408,7 @@ table {
 
 thead th {
   text-align: left;
-  padding: var(--sp-lg) var(--sp-xl);
+  padding: var(--sp-sm) var(--sp-lg);
   font-size: var(--f-caption);
   font-weight: 700;
   text-transform: uppercase;
@@ -419,7 +419,7 @@ thead th {
 }
 
 tbody td {
-  padding: var(--sp-lg) var(--sp-xl);
+  padding: var(--sp-sm) var(--sp-lg);
   border-bottom: 1px solid var(--border);
   font-size: var(--f-base);
 }
@@ -451,7 +451,7 @@ tbody tr:hover {
 }
 
 .col-notes {
-  max-width: 380px;
+  max-width: 240px;
 }
 
 .live-dot {
@@ -486,10 +486,63 @@ tbody tr:hover {
 }
 
 .actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: inline-flex;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: var(--sp-sm);
+  gap: var(--sp-xs);
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--sp-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.icon-btn.danger:hover {
+  border-color: var(--escalated-fg);
+  color: var(--escalated-fg);
+}
+
+.tasks-count {
+  padding: var(--sp-xs) var(--sp-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--sp-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--f-caption);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tasks-count:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+tbody td {
+  vertical-align: middle;
+}
+
+.detail-row > td {
+  padding: var(--sp-lg) var(--sp-xl);
+  background: var(--surface-alt);
 }
 
 .mini-btn {
@@ -584,7 +637,7 @@ tbody tr:hover {
 
 .notes {
   display: inline-block;
-  max-width: 380px;
+  max-width: 240px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -607,13 +660,15 @@ tbody tr:hover {
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
+  vertical-align: middle;
 }
 
 .col-feature {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-xs);
+  white-space: nowrap;
+}
+
+.col-feature .chip {
+  margin-right: var(--sp-xs);
 }
 
 .feature-name {

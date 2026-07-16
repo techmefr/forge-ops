@@ -32,6 +32,7 @@ const createForm = document.getElementById('create-form')
 let currentTranslations = null
 let currentLocale = detectLocale()
 let allTasks = []
+const expandedKeys = new Set()
 
 function applyStaticTranslations() {
   appTitle.textContent = translate(currentTranslations, 'title')
@@ -162,6 +163,11 @@ function liveDot(task) {
 function tasksCell(task) {
   const items = task.items ?? []
   const done = items.filter((item) => item.done).length
+  return `<button type="button" class="tasks-count" data-action="toggle-items">☑ ${done}/${items.length}</button>`
+}
+
+function itemsPanel(task) {
+  const items = task.items ?? []
   const list = items
     .map(
       (item) =>
@@ -169,26 +175,29 @@ function tasksCell(task) {
     )
     .join('')
   return `<div class="items" data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}">
-    ${list ? `<div class="items-list">${list}</div>` : ''}
-    <button type="button" class="mini-btn" data-action="add-item">＋ ${done}/${items.length}</button>
+    ${list}
+    <button type="button" class="mini-btn" data-action="add-item">＋</button>
   </div>`
 }
 
 function actionsCell(task) {
   const t = (key) => translate(currentTranslations, key)
-  const open = `<a class="open-link" href="${escapeHtml(task.url)}" target="_blank" rel="noopener">${t('columns.open')} ↗</a>`
-  const buttons = [open]
+  const icon = (symbol, action, label, danger) =>
+    `<button type="button" class="icon-btn${danger ? ' danger' : ''}" data-action="${action}" title="${label}" aria-label="${label}">${symbol}</button>`
+  const parts = [
+    `<a class="icon-btn" href="${escapeHtml(task.url)}" target="_blank" rel="noopener" title="${t('columns.open')}" aria-label="${t('columns.open')}">↗</a>`,
+  ]
   if (task.worktreePath === null && task.repoPath !== null) {
-    buttons.push(`<button type="button" class="mini-btn" data-action="launch">${t('actions.launch')}</button>`)
+    parts.push(icon('⊕', 'launch', t('actions.launch')))
   }
   if (task.pid !== null) {
-    buttons.push(`<button type="button" class="mini-btn" data-action="stop">${t('actions.stop')}</button>`)
+    parts.push(icon('◼', 'stop', t('actions.stop')))
   } else if (task.runCommand !== null) {
-    buttons.push(`<button type="button" class="mini-btn" data-action="start">${t('actions.start')}</button>`)
+    parts.push(icon('▶', 'start', t('actions.start')))
   }
-  buttons.push(`<button type="button" class="mini-btn" data-action="escalate">${t('actions.escalate')}</button>`)
-  buttons.push(`<button type="button" class="mini-btn danger" data-action="cleanup">${t('actions.cleanup')}</button>`)
-  return `<div class="actions" data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}">${buttons.join('')}</div>`
+  parts.push(icon('⚑', 'escalate', t('actions.escalate')))
+  parts.push(icon('✕', 'cleanup', t('actions.cleanup'), true))
+  return `<div class="actions" data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}">${parts.join('')}</div>`
 }
 
 function renderTasks(tasks) {
@@ -199,6 +208,7 @@ function renderTasks(tasks) {
   const label = (key) => translate(currentTranslations, `columns.${key}`)
   for (const task of tasks) {
     const row = document.createElement('tr')
+    row.dataset.key = `${task.project}::${task.branch}`
     row.innerHTML = `
       <td data-label="${label('project')}">${projectChip(task.project)}</td>
       <td data-label="${label('branch')}">${escapeHtml(task.branch)}</td>
@@ -212,6 +222,12 @@ function renderTasks(tasks) {
       <td class="col-actions">${actionsCell(task)}</td>
     `
     tasksBody.appendChild(row)
+
+    const detail = document.createElement('tr')
+    detail.className = 'detail-row'
+    detail.hidden = !expandedKeys.has(`${task.project}::${task.branch}`)
+    detail.innerHTML = `<td colspan="10">${itemsPanel(task)}</td>`
+    tasksBody.appendChild(detail)
   }
 }
 
@@ -313,7 +329,23 @@ tasksBody.addEventListener('click', async (event) => {
   if (button === null) {
     return
   }
+  if (button.dataset.action === 'toggle-items') {
+    const row = button.closest('tr')
+    const detail = row.nextElementSibling
+    if (detail !== null && detail.classList.contains('detail-row')) {
+      detail.hidden = !detail.hidden
+      if (detail.hidden) {
+        expandedKeys.delete(row.dataset.key)
+      } else {
+        expandedKeys.add(row.dataset.key)
+      }
+    }
+    return
+  }
   const holder = button.closest('[data-project]')
+  if (holder === null) {
+    return
+  }
   const project = holder.dataset.project
   const branch = holder.dataset.branch
   switch (button.dataset.action) {
