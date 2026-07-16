@@ -174,9 +174,21 @@ body {
 }
 
 .nav-soon {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: default;
   pointer-events: none;
+}
+
+.soon-badge {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  background: var(--surface-alt);
 }
 
 .content {

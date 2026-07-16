@@ -78,8 +78,7 @@
   },
   "tabs": {
     "worktrees": "工作树",
-    "arch": "架构",
-    "graphSoon": "图谱（即将）"
+    "arch": "架构"
   },
   "arch": {
     "empty": "尚未定义架构。代理在架构阶段填充它。"
@@ -88,5 +87,15 @@
     "planned": "待定",
     "in_progress": "进行中",
     "done": "完成"
-  }
+  },
+  "nav": {
+    "cockpit": "驾驶舱",
+    "graph": "图谱",
+    "pipeline": "流水线",
+    "reviews": "审查",
+    "agents": "代理",
+    "ports": "端口",
+    "activity": "活动"
+  },
+  "soon": "即将"
 }

@@ -78,8 +78,7 @@
   },
   "tabs": {
     "worktrees": "Worktrees",
-    "arch": "Architecture",
-    "graphSoon": "Graph (soon)"
+    "arch": "Architecture"
   },
   "arch": {
     "empty": "No architecture defined yet. Agents fill it during the archi step."
@@ -88,5 +87,15 @@
     "planned": "Planned",
     "in_progress": "In progress",
     "done": "Done"
-  }
+  },
+  "nav": {
+    "cockpit": "Cockpit",
+    "graph": "Graph",
+    "pipeline": "Pipeline",
+    "reviews": "Reviews",
+    "agents": "Agents",
+    "ports": "Ports",
+    "activity": "Activity"
+  },
+  "soon": "soon"
 }

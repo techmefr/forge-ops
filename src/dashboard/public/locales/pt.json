@@ -78,8 +78,7 @@
   },
   "tabs": {
     "worktrees": "Worktrees",
-    "arch": "Arquitetura",
-    "graphSoon": "Grafo (em breve)"
+    "arch": "Arquitetura"
   },
   "arch": {
     "empty": "Sem arquitetura definida. Os agentes a preenchem na etapa de arquitetura."
@@ -88,5 +87,15 @@
     "planned": "Pendente",
     "in_progress": "Em curso",
     "done": "Concluído"
-  }
+  },
+  "nav": {
+    "cockpit": "Cockpit",
+    "graph": "Grafo",
+    "pipeline": "Pipeline",
+    "reviews": "Revisões",
+    "agents": "Agentes",
+    "ports": "Portas",
+    "activity": "Atividade"
+  },
+  "soon": "em breve"
 }

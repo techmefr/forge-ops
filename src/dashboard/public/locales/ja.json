@@ -78,8 +78,7 @@
   },
   "tabs": {
     "worktrees": "ワークツリー",
-    "arch": "アーキテクチャ",
-    "graphSoon": "グラフ（近日）"
+    "arch": "アーキテクチャ"
   },
   "arch": {
     "empty": "アーキテクチャ未定義。エージェントがアーキ工程で記入します。"
@@ -88,5 +87,15 @@
     "planned": "予定",
     "in_progress": "進行中",
     "done": "完了"
-  }
+  },
+  "nav": {
+    "cockpit": "コックピット",
+    "graph": "グラフ",
+    "pipeline": "パイプライン",
+    "reviews": "レビュー",
+    "agents": "エージェント",
+    "ports": "ポート",
+    "activity": "アクティビティ"
+  },
+  "soon": "近日"
 }
