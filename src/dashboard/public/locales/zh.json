@@ -67,5 +67,13 @@
     "done": "已完成",
     "escalated": "已升级：受阻，需要人工",
     "awaiting_human": "等待：人工审核（MR）"
+  },
+  "actionsHelp": {
+    "open": "在新标签页打开前端",
+    "launch": "创建 git 工作树（git worktree add）",
+    "start": "启动服务器（注入端口）",
+    "stop": "停止 starfleet 启动的服务器",
+    "escalate": "标记为受阻 — 需要人工",
+    "cleanup": "停止服务器 + 删除 git 工作树 + 该行"
   }
 }

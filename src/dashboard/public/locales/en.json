@@ -67,5 +67,13 @@
     "done": "Done",
     "escalated": "Escalated: blocked, needs a human",
     "awaiting_human": "Awaiting: human review (MR)"
+  },
+  "actionsHelp": {
+    "open": "Open the front-end in a tab",
+    "launch": "Create the git worktree (git worktree add)",
+    "start": "Start the server (port injected)",
+    "stop": "Stop the server started by starfleet",
+    "escalate": "Flag as blocked — needs a human",
+    "cleanup": "Stop the server + remove the git worktree + the row"
   }
 }

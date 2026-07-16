@@ -67,5 +67,13 @@
     "done": "Terminée",
     "escalated": "Escaladée : bloquée, besoin d'un humain",
     "awaiting_human": "En attente : revue humaine (MR)"
+  },
+  "actionsHelp": {
+    "open": "Ouvrir le front dans un onglet",
+    "launch": "Créer la worktree git (git worktree add)",
+    "start": "Démarrer le serveur (port injecté)",
+    "stop": "Arrêter le serveur lancé par starfleet",
+    "escalate": "Marquer bloquée — besoin d'un humain",
+    "cleanup": "Arrêter le serveur + supprimer la worktree git + la ligne"
   }
 }

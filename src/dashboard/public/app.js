@@ -195,21 +195,22 @@ function svg(name) {
 
 function actionsCell(task) {
   const t = (key) => translate(currentTranslations, key)
-  const btn = (name, action, label, danger) =>
-    `<button type="button" class="icon-btn${danger ? ' danger' : ''}" data-action="${action}" title="${label}" aria-label="${label}">${svg(name)}</button>`
+  const help = (key) => translate(currentTranslations, `actionsHelp.${key}`)
+  const btn = (name, action, label, title, danger) =>
+    `<button type="button" class="icon-btn${danger ? ' danger' : ''}" data-action="${action}" title="${escapeHtml(title)}" aria-label="${label}">${svg(name)}</button>`
   const parts = [
-    `<a class="icon-btn" href="${escapeHtml(task.url)}" target="_blank" rel="noopener" title="${t('actions.open')}" aria-label="${t('actions.open')}">${svg('open')}</a>`,
+    `<a class="icon-btn" href="${escapeHtml(task.url)}" target="_blank" rel="noopener" title="${escapeHtml(`${help('open')} — ${task.url}`)}" aria-label="${t('actions.open')}">${svg('open')}</a>`,
   ]
   if (task.worktreePath === null && task.repoPath !== null) {
-    parts.push(btn('launch', 'launch', t('actions.launch')))
+    parts.push(btn('launch', 'launch', t('actions.launch'), help('launch')))
   }
   if (task.pid !== null) {
-    parts.push(btn('stop', 'stop', t('actions.stop')))
+    parts.push(btn('stop', 'stop', t('actions.stop'), `${help('stop')} (pid ${task.pid})`))
   } else if (task.runCommand !== null) {
-    parts.push(btn('start', 'start', t('actions.start')))
+    parts.push(btn('start', 'start', t('actions.start'), `${help('start')} (${task.runCommand})`))
   }
-  parts.push(btn('escalate', 'escalate', t('actions.escalate')))
-  parts.push(btn('cleanup', 'cleanup', t('actions.cleanup'), true))
+  parts.push(btn('escalate', 'escalate', t('actions.escalate'), help('escalate')))
+  parts.push(btn('cleanup', 'cleanup', t('actions.cleanup'), help('cleanup'), true))
   return `<div class="actions" data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}">${parts.join('')}</div>`
 }
 
