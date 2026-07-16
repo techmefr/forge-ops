@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { addTaskItem, toggleTaskItem } from '../../db/tasks.js'
+import { addItem, toggleItem } from '../../operations.js'
 
 export function registerTaskItems(server: McpServer): void {
   server.registerTool(
@@ -15,14 +15,14 @@ export function registerTaskItems(server: McpServer): void {
       },
     },
     (args) => {
-      const item = addTaskItem(args.project, args.branch, args.label)
-      if (item === null) {
+      const result = addItem(args.project, args.branch, args.label)
+      if (!result.ok) {
         return {
           content: [{ type: 'text', text: `Aucune tache trouvee pour ${args.project} / ${args.branch}` }],
           isError: true,
         }
       }
-      return { content: [{ type: 'text', text: JSON.stringify(item, null, 2) }] }
+      return { content: [{ type: 'text', text: JSON.stringify(result.data, null, 2) }] }
     },
   )
 
@@ -31,20 +31,17 @@ export function registerTaskItems(server: McpServer): void {
     {
       title: 'Cocher/decocher une tache associee',
       description: 'Marque une tache associee comme faite ou a faire',
-      inputSchema: {
-        itemId: z.number().int().positive(),
-        done: z.boolean(),
-      },
+      inputSchema: { itemId: z.number().int().positive(), done: z.boolean() },
     },
     (args) => {
-      const item = toggleTaskItem(args.itemId, args.done)
-      if (item === null) {
+      const result = toggleItem(args.itemId, args.done)
+      if (!result.ok) {
         return {
           content: [{ type: 'text', text: `Aucune tache associee d id ${args.itemId}` }],
           isError: true,
         }
       }
-      return { content: [{ type: 'text', text: JSON.stringify(item, null, 2) }] }
+      return { content: [{ type: 'text', text: JSON.stringify(result.data, null, 2) }] }
     },
   )
 }

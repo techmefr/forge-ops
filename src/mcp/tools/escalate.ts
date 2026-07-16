@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { escalateTask } from '../../db/tasks.js'
+import { escalate } from '../../operations.js'
 
 export function registerEscalate(server: McpServer): void {
   server.registerTool(
@@ -15,18 +15,14 @@ export function registerEscalate(server: McpServer): void {
       },
     },
     (args) => {
-      const task = escalateTask(args.project, args.branch, args.reason)
-      if (task === null) {
+      const result = escalate(args.project, args.branch, args.reason)
+      if (!result.ok) {
         return {
-          content: [
-            { type: 'text', text: `Aucune tache trouvee pour ${args.project} / ${args.branch}` },
-          ],
+          content: [{ type: 'text', text: `Aucune tache trouvee pour ${args.project} / ${args.branch}` }],
           isError: true,
         }
       }
-      return {
-        content: [{ type: 'text', text: JSON.stringify(task, null, 2) }],
-      }
+      return { content: [{ type: 'text', text: JSON.stringify(result.data, null, 2) }] }
     },
   )
 }
