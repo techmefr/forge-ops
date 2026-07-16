@@ -60,5 +60,12 @@
     "feature": "Feature",
     "create": "Criar",
     "role": "Papel…"
+  },
+  "statuses": {
+    "created": "Criada: registrada, não iniciada",
+    "in_progress": "Em curso",
+    "done": "Concluída",
+    "escalated": "Escalada: bloqueada, precisa de um humano",
+    "awaiting_human": "Aguardando: revisão humana (MR)"
   }
 }

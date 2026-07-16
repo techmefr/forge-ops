@@ -213,31 +213,41 @@ function actionsCell(task) {
   return `<div class="actions" data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}">${parts.join('')}</div>`
 }
 
-function metaCell(labelKey, value) {
-  return `<div><dt>${translate(currentTranslations, `columns.${labelKey}`)}</dt><dd>${value}</dd></div>`
+// Explication de l'etat au survol (title) — « escaladee » n'est pas evident.
+function statusTitle(task) {
+  const base = translate(currentTranslations, `statuses.${task.status}`)
+  if (task.status === 'escalated' && task.escalationReason) {
+    return `${base} — ${task.escalationReason}`
+  }
+  if (task.status === 'in_progress' && task.lastCheckpoint) {
+    return `${base} (${task.lastCheckpoint})`
+  }
+  return base
 }
 
-function cardInner(task) {
-  const chips = task.feature || task.role ? `<div class="card-chips">${featureCell(task)}</div>` : ''
-  const notes =
-    task.escalationReason !== null || task.contextSummary !== null
-      ? `<div class="card-notes">${notesCell(task)}</div>`
-      : ''
+function tasksCount(task) {
+  const items = task.items ?? []
+  if (items.length === 0) {
+    return '—'
+  }
+  const done = items.filter((i) => i.done).length
+  const list = items.map((i) => `${i.done ? '✓' : '○'} ${i.label}`).join('\n')
+  return `<span class="tasks-count" title="${escapeHtml(list)}">☑ ${done}/${items.length}</span>`
+}
+
+function rowInner(task) {
+  const label = (key) => translate(currentTranslations, `columns.${key}`)
   return `
-      <div class="card-top">
-        ${projectChip(task.project)}
-        <span class="status-badge status-${task.status}">${liveDot(task)}${task.status}</span>
-      </div>
-      <div class="card-branch">${escapeHtml(task.branch)}</div>
-      ${chips}
-      <dl class="card-meta">
-        ${metaCell('port', task.port)}
-        ${metaCell('checkpoint', task.lastCheckpoint ?? '—')}
-        ${metaCell('updated', formatDate(task.updatedAt))}
-      </dl>
-      <div class="card-tasks">${itemsPanel(task)}</div>
-      ${notes}
-      <div class="card-foot">${actionsCell(task)}</div>`
+    <td data-label="${label('project')}">${projectChip(task.project)}</td>
+    <td data-label="${label('branch')}">${escapeHtml(task.branch)}</td>
+    <td data-label="${label('feature')}" class="col-feature">${featureCell(task)}</td>
+    <td data-label="${label('port')}" class="col-port">${task.port}</td>
+    <td data-label="${label('status')}" class="col-status"><span class="status-badge status-${task.status}" title="${escapeHtml(statusTitle(task))}">${liveDot(task)}${task.status}</span></td>
+    <td data-label="${label('checkpoint')}" class="col-muted col-nowrap">${task.lastCheckpoint ?? '—'}</td>
+    <td data-label="${label('tasks')}" class="col-nowrap">${tasksCount(task)}</td>
+    <td data-label="${label('updated')}" class="col-muted col-nowrap">${formatDate(task.updatedAt)}</td>
+    <td data-label="${label('notes')}" class="col-notes">${notesCell(task)}</td>
+    <td class="col-actions">${actionsCell(task)}</td>`
 }
 
 // Mise a jour differentielle : on ne touche que les cards qui changent, on
@@ -255,29 +265,25 @@ function renderTasks(tasks) {
 
   const used = new Set()
   let previous = null
-  let newIndex = 0
   for (const task of tasks) {
     const key = `${task.project}::${task.branch}`
     used.add(key)
-    const html = cardInner(task)
-    let card = existing.get(key)
-    if (card === undefined) {
-      card = document.createElement('article')
-      card.className = 'card card--enter'
-      card.dataset.key = key
-      card.style.animationDelay = `${newIndex * 45}ms`
-      newIndex += 1
+    const html = rowInner(task)
+    let row = existing.get(key)
+    if (row === undefined) {
+      row = document.createElement('tr')
+      row.dataset.key = key
     }
-    if (card.dataset.sig !== html) {
-      card.innerHTML = html
-      card.dataset.sig = html
-      card.style.setProperty('--chip-h', hueFor(task.project))
+    if (row.dataset.sig !== html) {
+      row.innerHTML = html
+      row.dataset.sig = html
+      row.style.setProperty('--chip-h', hueFor(task.project))
     }
     const anchor = previous === null ? tasksBody.firstChild : previous.nextSibling
-    if (anchor !== card) {
-      tasksBody.insertBefore(card, anchor)
+    if (anchor !== row) {
+      tasksBody.insertBefore(row, anchor)
     }
-    previous = card
+    previous = row
   }
 
   for (const [key, el] of existing) {

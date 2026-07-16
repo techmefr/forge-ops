@@ -60,5 +60,12 @@
     "feature": "功能",
     "create": "创建",
     "role": "角色…"
+  },
+  "statuses": {
+    "created": "已创建：已登记，未启动",
+    "in_progress": "进行中",
+    "done": "已完成",
+    "escalated": "已升级：受阻，需要人工",
+    "awaiting_human": "等待：人工审核（MR）"
   }
 }

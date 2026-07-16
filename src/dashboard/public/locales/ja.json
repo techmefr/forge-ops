@@ -60,5 +60,12 @@
     "feature": "機能",
     "create": "作成",
     "role": "役割…"
+  },
+  "statuses": {
+    "created": "作成済み：登録済み、未起動",
+    "in_progress": "進行中",
+    "done": "完了",
+    "escalated": "エスカレーション：ブロック、人手が必要",
+    "awaiting_human": "待機：人によるレビュー（MR）"
   }
 }

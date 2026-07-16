@@ -60,5 +60,12 @@
     "feature": "기능",
     "create": "생성",
     "role": "역할…"
+  },
+  "statuses": {
+    "created": "생성됨: 등록됨, 미시작",
+    "in_progress": "진행 중",
+    "done": "완료",
+    "escalated": "에스컬레이션: 차단됨, 사람 필요",
+    "awaiting_human": "대기: 사람 검토(MR)"
   }
 }

@@ -60,5 +60,12 @@
     "feature": "Feature",
     "create": "Créer",
     "role": "Rôle…"
+  },
+  "statuses": {
+    "created": "Créée : enregistrée, pas démarrée",
+    "in_progress": "En cours",
+    "done": "Terminée",
+    "escalated": "Escaladée : bloquée, besoin d'un humain",
+    "awaiting_human": "En attente : revue humaine (MR)"
   }
 }

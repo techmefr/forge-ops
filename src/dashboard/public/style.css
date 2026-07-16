@@ -388,6 +388,10 @@ input[type='range']::-moz-range-thumb {
 main {
   max-width: var(--content-max);
   margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow-x: auto;
 }
 
 .cards {
@@ -770,6 +774,11 @@ tbody td {
   vertical-align: middle;
 }
 
+.status-badge,
+.tasks-count {
+  cursor: help;
+}
+
 .col-feature {
   white-space: nowrap;
 }
@@ -846,7 +855,7 @@ tbody td {
   color: var(--text-muted);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   body {
     padding: var(--sp-lg) var(--sp-sm);
   }

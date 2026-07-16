@@ -104,7 +104,23 @@
       </select>
     </div>
     <main>
-      <div id="tasks-body" class="cards"></div>
+      <table id="tasks-table">
+        <thead>
+          <tr>
+            <th data-i18n="columns.project"></th>
+            <th data-i18n="columns.branch"></th>
+            <th data-i18n="columns.feature"></th>
+            <th data-i18n="columns.port"></th>
+            <th data-i18n="columns.status"></th>
+            <th data-i18n="columns.checkpoint"></th>
+            <th data-i18n="columns.tasks"></th>
+            <th data-i18n="columns.updated"></th>
+            <th data-i18n="columns.notes"></th>
+            <th data-i18n="columns.actions"></th>
+          </tr>
+        </thead>
+        <tbody id="tasks-body"></tbody>
+      </table>
       <p id="empty-state" hidden></p>
     </main>
     <script type="module" src="/app.js"></script>
