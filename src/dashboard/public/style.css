@@ -91,13 +91,8 @@
   --awaiting-human-fg: #e3ddfe;
 }
 
-* {
-  box-sizing: border-box;
-}
-
 body {
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  margin: 0;
   padding: var(--sp-2xl) var(--sp-xl);
   background: var(--bg);
   color: var(--text);

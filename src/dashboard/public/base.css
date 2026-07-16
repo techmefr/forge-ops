@@ -1,0 +1,85 @@
+/*
+ * base.css — base legere et robuste (vanilla, sans build ni dependance externe).
+ * Reset moderne + normalisation des controles + garde-fous anti-debordement.
+ * Objectif : eviter la classe de bugs de layout (debordements, sauts de ligne,
+ * cassures d'alignement) sans introduire de framework.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Medias jamais debordants */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Les controles heritent de la typo au lieu d'imposer la leur */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+/* Texte long : coupe proprement plutot que deborder */
+p,
+h1,
+h2,
+h3,
+h4,
+li,
+dd,
+dt,
+span,
+a {
+  overflow-wrap: break-word;
+}
+
+/*
+ * Garde-fou cle : par defaut un enfant flex/grid a min-width:auto, ce qui
+ * l'empeche de retrecir sous la taille de son contenu -> debordement horizontal.
+ * On force min-width:0 pour que le contenu se contraigne dans sa cellule/carte.
+ */
+:where(.cards, .card, .actions, .items, .card-meta, .filters, .stats, header) > * {
+  min-width: 0;
+}
+
+/* Un conteneur ne provoque jamais de scroll horizontal de page */
+:where(body) {
+  overflow-x: hidden;
+}
