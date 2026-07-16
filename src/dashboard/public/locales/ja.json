@@ -28,5 +28,15 @@
   },
   "refresh": "更新",
   "online": "オンライン",
-  "offline": "オフライン"
+  "offline": "オフライン",
+  "stats": {
+    "projects": "プロジェクト",
+    "worktrees": "ワークツリー",
+    "escalated": "エスカレーション",
+    "review": "レビュー中"
+  },
+  "filter": {
+    "search": "検索…",
+    "allStatuses": "すべてのステータス"
+  }
 }

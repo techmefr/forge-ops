@@ -28,5 +28,15 @@
   },
   "refresh": "Atualizar",
   "online": "Online",
-  "offline": "Offline"
+  "offline": "Offline",
+  "stats": {
+    "projects": "Projetos",
+    "worktrees": "Worktrees",
+    "escalated": "Escaladas",
+    "review": "Em revisao"
+  },
+  "filter": {
+    "search": "Buscar…",
+    "allStatuses": "Todos os status"
+  }
 }

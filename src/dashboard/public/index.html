@@ -71,6 +71,18 @@
         <p id="last-refresh"></p>
       </div>
     </header>
+    <section id="stats" class="stats" aria-live="polite"></section>
+    <div class="filters">
+      <input id="search" type="search" />
+      <select id="status-filter">
+        <option value="" data-i18n="filter.allStatuses"></option>
+        <option value="created">created</option>
+        <option value="in_progress">in_progress</option>
+        <option value="done">done</option>
+        <option value="escalated">escalated</option>
+        <option value="awaiting_human">awaiting_human</option>
+      </select>
+    </div>
     <main>
       <table id="tasks-table">
         <thead>

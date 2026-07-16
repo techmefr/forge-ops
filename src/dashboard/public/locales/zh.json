@@ -28,5 +28,15 @@
   },
   "refresh": "刷新",
   "online": "在线",
-  "offline": "离线"
+  "offline": "离线",
+  "stats": {
+    "projects": "项目",
+    "worktrees": "工作树",
+    "escalated": "已升级",
+    "review": "审核中"
+  },
+  "filter": {
+    "search": "搜索…",
+    "allStatuses": "所有状态"
+  }
 }

@@ -28,5 +28,15 @@
   },
   "refresh": "تحديث",
   "online": "متصل",
-  "offline": "غير متصل"
+  "offline": "غير متصل",
+  "stats": {
+    "projects": "المشاريع",
+    "worktrees": "أشجار العمل",
+    "escalated": "مُصعّدة",
+    "review": "قيد المراجعة"
+  },
+  "filter": {
+    "search": "بحث…",
+    "allStatuses": "كل الحالات"
+  }
 }

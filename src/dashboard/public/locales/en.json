@@ -28,5 +28,15 @@
   },
   "refresh": "Refresh",
   "online": "Online",
-  "offline": "Offline"
+  "offline": "Offline",
+  "stats": {
+    "projects": "Projects",
+    "worktrees": "Worktrees",
+    "escalated": "Escalated",
+    "review": "In review"
+  },
+  "filter": {
+    "search": "Search…",
+    "allStatuses": "All statuses"
+  }
 }

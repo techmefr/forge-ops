@@ -28,5 +28,15 @@
   },
   "refresh": "Actualiser",
   "online": "En ligne",
-  "offline": "Hors ligne"
+  "offline": "Hors ligne",
+  "stats": {
+    "projects": "Projets",
+    "worktrees": "Worktrees",
+    "escalated": "Escaladees",
+    "review": "En revue"
+  },
+  "filter": {
+    "search": "Rechercher…",
+    "allStatuses": "Tous les statuts"
+  }
 }

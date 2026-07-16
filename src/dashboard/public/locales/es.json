@@ -28,5 +28,15 @@
   },
   "refresh": "Actualizar",
   "online": "En linea",
-  "offline": "Desconectado"
+  "offline": "Desconectado",
+  "stats": {
+    "projects": "Proyectos",
+    "worktrees": "Worktrees",
+    "escalated": "Escaladas",
+    "review": "En revision"
+  },
+  "filter": {
+    "search": "Buscar…",
+    "allStatuses": "Todos los estados"
+  }
 }

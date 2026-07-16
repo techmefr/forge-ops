@@ -23,9 +23,13 @@ const settingsPanel = document.getElementById('settings-panel')
 const fontSizeSlider = document.getElementById('font-size-slider')
 const themeGroup = document.getElementById('theme-group')
 const refreshBtn = document.getElementById('refresh-btn')
+const statsEl = document.getElementById('stats')
+const searchInput = document.getElementById('search')
+const statusFilter = document.getElementById('status-filter')
 
 let currentTranslations = null
 let currentLocale = detectLocale()
+let allTasks = []
 
 function applyStaticTranslations() {
   appTitle.textContent = translate(currentTranslations, 'title')
@@ -34,7 +38,40 @@ function applyStaticTranslations() {
     node.textContent = translate(currentTranslations, node.dataset.i18n)
   }
   refreshBtn.setAttribute('aria-label', translate(currentTranslations, 'refresh'))
+  searchInput.setAttribute('placeholder', translate(currentTranslations, 'filter.search'))
   localeSelect.value = currentLocale
+}
+
+function renderStats(tasks) {
+  const projects = new Set(tasks.map((task) => task.project)).size
+  const online = tasks.filter((task) => task.live).length
+  const escalated = tasks.filter((task) => task.status === 'escalated').length
+  const review = tasks.filter((task) => task.status === 'awaiting_human').length
+  const tiles = [
+    { value: projects, label: translate(currentTranslations, 'stats.projects') },
+    { value: tasks.length, label: translate(currentTranslations, 'stats.worktrees') },
+    { value: online, label: translate(currentTranslations, 'online') },
+    { value: escalated, label: translate(currentTranslations, 'stats.escalated') },
+    { value: review, label: translate(currentTranslations, 'stats.review') },
+  ]
+  statsEl.innerHTML = tiles
+    .map(
+      (tile) =>
+        `<div class="stat"><span class="stat-value">${tile.value}</span><span class="stat-label">${tile.label}</span></div>`,
+    )
+    .join('')
+}
+
+function applyAndRender() {
+  const query = searchInput.value.trim().toLowerCase()
+  const status = statusFilter.value
+  const filtered = allTasks.filter((task) => {
+    const matchStatus = status === '' || task.status === status
+    const haystack = `${task.project} ${task.branch} ${task.feature ?? ''}`.toLowerCase()
+    return matchStatus && (query === '' || haystack.includes(query))
+  })
+  renderStats(allTasks)
+  renderTasks(filtered)
 }
 
 function formatDate(value) {
@@ -108,8 +145,8 @@ function renderTasks(tasks) {
 async function refreshTasks() {
   try {
     const response = await fetch('/api/tasks')
-    const tasks = await response.json()
-    renderTasks(tasks)
+    allTasks = await response.json()
+    applyAndRender()
     lastRefresh.textContent = interpolate(translate(currentTranslations, 'lastRefresh'), {
       time: new Date().toLocaleTimeString(currentLocale),
     })
@@ -177,6 +214,9 @@ refreshBtn.addEventListener('click', () => {
     setTimeout(() => refreshBtn.classList.remove('is-spinning'), 400)
   })
 })
+
+searchInput.addEventListener('input', applyAndRender)
+statusFilter.addEventListener('change', applyAndRender)
 
 settingsBtn.addEventListener('click', (event) => {
   event.stopPropagation()

@@ -28,5 +28,15 @@
   },
   "refresh": "새로고침",
   "online": "온라인",
-  "offline": "오프라인"
+  "offline": "오프라인",
+  "stats": {
+    "projects": "프로젝트",
+    "worktrees": "워크트리",
+    "escalated": "에스컬레이션",
+    "review": "검토 중"
+  },
+  "filter": {
+    "search": "검색…",
+    "allStatuses": "모든 상태"
+  }
 }
