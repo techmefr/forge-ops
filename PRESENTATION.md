@@ -72,8 +72,12 @@ page et se connecter »* → des heures de contournements.
 - **Pas opposés** : starfleet **pilote** le CLI (git/docker) et reste **dans Claude Code** (MCP).
 - Le collègue montre le **« comment » bas niveau** (utile à maîtriser). Toi tu montres
   **« comment ça scale sans se réinventer à chaque fois » + la visibilité + la méthode**.
-- Message de clôture : **le CLI est la fondation, starfleet est la tour de contrôle** — et la
-  méthode (construct) est le mode d'emploi partagé de l'équipe.
+- Message de clôture (la punchline) :
+
+> *« Le CLI est la fondation — indispensable. Mais à l'échelle de l'équipe, chacun rejoue les
+> mêmes frictions à la main, sans visibilité. starfleet ne remplace pas le CLI : il le pilote,
+> garde la source de vérité, et rend le tout visible et méthodique. Le CLI, c'est savoir
+> conduire ; starfleet, c'est la tour de contrôle. »*
 
 ## Slide 8 — Libérer le potentiel de la machine (setup)
 Message clé : *« ça rame à 3 worktrees » était un problème de **config**, pas de méthode ni
@@ -90,6 +94,26 @@ de machine.* Une i7-14700 / 32 Go encaisse plusieurs stacks — il faut juste **
 
 Conclusion à dire : *le matériel n'était pas la limite ; l'environnement était bridé. Une
 fois débridé + l'infra mutualisée, le nombre de worktrees cesse d'être un souci.*
+
+## Slide 9 — Adoption : le workflow d'abord, l'outil en option
+Objection attendue : *« on ne va pas installer un truc de plus »*. Réponse en **deux tiers**.
+
+- **Tier 1 — le workflow (tout le monde)** : des **skills** (des fichiers, dans le Claude Code
+  déjà utilisé) qui encodent la méthode complète + les conventions Xefi, sur **git worktrees +
+  le setup actuel**. **Rien à faire tourner.** Livre : discipline, cohérence, TDD, review, pipeline.
+- **Tier 2 — l'outil (opt-in)** : starfleet (MCP + dashboard) ajoute ports déterministes, état,
+  visibilité, actions. Pour qui veut la tour de contrôle.
+- **Design clé — progressive enhancement** : les skills marchent **sans** starfleet ; **si** le
+  MCP starfleet est présent, elles **utilisent ses tools** (create_task/launch…) → bonus
+  coordination/visibilité. Un seul workflow, fonctionnel seul, meilleur avec l'outil.
+
+Honnête : « reprendre ce qui existe » ≠ zéro install (les skills restent à ajouter), mais
+**léger** (pas de service). Et le **Tier 1 seul ne règle pas** les ports coordonnés / la
+visibilité partagée → ça, c'est le Tier 2.
+
+> *« Le workflow, ce sont des skills dans le Claude Code que vous avez déjà — rien à installer
+> ni à faire tourner. Le dashboard est un bonus optionnel pour qui veut la visibilité. Et le
+> workflow marche seul ; il s'enrichit tout seul si l'outil est là. »*
 
 ---
 
