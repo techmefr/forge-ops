@@ -54,11 +54,16 @@ page et se connecter »* → des heures de contournements.
 ## Slide 5 — Ce que ça règle (mapping frictions → solution)
 | Friction | Réglé par |
 |---|---|
-| Collisions de ports (#4) | ✅ clé (projet+branche) + unicité globale des ports |
+| Collisions de ports (#4) | 🔜 **au niveau compose** : offsets `.env` ou domaines Traefik. ⚠️ le port déterministe de starfleet **ne suffit pas** sur nos stacks Docker (ils lisent `APP_PORT`/`FORWARD_*`, pas `PORT`) — voir `CHALLENGE.md` |
 | URLs désalignées (#5) | ✅ source de vérité unique / 🔜 domaines HTTPS fixes (portless) |
 | Doublons de worktree | ✅ visibilité par projet / 🔜 identité de tâche + état équipe |
 | RAM qui rame | ✅ start/stop (ne lancer que l'actif) + 🔜 infra partagée + débrider WSL (24 Go) |
 | Auth SSO local | 🔜 URL HTTPS fixe donnée à Microsoft (Caddy/Traefik + mkcert) |
+
+> **Honnêteté (cf. `CHALLENGE.md`) :** sur nos projets **tout est Docker Compose**. La couche
+> méthode/état/worktree/dashboard tient ; la couche **runtime (allocation de port + `start_server`)
+> ne s'applique pas** telle quelle. Les ports se règlent au niveau compose (offsets ou Traefik),
+> pas via un `PORT` injecté. Ne pas survendre le port déterministe.
 
 ## Slide 6 — Vision / roadmap 🔜
 - **Portless** : Caddy/Traefik + mkcert → **domaines HTTPS fixes** → URLs stables **et** SSO
