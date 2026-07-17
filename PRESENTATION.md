@@ -75,6 +75,22 @@ page et se connecter »* → des heures de contournements.
 - Message de clôture : **le CLI est la fondation, starfleet est la tour de contrôle** — et la
   méthode (construct) est le mode d'emploi partagé de l'équipe.
 
+## Slide 8 — Libérer le potentiel de la machine (setup)
+Message clé : *« ça rame à 3 worktrees » était un problème de **config**, pas de méthode ni
+de machine.* Une i7-14700 / 32 Go encaisse plusieurs stacks — il faut juste **dé-brider** :
+- **WSL débridé** : `.wslconfig memory=24GB` → Docker passe de **15 → 24 Go** (WSL prenait
+  la moitié de la RAM par défaut).
+- **Infra partagée** : **un seul** Elasticsearch + **un seul** MySQL pour tous les
+  projets/worktrees (base par préfixe), et **par worktree seulement le conteneur app** — au
+  lieu de dupliquer les 1,5 Go d'ES par stack.
+- **start/stop** (starfleet) : ne faire tourner **que la worktree active**.
+- **pnpm** : store partagé → pas de `node_modules` dupliqué entre worktrees.
+- **Disque** (66 Go libres, tendu) : `docker system prune` + `finish_task` pour ne pas
+  accumuler.
+
+Conclusion à dire : *le matériel n'était pas la limite ; l'environnement était bridé. Une
+fois débridé + l'infra mutualisée, le nombre de worktrees cesse d'être un souci.*
+
 ---
 
 ## Annexe — chiffres / preuves à citer
