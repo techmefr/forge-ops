@@ -33,6 +33,22 @@ texte ; on réimplémente le principe.
 4. Renseigner `Origine` (d'où vient l'idée, honnêtement).
 5. **Zéro install externe** : la brique vit dans notre repo. Aucune dépendance réseau.
 
+## Règle C — construct reste publiable
+
+`construct/` est conçu pour être **extrait un jour dans un repo public** (« superpowers version
+Xefi », comme obra/mattpocock/addyosmani). Pour que ce soit un simple copier-coller le moment
+venu, on tient la frontière **dès l'écriture** :
+
+- **Dans `construct/` (générique, publiable)** : pipeline, skills, gabarit, conventions, agents
+  génériques. Aucun secret, aucun nom de vrai projet, aucune réalité infra.
+- **Hors `construct/` (interne, privé)** : noms de projets réels (skera, nexeren…), infra
+  (ports, SSO, hosts, noms de serveurs DB), `CHALLENGE.md` / `FRICTIONS.md` / `VEILLE.md`,
+  la mémoire. Une brique **n'y fait jamais référence en dur** — elle nomme un rôle (« le back »),
+  pas un projet (« skera-api »).
+
+Règle simple : si une phrase ne pourrait pas être lue par un dev extérieur à Xefi, elle ne va
+pas dans `construct/`. La publication elle-même est **hors périmètre agent** (décision humaine).
+
 ---
 
 ## Le gabarit unique
