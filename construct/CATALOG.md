@@ -20,6 +20,7 @@
 | code | 6 | natif + interne | 🟡 |
 | debug | support 6 | natif `systematic-debugging` | 🟡 |
 | extract-conventions | setup/maintenance | graphify + mattpocock/addyosmani | 🟡 (génère les références depuis le code réel) |
+| portless-ready | setup/infra | outil `vercel-labs/portless` (câblage à nous) | 🟡 (rend une stack portless : alias HTTPS + hygiène ports) |
 | **gate** | 7 | **cwc** `default-FAIL hook` + `fresh-context evaluator` | 🔜 (câblage) |
 | review | 8 | mattpocock `code-review 2 axes` + agents Xefi + natif | 🟡 |
 | simplify | 9 | natif `simplify` | 🟡 |
