@@ -15,18 +15,21 @@ pour [but] » puis suis-la. Si une checklist existe, une todo par item.
 
 ## Le pipeline (ordre)
 
-Chaque étape écrit son checkpoint dans starfleet (`update_checkpoint`) :
+Chaque étape écrit son checkpoint dans starfleet (`update_checkpoint`). Toutes les briques
+suivent le **gabarit unique** (`construct/CONVENTIONS.md`) et sont réécrites à notre sauce :
 
 1. **start-feature** — crée la worktree isolée (starfleet `create_task` + `launch_worktree`).
 2. **brainstorm** — explorer l'intention avant tout code.
-3. **spec** — verrouiller périmètre + hors-scope (conventions Xefi).
-4. **archi** — se mettre d'accord sur l'architecture cible, puis l'écrire (`set_arch_node`).
-5. **plan** — découper en tâches atomiques.
-6. **tdd** — tests d'abord (doctrine **test-casebook**).
-7. **code** — construire par incréments.
-8. **review** — auto-review + agents (bobby / valerianus).
-9. **MR + analyses** — gandalf (/code-review, /security-review) + MR draft, **2 approbations humaines**.
-10. **finish** — post-merge : `finish_task` (arrête le serveur, retire la worktree, met à jour develop).
+3. **spec** — verrouiller périmètre + hors-scope ; `CONTEXT.md` + ADR → `spec_done`.
+4. **archi** — archi cible via graphify (anti-duplication), écrite (`set_arch_node`) → `arch_done`.
+5. **plan** — découper en tâches atomiques → `plan_done`.
+6. **tdd** — tests d'abord (**test-casebook**) + contrat `{passes:false}` → `tests_written`.
+7. **code** — construire par incréments (`debug` en support) → `build_done`.
+8. **gate** — verrou mécanique : preuve obligatoire + évaluateur à contexte propre → `verified`.
+9. **review** — 2 axes parallèles (Standards + Spec) + agents Xefi + `/code-review`/`/security-review`.
+10. **simplify** — passe qualité à iso-comportement → `simplified`.
+11. **ship** — push + MR **draft** (dev + 2 collègues) → `mr_draft_pushed`, `awaiting_human`. **L'agent s'arrête.**
+12. **finish** — post-merge humain : `finish_task` (serveur, worktree, base d'intégration).
 
 ## Le seam avec starfleet
 
