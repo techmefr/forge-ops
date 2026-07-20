@@ -39,3 +39,7 @@
 2. `git-mr.md` — cité par `ship` et `review`.
 3. `conventions-back.md` — pointe `doctrine-test-back-laravel-lomkit.md`, consolide le reste.
 4. `code-smells.md` — cité par `review` (axe Standards).
+
+**Ces docs se sèment automatiquement** : la brique `extract-conventions` lit le code réel et
+produit un brouillon `references/observed/<projet>.md` (interne) ; la version publiable
+générique en est la distillation humaine. Écrire à la main = le fallback, pas le défaut.

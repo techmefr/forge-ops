@@ -19,6 +19,7 @@
 | tdd | 5 | Xefi `test-casebook` + cwc `default-FAIL contract` | 🟡 |
 | code | 6 | natif + interne | 🟡 |
 | debug | support 6 | natif `systematic-debugging` | 🟡 |
+| extract-conventions | setup/maintenance | graphify + mattpocock/addyosmani | 🟡 (génère les références depuis le code réel) |
 | **gate** | 7 | **cwc** `default-FAIL hook` + `fresh-context evaluator` | 🔜 (câblage) |
 | review | 8 | mattpocock `code-review 2 axes` + agents Xefi + natif | 🟡 |
 | simplify | 9 | natif `simplify` | 🟡 |
