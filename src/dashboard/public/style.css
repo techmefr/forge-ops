@@ -687,7 +687,9 @@ tbody tr:hover {
   border-bottom: none;
 }
 
-.group-cell {
+/* La cellule reste une cellule : sinon son colspan est ignore et l'en-tete de
+   groupe se retrouve enferme dans la premiere colonne. Le flex va sur le div. */
+.group-inner {
   display: flex;
   align-items: center;
   gap: var(--sp-sm);
@@ -1025,11 +1027,13 @@ tbody td {
 @media (max-width: 900px) {
   .app {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .sidebar {
     position: static;
-    width: auto;
+    width: 100%;
+    min-width: 0;
     height: auto;
     flex-direction: row;
     align-items: center;
@@ -1338,4 +1342,91 @@ tbody td {
   margin-left: var(--sp-sm);
   background: var(--escalated-bg);
   color: var(--escalated-fg);
+}
+
+.table-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow-x: auto;
+}
+
+.sub-table {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Au-dela du point de bascule cartes, les colonnes sont declarees : sans ca dix
+   colonnes en largeur intrinseque debordent du conteneur et forcent un scroll
+   horizontal. Ce qui deborde est tronque, le title porte la valeur complete. */
+@media (min-width: 901px) {
+  #tasks-table {
+    table-layout: fixed;
+  }
+
+  #tasks-table th:nth-child(1) { width: 11%; }
+  #tasks-table th:nth-child(2) { width: 15%; }
+  #tasks-table th:nth-child(3) { width: 8%; }
+  #tasks-table th:nth-child(4) { width: 5%; }
+  #tasks-table th:nth-child(5) { width: 10%; }
+  #tasks-table th:nth-child(6) { width: 9%; }
+  #tasks-table th:nth-child(7) { width: 6%; }
+  #tasks-table th:nth-child(8) { width: 11%; }
+  #tasks-table th:nth-child(9) { width: 10%; }
+  #tasks-table th:nth-child(10) { width: 15%; }
+
+  #tasks-table tbody td {
+    overflow: hidden;
+  }
+
+  .col-ellipsis,
+  .col-muted.col-nowrap {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .sub-table {
+    table-layout: fixed;
+  }
+
+  .sub-files th:nth-child(1) { width: 14%; }
+  .sub-files th:nth-child(2) { width: 38%; }
+  .sub-files th:nth-child(3) { width: 48%; }
+
+  .sub-conflicts th:nth-child(1) { width: 12%; }
+  .sub-conflicts th:nth-child(2) { width: 28%; }
+  .sub-conflicts th:nth-child(3) { width: 24%; }
+  .sub-conflicts th:nth-child(4) { width: 18%; }
+  .sub-conflicts th:nth-child(5) { width: 18%; }
+
+  .sub-activity th:nth-child(1) { width: 16%; }
+  .sub-activity th:nth-child(2) { width: 14%; }
+  .sub-activity th:nth-child(3) { width: 22%; }
+  .sub-activity th:nth-child(4) { width: 12%; }
+  .sub-activity th:nth-child(5) { width: 36%; }
+
+  .sub-table tbody td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sub-table .arch-path {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+  }
+}
+
+.col-notes {
+  max-width: none;
+}
+
+.notes {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

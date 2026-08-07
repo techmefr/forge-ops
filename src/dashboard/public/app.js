@@ -161,10 +161,10 @@ async function renderFiles() {
     })
     .join('')
   filesView.innerHTML = `<p class="view-legend">${t('files.legend')} ${legend}</p>
-    <table class="sub-table">
+    <div class="table-card"><table class="sub-table sub-files">
       <thead><tr><th>${t('columns.project')}</th><th>${t('files.path')}</th><th>${t('files.owners')}</th></tr></thead>
       <tbody>${body}</tbody>
-    </table>`
+    </table></div>`
 }
 
 async function renderConflicts(rescan = false) {
@@ -204,13 +204,13 @@ async function renderConflicts(rescan = false) {
     })
     .join('')
   conflictsView.innerHTML = `<p class="view-legend">${t('conflicts.explain')} ${scanButton}</p>
-    <table class="sub-table">
+    <div class="table-card"><table class="sub-table sub-conflicts">
       <thead><tr>
         <th>${t('columns.project')}</th><th>${t('conflicts.branches')}</th><th>${t('files.path')}</th>
         <th>${t('conflicts.state')}</th><th>${t('conflicts.arbitration')}</th>
       </tr></thead>
       <tbody>${body}</tbody>
-    </table>`
+    </table></div>`
 }
 
 async function renderActivity() {
@@ -233,13 +233,13 @@ async function renderActivity() {
     )
     .join('')
   activityView.innerHTML = `<p class="view-legend">${t('activity.explain')}</p>
-    <table class="sub-table">
+    <div class="table-card"><table class="sub-table sub-activity">
       <thead><tr>
         <th>${t('columns.updated')}</th><th>${t('columns.project')}</th><th>${t('columns.branch')}</th>
         <th>${t('activity.tool')}</th><th>${t('files.path')}</th>
       </tr></thead>
       <tbody>${body}</tbody>
-    </table>`
+    </table></div>`
 }
 
 function refreshConflictsBadge(count) {
@@ -457,7 +457,7 @@ function rowInner(task) {
   const label = (key) => translate(currentTranslations, `columns.${key}`)
   return `
     <td data-label="${label('project')}">${projectChip(task.project)}</td>
-    <td data-label="${label('branch')}">${escapeHtml(task.branch)}</td>
+    <td data-label="${label('branch')}" class="col-ellipsis" title="${escapeHtml(task.branch)}">${escapeHtml(task.branch)}</td>
     <td data-label="${label('feature')}" class="col-feature">${featureCell(task)}</td>
     <td data-label="${label('port')}" class="col-port">${task.port}</td>
     <td data-label="${label('status')}" class="col-status"><span class="status-badge status-${task.status}" title="${escapeHtml(statusTitle(task))}">${liveDot(task)}${task.status}</span></td>
@@ -468,8 +468,11 @@ function rowInner(task) {
     <td class="col-actions">${actionsCell(task)}</td>`
 }
 
+// Le flex vit sur un div interne : un td en display:flex cesse d'etre une
+// cellule de tableau, son colspan est ignore et l'en-tete se retrouve enferme
+// dans la premiere colonne.
 function groupHeaderInner(project, count) {
-  return `<td class="group-cell" colspan="10">${projectChip(project)}<span class="group-name">${escapeHtml(project)}</span><span class="group-count">${count}</span></td>`
+  return `<td class="group-cell" colspan="10"><div class="group-inner">${projectChip(project)}<span class="group-name">${escapeHtml(project)}</span><span class="group-count">${count}</span></div></td>`
 }
 
 // Regroupe par projet (en-tete de section + lignes), puis mise a jour
