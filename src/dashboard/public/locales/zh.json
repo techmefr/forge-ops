@@ -78,7 +78,9 @@
   },
   "tabs": {
     "worktrees": "工作树",
-    "arch": "架构"
+    "arch": "架构",
+    "files": "文件",
+    "conflicts": "冲突"
   },
   "arch": {
     "empty": "尚未定义架构。代理在架构阶段填充它。"
@@ -97,5 +99,40 @@
     "ports": "端口",
     "activity": "活动"
   },
-  "soon": "即将"
+  "soon": "即将",
+  "files": {
+    "empty": "没有进行中的文件。被跟踪的工作树没有改动，也没有计划。",
+    "legend": "三个确定性级别：",
+    "path": "文件",
+    "owners": "分支",
+    "shared": "共用"
+  },
+  "fileStates": {
+    "touched": "已写入",
+    "in_progress": "进行中",
+    "planned": "计划中"
+  },
+  "fileStatesHelp": {
+    "touched": "分支已提交（git diff base...HEAD）",
+    "in_progress": "已修改，尚未提交（git status）",
+    "planned": "在架构阶段声明，尚未写入"
+  },
+  "conflicts": {
+    "explain": "真实冲突，通过内存合并验证（git merge-tree）。Starfleet 只提醒，从不加锁。",
+    "rescan": "重新扫描",
+    "empty": "没有未解决的冲突。",
+    "branches": "分支",
+    "state": "状态",
+    "arbitration": "谁来改",
+    "devDecides": "由开发者决定",
+    "promoted": "需要建任务",
+    "promotedHelp": "一方已通过检查点：代码不再变动，这个冲突值得单独建一个任务。",
+    "watched": "观察中",
+    "watchedHelp": "两边都还在写：可见，但尚未提升为任务。"
+  },
+  "activity": {
+    "explain": "由 PostToolUse 钩子发送的活动流。只存事件，绝不存内容。",
+    "empty": "没有收到活动。钩子可能没有接入任何仓库。",
+    "tool": "工具"
+  }
 }

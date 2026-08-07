@@ -1277,3 +1277,65 @@ tbody td {
   background: var(--done-bg);
   color: var(--done-fg);
 }
+
+#files-view,
+#conflicts-view,
+#activity-view {
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+.view-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-sm);
+  margin-bottom: var(--sp-lg);
+  color: var(--text-muted);
+  font-size: var(--f-caption);
+}
+
+.sub-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.file-owners {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-sm);
+}
+
+.file-owner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  font-size: var(--f-caption);
+}
+
+.file-state {
+  cursor: help;
+}
+
+.file-touched {
+  background: var(--done-bg);
+  color: var(--done-fg);
+}
+
+.file-in_progress {
+  background: var(--in-progress-bg);
+  color: var(--in-progress-fg);
+}
+
+.file-planned {
+  background: var(--created-bg);
+  color: var(--created-fg);
+}
+
+.chip-shared {
+  margin-left: var(--sp-sm);
+  background: var(--escalated-bg);
+  color: var(--escalated-fg);
+}

@@ -78,7 +78,9 @@
   },
   "tabs": {
     "worktrees": "Worktrees",
-    "arch": "Arquitectura"
+    "arch": "Arquitectura",
+    "files": "Archivos",
+    "conflicts": "Conflictos"
   },
   "arch": {
     "empty": "Sin arquitectura definida. Los agentes la rellenan en la etapa de arquitectura."
@@ -97,5 +99,40 @@
     "ports": "Puertos",
     "activity": "Actividad"
   },
-  "soon": "pronto"
+  "soon": "pronto",
+  "files": {
+    "empty": "Ningun archivo en vuelo. Los worktrees seguidos no tienen nada modificado ni previsto.",
+    "legend": "Tres niveles de certeza:",
+    "path": "Archivo",
+    "owners": "Ramas",
+    "shared": "compartido"
+  },
+  "fileStates": {
+    "touched": "escrito",
+    "in_progress": "en curso",
+    "planned": "previsto"
+  },
+  "fileStatesHelp": {
+    "touched": "Ya confirmado por la rama (git diff base...HEAD)",
+    "in_progress": "Modificado, aun sin confirmar (git status)",
+    "planned": "Declarado en la etapa de arquitectura, aun sin escribir"
+  },
+  "conflicts": {
+    "explain": "Conflictos reales, verificados con una fusion en memoria (git merge-tree). Starfleet avisa, nunca bloquea.",
+    "rescan": "Volver a escanear",
+    "empty": "Ningun conflicto abierto.",
+    "branches": "Ramas",
+    "state": "Estado",
+    "arbitration": "Quien corrige",
+    "devDecides": "lo decide el dev",
+    "promoted": "requiere tarea",
+    "promotedHelp": "Un lado paso un checkpoint: su codigo dejo de moverse, el conflicto merece una tarea propia.",
+    "watched": "en observacion",
+    "watchedHelp": "Ambos lados siguen escribiendo: visible, aun no promovido a tarea."
+  },
+  "activity": {
+    "explain": "Flujo de actividad enviado por el hook PostToolUse. Solo se guarda el evento, nunca el contenido.",
+    "empty": "Ninguna actividad recibida. Puede que el hook no este conectado a ningun repo.",
+    "tool": "Herramienta"
+  }
 }

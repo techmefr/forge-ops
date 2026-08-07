@@ -104,6 +104,13 @@ Sequence conseillee, chaque etape ecrit son checkpoint. Ce sont des **garde-fous
 - `cleanup(project, branch)` — arrete le serveur, supprime la worktree git (`git worktree remove`) puis la ligne en base.
 - `finish_task(project, branch, base?)` — post-merge : arrete le serveur, supprime la worktree git, met a jour la branche d'integration (`develop` par defaut, fast-forward) et supprime la ligne. Ferme la boucle du pipeline.
 
+Tools de la vue worktrees (section 9) :
+
+- `list_worktree_views(project?)` — etat derive de chaque worktree : base, propre/sale, fichiers touches / en cours / prevus, derniere activite.
+- `list_files_in_flight(project?, sharedOnly?)` — la table par fichier : quelles branches l'ecrivent et a quel niveau de certitude. **C'est le tool a appeler avant d'ecrire un fichier partage.**
+- `check_conflicts(project?, rescan?)` — fusionne en memoire chaque paire de branches suivies et rapporte les conflits reels.
+- `record_activity(tool, project?, branch?, worktreePath?, session?, filePath?)` / `list_activity(limit?)` — le flux d'activite, aussi alimente par le hook (section 9).
+
 Le **dashboard** affiche en plus : etat **live/down** (sonde TCP du port), lien **Ouvrir** vers le front (`http://<STARFLEET_URL_HOST|localhost>:<port>`), la **feature** de groupe et l'avancement des **taches associees**. La navigation d'**architecture** de chaque projet est deleguee a graphify (non reimplemente ici).
 
 ---
@@ -134,9 +141,13 @@ Le serveur MCP est declare dans `.mcp.json` : disponible automatiquement dans un
 ### Structure
 ```
 db/                   schema SQLite + script d'init
-src/db/               connexion + CRUD sur la table tasks
+src/db/               connexion + CRUD (tasks, arch, evenements, conflits)
 src/ports.ts          port deterministe + resolution de collision
-src/git/worktree.ts   suppression reelle de la worktree git
+src/git/worktree.ts   creation/suppression reelle de la worktree git
+src/git/inspect.ts    lectures git : fichiers touches, etat sale, fusion en memoire
+src/worktrees.ts      etat derive par worktree + table par fichier
+src/conflicts.ts      scan des conflits, promotion et arbitrage
+hooks/                hook PostToolUse qui alimente le flux d'activite
 src/mcp/               serveur MCP et ses tools
 src/dashboard/         dashboard web read-only (Express + i18n cote client)
 .claude/commands/      sequence /SPEC .../SHIP (guide humain)
@@ -145,7 +156,75 @@ src/dashboard/         dashboard web read-only (Express + i18n cote client)
 
 ---
 
-## 8. Hors scope (assume)
+## 8. La vue worktrees
+
+L'image de reference : **Docker Desktop, pour les worktrees**. Une liste de ce qui tourne, et un
+drill-in par worktree. Trois onglets s'ajoutent au tableau des taches.
+
+### Fichiers — qui ecrit quoi, et a quel titre
+
+Une ligne par fichier, une colonne par branche qui le touche, et **trois niveaux de certitude qui
+ne sont jamais fondus dans la meme colonne** :
+
+| Niveau | D'ou il sort | Ce qu'il veut dire |
+|---|---|---|
+| **ecrit** | `git diff --name-only <base>...<branche>` | la branche l'a deja commite |
+| **en cours** | `git status --porcelain` dans la worktree | modifie, pas encore commite |
+| **prevu** | noeuds d'archi de la feature (`arch_nodes`) | declare a l'etape archi, pas encore ecrit |
+
+Les deux premiers sortent de git et se **recalculent a chaque lecture** — SQLite ne stocke que le
+declare (plans, checkpoints, decisions), jamais le derivable. Le troisieme ne sort pas de git : « ce
+qui va etre ecrit » est une **intention**, portee par le plan produit a l'etape archi.
+
+### Conflits — alerter, pas verrouiller
+
+Un conflit n'est jamais devine. `git merge-tree --write-tree --name-only <A> <B>` fusionne **en
+memoire** et rend les conflits reels sans toucher a aucun working tree. L'heuristique « meme fichier
+touche » se trompe deux fois : meme fichier sans conflit, et conflit sans fichier commun.
+
+Pour l'etat pas encore commite, `git stash create` donne un commit de l'etat sale **sans toucher a la
+worktree ni a la pile de stash** — c'est ce commit qui est compare.
+
+Quatre regles pour que le tableau ne devienne pas un mur d'alertes ignorees :
+
+1. **Rien sur simple chevauchement** — le conflit doit etre verifie.
+2. **Promotion tardive** — visible tout de suite, promu (« a traiter ») quand un cote a franchi un
+   checkpoint (`build_done`, `reviewed`, `simplified`, `mr_draft_pushed`), donc quand son code a
+   arrete de bouger.
+3. **La ligne porte de quoi arbitrer** — les deux branches, le fichier, la position de chacun. Regle
+   par defaut : **le cote qui n'est pas en relecture humaine bouge**. Quand les deux le sont, ou
+   aucun, starfleet ne tranche pas : c'est le dev.
+4. **Auto-fermeture** sur la cle (paire de branches + fichier) des que `merge-tree` ne signale plus
+   rien.
+
+Starfleet ne pose **aucun verrou** : pas de lock de fichier (ca mettrait les agents en file
+d'attente), pas d'appel bloquant avant ecriture (ca demanderait une discipline que les agents ne
+tiennent pas).
+
+### Activite — l'equivalent de `docker logs`
+
+Un hook `PostToolUse` (`hooks/starfleet-activity.sh`) poste `{tool, filePath, worktreePath, session}`
+sur `POST /api/activity`. Deux consequences :
+
+- on stocke **l'evenement**, jamais le contenu des transcripts ;
+- ces memes evenements servent de **battement de coeur** : une session morte ne previent personne,
+  donc l'absence d'evenement depuis 5 minutes affiche la worktree *inactive*.
+
+Details, cablage et limites : `hooks/README.md`.
+
+### Endpoints HTTP
+
+| Route | Effet |
+|---|---|
+| `GET /api/worktrees?project=` | l'etat derive de chaque worktree |
+| `GET /api/files?project=` | la table par fichier |
+| `GET /api/conflicts?project=` | les conflits ouverts |
+| `POST /api/conflicts/scan` | relance la fusion en memoire de chaque paire |
+| `GET /api/activity?limit=` / `POST /api/activity` | le flux d'activite |
+
+---
+
+## 9. Hors scope (assume)
 
 - Pas de mode autonome — pilotage humain uniquement (section 2).
 - Pas de couche deny/review/model-router/memoire maison — on utilise le natif Claude Code.

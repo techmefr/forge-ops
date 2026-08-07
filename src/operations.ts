@@ -16,7 +16,20 @@ import { markArchFeatureDone, setArchNode } from './db/arch.js'
 import type { ISetArchInput } from './db/arch.js'
 import type { IArchNode } from './types/task.js'
 import { isProcessAlive, startServer, stopServer } from './process/runner.js'
-import type { ITask, ITaskItem, TaskCheckpoint } from './types/task.js'
+import { buildFileMap, listWorktreeViews } from './worktrees.js'
+import { openConflicts, scanConflicts } from './conflicts.js'
+import type { IConflictScan } from './conflicts.js'
+import { listEvents, recordEvent } from './db/events.js'
+import type { IRecordEventInput } from './db/events.js'
+import type {
+  IActivityEvent,
+  IConflict,
+  IFileRow,
+  ITask,
+  ITaskItem,
+  IWorktreeView,
+  TaskCheckpoint,
+} from './types/task.js'
 
 export interface IOpResult<T> {
   ok: boolean
@@ -199,4 +212,31 @@ export function addItem(project: string, branch: string, label: string): IOpResu
 export function toggleItem(itemId: number, done: boolean): IOpResult<ITaskItem> {
   const item = toggleTaskItem(itemId, done)
   return item === null ? fail('not_found') : { ok: true, data: item }
+}
+
+export function worktreeViews(project?: string): IOpResult<IWorktreeView[]> {
+  return { ok: true, data: listWorktreeViews(project) }
+}
+
+export function fileMap(project?: string): IOpResult<IFileRow[]> {
+  return { ok: true, data: buildFileMap(listWorktreeViews(project)) }
+}
+
+export function conflictScan(project?: string): IOpResult<IConflictScan[]> {
+  return { ok: true, data: scanConflicts(project) }
+}
+
+export function listConflicts(project?: string): IOpResult<IConflict[]> {
+  return { ok: true, data: openConflicts(project) }
+}
+
+export function recordActivity(input: IRecordEventInput): IOpResult<IActivityEvent> {
+  if (!input.tool) {
+    return fail('no_tool', 'tool requis')
+  }
+  return { ok: true, data: recordEvent(input) }
+}
+
+export function activity(limit?: number): IOpResult<IActivityEvent[]> {
+  return { ok: true, data: listEvents(limit) }
 }

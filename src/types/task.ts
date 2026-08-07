@@ -35,6 +35,69 @@ export interface ITaskItem {
   createdAt: string
 }
 
+export type FileState = 'touched' | 'in_progress' | 'planned'
+
+export interface IActivityEvent {
+  id: number
+  project: string | null
+  branch: string | null
+  worktreePath: string | null
+  session: string | null
+  tool: string
+  filePath: string | null
+  createdAt: string
+}
+
+export interface IConflict {
+  id: number
+  project: string
+  leftBranch: string
+  rightBranch: string
+  filePath: string
+  promoted: boolean
+  arbitration: string | null
+  firstSeenAt: string
+  lastSeenAt: string
+  resolvedAt: string | null
+}
+
+export interface IWorktreeFiles {
+  touched: string[]
+  inProgress: string[]
+  planned: string[]
+}
+
+export interface IWorktreeView {
+  project: string
+  branch: string
+  feature: string | null
+  role: string | null
+  status: TaskStatus
+  lastCheckpoint: TaskCheckpoint | null
+  repoPath: string | null
+  worktreePath: string | null
+  base: string | null
+  head: string | null
+  clean: boolean
+  files: IWorktreeFiles
+  lastActivity: IActivityEvent | null
+  idle: boolean
+  detail: string | null
+}
+
+export interface IFileOwner {
+  branch: string
+  worktreePath: string | null
+  state: FileState
+}
+
+export interface IFileRow {
+  project: string
+  path: string
+  owners: IFileOwner[]
+  shared: boolean
+}
+
 export interface ITask {
   id: number
   project: string

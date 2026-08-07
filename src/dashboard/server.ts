@@ -5,15 +5,21 @@ import { listTaskItems, listTasks } from '../db/tasks.js'
 import { listArchNodes } from '../db/arch.js'
 import { isPortListening } from '../health.js'
 import {
+  activity,
   addItem,
   cleanupWorktree,
+  conflictScan,
   createWorktree,
   escalate,
+  fileMap,
   finishTask,
   launchWorktree,
+  listConflicts,
+  recordActivity,
   startWorktreeServer,
   stopWorktreeServer,
   toggleItem,
+  worktreeViews,
 } from '../operations.js'
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url))
@@ -24,6 +30,11 @@ const URL_HOST = process.env.STARFLEET_URL_HOST ?? 'localhost'
 
 function send(res: Response, result: { ok: boolean; error?: string; detail?: string; data?: unknown }): void {
   res.status(result.ok ? 200 : result.error === 'not_found' ? 404 : 400).json(result)
+}
+
+function optionalProject(req: Request): string | undefined {
+  const value = req.query.project
+  return typeof value === 'string' && value !== '' ? value : undefined
 }
 
 export function createDashboardApp(): express.Express {
@@ -90,6 +101,32 @@ export function createDashboardApp(): express.Express {
       return res.status(400).json({ ok: false, error: 'label requis' })
     }
     send(res, addItem(project, branch, label))
+  })
+
+  app.get('/api/worktrees', (req: Request, res: Response) => {
+    send(res, worktreeViews(optionalProject(req)))
+  })
+
+  app.get('/api/files', (req: Request, res: Response) => {
+    send(res, fileMap(optionalProject(req)))
+  })
+
+  app.get('/api/conflicts', (req: Request, res: Response) => {
+    send(res, listConflicts(optionalProject(req)))
+  })
+
+  app.post('/api/conflicts/scan', (req: Request, res: Response) => {
+    send(res, conflictScan(req.body?.project ?? undefined))
+  })
+
+  app.get('/api/activity', (req: Request, res: Response) => {
+    const limit = req.query.limit === undefined ? undefined : Number(req.query.limit)
+    send(res, activity(Number.isFinite(limit) ? limit : undefined))
+  })
+
+  app.post('/api/activity', (req: Request, res: Response) => {
+    const { project, branch, worktreePath, session, tool, filePath } = req.body ?? {}
+    send(res, recordActivity({ project, branch, worktreePath, session, tool, filePath }))
   })
 
   app.patch('/api/task-items/:id', (req: Request, res: Response) => {

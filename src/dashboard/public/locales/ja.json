@@ -78,7 +78,9 @@
   },
   "tabs": {
     "worktrees": "ワークツリー",
-    "arch": "アーキテクチャ"
+    "arch": "アーキテクチャ",
+    "files": "ファイル",
+    "conflicts": "コンフリクト"
   },
   "arch": {
     "empty": "アーキテクチャ未定義。エージェントがアーキ工程で記入します。"
@@ -97,5 +99,40 @@
     "ports": "ポート",
     "activity": "アクティビティ"
   },
-  "soon": "近日"
+  "soon": "近日",
+  "files": {
+    "empty": "進行中のファイルはありません。追跡中のワークツリーに変更も予定もありません。",
+    "legend": "確度は三段階:",
+    "path": "ファイル",
+    "owners": "ブランチ",
+    "shared": "共有"
+  },
+  "fileStates": {
+    "touched": "書き込み済み",
+    "in_progress": "作業中",
+    "planned": "予定"
+  },
+  "fileStatesHelp": {
+    "touched": "ブランチがすでにコミット済み (git diff base...HEAD)",
+    "in_progress": "変更済み、未コミット (git status)",
+    "planned": "設計ステップで宣言済み、未着手"
+  },
+  "conflicts": {
+    "explain": "メモリ上のマージ (git merge-tree) で確認した実際のコンフリクト。starfleet は知らせるだけで、ロックはしません。",
+    "rescan": "再スキャン",
+    "empty": "未解決のコンフリクトはありません。",
+    "branches": "ブランチ",
+    "state": "状態",
+    "arbitration": "直す側",
+    "devDecides": "開発者が判断",
+    "promoted": "タスク化が必要",
+    "promotedHelp": "片方がチェックポイントを通過し、コードが止まりました。専用タスクを立てる価値があります。",
+    "watched": "監視中",
+    "watchedHelp": "両側とも書き込み中: 表示のみ、まだタスク化していません。"
+  },
+  "activity": {
+    "explain": "PostToolUse フックが送るアクティビティ。保存するのはイベントだけで、内容は保存しません。",
+    "empty": "アクティビティを受信していません。フックがどのリポジトリにも接続されていない可能性があります。",
+    "tool": "ツール"
+  }
 }

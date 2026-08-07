@@ -8,6 +8,7 @@ import { registerTaskLifecycle } from './tools/taskLifecycle.js'
 import { registerWorktreeOps } from './tools/worktreeOps.js'
 import { registerTaskItems } from './tools/taskItems.js'
 import { registerArch } from './tools/arch.js'
+import { registerFleetView } from './tools/fleetView.js'
 
 async function main(): Promise<void> {
   const server = new McpServer({
@@ -23,6 +24,7 @@ async function main(): Promise<void> {
   registerWorktreeOps(server)
   registerTaskItems(server)
   registerArch(server)
+  registerFleetView(server)
 
   const transport = new StdioServerTransport()
   await server.connect(transport)

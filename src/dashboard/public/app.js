@@ -28,15 +28,38 @@ const searchInput = document.getElementById('search')
 const statusFilter = document.getElementById('status-filter')
 const projectFilter = document.getElementById('project-filter')
 const createForm = document.getElementById('create-form')
-const tabWorktrees = document.getElementById('tab-worktrees')
-const tabArch = document.getElementById('tab-arch')
 const filtersEl = document.getElementById('filters')
 const mainEl = document.querySelector('main')
-const archView = document.getElementById('arch-view')
+const conflictsCount = document.getElementById('conflicts-count')
+
+const TABS = {
+  worktrees: { button: document.getElementById('tab-worktrees'), view: null, render: null },
+  files: {
+    button: document.getElementById('tab-files'),
+    view: document.getElementById('files-view'),
+    render: renderFiles,
+  },
+  conflicts: {
+    button: document.getElementById('tab-conflicts'),
+    view: document.getElementById('conflicts-view'),
+    render: renderConflicts,
+  },
+  arch: {
+    button: document.getElementById('tab-arch'),
+    view: document.getElementById('arch-view'),
+    render: renderArch,
+  },
+  activity: {
+    button: document.getElementById('tab-activity'),
+    view: document.getElementById('activity-view'),
+    render: renderActivity,
+  },
+}
 
 let currentTranslations = null
 let currentLocale = detectLocale()
 let allTasks = []
+let currentTab = 'worktrees'
 
 function applyStaticTranslations() {
   appTitle.textContent = translate(currentTranslations, 'title')
@@ -50,19 +73,26 @@ function applyStaticTranslations() {
     createForm.elements[name].setAttribute('placeholder', translate(currentTranslations, `form.${name}`))
   }
   localeSelect.value = currentLocale
-  if (!archView.hidden) {
-    renderArch()
+  const active = TABS[currentTab]
+  if (active.render !== null) {
+    active.render()
+  }
+}
+
+async function apiGet(url, fallback) {
+  try {
+    const response = await fetch(url)
+    const payload = await response.json()
+    return payload?.data ?? payload ?? fallback
+  } catch (error) {
+    return fallback
   }
 }
 
 async function renderArch() {
   const t = (key) => translate(currentTranslations, key)
-  let nodes = []
-  try {
-    nodes = await (await fetch('/api/arch')).json()
-  } catch (error) {
-    nodes = []
-  }
+  const archView = TABS.arch.view
+  const nodes = await apiGet('/api/arch', [])
   if (nodes.length === 0) {
     archView.innerHTML = `<p class="arch-empty">${t('arch.empty')}</p>`
     return
@@ -95,15 +125,142 @@ async function renderArch() {
     .join('')
 }
 
+const FILE_STATES = ['in_progress', 'touched', 'planned']
+
+function stateChip(state) {
+  const label = translate(currentTranslations, `fileStates.${state}`)
+  const help = translate(currentTranslations, `fileStatesHelp.${state}`)
+  return `<span class="chip file-state file-${state}" title="${escapeHtml(help)}">${escapeHtml(label)}</span>`
+}
+
+// Les trois niveaux de certitude ne sont jamais fondus dans une colonne : une
+// colonne par niveau, un fichier prevu ne se lit pas comme un fichier ecrit.
+async function renderFiles() {
+  const t = (key) => translate(currentTranslations, key)
+  const filesView = TABS.files.view
+  const rows = await apiGet('/api/files', [])
+  if (rows.length === 0) {
+    filesView.innerHTML = `<p class="arch-empty">${t('files.empty')}</p>`
+    return
+  }
+  const legend = FILE_STATES.map(stateChip).join('')
+  const body = rows
+    .map((row) => {
+      const owners = row.owners
+        .map(
+          (owner) =>
+            `<span class="file-owner" title="${escapeHtml(owner.worktreePath ?? '—')}">${escapeHtml(owner.branch)}${stateChip(owner.state)}</span>`,
+        )
+        .join('')
+      const shared = row.shared ? `<span class="chip chip-shared">${t('files.shared')}</span>` : ''
+      return `<tr style="--chip-h:${hueFor(row.project)}">
+        <td data-label="${t('columns.project')}">${projectChip(row.project)}</td>
+        <td data-label="${t('files.path')}"><code class="arch-path">${escapeHtml(row.path)}</code>${shared}</td>
+        <td data-label="${t('files.owners')}" class="file-owners">${owners}</td>
+      </tr>`
+    })
+    .join('')
+  filesView.innerHTML = `<p class="view-legend">${t('files.legend')} ${legend}</p>
+    <table class="sub-table">
+      <thead><tr><th>${t('columns.project')}</th><th>${t('files.path')}</th><th>${t('files.owners')}</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>`
+}
+
+async function renderConflicts(rescan = false) {
+  const t = (key) => translate(currentTranslations, key)
+  const conflictsView = TABS.conflicts.view
+  if (rescan) {
+    await fetch('/api/conflicts/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    }).catch(() => null)
+  }
+  const conflicts = await apiGet('/api/conflicts', [])
+  refreshConflictsBadge(conflicts.length)
+  const scanButton = `<button type="button" id="rescan-btn" class="mini-btn">${t('conflicts.rescan')}</button>`
+  if (conflicts.length === 0) {
+    conflictsView.innerHTML = `<p class="view-legend">${t('conflicts.explain')} ${scanButton}</p>
+      <p class="arch-empty">${t('conflicts.empty')}</p>`
+    return
+  }
+  const body = conflicts
+    .map((conflict) => {
+      const arbitration =
+        conflict.arbitration === null
+          ? `<span class="col-muted">${t('conflicts.devDecides')}</span>`
+          : escapeHtml(conflict.arbitration)
+      const promoted = conflict.promoted
+        ? `<span class="chip file-in_progress" title="${escapeHtml(t('conflicts.promotedHelp'))}">${t('conflicts.promoted')}</span>`
+        : `<span class="chip file-planned" title="${escapeHtml(t('conflicts.watchedHelp'))}">${t('conflicts.watched')}</span>`
+      return `<tr style="--chip-h:${hueFor(conflict.project)}">
+        <td data-label="${t('columns.project')}">${projectChip(conflict.project)}</td>
+        <td data-label="${t('conflicts.branches')}">${escapeHtml(conflict.leftBranch)} ↔ ${escapeHtml(conflict.rightBranch)}</td>
+        <td data-label="${t('files.path')}"><code class="arch-path">${escapeHtml(conflict.filePath)}</code></td>
+        <td data-label="${t('conflicts.state')}">${promoted}</td>
+        <td data-label="${t('conflicts.arbitration')}">${arbitration}</td>
+      </tr>`
+    })
+    .join('')
+  conflictsView.innerHTML = `<p class="view-legend">${t('conflicts.explain')} ${scanButton}</p>
+    <table class="sub-table">
+      <thead><tr>
+        <th>${t('columns.project')}</th><th>${t('conflicts.branches')}</th><th>${t('files.path')}</th>
+        <th>${t('conflicts.state')}</th><th>${t('conflicts.arbitration')}</th>
+      </tr></thead>
+      <tbody>${body}</tbody>
+    </table>`
+}
+
+async function renderActivity() {
+  const t = (key) => translate(currentTranslations, key)
+  const activityView = TABS.activity.view
+  const events = await apiGet('/api/activity?limit=100', [])
+  if (events.length === 0) {
+    activityView.innerHTML = `<p class="arch-empty">${t('activity.empty')}</p>`
+    return
+  }
+  const body = events
+    .map(
+      (event) => `<tr style="--chip-h:${hueFor(event.project ?? '?')}">
+        <td data-label="${t('columns.updated')}" class="col-muted col-nowrap">${formatDate(event.createdAt)}</td>
+        <td data-label="${t('columns.project')}">${event.project === null ? '—' : projectChip(event.project)}</td>
+        <td data-label="${t('columns.branch')}">${escapeHtml(event.branch ?? '—')}</td>
+        <td data-label="${t('activity.tool')}">${escapeHtml(event.tool)}</td>
+        <td data-label="${t('files.path')}"><code class="arch-path">${escapeHtml(event.filePath ?? '—')}</code></td>
+      </tr>`,
+    )
+    .join('')
+  activityView.innerHTML = `<p class="view-legend">${t('activity.explain')}</p>
+    <table class="sub-table">
+      <thead><tr>
+        <th>${t('columns.updated')}</th><th>${t('columns.project')}</th><th>${t('columns.branch')}</th>
+        <th>${t('activity.tool')}</th><th>${t('files.path')}</th>
+      </tr></thead>
+      <tbody>${body}</tbody>
+    </table>`
+}
+
+function refreshConflictsBadge(count) {
+  conflictsCount.hidden = count === 0
+  conflictsCount.textContent = String(count)
+}
+
 function setTab(tab) {
-  const arch = tab === 'arch'
-  tabWorktrees.classList.toggle('is-active', !arch)
-  tabArch.classList.toggle('is-active', arch)
-  filtersEl.hidden = arch
-  mainEl.hidden = arch
-  archView.hidden = !arch
-  if (arch) {
-    renderArch()
+  currentTab = tab
+  for (const [name, entry] of Object.entries(TABS)) {
+    entry.button.classList.toggle('is-active', name === tab)
+    if (entry.view !== null) {
+      entry.view.hidden = name !== tab
+    }
+  }
+  const worktrees = tab === 'worktrees'
+  filtersEl.hidden = !worktrees
+  mainEl.hidden = !worktrees
+  const active = TABS[tab]
+  if (active.render !== null) {
+    active.render()
   }
 }
 
@@ -451,8 +608,15 @@ refreshBtn.addEventListener('click', () => {
 searchInput.addEventListener('input', applyAndRender)
 statusFilter.addEventListener('change', applyAndRender)
 projectFilter.addEventListener('change', applyAndRender)
-tabWorktrees.addEventListener('click', () => setTab('worktrees'))
-tabArch.addEventListener('click', () => setTab('arch'))
+for (const [name, entry] of Object.entries(TABS)) {
+  entry.button.addEventListener('click', () => setTab(name))
+}
+
+TABS.conflicts.view.addEventListener('click', (event) => {
+  if (event.target.closest('#rescan-btn') !== null) {
+    renderConflicts(true)
+  }
+})
 
 createForm.addEventListener('submit', async (event) => {
   event.preventDefault()
@@ -547,11 +711,32 @@ document.addEventListener('keydown', (event) => {
   }
 })
 
+// L'etat git se recalcule cote serveur a chaque lecture : on le redemande moins
+// souvent que la liste des taches, pour ne pas repasser sur toutes les worktrees
+// chaque seconde ni faire clignoter le tableau ouvert.
+const DERIVED_EVERY_TICKS = 5
+let tick = 0
+
+async function poll() {
+  await refreshTasks()
+  tick += 1
+  if (tick % DERIVED_EVERY_TICKS !== 0) {
+    return
+  }
+  const conflicts = await apiGet('/api/conflicts', [])
+  refreshConflictsBadge(conflicts.length)
+  const active = TABS[currentTab]
+  if (currentTab !== 'worktrees' && active.render !== null) {
+    await active.render()
+  }
+}
+
 async function main() {
   applyFontScale(localStorage.getItem(FONT_SCALE_KEY) ?? DEFAULT_FONT_SCALE)
   applyTheme(localStorage.getItem(THEME_KEY) ?? DEFAULT_THEME)
   await setLocale(currentLocale)
-  setInterval(refreshTasks, POLL_INTERVAL_MS)
+  refreshConflictsBadge((await apiGet('/api/conflicts', [])).length)
+  setInterval(poll, POLL_INTERVAL_MS)
 }
 
 main()

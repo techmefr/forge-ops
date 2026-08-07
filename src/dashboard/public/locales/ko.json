@@ -78,7 +78,9 @@
   },
   "tabs": {
     "worktrees": "워크트리",
-    "arch": "아키텍처"
+    "arch": "아키텍처",
+    "files": "파일",
+    "conflicts": "충돌"
   },
   "arch": {
     "empty": "아키텍처가 아직 없습니다. 에이전트가 아키 단계에서 채웁니다."
@@ -97,5 +99,40 @@
     "ports": "포트",
     "activity": "활동"
   },
-  "soon": "곧"
+  "soon": "곧",
+  "files": {
+    "empty": "진행 중인 파일이 없습니다. 추적 중인 워크트리에 변경도 계획도 없습니다.",
+    "legend": "확신 수준 세 단계:",
+    "path": "파일",
+    "owners": "브랜치",
+    "shared": "공유"
+  },
+  "fileStates": {
+    "touched": "작성됨",
+    "in_progress": "진행 중",
+    "planned": "예정"
+  },
+  "fileStatesHelp": {
+    "touched": "브랜치가 이미 커밋함 (git diff base...HEAD)",
+    "in_progress": "수정됨, 아직 커밋 안 함 (git status)",
+    "planned": "설계 단계에서 선언됨, 아직 작성 안 함"
+  },
+  "conflicts": {
+    "explain": "메모리 병합(git merge-tree)으로 확인한 실제 충돌입니다. starfleet은 알릴 뿐 잠그지 않습니다.",
+    "rescan": "다시 스캔",
+    "empty": "열린 충돌이 없습니다.",
+    "branches": "브랜치",
+    "state": "상태",
+    "arbitration": "고칠 쪽",
+    "devDecides": "개발자가 결정",
+    "promoted": "작업 필요",
+    "promotedHelp": "한쪽이 체크포인트를 지나 코드가 멈췄습니다. 전용 작업을 만들 만합니다.",
+    "watched": "관찰 중",
+    "watchedHelp": "양쪽 모두 아직 작성 중: 표시만 하고 작업으로 올리지 않았습니다."
+  },
+  "activity": {
+    "explain": "PostToolUse 훅이 보내는 활동 흐름입니다. 이벤트만 저장하고 내용은 저장하지 않습니다.",
+    "empty": "받은 활동이 없습니다. 훅이 어떤 저장소에도 연결되지 않았을 수 있습니다.",
+    "tool": "도구"
+  }
 }

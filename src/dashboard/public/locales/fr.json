@@ -78,7 +78,9 @@
   },
   "tabs": {
     "worktrees": "Worktrees",
-    "arch": "Architecture"
+    "arch": "Architecture",
+    "files": "Fichiers",
+    "conflicts": "Conflits"
   },
   "arch": {
     "empty": "Aucune architecture définie. Les agents la remplissent à l'étape archi."
@@ -97,5 +99,40 @@
     "ports": "Ports",
     "activity": "Activité"
   },
-  "soon": "bientôt"
+  "soon": "bientôt",
+  "files": {
+    "empty": "Aucun fichier en vol. Les worktrees suivies n'ont rien de modifie ni de prevu.",
+    "legend": "Trois niveaux de certitude :",
+    "path": "Fichier",
+    "owners": "Branches",
+    "shared": "partage"
+  },
+  "fileStates": {
+    "touched": "ecrit",
+    "in_progress": "en cours",
+    "planned": "prevu"
+  },
+  "fileStatesHelp": {
+    "touched": "Deja commite par la branche (git diff base...HEAD)",
+    "in_progress": "Modifie, pas encore commite (git status)",
+    "planned": "Declare a l'etape archi, pas encore ecrit"
+  },
+  "conflicts": {
+    "explain": "Conflits reels, verifies par une fusion en memoire (git merge-tree). Starfleet alerte, ne verrouille rien.",
+    "rescan": "Relancer le scan",
+    "empty": "Aucun conflit ouvert.",
+    "branches": "Branches",
+    "state": "Etat",
+    "arbitration": "Qui corrige",
+    "devDecides": "au dev de trancher",
+    "promoted": "a traiter",
+    "promotedHelp": "Un cote a franchi un checkpoint : son code a arrete de bouger, le conflit merite une tache dediee.",
+    "watched": "sous surveillance",
+    "watchedHelp": "Les deux cotes ecrivent encore : visible, pas encore promu en tache."
+  },
+  "activity": {
+    "explain": "Flux d'activite envoye par le hook PostToolUse. Seul l'evenement est stocke, jamais le contenu.",
+    "empty": "Aucune activite recue. Le hook n'est peut-etre branche dans aucun repo.",
+    "tool": "Outil"
+  }
 }

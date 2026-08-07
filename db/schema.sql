@@ -57,3 +57,37 @@ CREATE TABLE IF NOT EXISTS arch_nodes (
 );
 
 CREATE INDEX IF NOT EXISTS idx_arch_project ON arch_nodes(project);
+
+CREATE TABLE IF NOT EXISTS activity_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project TEXT,                -- resolu depuis worktree_path quand le hook ne le connait pas
+  branch TEXT,
+  worktree_path TEXT,          -- cwd envoye par le hook Claude Code
+  session TEXT,                -- identifiant de session, pour distinguer deux agents sur la meme worktree
+  tool TEXT NOT NULL,          -- nom de l'outil (Edit, Write, Bash...)
+  file_path TEXT,              -- fichier touche quand l'outil en designe un
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+  -- on stocke l'evenement, jamais le contenu du transcript : ce qui est ecrit ici
+  -- doit rester lisible sans fuiter le travail lui-meme
+
+CREATE INDEX IF NOT EXISTS idx_events_recent ON activity_events(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_events_worktree ON activity_events(project, branch);
+
+CREATE TABLE IF NOT EXISTS conflicts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project TEXT NOT NULL,
+  left_branch TEXT NOT NULL,   -- paire ordonnee (left < right) pour que la cle soit stable
+  right_branch TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  promoted INTEGER NOT NULL DEFAULT 0,
+    -- 0 = simplement visible dans le tableau ; 1 = un cote a franchi un checkpoint,
+    -- son code a arrete de bouger, le conflit merite une tache dediee
+  arbitration TEXT,            -- branche qui devrait bouger, null quand c'est au dev de trancher
+  first_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_seen_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  resolved_at TIMESTAMP,       -- rempli des que git merge-tree ne signale plus rien
+  UNIQUE (project, left_branch, right_branch, file_path)
+);
+
+CREATE INDEX IF NOT EXISTS idx_conflicts_open ON conflicts(project, resolved_at);

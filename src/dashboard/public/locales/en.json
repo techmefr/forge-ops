@@ -78,7 +78,9 @@
   },
   "tabs": {
     "worktrees": "Worktrees",
-    "arch": "Architecture"
+    "arch": "Architecture",
+    "files": "Files",
+    "conflicts": "Conflicts"
   },
   "arch": {
     "empty": "No architecture defined yet. Agents fill it during the archi step."
@@ -97,5 +99,40 @@
     "ports": "Ports",
     "activity": "Activity"
   },
-  "soon": "soon"
+  "soon": "soon",
+  "files": {
+    "empty": "No file in flight. The tracked worktrees have nothing changed or planned.",
+    "legend": "Three levels of certainty:",
+    "path": "File",
+    "owners": "Branches",
+    "shared": "shared"
+  },
+  "fileStates": {
+    "touched": "written",
+    "in_progress": "in progress",
+    "planned": "planned"
+  },
+  "fileStatesHelp": {
+    "touched": "Already committed by the branch (git diff base...HEAD)",
+    "in_progress": "Changed, not committed yet (git status)",
+    "planned": "Declared at the architecture step, not written yet"
+  },
+  "conflicts": {
+    "explain": "Real conflicts, verified by an in-memory merge (git merge-tree). Starfleet alerts, it never locks.",
+    "rescan": "Run the scan again",
+    "empty": "No open conflict.",
+    "branches": "Branches",
+    "state": "State",
+    "arbitration": "Who moves",
+    "devDecides": "the dev decides",
+    "promoted": "needs a task",
+    "promotedHelp": "One side passed a checkpoint: its code stopped moving, so the conflict deserves a task of its own.",
+    "watched": "watched",
+    "watchedHelp": "Both sides are still writing: visible, not promoted to a task yet."
+  },
+  "activity": {
+    "explain": "Activity feed sent by the PostToolUse hook. Only the event is stored, never the content.",
+    "empty": "No activity received. The hook may not be wired into any repo.",
+    "tool": "Tool"
+  }
 }
