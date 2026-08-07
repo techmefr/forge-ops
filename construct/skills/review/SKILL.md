@@ -16,7 +16,7 @@ Après `gate` (`verified`), avant `simplify`.
    - **axe Spec** : le diff est-il **fidèle au ticket / à la spec** ? (ce que `/code-review` natif
      ne couvre pas). Skip propre si aucune spec.
 2. Agréger les deux côte à côte.
-3. Passe des **agents Xefi** dans la voix du dev : `bobby`/`bobby-react` puis `valerianus`
+3. Passe des **agents Xefi** dans la voix du dev : `aragorn`/`gimli`/`legolas` puis `valerianus`
    (tri, reformulation, anti-débat stérile).
 4. Pour la profondeur : `/code-review` + `/security-review` natifs (gandalf en gate final).
 

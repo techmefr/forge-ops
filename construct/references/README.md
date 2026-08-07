@@ -23,7 +23,7 @@
 | **Conventions back** (Laravel/lomkit : filters au max, réponses status+message, simplicité > nb d'appels) | `doctrine-test-back-laravel-lomkit.md` + mémoire | doc/— | Pub (générique) | 🔜 **à écrire** `conventions-back.md` (pointe doctrine) |
 | **Git / commits / MR** (conventional, minuscule ; commentaires MR sans emojis, courts) | *éparses en mémoire* | — | Pub | 🔜 **à écrire** `git-mr.md` |
 | **Code smells** (baseline citée par `review` axe Standards) | à formaliser | — | Pub | 🔜 **à écrire** `code-smells.md` |
-| Agents (bobby/valerianus/gandalf…) | `.claude/agents/*` | defs | Int | ✅ (registre dans CATALOG) |
+| Agents (aragorn/gimli/legolas/valerianus/gandalf…) | `.claude/agents/*` | defs | Int | ✅ (registre dans CATALOG) |
 
 \* `CATALOG.md` : la structure est publiable, mais son backlog nomme des repos/couches internes → garder interne tant qu'on n'a pas séparé.
 
