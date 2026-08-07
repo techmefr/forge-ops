@@ -25,8 +25,7 @@
     "large": "大",
     "auto": "自动",
     "light": "浅色",
-    "dark": "深色",
-    "title": "设置"
+    "dark": "深色"
   },
   "refresh": "刷新",
   "online": "在线",
@@ -161,5 +160,11 @@
     "files": "按分支分组的在途文件",
     "conflicts": "未解决的冲突",
     "activity": "最近的活动事件"
+  },
+  "account": {
+    "title": "账户与设置",
+    "local": "本地实例",
+    "switch": "切换账户",
+    "logout": "退出登录"
   }
 }

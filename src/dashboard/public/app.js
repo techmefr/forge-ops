@@ -18,7 +18,8 @@ const emptyState = document.getElementById('empty-state')
 const lastRefresh = document.getElementById('last-refresh')
 const localeSelect = document.getElementById('locale-select')
 const appTitle = document.getElementById('app-title')
-const settingsBtn = document.getElementById('settings-btn')
+const accountBtn = document.getElementById('account-btn')
+const accountHost = document.getElementById('account-host')
 const settingsPanel = document.getElementById('settings-panel')
 const fontSizeSlider = document.getElementById('font-size-slider')
 const themeGroup = document.getElementById('theme-group')
@@ -658,7 +659,8 @@ function applyTheme(theme) {
 function toggleSettings(open) {
   const shouldOpen = open ?? settingsPanel.hidden
   settingsPanel.hidden = !shouldOpen
-  settingsBtn.setAttribute('aria-expanded', String(shouldOpen))
+  accountBtn.setAttribute('aria-expanded', String(shouldOpen))
+  accountBtn.classList.toggle('is-open', shouldOpen)
 }
 
 localeSelect.addEventListener('change', (event) => {
@@ -775,7 +777,7 @@ tasksBody.addEventListener('change', async (event) => {
   await refreshTasks()
 })
 
-settingsBtn.addEventListener('click', (event) => {
+accountBtn.addEventListener('click', (event) => {
   event.stopPropagation()
   toggleSettings()
 })
@@ -795,7 +797,7 @@ document.addEventListener('keydown', (event) => {
   // page : on le repose sur le bouton qui a ouvert le panneau.
   if (event.key === 'Escape' && !settingsPanel.hidden) {
     toggleSettings(false)
-    settingsBtn.focus()
+    accountBtn.focus()
   }
 })
 
@@ -820,6 +822,9 @@ async function poll() {
 }
 
 async function main() {
+  // Pas de compte a afficher : starfleet n'a pas d'authentification, la seule
+  // identite reelle est l'instance a laquelle on est connecte.
+  accountHost.textContent = window.location.host
   applyFontScale(localStorage.getItem(FONT_SCALE_KEY) ?? DEFAULT_FONT_SCALE)
   applyTheme(localStorage.getItem(THEME_KEY) ?? DEFAULT_THEME)
   await setLocale(currentLocale)

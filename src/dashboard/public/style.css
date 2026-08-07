@@ -199,7 +199,6 @@ thead th,
   gap: var(--sp-2xl);
   width: 236px;
   height: 100vh;
-  overflow-y: auto;
   padding: var(--sp-2xl) var(--sp-lg);
   background: var(--surface);
   border-right: 1px solid var(--hairline);
@@ -225,12 +224,22 @@ thead th,
   text-transform: uppercase;
 }
 
+/* C'est la nav qui defile, pas la barre : un conteneur a defilement rogne ce qui
+   en sort, et le panneau de compte s'ouvre justement en dehors de ses bords. */
 .nav {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
+/* Aucune transition sur les couleurs ici, ni fond ni texte : elles viennent des
+   variables de theme, et une transition en cours au moment du basculement laisse
+   l'ancienne teinte a l'ecran tant que l'onglet ne repeint pas — assez longtemps
+   pour afficher du texte sous le seuil de contraste. Le survol change d'etat net. */
 .nav-item {
   position: relative;
   display: flex;
@@ -244,7 +253,6 @@ thead th,
   color: var(--text-muted);
   text-align: left;
   cursor: pointer;
-  transition: color 0.15s var(--ease), background-color 0.15s var(--ease);
 }
 
 .nav-item svg {
@@ -471,14 +479,14 @@ thead th,
 
 #tasks-panel::-webkit-scrollbar,
 .table-card::-webkit-scrollbar,
-.sidebar::-webkit-scrollbar {
+.nav::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 #tasks-panel::-webkit-scrollbar-thumb,
 .table-card::-webkit-scrollbar-thumb,
-.sidebar::-webkit-scrollbar-thumb {
+.nav::-webkit-scrollbar-thumb {
   border-radius: var(--radius-pill);
   background: var(--border);
 }
@@ -731,7 +739,6 @@ tbody tr:hover {
 
 .icon-btn,
 .mini-btn,
-#settings-btn,
 #refresh-btn {
   display: inline-flex;
   align-items: center;
@@ -741,11 +748,9 @@ tbody tr:hover {
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: color 0.15s var(--ease), background-color 0.15s var(--ease);
 }
 
 .icon-btn,
-#settings-btn,
 #refresh-btn {
   width: 32px;
   height: 32px;
@@ -755,7 +760,6 @@ tbody tr:hover {
 
 .icon-btn:hover,
 .mini-btn:hover,
-#settings-btn:hover,
 #refresh-btn:hover {
   background: var(--surface-alt);
   color: var(--text);
@@ -786,14 +790,117 @@ tbody tr:hover {
   }
 }
 
-.settings {
+/* Le compte vit en pied de barre laterale : c'est la que se cherchent l'identite,
+   les preferences d'affichage et la sortie, pas dans la barre de contenu. */
+.account {
   position: relative;
+  margin-top: auto;
+}
+
+.account-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  width: 100%;
+  padding: var(--sp-sm);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+}
+
+.account-trigger:hover,
+.account-trigger.is-open {
+  background: var(--surface-alt);
+}
+
+.account-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--volt);
+  color: var(--volt-fg);
+}
+
+.account-id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.account-name {
+  color: var(--text);
+  font-size: var(--f-caption);
+  font-weight: 700;
+}
+
+.account-host {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--f-micro);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-caret {
+  flex-shrink: 0;
+  margin-left: auto;
+  transition: transform 0.15s var(--ease);
+}
+
+.account-trigger.is-open .account-caret {
+  transform: rotate(180deg);
+}
+
+[dir='rtl'] .account-caret {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.account-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: var(--sp-lg);
+  border-top: 1px solid var(--hairline);
+}
+
+.account-action {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding: var(--sp-sm);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: var(--f-caption);
+  text-align: left;
+}
+
+.account-action:hover:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+.account-action .soon-badge {
+  margin-left: auto;
+}
+
+[dir='rtl'] .account-action .soon-badge {
+  margin-left: 0;
+  margin-right: auto;
 }
 
 #settings-panel {
   position: absolute;
-  top: calc(100% + var(--sp-sm));
-  right: 0;
+  bottom: calc(100% + var(--sp-sm));
+  left: 0;
   z-index: 10;
   display: flex;
   flex-direction: column;
@@ -812,8 +919,8 @@ tbody tr:hover {
 }
 
 [dir='rtl'] #settings-panel {
-  right: auto;
-  left: 0;
+  left: auto;
+  right: 0;
 }
 
 .setting {
@@ -1054,11 +1161,60 @@ input[type='range']::-moz-range-thumb {
     padding: var(--sp-sm) var(--sp-lg);
     border-right: none;
     border-bottom: 1px solid var(--hairline);
-    overflow-x: auto;
   }
 
   .nav {
     flex-direction: row;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  /* En barre horizontale le mot-marque mange la largeur : le logo suffit a
+     identifier l'outil. Le titre reste dans le DOM, masque a l'ecran seulement,
+     sinon la page perdrait son unique h1. */
+  #app-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+
+  .brand {
+    min-width: 0;
+    padding: 0;
+  }
+
+  .account {
+    margin-top: 0;
+    margin-left: auto;
+  }
+
+  [dir='rtl'] .account {
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  /* En barre horizontale, le nom de l'instance mangerait la place utile : seul
+     l'avatar reste, le detail vit dans le panneau. */
+  .account-id,
+  .account-caret {
+    display: none;
+  }
+
+  #settings-panel {
+    bottom: auto;
+    top: calc(100% + var(--sp-sm));
+    left: auto;
+    right: 0;
+  }
+
+  [dir='rtl'] #settings-panel {
+    right: auto;
+    left: 0;
   }
 
   .nav-item {

@@ -62,48 +62,62 @@
             <span data-i18n="nav.activity"></span>
           </button>
         </nav>
+        <div class="account">
+          <button id="account-btn" class="account-trigger" type="button" aria-expanded="false" aria-controls="settings-panel">
+            <span class="account-avatar" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            <span class="account-id">
+              <span class="account-name" data-i18n="account.local"></span>
+              <span class="account-host" id="account-host"></span>
+            </span>
+            <svg class="account-caret" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="18 15 12 9 6 15"/></svg>
+          </button>
+          <div id="settings-panel" data-i18n-aria="account.title" role="group" hidden>
+            <label class="setting">
+              <span data-i18n="settings.language"></span>
+              <select id="locale-select">
+                <option value="fr">Français (France)</option>
+                <option value="en">English (United States)</option>
+                <option value="es">Español (España)</option>
+                <option value="pt">Português (Portugal)</option>
+                <option value="zh">中文（中国）</option>
+                <option value="ja">日本語（日本）</option>
+                <option value="ko">한국어 (대한민국)</option>
+                <option value="ar">العربية (مصر)</option>
+              </select>
+            </label>
+            <div class="setting">
+              <span id="font-size-label" data-i18n="settings.fontSize"></span>
+              <div class="slider-row">
+                <span class="slider-cap" aria-hidden="true">A</span>
+                <input id="font-size-slider" type="range" min="0.85" max="1.35" step="0.05" value="1" aria-labelledby="font-size-label" />
+                <span class="slider-cap slider-cap-lg" aria-hidden="true">A</span>
+              </div>
+            </div>
+            <div class="setting">
+              <span id="theme-label" data-i18n="settings.theme"></span>
+              <div class="segmented" id="theme-group" role="group" aria-labelledby="theme-label">
+                <button type="button" data-theme-choice="auto" data-i18n="settings.auto"></button>
+                <button type="button" data-theme-choice="light" data-i18n="settings.light"></button>
+                <button type="button" data-theme-choice="dark" data-i18n="settings.dark"></button>
+              </div>
+            </div>
+            <div class="account-actions">
+              <button type="button" class="account-action" disabled>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+                <span data-i18n="account.switch"></span><span class="soon-badge" data-i18n="soon"></span>
+              </button>
+              <button type="button" class="account-action" disabled>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span data-i18n="account.logout"></span><span class="soon-badge" data-i18n="soon"></span>
+              </button>
+            </div>
+          </div>
+        </div>
       </aside>
       <div class="content">
         <div class="topbar">
-          <div class="settings">
-            <button id="settings-btn" type="button" aria-expanded="false" aria-controls="settings-panel" data-i18n-aria="settings.title">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-              </svg>
-            </button>
-            <div id="settings-panel" data-i18n-aria="settings.title" role="group" hidden>
-              <label class="setting">
-                <span data-i18n="settings.language"></span>
-                <select id="locale-select">
-                  <option value="fr">Français (France)</option>
-                  <option value="en">English (United States)</option>
-                  <option value="es">Español (España)</option>
-                  <option value="pt">Português (Portugal)</option>
-                  <option value="zh">中文（中国）</option>
-                  <option value="ja">日本語（日本）</option>
-                  <option value="ko">한국어 (대한민국)</option>
-                  <option value="ar">العربية (مصر)</option>
-                </select>
-              </label>
-              <div class="setting">
-                <span id="font-size-label" data-i18n="settings.fontSize"></span>
-                <div class="slider-row">
-                  <span class="slider-cap" aria-hidden="true">A</span>
-                  <input id="font-size-slider" type="range" min="0.85" max="1.35" step="0.05" value="1" aria-labelledby="font-size-label" />
-                  <span class="slider-cap slider-cap-lg" aria-hidden="true">A</span>
-                </div>
-              </div>
-              <div class="setting">
-                <span id="theme-label" data-i18n="settings.theme"></span>
-                <div class="segmented" id="theme-group" role="group" aria-labelledby="theme-label">
-                  <button type="button" data-theme-choice="auto" data-i18n="settings.auto"></button>
-                  <button type="button" data-theme-choice="light" data-i18n="settings.light"></button>
-                  <button type="button" data-theme-choice="dark" data-i18n="settings.dark"></button>
-                </div>
-              </div>
-            </div>
-          </div>
           <div class="refresh-row">
             <button id="refresh-btn" type="button" data-i18n-aria="refresh">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

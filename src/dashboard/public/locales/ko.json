@@ -25,8 +25,7 @@
     "large": "크게",
     "auto": "자동",
     "light": "라이트",
-    "dark": "다크",
-    "title": "설정"
+    "dark": "다크"
   },
   "refresh": "새로고침",
   "online": "온라인",
@@ -161,5 +160,11 @@
     "files": "브랜치별 작업 중 파일",
     "conflicts": "열린 충돌",
     "activity": "최근 활동 이벤트"
+  },
+  "account": {
+    "title": "계정 및 설정",
+    "local": "로컬 인스턴스",
+    "switch": "계정 전환",
+    "logout": "로그아웃"
   }
 }
