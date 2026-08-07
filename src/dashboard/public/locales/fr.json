@@ -10,7 +10,8 @@
     "notes": "Notes",
     "feature": "Feature",
     "tasks": "Taches",
-    "actions": "Actions"
+    "actions": "Actions",
+    "git": "Git"
   },
   "emptyState": "Aucune tache suivie pour le moment.",
   "lastRefresh": "Derniere actualisation : {{time}}",
@@ -49,7 +50,8 @@
     "escalateReason": "Raison de l'escalade ?",
     "cleanupConfirm": "Nettoyer cette worktree (serveur + worktree git) ?",
     "addItemLabel": "Nouvelle tâche ?",
-    "open": "Ouvrir"
+    "open": "Ouvrir",
+    "track": "Suivre"
   },
   "form": {
     "new": "＋ Nouvelle worktree",
@@ -74,7 +76,8 @@
     "start": "Démarrer le serveur (port injecté)",
     "stop": "Arrêter le serveur lancé par starfleet",
     "escalate": "Marquer bloquée — besoin d'un humain",
-    "cleanup": "Arrêter le serveur + supprimer la worktree git + la ligne"
+    "cleanup": "Arrêter le serveur + supprimer la worktree git + la ligne",
+    "track": "Enregistrer cette worktree dans starfleet (port, checkpoints, notes)"
   },
   "tabs": {
     "worktrees": "Worktrees",
@@ -134,5 +137,15 @@
     "explain": "Flux d'activite envoye par le hook PostToolUse. Seul l'evenement est stocke, jamais le contenu.",
     "empty": "Aucune activite recue. Le hook n'est peut-etre branche dans aucun repo.",
     "tool": "Outil"
+  },
+  "git": {
+    "clean": "propre",
+    "dirty": "{{count}} modifies",
+    "touched": "{{count}} livres",
+    "missing": "absente",
+    "untracked": "non suivie",
+    "untrackedHelp": "Worktree presente sur le disque mais pas enregistree dans starfleet",
+    "idle": "Inactive : aucun evenement depuis plus de 5 minutes",
+    "active": "Active, dernier outil :"
   }
 }

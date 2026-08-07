@@ -366,11 +366,12 @@ function featureCell(task) {
   return role || feature ? `${role}${feature}` : '—'
 }
 
+// Une worktree non suivie n'a aucun de ces champs : ils sont absents, pas null.
 function notesCell(task) {
-  if (task.escalationReason !== null) {
+  if (task.escalationReason) {
     return `<span class="notes notes-escalated" title="${escapeHtml(task.escalationReason)}">⚠ ${escapeHtml(task.escalationReason)}</span>`
   }
-  if (task.contextSummary !== null) {
+  if (task.contextSummary) {
     return `<span class="notes" title="${escapeHtml(task.contextSummary)}">${escapeHtml(task.contextSummary)}</span>`
   }
   return '—'
@@ -404,6 +405,7 @@ const ICONS = {
   stop: '<rect x="3" y="3" width="18" height="18" rx="2"/>',
   escalate: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>',
   cleanup: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
+  track: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/><line x1="12" x2="12" y1="1" y2="4"/><line x1="12" x2="12" y1="20" y2="23"/><line x1="1" x2="4" y1="12" y2="12"/><line x1="20" x2="23" y1="12" y2="12"/>',
 }
 
 function svg(name) {
@@ -415,20 +417,30 @@ function actionsCell(task) {
   const help = (key) => translate(currentTranslations, `actionsHelp.${key}`)
   const btn = (name, action, label, title, danger) =>
     `<button type="button" class="icon-btn${danger ? ' danger' : ''}" data-action="${action}" title="${escapeHtml(title)}" aria-label="${label}">${svg(name)}</button>`
-  const parts = [
-    `<a class="icon-btn" href="${escapeHtml(task.url)}" target="_blank" rel="noopener" title="${escapeHtml(`${help('open')} — ${task.url}`)}" aria-label="${t('actions.open')}">${svg('open')}</a>`,
-  ]
-  if (task.worktreePath === null && task.repoPath !== null) {
+  const holder = `data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}" data-repo="${escapeHtml(task.repoPath ?? '')}"`
+
+  // Une worktree non suivie n'a ni port ni serveur : la seule action qui a un
+  // sens est de l'adopter, ce qui lui donne une ligne en base.
+  if (!task.tracked) {
+    return `<div class="actions" ${holder}>${btn('track', 'track', t('actions.track'), help('track'))}</div>`
+  }
+  const parts = []
+  if (task.url !== null) {
+    parts.push(
+      `<a class="icon-btn" href="${escapeHtml(task.url)}" target="_blank" rel="noopener" title="${escapeHtml(`${help('open')} — ${task.url}`)}" aria-label="${t('actions.open')}">${svg('open')}</a>`,
+    )
+  }
+  if (task.worktreePath == null && task.repoPath != null) {
     parts.push(btn('launch', 'launch', t('actions.launch'), help('launch')))
   }
-  if (task.pid !== null) {
+  if (task.pid != null) {
     parts.push(btn('stop', 'stop', t('actions.stop'), `${help('stop')} (pid ${task.pid})`))
-  } else if (task.runCommand !== null) {
+  } else if (task.runCommand != null) {
     parts.push(btn('start', 'start', t('actions.start'), `${help('start')} (${task.runCommand})`))
   }
   parts.push(btn('escalate', 'escalate', t('actions.escalate'), help('escalate')))
   parts.push(btn('cleanup', 'cleanup', t('actions.cleanup'), help('cleanup'), true))
-  return `<div class="actions" data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}">${parts.join('')}</div>`
+  return `<div class="actions" ${holder}>${parts.join('')}</div>`
 }
 
 // Explication de l'etat au survol (title) — « escaladee » n'est pas evident.
@@ -453,17 +465,51 @@ function tasksCount(task) {
   return `<span class="tasks-count" title="${escapeHtml(list)}">☑ ${done}/${items.length}</span>`
 }
 
+// Ce que git dit de la worktree, en une cellule : absente, sale (avec le nombre
+// de fichiers), ou propre — et ce que la branche a deja livre au-dessus de sa base.
+function gitCell(task) {
+  const t = (key) => translate(currentTranslations, key)
+  const files = task.files ?? { touched: [], inProgress: [] }
+  if (task.missing) {
+    return `<span class="chip file-planned" title="${escapeHtml(task.detail ?? '')}">${t('git.missing')}</span>`
+  }
+  const state = files.inProgress.length > 0
+    ? `<span class="chip file-in_progress" title="${escapeHtml(files.inProgress.slice(0, 12).join('\n'))}">${interpolate(t('git.dirty'), { count: files.inProgress.length })}</span>`
+    : `<span class="chip file-touched">${t('git.clean')}</span>`
+  const touched = files.touched.length === 0
+    ? ''
+    : `<span class="col-muted" title="${escapeHtml(files.touched.slice(0, 12).join('\n'))}"> ${interpolate(t('git.touched'), { count: files.touched.length })}</span>`
+  return `${state}${touched}`
+}
+
+function statusCell(task) {
+  if (!task.tracked) {
+    return `<span class="chip chip-untracked" title="${escapeHtml(translate(currentTranslations, 'git.untrackedHelp'))}">${translate(currentTranslations, 'git.untracked')}</span>`
+  }
+  return `<span class="status-badge status-${task.status}" title="${escapeHtml(statusTitle(task))}">${liveDot(task)}${task.status}</span>`
+}
+
+function activityCell(task) {
+  const stamp = task.lastActivity?.createdAt ?? task.updatedAt ?? null
+  if (stamp === null) {
+    return '—'
+  }
+  const tool = task.lastActivity === null || task.lastActivity === undefined ? '' : ` ${task.lastActivity.tool}`
+  return `<span title="${escapeHtml(task.idle ? translate(currentTranslations, 'git.idle') : `${translate(currentTranslations, 'git.active')}${tool}`)}">${formatDate(stamp)}</span>`
+}
+
 function rowInner(task) {
   const label = (key) => translate(currentTranslations, `columns.${key}`)
   return `
     <td data-label="${label('project')}">${projectChip(task.project)}</td>
-    <td data-label="${label('branch')}" class="col-ellipsis" title="${escapeHtml(task.branch)}">${escapeHtml(task.branch)}</td>
+    <td data-label="${label('branch')}" class="col-ellipsis" title="${escapeHtml(task.worktreePath ?? task.branch)}">${escapeHtml(task.branch)}</td>
+    <td data-label="${label('git')}" class="col-nowrap">${gitCell(task)}</td>
     <td data-label="${label('feature')}" class="col-feature">${featureCell(task)}</td>
-    <td data-label="${label('port')}" class="col-port">${task.port}</td>
-    <td data-label="${label('status')}" class="col-status"><span class="status-badge status-${task.status}" title="${escapeHtml(statusTitle(task))}">${liveDot(task)}${task.status}</span></td>
+    <td data-label="${label('port')}" class="col-port">${task.port ?? '—'}</td>
+    <td data-label="${label('status')}" class="col-status">${statusCell(task)}</td>
     <td data-label="${label('checkpoint')}" class="col-muted col-nowrap">${task.lastCheckpoint ?? '—'}</td>
     <td data-label="${label('tasks')}" class="col-nowrap">${tasksCount(task)}</td>
-    <td data-label="${label('updated')}" class="col-muted col-nowrap">${formatDate(task.updatedAt)}</td>
+    <td data-label="${label('updated')}" class="col-muted col-nowrap">${activityCell(task)}</td>
     <td data-label="${label('notes')}" class="col-notes">${notesCell(task)}</td>
     <td class="col-actions">${actionsCell(task)}</td>`
 }
@@ -472,7 +518,7 @@ function rowInner(task) {
 // cellule de tableau, son colspan est ignore et l'en-tete se retrouve enferme
 // dans la premiere colonne.
 function groupHeaderInner(project, count) {
-  return `<td class="group-cell" colspan="10"><div class="group-inner">${projectChip(project)}<span class="group-name">${escapeHtml(project)}</span><span class="group-count">${count}</span></div></td>`
+  return `<td class="group-cell" colspan="11"><div class="group-inner">${projectChip(project)}<span class="group-name">${escapeHtml(project)}</span><span class="group-count">${count}</span></div></td>`
 }
 
 // Regroupe par projet (en-tete de section + lignes), puis mise a jour
@@ -535,17 +581,31 @@ function renderTasks(tasks) {
   }
 }
 
+// La liste vient du disque (worktrees git reellement presentes), enrichie de ce
+// que la base sait des worktrees suivies. Une worktree non suivie apparait
+// quand meme : c'est la difference entre montrer la machine et montrer sa base.
 async function refreshTasks() {
+  let tasks
+  let views
   try {
-    const response = await fetch('/api/tasks')
-    allTasks = await response.json()
-    applyAndRender()
-    lastRefresh.textContent = interpolate(translate(currentTranslations, 'lastRefresh'), {
-      time: new Date().toLocaleTimeString(currentLocale),
-    })
+    ;[tasks, views] = await Promise.all([apiGet('/api/tasks', null), apiGet('/api/worktrees', null)])
   } catch (error) {
     lastRefresh.textContent = translate(currentTranslations, 'connectionLost')
+    return
   }
+  if (tasks === null || views === null) {
+    lastRefresh.textContent = translate(currentTranslations, 'connectionLost')
+    return
+  }
+  const byKey = new Map(tasks.map((task) => [`${task.project}::${task.branch}`, task]))
+  allTasks = views.map((view) => {
+    const task = byKey.get(`${view.project}::${view.branch}`) ?? {}
+    return { ...task, ...view, url: task.url ?? null, live: task.live ?? false, items: task.items ?? [] }
+  })
+  applyAndRender()
+  lastRefresh.textContent = interpolate(translate(currentTranslations, 'lastRefresh'), {
+    time: new Date().toLocaleTimeString(currentLocale),
+  })
 }
 
 async function setLocale(locale) {
@@ -649,6 +709,9 @@ tasksBody.addEventListener('click', async (event) => {
   const project = holder.dataset.project
   const branch = holder.dataset.branch
   switch (button.dataset.action) {
+    case 'track':
+      await apiPost('/api/tasks', { project, branch, repoPath: holder.dataset.repo || undefined })
+      break
     case 'launch':
       await apiPost('/api/worktree/launch', { project, branch })
       break

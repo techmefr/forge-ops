@@ -161,6 +161,23 @@ src/dashboard/         dashboard web read-only (Express + i18n cote client)
 L'image de reference : **Docker Desktop, pour les worktrees**. Une liste de ce qui tourne, et un
 drill-in par worktree. Trois onglets s'ajoutent au tableau des taches.
 
+### Decouverte : la liste vient du disque, pas de la base
+
+On n'enregistre pas ses conteneurs dans Docker Desktop, on les voit. Pareil ici : starfleet scanne
+les racines configurees, trouve les depots git, et liste **toutes** leurs worktrees (`git worktree
+list`), qu'elles aient ete creees par lui ou non. Une worktree inconnue apparait marquee *non
+suivie*, avec une seule action : l'adopter, ce qui lui donne sa ligne en base (port, checkpoints,
+notes). Une tache dont la worktree a disparu du disque reste visible, marquee *absente*, pour qu'on
+puisse la nettoyer plutot que la subir.
+
+`STARFLEET_SCAN_ROOTS` remplace la racine scannee (chemins separes par `:`, defaut : le home). Le
+scan ne descend que d'un niveau : un balayage recursif d'un home coute cher et ne ramene guere que
+des `node_modules`.
+
+L'etat git se recalcule a la lecture, avec deux caches courts (3 s pour la liste des worktrees, 2 s
+pour l'etat derive) — sans eux, trois onglets ouverts recalculent trois fois la meme chose. Ordre de
+grandeur mesure sur 39 worktrees reparties dans 32 depots : **0,6 s a froid**, instantane ensuite.
+
 ### Fichiers — qui ecrit quoi, et a quel titre
 
 Une ligne par fichier, une colonne par branche qui le touche, et **trois niveaux de certitude qui

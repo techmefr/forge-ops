@@ -70,6 +70,10 @@ export interface IWorktreeFiles {
 export interface IWorktreeView {
   project: string
   branch: string
+  isMain: boolean
+  tracked: boolean
+  missing: boolean
+  port: number | null
   feature: string | null
   role: string | null
   status: TaskStatus

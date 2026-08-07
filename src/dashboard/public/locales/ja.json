@@ -10,7 +10,8 @@
     "notes": "メモ",
     "feature": "機能",
     "tasks": "タスク",
-    "actions": "操作"
+    "actions": "操作",
+    "git": "Git"
   },
   "emptyState": "追跡中のタスクはありません。",
   "lastRefresh": "最終更新: {{time}}",
@@ -49,7 +50,8 @@
     "escalateReason": "エスカレーションの理由は？",
     "cleanupConfirm": "このワークツリー（サーバー + git ワークツリー）を削除しますか？",
     "addItemLabel": "新しいタスク？",
-    "open": "開く"
+    "open": "開く",
+    "track": "登録"
   },
   "form": {
     "new": "＋ 新規ワークツリー",
@@ -74,7 +76,8 @@
     "start": "サーバーを起動（ポート注入）",
     "stop": "starfleet が起動したサーバーを停止",
     "escalate": "ブロックとして記録 — 人手が必要",
-    "cleanup": "サーバー停止 + git ワークツリー削除 + 行削除"
+    "cleanup": "サーバー停止 + git ワークツリー削除 + 行削除",
+    "track": "このワークツリーを starfleet に登録する (ポート、チェックポイント、メモ)"
   },
   "tabs": {
     "worktrees": "ワークツリー",
@@ -134,5 +137,15 @@
     "explain": "PostToolUse フックが送るアクティビティ。保存するのはイベントだけで、内容は保存しません。",
     "empty": "アクティビティを受信していません。フックがどのリポジトリにも接続されていない可能性があります。",
     "tool": "ツール"
+  },
+  "git": {
+    "clean": "クリーン",
+    "dirty": "変更 {{count}} 件",
+    "touched": "コミット済み {{count}} 件",
+    "missing": "不在",
+    "untracked": "未登録",
+    "untrackedHelp": "ディスク上にはあるが starfleet に登録されていないワークツリー",
+    "active": "稼働中、最後のツール:",
+    "idle": "アイドル: 5 分以上イベントがありません"
   }
 }

@@ -10,7 +10,8 @@
     "notes": "Notes",
     "feature": "Feature",
     "tasks": "Tasks",
-    "actions": "Actions"
+    "actions": "Actions",
+    "git": "Git"
   },
   "emptyState": "No task tracked yet.",
   "lastRefresh": "Last refresh: {{time}}",
@@ -49,7 +50,8 @@
     "escalateReason": "Escalation reason?",
     "cleanupConfirm": "Clean up this worktree (server + git worktree)?",
     "addItemLabel": "New task?",
-    "open": "Open"
+    "open": "Open",
+    "track": "Track"
   },
   "form": {
     "new": "＋ New worktree",
@@ -74,7 +76,8 @@
     "start": "Start the server (port injected)",
     "stop": "Stop the server started by starfleet",
     "escalate": "Flag as blocked — needs a human",
-    "cleanup": "Stop the server + remove the git worktree + the row"
+    "cleanup": "Stop the server + remove the git worktree + the row",
+    "track": "Register this worktree in starfleet (port, checkpoints, notes)"
   },
   "tabs": {
     "worktrees": "Worktrees",
@@ -134,5 +137,15 @@
     "explain": "Activity feed sent by the PostToolUse hook. Only the event is stored, never the content.",
     "empty": "No activity received. The hook may not be wired into any repo.",
     "tool": "Tool"
+  },
+  "git": {
+    "clean": "clean",
+    "dirty": "{{count}} changed",
+    "touched": "{{count}} committed",
+    "missing": "missing",
+    "untracked": "not tracked",
+    "untrackedHelp": "Worktree present on disk but not registered in starfleet",
+    "idle": "Idle: no event for over 5 minutes",
+    "active": "Active, last tool:"
   }
 }

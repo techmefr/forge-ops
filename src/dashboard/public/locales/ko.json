@@ -10,7 +10,8 @@
     "notes": "메모",
     "feature": "기능",
     "tasks": "작업",
-    "actions": "작업"
+    "actions": "작업",
+    "git": "Git"
   },
   "emptyState": "추적 중인 작업이 없습니다.",
   "lastRefresh": "마지막 갱신: {{time}}",
@@ -49,7 +50,8 @@
     "escalateReason": "에스컬레이션 사유?",
     "cleanupConfirm": "이 워크트리(서버 + git 워크트리)를 정리할까요?",
     "addItemLabel": "새 작업?",
-    "open": "열기"
+    "open": "열기",
+    "track": "등록"
   },
   "form": {
     "new": "＋ 새 워크트리",
@@ -74,7 +76,8 @@
     "start": "서버 시작 (포트 주입)",
     "stop": "starfleet이 시작한 서버 중지",
     "escalate": "차단됨으로 표시 — 사람 필요",
-    "cleanup": "서버 중지 + git 워크트리 삭제 + 행 삭제"
+    "cleanup": "서버 중지 + git 워크트리 삭제 + 행 삭제",
+    "track": "이 워크트리를 starfleet에 등록 (포트, 체크포인트, 메모)"
   },
   "tabs": {
     "worktrees": "워크트리",
@@ -134,5 +137,15 @@
     "explain": "PostToolUse 훅이 보내는 활동 흐름입니다. 이벤트만 저장하고 내용은 저장하지 않습니다.",
     "empty": "받은 활동이 없습니다. 훅이 어떤 저장소에도 연결되지 않았을 수 있습니다.",
     "tool": "도구"
+  },
+  "git": {
+    "clean": "깨끗함",
+    "dirty": "변경 {{count}}건",
+    "touched": "커밋 {{count}}건",
+    "missing": "없음",
+    "untracked": "미등록",
+    "untrackedHelp": "디스크에는 있지만 starfleet에 등록되지 않은 워크트리",
+    "idle": "유휴: 5분 넘게 이벤트 없음",
+    "active": "활성, 마지막 도구:"
   }
 }

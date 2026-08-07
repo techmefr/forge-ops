@@ -10,7 +10,8 @@
     "notes": "备注",
     "feature": "功能",
     "tasks": "任务",
-    "actions": "操作"
+    "actions": "操作",
+    "git": "Git"
   },
   "emptyState": "暂无跟踪任务。",
   "lastRefresh": "最后刷新：{{time}}",
@@ -49,7 +50,8 @@
     "escalateReason": "升级原因？",
     "cleanupConfirm": "清理此工作树（服务器 + git 工作树）？",
     "addItemLabel": "新任务？",
-    "open": "打开"
+    "open": "打开",
+    "track": "跟踪"
   },
   "form": {
     "new": "＋ 新建工作树",
@@ -74,7 +76,8 @@
     "start": "启动服务器（注入端口）",
     "stop": "停止 starfleet 启动的服务器",
     "escalate": "标记为受阻 — 需要人工",
-    "cleanup": "停止服务器 + 删除 git 工作树 + 该行"
+    "cleanup": "停止服务器 + 删除 git 工作树 + 该行",
+    "track": "把这个工作树登记到 starfleet（端口、检查点、备注）"
   },
   "tabs": {
     "worktrees": "工作树",
@@ -134,5 +137,15 @@
     "explain": "由 PostToolUse 钩子发送的活动流。只存事件，绝不存内容。",
     "empty": "没有收到活动。钩子可能没有接入任何仓库。",
     "tool": "工具"
+  },
+  "git": {
+    "clean": "干净",
+    "dirty": "{{count}} 个已修改",
+    "touched": "{{count}} 个已提交",
+    "missing": "已消失",
+    "untracked": "未跟踪",
+    "untrackedHelp": "磁盘上存在此工作树，但未登记到 starfleet",
+    "idle": "空闲：超过 5 分钟没有事件",
+    "active": "活跃，最近的工具："
   }
 }

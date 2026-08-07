@@ -2,6 +2,8 @@ import { existsSync } from 'node:fs'
 import { listTasks } from './db/tasks.js'
 import { listArchNodes } from './db/arch.js'
 import { lastEventFor } from './db/events.js'
+import { discoverWorktrees } from './discover.js'
+import type { IDiscoveredWorktree } from './discover.js'
 import { committedFiles, dirtyFiles, headSha, resolveBase, runGit } from './git/inspect.js'
 import type {
   IArchNode,
@@ -25,10 +27,14 @@ export function isIdle(lastActivityAt: string | null, now: number): boolean {
  * pipeline, rattachee a la worktree par sa feature. Un noeud deja livre par la
  * branche sort du prevu, il est devenu du touche.
  */
-export function plannedFor(task: ITask, nodes: IArchNode[], alreadyWritten: Set<string>): string[] {
+export function plannedFor(
+  feature: string | null,
+  nodes: IArchNode[],
+  alreadyWritten: Set<string>,
+): string[] {
   return nodes
     .filter((node) => node.status !== 'done')
-    .filter((node) => task.feature !== null && node.feature === task.feature)
+    .filter((node) => feature !== null && node.feature === feature)
     .map((node) => node.path)
     .filter((path) => !alreadyWritten.has(path))
     .sort()
@@ -38,17 +44,62 @@ function emptyFiles(): IWorktreeFiles {
   return { touched: [], inProgress: [], planned: [] }
 }
 
-function viewFor(task: ITask, archNodes: IArchNode[], now: number): IWorktreeView {
-  const lastActivity = lastEventFor(task.project, task.branch)
+/**
+ * Une worktree decouverte et une tache enregistree designent la meme chose des
+ * que le chemin coincide ; le couple projet/branche est le repli quand la tache
+ * a ete creee sans que la worktree existe encore.
+ */
+export function matchTask(
+  entry: IDiscoveredWorktree,
+  tasks: ITask[],
+): ITask | null {
+  const byPath = tasks.find((task) => task.worktreePath === entry.worktreePath)
+  if (byPath !== undefined) {
+    return byPath
+  }
+  const byRepo = tasks.find(
+    (task) => task.branch === entry.branch && task.repoPath === entry.repoPath,
+  )
+  if (byRepo !== undefined) {
+    return byRepo
+  }
+  const byProject = tasks.find(
+    (task) => task.branch === entry.branch && task.project === entry.project,
+  )
+  return byProject ?? null
+}
+
+interface IViewSource {
+  project: string
+  branch: string
+  repoPath: string | null
+  worktreePath: string | null
+  head: string | null
+  isMain: boolean
+  task: ITask | null
+}
+
+function viewFor(
+  source: IViewSource,
+  archNodes: IArchNode[],
+  now: number,
+  baseCache: Map<string, string | null>,
+): IWorktreeView {
+  const task = source.task
+  const lastActivity = lastEventFor(source.project, source.branch)
   const view: IWorktreeView = {
-    project: task.project,
-    branch: task.branch,
-    feature: task.feature,
-    role: task.role,
-    status: task.status,
-    lastCheckpoint: task.lastCheckpoint,
-    repoPath: task.repoPath,
-    worktreePath: task.worktreePath,
+    project: source.project,
+    branch: source.branch,
+    isMain: source.isMain,
+    tracked: task !== null,
+    missing: false,
+    port: task?.port ?? null,
+    feature: task?.feature ?? null,
+    role: task?.role ?? null,
+    status: task?.status ?? 'created',
+    lastCheckpoint: task?.lastCheckpoint ?? null,
+    repoPath: source.repoPath,
+    worktreePath: source.worktreePath,
     base: null,
     head: null,
     clean: true,
@@ -58,20 +109,24 @@ function viewFor(task: ITask, archNodes: IArchNode[], now: number): IWorktreeVie
     detail: null,
   }
 
-  const cwd = task.worktreePath ?? task.repoPath
+  const cwd = source.worktreePath ?? source.repoPath
   if (cwd === null || !existsSync(cwd)) {
-    view.detail = 'worktree absente du disque : rien a inspecter'
+    view.missing = true
+    view.detail = 'worktree absente du disque'
     return view
   }
 
-  const base = resolveBase(cwd)
+  // La base est une propriete du depot, pas de la worktree : la resoudre une
+  // fois par depot evite une poignee de spawns git par worktree.
+  const repoKey = source.repoPath ?? cwd
+  if (!baseCache.has(repoKey)) {
+    baseCache.set(repoKey, resolveBase(cwd))
+  }
+  const base = baseCache.get(repoKey) ?? null
   view.base = base
-  view.head = headSha(cwd)
+  view.head = source.head ?? headSha(cwd)
   const inProgress = dirtyFiles(cwd)
-  const head = runGit(cwd, ['rev-parse', '--verify', '--quiet', task.branch]).ok
-    ? task.branch
-    : 'HEAD'
-  const touched = base === null ? [] : committedFiles(cwd, base, head)
+  const touched = base === null || base === source.branch ? [] : committedFiles(cwd, base, 'HEAD')
   if (base === null) {
     view.detail = 'aucune branche de base trouvee (develop/main/master)'
   }
@@ -79,22 +134,86 @@ function viewFor(task: ITask, archNodes: IArchNode[], now: number): IWorktreeVie
   view.files = {
     touched,
     inProgress,
-    planned: plannedFor(task, archNodes, new Set([...touched, ...inProgress])),
+    planned: plannedFor(view.feature, archNodes, new Set([...touched, ...inProgress])),
   }
   return view
 }
 
+/**
+ * La liste est celle du disque, pas celle de la base : starfleet montre les
+ * worktrees qui existent, qu'elles aient ete creees par lui ou non. Les taches
+ * enregistrees dont la worktree a disparu restent visibles, marquees absentes,
+ * pour qu'on puisse les nettoyer plutot que les subir.
+ */
+const VIEW_CACHE_TTL_MS = 2000
+
+let viewCache: { at: number; value: IWorktreeView[] } | null = null
+
+export function clearViewCache(): void {
+  viewCache = null
+}
+
+/**
+ * Un rafraichissement recalcule l'etat git de chaque worktree ; sans ce cache
+ * court, trois endpoints ouverts en meme temps le refont trois fois.
+ */
 export function listWorktreeViews(project?: string): IWorktreeView[] {
   const now = Date.now()
-  const tasks = listTasks().filter((task) => project === undefined || task.project === project)
-  const archNodes = listArchNodes(project)
-  return tasks.map((task) =>
-    viewFor(
+  if (viewCache !== null && now - viewCache.at < VIEW_CACHE_TTL_MS) {
+    return project === undefined
+      ? viewCache.value
+      : viewCache.value.filter((view) => view.project === project)
+  }
+  const value = computeWorktreeViews(now)
+  viewCache = { at: now, value }
+  return project === undefined ? value : value.filter((view) => view.project === project)
+}
+
+function computeWorktreeViews(now: number): IWorktreeView[] {
+  const tasks = listTasks()
+  const archNodes = listArchNodes()
+  const nodesOf = (name: string): IArchNode[] =>
+    archNodes.filter((node) => node.project === name)
+
+  const claimed = new Set<number>()
+  const sources: IViewSource[] = []
+
+  for (const entry of discoverWorktrees()) {
+    if (entry.branch === null) {
+      continue
+    }
+    const task = matchTask(entry, tasks)
+    if (task !== null) {
+      claimed.add(task.id)
+    }
+    sources.push({
+      project: task?.project ?? entry.project,
+      branch: entry.branch,
+      repoPath: entry.repoPath,
+      worktreePath: entry.worktreePath,
+      head: entry.head,
+      isMain: entry.isMain,
       task,
-      archNodes.filter((node) => node.project === task.project),
-      now,
-    ),
-  )
+    })
+  }
+
+  for (const task of tasks) {
+    if (claimed.has(task.id)) {
+      continue
+    }
+    sources.push({
+      project: task.project,
+      branch: task.branch,
+      repoPath: task.repoPath,
+      worktreePath: task.worktreePath,
+      head: null,
+      isMain: false,
+      task,
+    })
+  }
+
+  const baseCache = new Map<string, string | null>()
+  return sources.map((source) => viewFor(source, nodesOf(source.project), now, baseCache))
 }
 
 /**

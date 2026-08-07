@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildFileMap, isIdle, plannedFor } from '../src/worktrees.js'
+import { buildFileMap, isIdle, matchTask, plannedFor } from '../src/worktrees.js'
 import { decideArbitration, isFrozen, isInHumanReview, orderPair } from '../src/conflicts.js'
 import type { IArchNode, ITask, IWorktreeView } from '../src/types/task.js'
 
@@ -29,6 +29,10 @@ function view(overrides: Partial<IWorktreeView> = {}): IWorktreeView {
   return {
     project: 'app',
     branch: 'feat/left',
+    isMain: false,
+    tracked: true,
+    missing: false,
+    port: 4300,
     feature: 'login',
     role: null,
     status: 'in_progress',
@@ -79,15 +83,44 @@ describe('isIdle', () => {
 describe('plannedFor', () => {
   it('keeps only the intentions of this worktree feature', () => {
     const nodes = [archNode(), archNode({ id: 2, path: 'src/other.ts', feature: 'billing' })]
-    expect(plannedFor(task(), nodes, new Set())).toEqual(['src/planned.ts'])
+    expect(plannedFor('login', nodes, new Set())).toEqual(['src/planned.ts'])
   })
 
   it('drops what the branch has already written: planned is intention, not fact', () => {
-    expect(plannedFor(task(), [archNode()], new Set(['src/planned.ts']))).toEqual([])
+    expect(plannedFor('login', [archNode()], new Set(['src/planned.ts']))).toEqual([])
   })
 
   it('ignores a worktree with no feature, which owns no intention', () => {
-    expect(plannedFor(task({ feature: null }), [archNode()], new Set())).toEqual([])
+    expect(plannedFor(null, [archNode()], new Set())).toEqual([])
+  })
+})
+
+describe('matchTask', () => {
+  const entry = {
+    project: 'app',
+    repoPath: '/repo',
+    worktreePath: '/repo-worktrees/feat-left',
+    branch: 'feat/left',
+    isMain: false,
+  }
+
+  it('matches on the worktree path first', () => {
+    const other = task({ id: 2, branch: 'feat/left', worktreePath: '/elsewhere' })
+    expect(matchTask(entry, [other, task()])?.id).toBe(1)
+  })
+
+  it('falls back on repo and branch when the task predates the worktree', () => {
+    const pending = task({ id: 3, worktreePath: null })
+    expect(matchTask(entry, [pending])?.id).toBe(3)
+  })
+
+  it('falls back on project and branch, the key the dashboard already merges on', () => {
+    const registered = task({ id: 4, repoPath: '/moved', worktreePath: null })
+    expect(matchTask(entry, [registered])?.id).toBe(4)
+  })
+
+  it('returns null for a worktree nobody registered', () => {
+    expect(matchTask({ ...entry, branch: 'feat/unknown', worktreePath: '/x' }, [task()])).toBeNull()
   })
 })
 

@@ -10,7 +10,8 @@
     "notes": "Notas",
     "feature": "Feature",
     "tasks": "Tarefas",
-    "actions": "Ações"
+    "actions": "Ações",
+    "git": "Git"
   },
   "emptyState": "Nenhuma tarefa acompanhada por enquanto.",
   "lastRefresh": "Ultima atualizacao: {{time}}",
@@ -49,7 +50,8 @@
     "escalateReason": "Motivo do escalonamento?",
     "cleanupConfirm": "Limpar esta worktree (servidor + worktree git)?",
     "addItemLabel": "Nova tarefa?",
-    "open": "Abrir"
+    "open": "Abrir",
+    "track": "Seguir"
   },
   "form": {
     "new": "＋ Nova worktree",
@@ -74,7 +76,8 @@
     "start": "Iniciar o servidor (porta injetada)",
     "stop": "Parar o servidor iniciado pelo starfleet",
     "escalate": "Marcar bloqueada — precisa de um humano",
-    "cleanup": "Parar o servidor + remover o worktree git + a linha"
+    "cleanup": "Parar o servidor + remover o worktree git + a linha",
+    "track": "Registar este worktree no starfleet (porta, checkpoints, notas)"
   },
   "tabs": {
     "worktrees": "Worktrees",
@@ -134,5 +137,15 @@
     "explain": "Fluxo de atividade enviado pelo hook PostToolUse. So o evento e guardado, nunca o conteudo.",
     "empty": "Nenhuma atividade recebida. O hook pode nao estar ligado a nenhum repo.",
     "tool": "Ferramenta"
+  },
+  "git": {
+    "clean": "limpo",
+    "dirty": "{{count}} alterados",
+    "touched": "{{count}} submetidos",
+    "missing": "ausente",
+    "untracked": "sem seguimento",
+    "untrackedHelp": "Worktree presente no disco mas nao registada no starfleet",
+    "idle": "Inativo: nenhum evento ha mais de 5 minutos",
+    "active": "Ativo, ultima ferramenta:"
   }
 }
