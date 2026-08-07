@@ -821,6 +821,29 @@ async function poll() {
   }
 }
 
+// setInterval ne tient pas compte de la duree du tour : des qu'un
+// rafraichissement depasse l'intervalle, les tours se chevauchent et s'empilent
+// sur un serveur deja en retard. On replanifie apres la fin du tour precedent,
+// et on ne fait rien tant que l'onglet est cache : personne ne regarde, et
+// chaque tour coute un scan git de toutes les worktrees.
+function schedulePoll() {
+  setTimeout(async () => {
+    try {
+      if (!document.hidden) {
+        await poll()
+      }
+    } finally {
+      schedulePoll()
+    }
+  }, POLL_INTERVAL_MS)
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    refreshTasks()
+  }
+})
+
 async function main() {
   // Pas de compte a afficher : starfleet n'a pas d'authentification, la seule
   // identite reelle est l'instance a laquelle on est connecte.
@@ -829,7 +852,7 @@ async function main() {
   applyTheme(localStorage.getItem(THEME_KEY) ?? DEFAULT_THEME)
   await setLocale(currentLocale)
   refreshConflictsBadge((await apiGet('/api/conflicts', [])).length)
-  setInterval(poll, POLL_INTERVAL_MS)
+  schedulePoll()
 }
 
 main()

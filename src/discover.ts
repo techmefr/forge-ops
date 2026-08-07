@@ -1,6 +1,7 @@
 import { existsSync, readdirSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
+import { isFresh } from './cache.js'
 import { listGitWorktrees, runGit } from './git/inspect.js'
 
 const CACHE_TTL_MS = 3000
@@ -16,6 +17,7 @@ export interface IDiscoveredWorktree {
 
 interface ICache {
   at: number
+  durationMs: number
   roots: string
   value: IDiscoveredWorktree[]
 }
@@ -89,7 +91,7 @@ function mainRepoPath(repoPath: string): string {
 export function discoverWorktrees(roots: string[] = scanRoots()): IDiscoveredWorktree[] {
   const key = roots.join(':')
   const now = Date.now()
-  if (cache !== null && cache.roots === key && now - cache.at < CACHE_TTL_MS) {
+  if (cache !== null && cache.roots === key && isFresh(cache, now, CACHE_TTL_MS)) {
     return cache.value
   }
 
@@ -122,7 +124,8 @@ export function discoverWorktrees(roots: string[] = scanRoots()): IDiscoveredWor
     return (left.branch ?? '').localeCompare(right.branch ?? '')
   })
 
-  cache = { at: now, roots: key, value }
+  const finishedAt = Date.now()
+  cache = { at: finishedAt, durationMs: finishedAt - now, roots: key, value }
   return value
 }
 

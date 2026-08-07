@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { freshnessWindowMs, isFresh } from '../src/cache.js'
 import { buildFileMap, isIdle, matchTask, plannedFor } from '../src/worktrees.js'
 import { decideArbitration, isFrozen, isInHumanReview, orderPair } from '../src/conflicts.js'
 import type { IArchNode, ITask, IWorktreeView } from '../src/types/task.js'
@@ -63,6 +64,41 @@ function archNode(overrides: Partial<IArchNode> = {}): IArchNode {
     ...overrides,
   }
 }
+
+describe('freshnessWindowMs', () => {
+  it('garde le TTL de base tant que le calcul reste rapide', () => {
+    expect(freshnessWindowMs(120, 2000)).toBe(2000)
+  })
+
+  it('etire la fenetre quand le calcul depasse le TTL, sinon le cache nait perime', () => {
+    expect(freshnessWindowMs(5000, 2000)).toBe(10000)
+  })
+})
+
+describe('isFresh', () => {
+  const now = 100000
+
+  it('considere qu il n y a rien a servir sans cache', () => {
+    expect(isFresh(null, now, 2000)).toBe(false)
+  })
+
+  // Le scenario exact de l emballement : un calcul de 5 s avec un TTL de 2 s.
+  // Horodate au debut, l entree serait deja perimee a l ecriture et chaque
+  // requete relancerait un scan complet.
+  it('sert encore un cache dont le calcul a dure plus longtemps que le TTL', () => {
+    expect(isFresh({ at: now - 4000, durationMs: 5000 }, now, 2000)).toBe(true)
+  })
+
+  it('finit par expirer, meme apres un calcul lent', () => {
+    expect(isFresh({ at: now - 10001, durationMs: 5000 }, now, 2000)).toBe(false)
+  })
+
+  it('laisse au moins autant de repit que de travail', () => {
+    const durationMs = 3000
+    const window = freshnessWindowMs(durationMs, 2000)
+    expect(window - durationMs).toBeGreaterThanOrEqual(durationMs)
+  })
+})
 
 describe('isIdle', () => {
   const now = new Date('2026-08-07T12:00:00Z').getTime()

@@ -178,6 +178,17 @@ L'etat git se recalcule a la lecture, avec deux caches courts (3 s pour la liste
 pour l'etat derive) — sans eux, trois onglets ouverts recalculent trois fois la meme chose. Ordre de
 grandeur mesure sur 39 worktrees reparties dans 32 depots : **0,6 s a froid**, instantane ensuite.
 
+Ces deux TTL ont une borne basse, dans `src/cache.ts` : **un cache reste valable au moins deux fois
+le temps qu'a coute son calcul**, et il porte l'instant de *fin* du calcul, jamais celui du debut.
+Sans cette regle, un calcul plus lent que son TTL naissait deja perime : chaque requete relancait un
+scan complet, chaque scan ralentissait la machine, et le serveur ne redescendait jamais. Mesure sur
+la meme charge (6 boucles concurrentes pendant 60 s) : **22 s de latence residuelle avant, 1 ms
+apres**. Le harnais qui reproduit la condition est `scripts/loadtest-dashboard.sh`.
+
+Cote navigateur, le rafraichissement se replanifie **apres** la fin du tour precedent au lieu de
+tourner sur un `setInterval`, et ne fait rien tant que l'onglet est cache : sans ca, un onglet
+oublie en arriere-plan declenche un scan git de toutes les worktrees chaque seconde.
+
 ### Fichiers — qui ecrit quoi, et a quel titre
 
 Une ligne par fichier, une colonne par branche qui le touche, et **trois niveaux de certitude qui

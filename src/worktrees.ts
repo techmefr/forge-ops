@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs'
+import { isFresh } from './cache.js'
 import { listTasks } from './db/tasks.js'
 import { listArchNodes } from './db/arch.js'
 import { lastEventFor } from './db/events.js'
@@ -147,7 +148,7 @@ function viewFor(
  */
 const VIEW_CACHE_TTL_MS = 2000
 
-let viewCache: { at: number; value: IWorktreeView[] } | null = null
+let viewCache: { at: number; durationMs: number; value: IWorktreeView[] } | null = null
 
 export function clearViewCache(): void {
   viewCache = null
@@ -159,13 +160,17 @@ export function clearViewCache(): void {
  */
 export function listWorktreeViews(project?: string): IWorktreeView[] {
   const now = Date.now()
-  if (viewCache !== null && now - viewCache.at < VIEW_CACHE_TTL_MS) {
+  if (isFresh(viewCache, now, VIEW_CACHE_TTL_MS)) {
+    const cached = viewCache as { value: IWorktreeView[] }
     return project === undefined
-      ? viewCache.value
-      : viewCache.value.filter((view) => view.project === project)
+      ? cached.value
+      : cached.value.filter((view) => view.project === project)
   }
   const value = computeWorktreeViews(now)
-  viewCache = { at: now, value }
+  // Horodate la fin du calcul, pas son debut : sinon la fenetre de fraicheur est
+  // deja entamee — voire epuisee — au moment ou le cache devient lisible.
+  const finishedAt = Date.now()
+  viewCache = { at: finishedAt, durationMs: finishedAt - now, value }
   return project === undefined ? value : value.filter((view) => view.project === project)
 }
 
