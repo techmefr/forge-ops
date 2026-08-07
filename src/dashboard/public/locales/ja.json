@@ -25,7 +25,8 @@
     "large": "大",
     "auto": "自動",
     "light": "ライト",
-    "dark": "ダーク"
+    "dark": "ダーク",
+    "title": "設定"
   },
   "refresh": "更新",
   "online": "オンライン",
@@ -34,12 +35,16 @@
     "projects": "プロジェクト",
     "worktrees": "ワークツリー",
     "escalated": "エスカレーション",
-    "review": "レビュー中"
+    "review": "レビュー中",
+    "label": "主要な数値"
   },
   "filter": {
     "search": "検索…",
     "allStatuses": "すべてのステータス",
-    "allProjects": "すべてのプロジェクト"
+    "allProjects": "すべてのプロジェクト",
+    "searchLabel": "ワークツリーを検索",
+    "projectLabel": "プロジェクトで絞り込む",
+    "statusLabel": "ステータスで絞り込む"
   },
   "actions": {
     "launch": "作成",
@@ -51,7 +56,8 @@
     "cleanupConfirm": "このワークツリー（サーバー + git ワークツリー）を削除しますか？",
     "addItemLabel": "新しいタスク？",
     "open": "開く",
-    "track": "登録"
+    "track": "登録",
+    "addItem": "タスクを追加"
   },
   "form": {
     "new": "＋ 新規ワークツリー",
@@ -100,7 +106,8 @@
     "reviews": "レビュー",
     "agents": "エージェント",
     "ports": "ポート",
-    "activity": "アクティビティ"
+    "activity": "アクティビティ",
+    "label": "セクション"
   },
   "soon": "近日",
   "files": {
@@ -147,5 +154,12 @@
     "untrackedHelp": "ディスク上にはあるが starfleet に登録されていないワークツリー",
     "active": "稼働中、最後のツール:",
     "idle": "アイドル: 5 分以上イベントがありません"
+  },
+  "skip": "本文へスキップ",
+  "tables": {
+    "worktrees": "プロジェクト別のワークツリー",
+    "files": "ブランチ別の作業中ファイル",
+    "conflicts": "未解決の競合",
+    "activity": "最近のアクティビティ"
   }
 }

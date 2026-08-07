@@ -29,7 +29,7 @@ const statusFilter = document.getElementById('status-filter')
 const projectFilter = document.getElementById('project-filter')
 const createForm = document.getElementById('create-form')
 const filtersEl = document.getElementById('filters')
-const mainEl = document.querySelector('main')
+const tasksPanel = document.getElementById('tasks-panel')
 const conflictsCount = document.getElementById('conflicts-count')
 
 const TABS = {
@@ -67,7 +67,11 @@ function applyStaticTranslations() {
   for (const node of document.querySelectorAll('[data-i18n]')) {
     node.textContent = translate(currentTranslations, node.dataset.i18n)
   }
-  refreshBtn.setAttribute('aria-label', translate(currentTranslations, 'refresh'))
+  // Un bouton-icone, une region ou un champ sans libelle visible tire son nom
+  // accessible de la meme table de traduction que le reste : pas de francais fige.
+  for (const node of document.querySelectorAll('[data-i18n-aria]')) {
+    node.setAttribute('aria-label', translate(currentTranslations, node.dataset.i18nAria))
+  }
   searchInput.setAttribute('placeholder', translate(currentTranslations, 'filter.search'))
   for (const name of ['project', 'branch', 'repoPath', 'runCommand', 'feature']) {
     createForm.elements[name].setAttribute('placeholder', translate(currentTranslations, `form.${name}`))
@@ -162,7 +166,8 @@ async function renderFiles() {
     .join('')
   filesView.innerHTML = `<p class="view-legend">${t('files.legend')} ${legend}</p>
     <div class="table-card"><table class="sub-table sub-files">
-      <thead><tr><th>${t('columns.project')}</th><th>${t('files.path')}</th><th>${t('files.owners')}</th></tr></thead>
+      <caption class="sr-only">${t('tables.files')}</caption>
+      <thead><tr><th scope="col">${t('columns.project')}</th><th scope="col">${t('files.path')}</th><th scope="col">${t('files.owners')}</th></tr></thead>
       <tbody>${body}</tbody>
     </table></div>`
 }
@@ -205,9 +210,10 @@ async function renderConflicts(rescan = false) {
     .join('')
   conflictsView.innerHTML = `<p class="view-legend">${t('conflicts.explain')} ${scanButton}</p>
     <div class="table-card"><table class="sub-table sub-conflicts">
+      <caption class="sr-only">${t('tables.conflicts')}</caption>
       <thead><tr>
-        <th>${t('columns.project')}</th><th>${t('conflicts.branches')}</th><th>${t('files.path')}</th>
-        <th>${t('conflicts.state')}</th><th>${t('conflicts.arbitration')}</th>
+        <th scope="col">${t('columns.project')}</th><th scope="col">${t('conflicts.branches')}</th><th scope="col">${t('files.path')}</th>
+        <th scope="col">${t('conflicts.state')}</th><th scope="col">${t('conflicts.arbitration')}</th>
       </tr></thead>
       <tbody>${body}</tbody>
     </table></div>`
@@ -234,9 +240,10 @@ async function renderActivity() {
     .join('')
   activityView.innerHTML = `<p class="view-legend">${t('activity.explain')}</p>
     <div class="table-card"><table class="sub-table sub-activity">
+      <caption class="sr-only">${t('tables.activity')}</caption>
       <thead><tr>
-        <th>${t('columns.updated')}</th><th>${t('columns.project')}</th><th>${t('columns.branch')}</th>
-        <th>${t('activity.tool')}</th><th>${t('files.path')}</th>
+        <th scope="col">${t('columns.updated')}</th><th scope="col">${t('columns.project')}</th><th scope="col">${t('columns.branch')}</th>
+        <th scope="col">${t('activity.tool')}</th><th scope="col">${t('files.path')}</th>
       </tr></thead>
       <tbody>${body}</tbody>
     </table></div>`
@@ -250,14 +257,22 @@ function refreshConflictsBadge(count) {
 function setTab(tab) {
   currentTab = tab
   for (const [name, entry] of Object.entries(TABS)) {
-    entry.button.classList.toggle('is-active', name === tab)
+    const active = name === tab
+    entry.button.classList.toggle('is-active', active)
+    // L'onglet actif ne se signale pas qu'en couleur : sans aria-current, un
+    // lecteur d'ecran ne distingue pas la vue ouverte des autres.
+    if (active) {
+      entry.button.setAttribute('aria-current', 'page')
+    } else {
+      entry.button.removeAttribute('aria-current')
+    }
     if (entry.view !== null) {
-      entry.view.hidden = name !== tab
+      entry.view.hidden = !active
     }
   }
   const worktrees = tab === 'worktrees'
   filtersEl.hidden = !worktrees
-  mainEl.hidden = !worktrees
+  tasksPanel.hidden = !worktrees
   const active = TABS[tab]
   if (active.render !== null) {
     active.render()
@@ -380,7 +395,9 @@ function notesCell(task) {
 function liveDot(task) {
   const label = translate(currentTranslations, task.live ? 'online' : 'offline')
   const cls = task.live ? 'live-dot is-live' : 'live-dot'
-  return `<span class="${cls}" title="${label}" aria-label="${label}"></span>`
+  // Une pastille de couleur seule ne dit rien : role img + nom accessible, sinon
+  // l'etat en ligne / hors ligne n'existe que pour ceux qui voient la couleur.
+  return `<span class="${cls}" role="img" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"></span>`
 }
 
 function itemsPanel(task) {
@@ -393,7 +410,7 @@ function itemsPanel(task) {
     .join('')
   return `<div class="items" data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}">
     ${list}
-    <button type="button" class="mini-btn" data-action="add-item">＋</button>
+    <button type="button" class="mini-btn" data-action="add-item" aria-label="${escapeHtml(translate(currentTranslations, 'actions.addItem'))}">＋</button>
   </div>`
 }
 
@@ -416,7 +433,7 @@ function actionsCell(task) {
   const t = (key) => translate(currentTranslations, key)
   const help = (key) => translate(currentTranslations, `actionsHelp.${key}`)
   const btn = (name, action, label, title, danger) =>
-    `<button type="button" class="icon-btn${danger ? ' danger' : ''}" data-action="${action}" title="${escapeHtml(title)}" aria-label="${label}">${svg(name)}</button>`
+    `<button type="button" class="icon-btn${danger ? ' danger' : ''}" data-action="${action}" title="${escapeHtml(title)}" aria-label="${escapeHtml(label)}">${svg(name)}</button>`
   const holder = `data-project="${escapeHtml(task.project)}" data-branch="${escapeHtml(task.branch)}" data-repo="${escapeHtml(task.repoPath ?? '')}"`
 
   // Une worktree non suivie n'a ni port ni serveur : la seule action qui a un
@@ -427,7 +444,7 @@ function actionsCell(task) {
   const parts = []
   if (task.url !== null) {
     parts.push(
-      `<a class="icon-btn" href="${escapeHtml(task.url)}" target="_blank" rel="noopener" title="${escapeHtml(`${help('open')} — ${task.url}`)}" aria-label="${t('actions.open')}">${svg('open')}</a>`,
+      `<a class="icon-btn" href="${escapeHtml(task.url)}" target="_blank" rel="noopener" title="${escapeHtml(`${help('open')} — ${task.url}`)}" aria-label="${escapeHtml(t('actions.open'))}">${svg('open')}</a>`,
     )
   }
   if (task.worktreePath == null && task.repoPath != null) {
@@ -618,7 +635,9 @@ async function setLocale(locale) {
 
 function markActive(group, matches) {
   for (const button of group.querySelectorAll('button')) {
-    button.classList.toggle('is-active', matches(button))
+    const active = matches(button)
+    button.classList.toggle('is-active', active)
+    button.setAttribute('aria-pressed', String(active))
   }
 }
 
@@ -772,8 +791,11 @@ document.addEventListener('click', () => {
 })
 
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape') {
+  // Fermer au clavier sans rendre le focus renverrait le curseur en debut de
+  // page : on le repose sur le bouton qui a ouvert le panneau.
+  if (event.key === 'Escape' && !settingsPanel.hidden) {
     toggleSettings(false)
+    settingsBtn.focus()
   }
 })
 

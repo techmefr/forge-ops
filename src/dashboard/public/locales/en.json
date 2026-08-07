@@ -25,7 +25,8 @@
     "large": "Large",
     "auto": "Auto",
     "light": "Light",
-    "dark": "Dark"
+    "dark": "Dark",
+    "title": "Settings"
   },
   "refresh": "Refresh",
   "online": "Online",
@@ -34,12 +35,16 @@
     "projects": "Projects",
     "worktrees": "Worktrees",
     "escalated": "Escalated",
-    "review": "In review"
+    "review": "In review",
+    "label": "Key figures"
   },
   "filter": {
     "search": "Search…",
     "allStatuses": "All statuses",
-    "allProjects": "All projects"
+    "allProjects": "All projects",
+    "searchLabel": "Search a worktree",
+    "projectLabel": "Filter by project",
+    "statusLabel": "Filter by status"
   },
   "actions": {
     "launch": "Launch",
@@ -51,7 +56,8 @@
     "cleanupConfirm": "Clean up this worktree (server + git worktree)?",
     "addItemLabel": "New task?",
     "open": "Open",
-    "track": "Track"
+    "track": "Track",
+    "addItem": "Add a task"
   },
   "form": {
     "new": "＋ New worktree",
@@ -100,7 +106,8 @@
     "reviews": "Reviews",
     "agents": "Agents",
     "ports": "Ports",
-    "activity": "Activity"
+    "activity": "Activity",
+    "label": "Sections"
   },
   "soon": "soon",
   "files": {
@@ -147,5 +154,12 @@
     "untrackedHelp": "Worktree present on disk but not registered in starfleet",
     "idle": "Idle: no event for over 5 minutes",
     "active": "Active, last tool:"
+  },
+  "skip": "Skip to content",
+  "tables": {
+    "worktrees": "Worktrees by project",
+    "files": "Files in flight by branch",
+    "conflicts": "Open conflicts",
+    "activity": "Latest activity events"
   }
 }

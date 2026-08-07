@@ -9,55 +9,55 @@
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <canvas id="starfield" aria-hidden="true"></canvas>
+    <a class="skip-link" href="#content" data-i18n="skip"></a>
     <div class="app">
       <aside class="sidebar">
         <div class="brand">
           <img class="logo" src="/favicon.svg" alt="" width="32" height="32" />
           <h1 id="app-title">Starfleet</h1>
         </div>
-        <nav class="nav">
-          <span class="nav-item nav-soon" aria-disabled="true">
+        <nav class="nav" data-i18n-aria="nav.label">
+          <button type="button" class="nav-item nav-soon" disabled>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
             <span data-i18n="nav.cockpit"></span><span class="soon-badge" data-i18n="soon"></span>
-          </span>
-          <button id="tab-worktrees" class="nav-item is-active" data-tab="worktrees">
+          </button>
+          <button id="tab-worktrees" class="nav-item is-active" data-tab="worktrees" aria-controls="tasks-panel" aria-current="page">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
             <span data-i18n="tabs.worktrees"></span>
           </button>
-          <button id="tab-files" class="nav-item" data-tab="files">
+          <button id="tab-files" class="nav-item" data-tab="files" aria-controls="files-view">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
             <span data-i18n="tabs.files"></span>
           </button>
-          <button id="tab-conflicts" class="nav-item" data-tab="conflicts">
+          <button id="tab-conflicts" class="nav-item" data-tab="conflicts" aria-controls="conflicts-view">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <span data-i18n="tabs.conflicts"></span><span id="conflicts-count" class="group-count" hidden></span>
           </button>
-          <button id="tab-arch" class="nav-item" data-tab="arch">
+          <button id="tab-arch" class="nav-item" data-tab="arch" aria-controls="arch-view">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg>
             <span data-i18n="tabs.arch"></span>
           </button>
-          <span class="nav-item nav-soon" aria-disabled="true">
+          <button type="button" class="nav-item nav-soon" disabled>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
             <span data-i18n="nav.graph"></span><span class="soon-badge" data-i18n="soon"></span>
-          </span>
-          <span class="nav-item nav-soon" aria-disabled="true">
+          </button>
+          <button type="button" class="nav-item nav-soon" disabled>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/></svg>
             <span data-i18n="nav.pipeline"></span><span class="soon-badge" data-i18n="soon"></span>
-          </span>
-          <span class="nav-item nav-soon" aria-disabled="true">
+          </button>
+          <button type="button" class="nav-item nav-soon" disabled>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <span data-i18n="nav.reviews"></span><span class="soon-badge" data-i18n="soon"></span>
-          </span>
-          <span class="nav-item nav-soon" aria-disabled="true">
+          </button>
+          <button type="button" class="nav-item nav-soon" disabled>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
             <span data-i18n="nav.agents"></span><span class="soon-badge" data-i18n="soon"></span>
-          </span>
-          <span class="nav-item nav-soon" aria-disabled="true">
+          </button>
+          <button type="button" class="nav-item nav-soon" disabled>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
             <span data-i18n="nav.ports"></span><span class="soon-badge" data-i18n="soon"></span>
-          </span>
-          <button id="tab-activity" class="nav-item" data-tab="activity">
+          </button>
+          <button id="tab-activity" class="nav-item" data-tab="activity" aria-controls="activity-view">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             <span data-i18n="nav.activity"></span>
           </button>
@@ -66,13 +66,13 @@
       <div class="content">
         <div class="topbar">
           <div class="settings">
-            <button id="settings-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Reglages">
+            <button id="settings-btn" type="button" aria-expanded="false" aria-controls="settings-panel" data-i18n-aria="settings.title">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="3"></circle>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
               </svg>
             </button>
-            <div id="settings-panel" role="menu" hidden>
+            <div id="settings-panel" data-i18n-aria="settings.title" role="group" hidden>
               <label class="setting">
                 <span data-i18n="settings.language"></span>
                 <select id="locale-select">
@@ -95,8 +95,8 @@
                 </div>
               </div>
               <div class="setting">
-                <span data-i18n="settings.theme"></span>
-                <div class="segmented" id="theme-group" role="group">
+                <span id="theme-label" data-i18n="settings.theme"></span>
+                <div class="segmented" id="theme-group" role="group" aria-labelledby="theme-label">
                   <button type="button" data-theme-choice="auto" data-i18n="settings.auto"></button>
                   <button type="button" data-theme-choice="light" data-i18n="settings.light"></button>
                   <button type="button" data-theme-choice="dark" data-i18n="settings.dark"></button>
@@ -105,75 +105,86 @@
             </div>
           </div>
           <div class="refresh-row">
-            <button id="refresh-btn" type="button" aria-label="Actualiser">
+            <button id="refresh-btn" type="button" data-i18n-aria="refresh">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M23 4v6h-6"></path>
                 <path d="M1 20v-6h6"></path>
                 <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
               </svg>
             </button>
-            <p id="last-refresh"></p>
+            <p id="last-refresh" role="status"></p>
           </div>
         </div>
-        <section id="stats" class="stats" aria-live="polite"></section>
-        <div id="filters" class="filters">
-          <details class="create">
-            <summary data-i18n="form.new"></summary>
-            <form id="create-form">
-              <input name="project" required />
-              <input name="branch" required />
-              <input name="repoPath" />
-              <input name="runCommand" />
-              <input name="feature" />
-              <select name="role">
-                <option value="" data-i18n="form.role"></option>
-                <option value="front">front</option>
-                <option value="back">back</option>
-                <option value="service">service</option>
-                <option value="other">other</option>
-              </select>
-              <button type="submit" data-i18n="form.create"></button>
-            </form>
-          </details>
-          <input id="search" type="search" />
-          <select id="project-filter"></select>
-          <select id="status-filter">
-            <option value="" data-i18n="filter.allStatuses"></option>
-            <option value="created">created</option>
-            <option value="in_progress">in_progress</option>
-            <option value="done">done</option>
-            <option value="escalated">escalated</option>
-            <option value="awaiting_human">awaiting_human</option>
-          </select>
-        </div>
-        <main>
-          <table id="tasks-table">
-            <thead>
-              <tr>
-                <th data-i18n="columns.project"></th>
-                <th data-i18n="columns.branch"></th>
-                <th data-i18n="columns.git"></th>
-                <th data-i18n="columns.feature"></th>
-                <th data-i18n="columns.port"></th>
-                <th data-i18n="columns.status"></th>
-                <th data-i18n="columns.checkpoint"></th>
-                <th data-i18n="columns.tasks"></th>
-                <th data-i18n="columns.updated"></th>
-                <th data-i18n="columns.notes"></th>
-                <th data-i18n="columns.actions"></th>
-              </tr>
-            </thead>
-            <tbody id="tasks-body"></tbody>
-          </table>
-          <p id="empty-state" hidden></p>
+        <main id="content">
+          <section id="stats" class="stats" aria-live="polite" data-i18n-aria="stats.label"></section>
+          <div id="filters" class="filters">
+            <details class="create">
+              <summary data-i18n="form.new"></summary>
+              <form id="create-form">
+                <label class="sr-only" for="create-project" data-i18n="form.project"></label>
+                <input id="create-project" name="project" required />
+                <label class="sr-only" for="create-branch" data-i18n="form.branch"></label>
+                <input id="create-branch" name="branch" required />
+                <label class="sr-only" for="create-repoPath" data-i18n="form.repoPath"></label>
+                <input id="create-repoPath" name="repoPath" />
+                <label class="sr-only" for="create-runCommand" data-i18n="form.runCommand"></label>
+                <input id="create-runCommand" name="runCommand" />
+                <label class="sr-only" for="create-feature" data-i18n="form.feature"></label>
+                <input id="create-feature" name="feature" />
+                <label class="sr-only" for="create-role" data-i18n="form.role"></label>
+                <select id="create-role" name="role">
+                  <option value="" data-i18n="form.role"></option>
+                  <option value="front">front</option>
+                  <option value="back">back</option>
+                  <option value="service">service</option>
+                  <option value="other">other</option>
+                </select>
+                <button type="submit" data-i18n="form.create"></button>
+              </form>
+            </details>
+            <label class="sr-only" for="search" data-i18n="filter.searchLabel"></label>
+            <input id="search" type="search" />
+            <label class="sr-only" for="project-filter" data-i18n="filter.projectLabel"></label>
+            <select id="project-filter"></select>
+            <label class="sr-only" for="status-filter" data-i18n="filter.statusLabel"></label>
+            <select id="status-filter">
+              <option value="" data-i18n="filter.allStatuses"></option>
+              <option value="created">created</option>
+              <option value="in_progress">in_progress</option>
+              <option value="done">done</option>
+              <option value="escalated">escalated</option>
+              <option value="awaiting_human">awaiting_human</option>
+            </select>
+          </div>
+          <div id="tasks-panel">
+            <table id="tasks-table">
+              <caption class="sr-only" data-i18n="tables.worktrees"></caption>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="columns.project"></th>
+                  <th scope="col" data-i18n="columns.branch"></th>
+                  <th scope="col" data-i18n="columns.git"></th>
+                  <th scope="col" data-i18n="columns.feature"></th>
+                  <th scope="col" data-i18n="columns.port"></th>
+                  <th scope="col" data-i18n="columns.status"></th>
+                  <th scope="col" data-i18n="columns.checkpoint"></th>
+                  <th scope="col" data-i18n="columns.tasks"></th>
+                  <th scope="col" data-i18n="columns.updated"></th>
+                  <th scope="col" data-i18n="columns.notes"></th>
+                  <th scope="col" data-i18n="columns.actions"></th>
+                </tr>
+              </thead>
+              <tbody id="tasks-body"></tbody>
+            </table>
+            <p id="empty-state" hidden></p>
+          </div>
+          <section id="arch-view" data-i18n-aria="tabs.arch" hidden></section>
+          <section id="files-view" data-i18n-aria="tabs.files" hidden></section>
+          <section id="conflicts-view" data-i18n-aria="tabs.conflicts" hidden></section>
+          <section id="activity-view" data-i18n-aria="nav.activity" hidden></section>
         </main>
-        <section id="arch-view" hidden></section>
-        <section id="files-view" hidden></section>
-        <section id="conflicts-view" hidden></section>
-        <section id="activity-view" hidden></section>
       </div>
     </div>
     <script type="module" src="/app.js"></script>
-    <script type="module" src="/starfield.js"></script>
   </body>
 </html>

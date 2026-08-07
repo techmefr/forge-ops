@@ -25,7 +25,8 @@
     "large": "大",
     "auto": "自动",
     "light": "浅色",
-    "dark": "深色"
+    "dark": "深色",
+    "title": "设置"
   },
   "refresh": "刷新",
   "online": "在线",
@@ -34,12 +35,16 @@
     "projects": "项目",
     "worktrees": "工作树",
     "escalated": "已升级",
-    "review": "审核中"
+    "review": "审核中",
+    "label": "关键数据"
   },
   "filter": {
     "search": "搜索…",
     "allStatuses": "所有状态",
-    "allProjects": "所有项目"
+    "allProjects": "所有项目",
+    "searchLabel": "搜索工作树",
+    "projectLabel": "按项目筛选",
+    "statusLabel": "按状态筛选"
   },
   "actions": {
     "launch": "启动",
@@ -51,7 +56,8 @@
     "cleanupConfirm": "清理此工作树（服务器 + git 工作树）？",
     "addItemLabel": "新任务？",
     "open": "打开",
-    "track": "跟踪"
+    "track": "跟踪",
+    "addItem": "添加任务"
   },
   "form": {
     "new": "＋ 新建工作树",
@@ -100,7 +106,8 @@
     "reviews": "审查",
     "agents": "代理",
     "ports": "端口",
-    "activity": "活动"
+    "activity": "活动",
+    "label": "板块"
   },
   "soon": "即将",
   "files": {
@@ -147,5 +154,12 @@
     "untrackedHelp": "磁盘上存在此工作树，但未登记到 starfleet",
     "idle": "空闲：超过 5 分钟没有事件",
     "active": "活跃，最近的工具："
+  },
+  "skip": "跳转到主要内容",
+  "tables": {
+    "worktrees": "按项目分组的工作树",
+    "files": "按分支分组的在途文件",
+    "conflicts": "未解决的冲突",
+    "activity": "最近的活动事件"
   }
 }

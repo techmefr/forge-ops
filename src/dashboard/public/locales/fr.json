@@ -25,7 +25,8 @@
     "large": "Grande",
     "auto": "Auto",
     "light": "Clair",
-    "dark": "Sombre"
+    "dark": "Sombre",
+    "title": "Réglages"
   },
   "refresh": "Actualiser",
   "online": "En ligne",
@@ -34,12 +35,16 @@
     "projects": "Projets",
     "worktrees": "Worktrees",
     "escalated": "Escaladees",
-    "review": "En revue"
+    "review": "En revue",
+    "label": "Chiffres clés"
   },
   "filter": {
     "search": "Rechercher…",
     "allStatuses": "Tous les statuts",
-    "allProjects": "Tous les projets"
+    "allProjects": "Tous les projets",
+    "searchLabel": "Rechercher une worktree",
+    "projectLabel": "Filtrer par projet",
+    "statusLabel": "Filtrer par statut"
   },
   "actions": {
     "launch": "Lancer",
@@ -51,7 +56,8 @@
     "cleanupConfirm": "Nettoyer cette worktree (serveur + worktree git) ?",
     "addItemLabel": "Nouvelle tâche ?",
     "open": "Ouvrir",
-    "track": "Suivre"
+    "track": "Suivre",
+    "addItem": "Ajouter une tâche"
   },
   "form": {
     "new": "＋ Nouvelle worktree",
@@ -100,7 +106,8 @@
     "reviews": "Revues",
     "agents": "Agents",
     "ports": "Ports",
-    "activity": "Activité"
+    "activity": "Activité",
+    "label": "Sections"
   },
   "soon": "bientôt",
   "files": {
@@ -147,5 +154,12 @@
     "untrackedHelp": "Worktree presente sur le disque mais pas enregistree dans starfleet",
     "idle": "Inactive : aucun evenement depuis plus de 5 minutes",
     "active": "Active, dernier outil :"
+  },
+  "skip": "Aller au contenu",
+  "tables": {
+    "worktrees": "Worktrees par projet",
+    "files": "Fichiers en vol par branche",
+    "conflicts": "Conflits ouverts",
+    "activity": "Derniers événements d'activité"
   }
 }

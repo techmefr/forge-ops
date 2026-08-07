@@ -25,7 +25,8 @@
     "large": "크게",
     "auto": "자동",
     "light": "라이트",
-    "dark": "다크"
+    "dark": "다크",
+    "title": "설정"
   },
   "refresh": "새로고침",
   "online": "온라인",
@@ -34,12 +35,16 @@
     "projects": "프로젝트",
     "worktrees": "워크트리",
     "escalated": "에스컬레이션",
-    "review": "검토 중"
+    "review": "검토 중",
+    "label": "주요 수치"
   },
   "filter": {
     "search": "검색…",
     "allStatuses": "모든 상태",
-    "allProjects": "모든 프로젝트"
+    "allProjects": "모든 프로젝트",
+    "searchLabel": "워크트리 검색",
+    "projectLabel": "프로젝트로 필터",
+    "statusLabel": "상태로 필터"
   },
   "actions": {
     "launch": "실행",
@@ -51,7 +56,8 @@
     "cleanupConfirm": "이 워크트리(서버 + git 워크트리)를 정리할까요?",
     "addItemLabel": "새 작업?",
     "open": "열기",
-    "track": "등록"
+    "track": "등록",
+    "addItem": "작업 추가"
   },
   "form": {
     "new": "＋ 새 워크트리",
@@ -100,7 +106,8 @@
     "reviews": "리뷰",
     "agents": "에이전트",
     "ports": "포트",
-    "activity": "활동"
+    "activity": "활동",
+    "label": "섹션"
   },
   "soon": "곧",
   "files": {
@@ -147,5 +154,12 @@
     "untrackedHelp": "디스크에는 있지만 starfleet에 등록되지 않은 워크트리",
     "idle": "유휴: 5분 넘게 이벤트 없음",
     "active": "활성, 마지막 도구:"
+  },
+  "skip": "본문으로 건너뛰기",
+  "tables": {
+    "worktrees": "프로젝트별 워크트리",
+    "files": "브랜치별 작업 중 파일",
+    "conflicts": "열린 충돌",
+    "activity": "최근 활동 이벤트"
   }
 }
