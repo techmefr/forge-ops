@@ -101,6 +101,7 @@ describe('matchTask', () => {
     repoPath: '/repo',
     worktreePath: '/repo-worktrees/feat-left',
     branch: 'feat/left',
+    head: 'abc123',
     isMain: false,
   }
 
