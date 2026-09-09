@@ -109,17 +109,6 @@ CREATE TABLE IF NOT EXISTS port_reservation (
   CHECK (port BETWEEN 4000 AND 5999)
 );
 
-CREATE TABLE IF NOT EXISTS path_claim (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  story_id INTEGER NOT NULL REFERENCES story(id),
-  path_prefix TEXT NOT NULL,
-  claimed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  released_at TEXT
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_path_claim_live ON path_claim(path_prefix)
-  WHERE released_at IS NULL;
-
 CREATE TABLE IF NOT EXISTS agent_session (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   story_id INTEGER NOT NULL REFERENCES story(id),
