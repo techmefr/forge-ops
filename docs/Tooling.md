@@ -1,5 +1,7 @@
 # Ce qui existe déjà, étape par étape
 
+> Première passe. Le relevé exhaustif — environ 120 projets lus, licences vérifiées, mécanismes comparés — est dans [Landscape.md](Landscape.md), qui corrige et précise plusieurs conclusions ci-dessous.
+
 Relevé du 2026-09-09. Question posée : pour chaque étape du pipeline, est-ce qu'un outil existant couvre le besoin mieux que du code écrit ici ?
 
 Le paysage a explosé : la liste de référence `awesome-agent-orchestrators` recense plus de cent projets, répartis en agents parallèles (TUI et desktop), essaims multi-agents, boucles autonomes, runners déclenchés par ticket, et primitives d'infrastructure. La conséquence utile : **presque tout ce qui est plomberie est commoditisé, et presque rien ne couvre la story jumelée prouvée par fichier.**
