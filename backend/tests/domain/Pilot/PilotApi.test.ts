@@ -11,6 +11,8 @@ let api: Hono
 let storyId: number
 let seen: BoardEvent[]
 let refuse: boolean
+let db: ReturnType<typeof openDatabase>
+let stories: ReturnType<typeof createStoryRepository>
 
 const SCRIPT = [
   { kind: 'goto', target: 'http://localhost:5049/mails' },
@@ -45,8 +47,8 @@ function startRun(body: unknown = { url: 'http://localhost:5049/mails', pace: 's
 }
 
 beforeEach(() => {
-  const db = openDatabase(':memory:')
-  const stories = createStoryRepository(db)
+  db = openDatabase(':memory:')
+  stories = createStoryRepository(db)
   seen = []
   refuse = false
   const events = createEventBus()
@@ -60,7 +62,7 @@ beforeEach(() => {
   })
   const epic = stories.createEpic({ projectId: project.id, title: 'CRUD', businessIntent: 'gerer' })
   storyId = stories.writeStory({ epicId: epic.id, title: 'visualiser les mails', body: 'en tant que' }).id
-  api = createPilotApi({ pilots: createPilotRepository(db, { stories, driver: driver() }), events })
+  api = createPilotApi({ pilots: createPilotRepository(db, { stories, openDriver: driver }), events })
 })
 
 describe('POST /api/stories/:id/pilot', () => {
@@ -127,6 +129,16 @@ describe('POST /api/stories/:id/pilot/advance', () => {
 
   it('refuses to walk a story with no run', async () => {
     expect((await send(`/api/stories/${storyId}/pilot/advance`, 'POST')).status).toBe(404)
+  })
+
+  it('refuses to walk a run whose browser did not survive the board', async () => {
+    await startRun()
+    api = createPilotApi({
+      pilots: createPilotRepository(db, { stories, openDriver: driver }),
+      events: createEventBus(),
+    })
+
+    expect((await send(`/api/stories/${storyId}/pilot/advance`, 'POST')).status).toBe(409)
   })
 
   it('refuses to walk a run that already failed', async () => {

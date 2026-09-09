@@ -12,6 +12,7 @@ import {
 } from './Pilot.js'
 import { checkDestination, checkScript } from './PilotScript.js'
 import {
+  PilotBrowserLostError,
   PilotRunAlreadyLiveError,
   PilotRunNotFoundError,
   PilotRunOverError,
@@ -32,7 +33,7 @@ export type PilotRepository = {
 
 export type PilotRepositoryInput = {
   stories: StoryRepository
-  driver: PilotDriver
+  openDriver: () => PilotDriver
 }
 
 type RunRow = {
@@ -86,8 +87,9 @@ function toAct(row: ActRow): PilotAct {
 
 export function createPilotRepository(
   db: Database.Database,
-  { stories, driver }: PilotRepositoryInput,
+  { stories, openDriver }: PilotRepositoryInput,
 ): PilotRepository {
+  const drivers = new Map<number, PilotDriver>()
   const insertRun = db.prepare<[number, string, string, string]>(
     'INSERT INTO pilot_run (story_id, url, pace, script) VALUES (?, ?, ?, ?)',
   )
@@ -165,6 +167,20 @@ export function createPilotRepository(
     return run
   }
 
+  function browserOf(run: PilotRun): PilotDriver {
+    const driver = drivers.get(run.id)
+    if (driver === undefined) {
+      throw new PilotBrowserLostError(run.storyReference)
+    }
+    return driver
+  }
+
+  function forget(run: PilotRun): Promise<void> {
+    const driver = drivers.get(run.id)
+    drivers.delete(run.id)
+    return driver === undefined ? Promise.resolve() : driver.close()
+  }
+
   return {
     start: async (order) => {
       const story = stories.findStory(order.storyId)
@@ -174,12 +190,16 @@ export function createPilotRepository(
         throw new PilotRunAlreadyLiveError(story.reference)
       }
       const written = insertRun.run(order.storyId, url, order.pace, JSON.stringify(script))
+      const runId = Number(written.lastInsertRowid)
+      const driver = openDriver()
+      drivers.set(runId, driver)
       await driver.open(url, order.pace)
-      return reload(Number(written.lastInsertRowid))
+      return reload(runId)
     },
 
     advance: async (storyId) => {
       const run = walking(storyId)
+      const driver = browserOf(run)
       const step = run.script[run.position]
       if (step === undefined) {
         throw new PilotRunOverError(run.storyReference, run.state)
@@ -213,10 +233,10 @@ export function createPilotRepository(
       moveCursor.run(position, run.id)
       if (outcome === 'failed') {
         endRun.run('failed', run.id)
-        await driver.close()
+        await forget(run)
       } else if (position === run.script.length) {
         endRun.run('passed', run.id)
-        await driver.close()
+        await forget(run)
       }
       return reload(run.id)
     },
@@ -234,14 +254,13 @@ export function createPilotRepository(
     },
 
     inspect: async (storyId) => {
-      liveRun(storyId)
-      return driver.inspect()
+      return browserOf(liveRun(storyId)).inspect()
     },
 
     abandon: async (storyId) => {
       const run = liveRun(storyId)
       endRun.run('abandoned', run.id)
-      await driver.close()
+      await forget(run)
       return reload(run.id)
     },
 

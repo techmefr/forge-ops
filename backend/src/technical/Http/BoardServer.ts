@@ -176,7 +176,7 @@ export function startBoardServer({
     createPilotApi({
       pilots: createPilotRepository(db, {
         stories,
-        driver: createPlaywrightPilot({ shotDir, headless: !headedPilot }),
+        openDriver: () => createPlaywrightPilot({ shotDir, headless: !headedPilot }),
       }),
       events,
     }),

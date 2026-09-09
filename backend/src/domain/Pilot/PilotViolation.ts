@@ -62,3 +62,10 @@ export class PilotRunPausedError extends PilotViolationError {
     this.name = 'PilotRunPausedError'
   }
 }
+
+export class PilotBrowserLostError extends PilotViolationError {
+  constructor(reference: string) {
+    super(`le navigateur du parcours de ${reference} n existe plus, il faut le relancer`)
+    this.name = 'PilotBrowserLostError'
+  }
+}

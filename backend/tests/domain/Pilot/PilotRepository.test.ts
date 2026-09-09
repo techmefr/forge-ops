@@ -11,6 +11,7 @@ import {
 } from '../../../src/domain/Pilot/PilotRepository.js'
 import type { PilotDriver, PilotObservation, PilotStep } from '../../../src/domain/Pilot/Pilot.js'
 import {
+  PilotBrowserLostError,
   PilotRunAlreadyLiveError,
   PilotRunNotFoundError,
   PilotRunOverError,
@@ -18,15 +19,17 @@ import {
   UnsafeDestinationError,
 } from '../../../src/domain/Pilot/PilotViolation.js'
 
-type Opened = { url: string; pace: string }
+type Opened = { url: string; pace: string; browser: number }
 
 let db: Database.Database
 let stories: StoryRepository
 let pilots: PilotRepository
 let storyId: number
+let second: number
 let opened: Opened[]
 let performed: PilotStep[]
-let closed: number
+let closed: number[]
+let browsers: number
 let answers: Map<string, PilotObservation>
 let refusals: Set<string>
 
@@ -41,9 +44,11 @@ function observation(detail: string): PilotObservation {
 }
 
 function fakeDriver(): PilotDriver {
+  browsers += 1
+  const mine = browsers
   return {
     open: (url, pace) => {
-      opened.push({ url, pace })
+      opened.push({ url, pace, browser: mine })
       return Promise.resolve()
     },
     perform: (step) => {
@@ -55,7 +60,7 @@ function fakeDriver(): PilotDriver {
     },
     inspect: () => Promise.resolve(observation('la page dit quelque chose')),
     close: () => {
-      closed += 1
+      closed.push(mine)
       return Promise.resolve()
     },
   }
@@ -70,7 +75,8 @@ beforeEach(() => {
   stories = createStoryRepository(db)
   opened = []
   performed = []
-  closed = 0
+  closed = []
+  browsers = 0
   answers = new Map()
   refusals = new Set()
   const project = stories.createProject({
@@ -82,14 +88,15 @@ beforeEach(() => {
   })
   const epic = stories.createEpic({ projectId: project.id, title: 'CRUD', businessIntent: 'gerer' })
   storyId = stories.writeStory({ epicId: epic.id, title: 'visualiser les mails', body: 'en tant que' }).id
-  pilots = createPilotRepository(db, { stories, driver: fakeDriver() })
+  second = stories.writeStory({ epicId: epic.id, title: 'supprimer les mails', body: 'en tant que' }).id
+  pilots = createPilotRepository(db, { stories, openDriver: fakeDriver })
 })
 
 describe('start', () => {
   it('opens the browser on the story url', async () => {
     await start()
 
-    expect(opened).toEqual([{ url: 'http://localhost:5049/mails', pace: 'slow' }])
+    expect(opened).toEqual([{ url: 'http://localhost:5049/mails', pace: 'slow', browser: 1 }])
   })
 
   it('begins before the first step, nothing has been watched yet', async () => {
@@ -184,7 +191,7 @@ describe('advance', () => {
     await pilots.advance(storyId)
     await pilots.advance(storyId)
 
-    expect(closed).toBe(1)
+    expect(closed).toHaveLength(1)
   })
 
   it('fails the run on the step the browser refused', async () => {
@@ -246,7 +253,7 @@ describe('pause and resume', () => {
     await start()
     pilots.pause(storyId)
 
-    expect(closed).toBe(0)
+    expect(closed).toEqual([])
   })
 
   it('resumes where it stopped', async () => {
@@ -293,7 +300,7 @@ describe('abandon', () => {
     await start()
     await pilots.abandon(storyId)
 
-    expect(closed).toBe(1)
+    expect(closed).toHaveLength(1)
   })
 
   it('leaves no live run behind', async () => {
@@ -312,6 +319,63 @@ describe('abandon', () => {
 
   it('refuses to abandon a story with no run', async () => {
     await expect(pilots.abandon(storyId)).rejects.toThrow(PilotRunNotFoundError)
+  })
+})
+
+describe('two stories walking at once', () => {
+  it('gives each one its own browser, they must not share a page', async () => {
+    await start()
+    await pilots.start({ storyId: second, url: 'http://autre.test/', pace: 'live', script: SCRIPT })
+
+    expect(new Set(opened.map((entry) => entry.browser)).size).toBe(2)
+  })
+
+  it('closes only the browser of the story it abandons', async () => {
+    await start()
+    await pilots.start({ storyId: second, url: 'http://autre.test/', pace: 'live', script: SCRIPT })
+    const theirs = opened[1]?.browser
+    await pilots.abandon(second)
+
+    expect(closed).toEqual([theirs])
+  })
+
+  it('leaves the other story walking', async () => {
+    await start()
+    await pilots.start({ storyId: second, url: 'http://autre.test/', pace: 'live', script: SCRIPT })
+    await pilots.abandon(second)
+
+    await expect(pilots.advance(storyId)).resolves.toBeDefined()
+  })
+})
+
+describe('a run whose browser did not survive the board', () => {
+  it('refuses to advance rather than pretending the step failed', async () => {
+    await start()
+    const reborn = createPilotRepository(db, { stories, openDriver: fakeDriver })
+
+    await expect(reborn.advance(storyId)).rejects.toThrow(PilotBrowserLostError)
+  })
+
+  it('records nothing, the parcours keeps its history clean', async () => {
+    await start()
+    const reborn = createPilotRepository(db, { stories, openDriver: fakeDriver })
+
+    await expect(reborn.advance(storyId)).rejects.toThrow()
+    expect(reborn.findForStory(storyId)?.acts).toEqual([])
+  })
+
+  it('refuses to inspect a browser that is gone', async () => {
+    await start()
+    const reborn = createPilotRepository(db, { stories, openDriver: fakeDriver })
+
+    await expect(reborn.inspect(storyId)).rejects.toThrow(PilotBrowserLostError)
+  })
+
+  it('lets the run be abandoned so the story is not stuck', async () => {
+    await start()
+    const reborn = createPilotRepository(db, { stories, openDriver: fakeDriver })
+
+    await expect(reborn.abandon(storyId)).resolves.toMatchObject({ state: 'abandoned' })
   })
 })
 
