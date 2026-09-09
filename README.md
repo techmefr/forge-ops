@@ -88,6 +88,16 @@ Le board expose une API HTTP (Hono). `POST /api/hooks` est aussi la cible des ho
 | `DELETE /api/stories/:id/scope` | Rend tout ce que la story tenait |
 | `GET /api/scope/reservations` | Les périmètres tenus, avec la story qui les tient |
 | `GET /api/scope/collisions` | Les recouvrements que le board subit |
+| `GET /api/worktrees` | Les worktrees vivants, leur branche, leur port et leur sous-domaine |
+| `GET`/`POST`/`DELETE /api/stories/:id/worktree` | Ouvre, lit ou ferme le worktree d'une story |
+| `POST /api/stories/:id/pilot` | Lance un parcours navigateur (adresse, allure, pas) |
+| `POST /api/stories/:id/pilot/advance` | Avance d'un pas et enregistre ce qu'il a vu |
+| `POST /api/stories/:id/pilot/pause` | Met le parcours en pause, le navigateur reste ouvert |
+| `POST /api/stories/:id/pilot/resume` | Reprend là où il s'était arrêté |
+| `POST /api/stories/:id/pilot/inspect` | Lit la page en cours sans bouger le curseur |
+| `GET`/`DELETE /api/stories/:id/pilot` | Le parcours vivant et son historique, ou l'abandon |
+| `GET /api/pilots` | Les parcours que le board regarde en ce moment |
+| `GET /api/pilots/shots/:name` | La capture prise à un pas, servie comme preuve |
 | `GET /api/sessions/history` | L'historique des sessions : durée, coût, classe de sortie |
 | `GET /api/statistics` | Les totaux, les agents les plus sollicités, le temps par étape |
 | `GET /api/incidents` | Les signalements venus du dehors, filtrés par état |
@@ -236,9 +246,9 @@ L'orchestration bas niveau ne se réécrit pas : elle s'appuie sur le premier pa
 | Plafond de coût qui coupe, conduite au choix | Fait |
 | Historique des sessions et statistiques | Fait, lues depuis la base du board |
 | Front : routeur, coque et les neuf écrans du pipeline | Fait |
-| Cycle de vie des worktrees et réservations de port | À faire — s'appuie sur le daemon, pas de plomberie propre |
+| Cycle de vie des worktrees et réservations de port | Fait, contre un vrai git, nettoyé après le merge |
 | Métriques machine fines | À consommer depuis OpenTelemetry, pas à collecter |
 | Feature flags | À déléguer à OpenFeature, le board ne garde que le pourcentage |
-| Pilotage navigateur de l'étape 6 (ralenti, pause, inspection) | À faire — Playwright MCP et le Browser pane |
+| Pilotage navigateur de l'étape 6 (ralenti, pause, inspection) | Fait, un vrai Chromium via `playwright-core`, capture à chaque pas |
 
 Le relevé de l'outillage existant étape par étape est dans [docs/Tooling.md](docs/Tooling.md), et le listing exhaustif du paysage — environ 120 projets, licences et mécanismes — dans [docs/Landscape.md](docs/Landscape.md).
