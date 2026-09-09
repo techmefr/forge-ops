@@ -157,6 +157,8 @@ CREATE TABLE IF NOT EXISTS agent_session (
     'unknown'
   )),
   cost_usd REAL,
+  input_tokens INTEGER,
+  output_tokens INTEGER,
   started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   ended_at TEXT
 );

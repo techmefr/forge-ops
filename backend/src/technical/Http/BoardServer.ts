@@ -16,6 +16,7 @@ import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { createEventBus } from './EventBus.js'
 import { createBoardPage } from './BoardPage.js'
 import { createSdkSessionRunner } from '../ClaudeCode/SdkSessionRunner.js'
+import { recordUsageFromEvent } from '../ClaudeCode/UsageRecorder.js'
 import { createTokenGuard } from '../Auth/TokenGuard.js'
 import { deriveHookToken, resolveBoardToken } from '../Auth/BoardToken.js'
 
@@ -76,7 +77,10 @@ export function startBoardServer({
     budget: createBudgetRepository(db),
     runner: createSdkSessionRunner({
       cwd: process.cwd(),
-      onEvent: (event) => events.publish(event),
+      onEvent: (event) => {
+        recordUsageFromEvent(sessions, event)
+        events.publish(event)
+      },
     }),
     concurrencyCap: Number(process.env.FORGE_SESSION_CAP ?? DEFAULT_SESSION_CAP),
     claudeCodeVersion: process.env.CLAUDE_CODE_VERSION ?? 'unknown',

@@ -22,6 +22,12 @@ type AgentSessionRow = {
   cost_usd: number | null
 }
 
+export type SessionUsage = {
+  costUsd: number
+  inputTokens: number
+  outputTokens: number
+}
+
 export type ClosedSession = AgentSession & {
   outcome: OutcomeClass
   statement: string
@@ -32,6 +38,8 @@ export type AgentSessionRepository = {
   findByClaudeSessionId: (claudeSessionId: string) => AgentSession | null
   updateLifecycle: (claudeSessionId: string, lifecycle: AgentLifecycle) => AgentSession
   closeSession: (claudeSessionId: string, exit: SessionExit) => ClosedSession
+  recordUsage: (claudeSessionId: string, usage: SessionUsage) => AgentSession & SessionUsage
+  sumUsage: (storyId: number) => SessionUsage
   recordFileTouch: (draft: FileTouchDraft) => void
   listTouchedPaths: (storyId: number) => readonly string[]
   listConflictingPaths: () => readonly PathConflict[]
@@ -65,6 +73,17 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
   const closeSessionRow = db.prepare<[AgentLifecycle, OutcomeClass, string]>(
     `UPDATE agent_session SET lifecycle = ?, outcome = ?, ended_at = datetime('now')
       WHERE claude_session_id = ?`,
+  )
+  const updateUsage = db.prepare<[number, number, number, string]>(
+    `UPDATE agent_session SET cost_usd = ?, input_tokens = ?, output_tokens = ?
+      WHERE claude_session_id = ?`,
+  )
+  const sumStoryUsage = db.prepare<
+    [number],
+    { cost_usd: number | null; input_tokens: number | null; output_tokens: number | null }
+  >(
+    `SELECT SUM(cost_usd) AS cost_usd, SUM(input_tokens) AS input_tokens, SUM(output_tokens) AS output_tokens
+       FROM agent_session WHERE story_id = ?`,
   )
   const insertFileTouch = db.prepare<[number, number, string]>(
     'INSERT INTO file_touch (story_id, agent_session_id, path) VALUES (?, ?, ?)',
@@ -115,6 +134,21 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
       const lifecycle = lifecycleOfOutcome(verdict.outcome)
       closeSessionRow.run(lifecycle, verdict.outcome, claudeSessionId)
       return { ...requireSession(claudeSessionId), outcome: verdict.outcome, statement: verdict.statement }
+    },
+
+    recordUsage: (claudeSessionId, usage) => {
+      requireSession(claudeSessionId)
+      updateUsage.run(usage.costUsd, usage.inputTokens, usage.outputTokens, claudeSessionId)
+      return { ...requireSession(claudeSessionId), ...usage }
+    },
+
+    sumUsage: (storyId) => {
+      const row = sumStoryUsage.get(storyId)
+      return {
+        costUsd: row?.cost_usd ?? 0,
+        inputTokens: row?.input_tokens ?? 0,
+        outputTokens: row?.output_tokens ?? 0,
+      }
     },
 
     recordFileTouch: (draft) => {
