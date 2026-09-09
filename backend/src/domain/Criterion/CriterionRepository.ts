@@ -7,6 +7,7 @@ import {
   CriterionOnTwinError,
 } from './CriterionViolation.js'
 import { StoryNotFoundError } from '../Story/StoryViolation.js'
+import { assertEvidencePath } from '../Evidence/EvidencePath.js'
 
 type CriterionRow = {
   id: number
@@ -99,7 +100,7 @@ export function createCriterionRepository(database: Database.Database): Criterio
       if (criterion.satisfied) {
         throw new CriterionAlreadySatisfiedError(criterion.reference)
       }
-      updateSatisfied.run(evidencePath, criterionId)
+      updateSatisfied.run(assertEvidencePath(evidencePath), criterionId)
       return findCriterion(criterionId)
     },
 

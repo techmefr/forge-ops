@@ -4,6 +4,7 @@ dist/
 *.db-shm
 *.db-wal
 .env
+.forge-token
 .claude/settings.local.json
 .claude/*.tmp.*
 .claude/evidence/
