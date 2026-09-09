@@ -45,7 +45,7 @@ beforeEach(() => {
   api = createBoardApi({
     repository: stories,
     agentSessions: createAgentSessionRepository(db),
-    checkpoints: createCheckpointRepository(db),
+    checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
     criteria,
     zones: createZoneRepository(db),
     budget: createBudgetRepository(db),
@@ -53,7 +53,7 @@ beforeEach(() => {
     dispatcher: createDispatcher({
       database: db,
       stories,
-      checkpoints: createCheckpointRepository(db),
+      checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
       sessions: createAgentSessionRepository(db),
       budget: createBudgetRepository(db),
       runner: { launch: async () => ({ claudeSessionId: 'fake-session-1' }) },

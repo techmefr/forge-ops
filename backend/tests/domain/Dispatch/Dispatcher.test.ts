@@ -41,7 +41,7 @@ function buildDispatcher(concurrencyCap = 3): Dispatcher {
   return createDispatcher({
     database: db,
     stories,
-    checkpoints: createCheckpointRepository(db),
+    checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
     sessions,
     budget: createBudgetRepository(db),
     runner: fakeRunner(),
@@ -140,7 +140,7 @@ describe('dispatch', () => {
     const failing = createDispatcher({
       database: db,
       stories,
-      checkpoints: createCheckpointRepository(db),
+      checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
       sessions,
       budget: createBudgetRepository(db),
       runner: {

@@ -38,7 +38,7 @@ beforeEach(() => {
   api = createBoardApi({
     repository,
     agentSessions: createAgentSessionRepository(db),
-    checkpoints: createCheckpointRepository(db),
+    checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
     criteria: createCriterionRepository(db),
     zones: createZoneRepository(db),
     budget: createBudgetRepository(db),

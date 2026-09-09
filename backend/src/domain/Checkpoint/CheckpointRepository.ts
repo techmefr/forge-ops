@@ -22,10 +22,12 @@ import {
   LensAlreadyPassedError,
   LensOutOfOrderError,
   ReviewIncompleteError,
+  TestsTamperedError,
   UnresolvedFindingError,
 } from './CheckpointViolation.js'
 import { StoryNotFoundError, TwinRequiredError } from '../Story/StoryViolation.js'
 import { assertEvidencePath } from '../Evidence/EvidencePath.js'
+import { compareCensus, type TestCensus } from '../Tamper/TestCensus.js'
 import { UnknownAgentSessionError } from '../Agent/AgentViolation.js'
 
 type CheckpointRow = {
@@ -72,7 +74,25 @@ function toFinding(row: FindingRow): ReviewFinding {
   }
 }
 
-export function createCheckpointRepository(db: Database.Database): CheckpointRepository {
+export type CheckpointRepositoryInput = {
+  takeCensus: () => TestCensus
+}
+
+export function createCheckpointRepository(
+  db: Database.Database,
+  { takeCensus }: CheckpointRepositoryInput,
+): CheckpointRepository {
+  const upsertCensus = db.prepare<[number, number, number, number]>(
+    `INSERT INTO test_census (story_id, tests, skipped, tautologies) VALUES (?, ?, ?, ?)
+     ON CONFLICT (story_id) DO UPDATE SET
+       tests = excluded.tests,
+       skipped = excluded.skipped,
+       tautologies = excluded.tautologies,
+       taken_at = datetime('now')`,
+  )
+  const selectCensus = db.prepare<[number], { tests: number; skipped: number; tautologies: number }>(
+    'SELECT tests, skipped, tautologies FROM test_census WHERE story_id = ?',
+  )
   const selectStory = db.prepare<[number], { id: number; reference: string; kind: string }>(
     'SELECT id, reference, kind FROM story WHERE id = ?',
   )
@@ -183,6 +203,22 @@ export function createCheckpointRepository(db: Database.Database): CheckpointRep
         }
         if ((selectCriteriaCount.get(story.id)?.total ?? 0) === 0) {
           throw new CriteriaRequiredError(story.reference)
+        }
+      }
+
+      if (draft.name === 'tests_written') {
+        const taken = takeCensus()
+        upsertCensus.run(draft.storyId, taken.tests, taken.skipped, taken.tautologies)
+      }
+
+      if (draft.name === 'reviewed') {
+        const written = selectCensus.get(draft.storyId)
+        if (written === undefined) {
+          throw new TestsTamperedError(["aucun recensement n'a ete pris a l'ecriture des tests"])
+        }
+        const drifted = compareCensus(written, takeCensus())
+        if (drifted.length > 0) {
+          throw new TestsTamperedError(drifted)
         }
       }
 

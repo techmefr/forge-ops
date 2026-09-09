@@ -23,6 +23,12 @@ export class CheckpointOutOfOrderError extends CheckpointViolationError {
   }
 }
 
+export class TestsTamperedError extends CheckpointViolationError {
+  constructor(findings: readonly string[]) {
+    super(`La suite de tests a bouge depuis son ecriture : ${findings.join(' ; ')}`, 'TestsTamperedError')
+  }
+}
+
 export class UnresolvedFindingError extends CheckpointViolationError {
   constructor(count: number) {
     super(`${count} finding(s) fort(s) non resolu(s) empechent de clore la review`, 'UnresolvedFindingError')

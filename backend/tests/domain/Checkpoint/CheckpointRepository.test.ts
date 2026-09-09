@@ -75,7 +75,7 @@ function proveUpTo(last: string): void {
 beforeEach(() => {
   db = openDatabase(':memory:')
   stories = createStoryRepository(db)
-  checkpoints = createCheckpointRepository(db)
+  checkpoints = createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) })
   const project = stories.createProject({
     slug: 'forge',
     name: 'Forge',

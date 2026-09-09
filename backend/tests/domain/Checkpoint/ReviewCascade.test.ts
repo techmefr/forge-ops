@@ -29,7 +29,7 @@ describe('review cascade', () => {
     home = mkdtempSync(join(tmpdir(), 'forge-cascade-'))
     db = openDatabase(join(home, 'forge.db'))
     const stories = createStoryRepository(db)
-    checkpoints = createCheckpointRepository(db)
+    checkpoints = createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) })
     sessions = createAgentSessionRepository(db)
     const project = stories.createProject({
       slug: 'ps',
