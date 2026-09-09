@@ -197,6 +197,14 @@ CREATE TABLE IF NOT EXISTS review_finding (
 
 CREATE INDEX IF NOT EXISTS idx_review_finding_story ON review_finding(story_id);
 
+CREATE TABLE IF NOT EXISTS test_census (
+  story_id INTEGER PRIMARY KEY REFERENCES story(id),
+  tests INTEGER NOT NULL,
+  skipped INTEGER NOT NULL,
+  tautologies INTEGER NOT NULL,
+  taken_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS board_setting (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL,

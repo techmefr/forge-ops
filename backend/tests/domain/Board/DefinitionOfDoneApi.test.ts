@@ -53,7 +53,7 @@ beforeEach(() => {
     budget: createBudgetRepository(db),
     repository: stories,
     agentSessions: createAgentSessionRepository(db),
-    checkpoints: createCheckpointRepository(db),
+    checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
     criteria: createCriterionRepository(db),
     events: createEventBus(),
     dispatcher: stubDispatch,

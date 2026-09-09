@@ -20,7 +20,7 @@ function build(rate = DEFAULT_DISPATCH_RATE): Dispatcher {
   return createDispatcher({
     database: db,
     stories,
-    checkpoints: createCheckpointRepository(db),
+    checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
     sessions: createAgentSessionRepository(db),
     budget: createBudgetRepository(db),
     runner: {

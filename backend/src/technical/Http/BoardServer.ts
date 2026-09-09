@@ -11,6 +11,7 @@ import { createCriterionRepository } from '../../domain/Criterion/CriterionRepos
 import { createDispatcher } from '../../domain/Dispatch/Dispatcher.js'
 import { createBudgetRepository } from '../../domain/Budget/BudgetRepository.js'
 import { DEFAULT_DISPATCH_RATE } from '../../domain/Dispatch/DispatchRate.js'
+import { censusOfTree } from '../Tamper/TestTreeCensus.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { createEventBus } from './EventBus.js'
 import { createBoardPage } from './BoardPage.js'
@@ -31,6 +32,7 @@ export type BoardServerInput = {
   host: string
   tokenPath: string
   distDir: string
+  testsDir: string
 }
 
 export type BoardServer = {
@@ -47,6 +49,7 @@ export function defaultBoardServerInput(): BoardServerInput {
     host: process.env.FORGE_HOST ?? LOOPBACK,
     tokenPath: process.env.FORGE_TOKEN_PATH ?? '.forge-token',
     distDir: process.env.FORGE_DIST_DIR ?? join('dist', 'web'),
+    testsDir: process.env.FORGE_TESTS_DIR ?? 'backend/tests',
   }
 }
 
@@ -57,6 +60,7 @@ export function startBoardServer({
   host,
   tokenPath,
   distDir,
+  testsDir,
 }: BoardServerInput): Promise<BoardServer> {
   const db = openDatabase(dbPath)
   const token = resolveBoardToken(tokenPath)
@@ -66,7 +70,7 @@ export function startBoardServer({
   const dispatcher = createDispatcher({
     database: db,
     stories,
-    checkpoints: createCheckpointRepository(db),
+    checkpoints: createCheckpointRepository(db, { takeCensus: () => censusOfTree(testsDir) }),
     sessions,
     budget: createBudgetRepository(db),
     runner: createSdkSessionRunner({
@@ -85,7 +89,7 @@ export function startBoardServer({
     budget: createBudgetRepository(db),
     repository: stories,
     agentSessions: sessions,
-    checkpoints: createCheckpointRepository(db),
+    checkpoints: createCheckpointRepository(db, { takeCensus: () => censusOfTree(testsDir) }),
     criteria: createCriterionRepository(db),
     events,
     dispatcher,
