@@ -23,6 +23,15 @@ export class CheckpointOutOfOrderError extends CheckpointViolationError {
   }
 }
 
+export class SelfReviewRefusedError extends CheckpointViolationError {
+  constructor(claudeSessionId: string, phase: string) {
+    super(
+      `La session ${claudeSessionId} a produit la phase ${phase} : elle ne relit pas son propre travail`,
+      'SelfReviewRefusedError',
+    )
+  }
+}
+
 export class TestsTamperedError extends CheckpointViolationError {
   constructor(findings: readonly string[]) {
     super(`La suite de tests a bouge depuis son ecriture : ${findings.join(' ; ')}`, 'TestsTamperedError')
