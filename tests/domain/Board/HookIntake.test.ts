@@ -11,6 +11,7 @@ import {
 } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
 import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js'
+import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 
 const CLAUDE_SESSION_ID = '9fe24018-1111-2222-3333-444455556666'
@@ -66,6 +67,7 @@ beforeEach(() => {
     repository: stories,
     agentSessions,
     checkpoints: createCheckpointRepository(db),
+    criteria: createCriterionRepository(db),
     claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
   })
 })
@@ -157,10 +159,11 @@ describe('GET /api/files/conflicts', () => {
     sessions.recordFileTouch({ claudeSessionId: 'aaaa', path: 'src/domain/Story/Story.ts' })
     sessions.recordFileTouch({ claudeSessionId: 'bbbb', path: 'src/domain/Story/Story.ts' })
     const conflictApi = createBoardApi({
-    zones: createZoneRepository(db),
+      zones: createZoneRepository(db),
       repository: stories,
       agentSessions: sessions,
       checkpoints: createCheckpointRepository(db),
+      criteria: createCriterionRepository(db),
       claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
     })
 

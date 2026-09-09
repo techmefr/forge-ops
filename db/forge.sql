@@ -67,7 +67,10 @@ CREATE TABLE IF NOT EXISTS acceptance_criterion (
   statement TEXT NOT NULL,
   persona TEXT,
   expects_refusal INTEGER NOT NULL DEFAULT 0 CHECK (expects_refusal IN (0, 1)),
-  UNIQUE (story_id, reference)
+  satisfied_at TEXT,
+  evidence_path TEXT,
+  UNIQUE (story_id, reference),
+  CHECK (satisfied_at IS NULL OR evidence_path IS NOT NULL)
 );
 
 CREATE TABLE IF NOT EXISTS checkpoint (

@@ -54,7 +54,8 @@ Huit étapes, six checkpoints. `/PLAN` et `/CODE-SIMPLIFY` n'ont pas de checkpoi
 
 **Règles non contournables :**
 
-- `spec_done` est refusé si la jumelle de test n'existe pas.
+- `spec_done` est refusé si la jumelle de test n'existe pas, et refusé si la story ne déclare **aucun critère d'acceptation** : sans critère il n'y a rien à valider, donc rien à bloquer au merge.
+- `reviewed` est refusé tant qu'un critère d'acceptation n'est pas satisfait, et un critère ne se satisfait que **contre une preuve** — le test qui le couvre. Pas de case à cocher.
 - `tests_written` doit constater un échec **de comportement**, pas une erreur d'import ou de setup. Un test qui passe dès sa première écriture doit être validé par mutation.
 - `reviewed` est refusé tant qu'un finding `strong` n'est pas résolu (409 `UnresolvedFindingError`). Baisser la sévérité pour passer n'est pas une correction.
 - `/SHIP` relit la definition of done complète : une seule étape à `proven: false` et il n'y a pas de livraison.
@@ -72,7 +73,9 @@ Le board expose une API HTTP (Hono). `POST /api/hooks` est aussi la cible des ho
 | `POST /api/stories/:id/twin` | Écrit sa jumelle de test |
 | `POST /api/stories/:id/backlog` | Envoie au backlog (refusé sans jumelle) |
 | `GET /api/stories/backlog` | Liste le backlog |
-| `GET /api/stories/:id/ticket` | Le ticket entier : volet fonctionnel, volet tests, DoD, cascade |
+| `GET /api/stories/:id/ticket` | Le ticket entier : volet fonctionnel, volet tests, critères, DoD, cascade |
+| `POST /api/stories/:id/criteria` | Déclare un critère d'acceptation |
+| `POST /api/criteria/:id/satisfy` | Satisfait un critère contre sa preuve |
 | `POST /api/stories/:id/checkpoints` | Prouve une étape (`name`, `evidencePath`) |
 | `GET /api/stories/:id/dod` | Definition of done : six étapes, prouvée ou non, avec sa preuve |
 | `POST /api/hooks` | Reçoit les hooks Claude Code, enregistre les fichiers touchés |
@@ -124,6 +127,7 @@ db/forge.sql                     schéma SQLite (WAL)
 src/forge.ts                     entrypoint
 src/domain/Story/                story, jumelle, dépendances, backlog
 src/domain/Checkpoint/           les six étapes et leurs preuves
+src/domain/Criterion/            critères d'acceptation, porte de merge
 src/domain/Agent/                sessions d'agents, fichiers touchés, conflits
 src/domain/Board/                l'API HTTP du board
 src/technical/Database/          connexion SQLite
@@ -152,6 +156,8 @@ L'orchestration bas niveau ne se réécrit pas : elle s'appuie sur le premier pa
 | Schéma et connexion SQLite | Fait |
 | Story, jumelle, dépendances, backlog | Fait |
 | Six checkpoints prouvés par fichier | Fait |
+| Critères d'acceptation bloquant le merge, prouvés par fichier | Fait |
+| Ticket en deux volets sur une seule route | Fait |
 | Cascade de review et findings | Fait, côté domaine |
 | Sessions d'agents et conflits de fichiers | Fait |
 | API du board et intake des hooks | Fait |

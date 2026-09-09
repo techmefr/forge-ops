@@ -8,6 +8,7 @@ import { createStoryRepository, type StoryRepository } from '../../../src/domain
 import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
 import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js'
+import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 
 let api: Hono
@@ -17,6 +18,7 @@ let claudeHome: string
 let agentSessions: ReturnType<typeof createAgentSessionRepository>
 let checkpoints: ReturnType<typeof createCheckpointRepository>
 let zones: ReturnType<typeof createZoneRepository>
+let criteria: ReturnType<typeof createCriterionRepository>
 
 async function post(path: string, body?: unknown): Promise<Response> {
   return await api.request(path, {
@@ -32,6 +34,7 @@ beforeEach(() => {
   zones = createZoneRepository(db)
   agentSessions = createAgentSessionRepository(db)
   checkpoints = createCheckpointRepository(db)
+  criteria = createCriterionRepository(db)
   const project = repository.createProject({
     slug: 'forge',
     name: 'Forge',
@@ -45,7 +48,7 @@ beforeEach(() => {
     businessIntent: 'gerer les mails du client',
   }).id
   claudeHome = mkdtempSync(join(tmpdir(), 'starfleet-claude-home-'))
-  api = createBoardApi({ repository, agentSessions, checkpoints, zones, claudeHome })
+  api = createBoardApi({ repository, agentSessions, checkpoints, criteria, zones, claudeHome })
 })
 
 describe('POST /api/stories', () => {
@@ -126,6 +129,7 @@ describe('unexpected failures', () => {
       },
       agentSessions,
       checkpoints,
+      criteria,
       claudeHome,
     })
 

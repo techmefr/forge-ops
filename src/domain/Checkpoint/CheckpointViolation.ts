@@ -46,3 +46,15 @@ export class LensAlreadyPassedError extends CheckpointViolationError {
     super(`La passe ${lens} est deja au vert`, 'LensAlreadyPassedError')
   }
 }
+
+export class CriteriaRequiredError extends CheckpointViolationError {
+  constructor(reference: string) {
+    super(`La story ${reference} n'a aucun critere d'acceptation a valider`, 'CriteriaRequiredError')
+  }
+}
+
+export class CriteriaUnmetError extends CheckpointViolationError {
+  constructor(unmet: readonly string[]) {
+    super(`Criteres d'acceptation non satisfaits : ${unmet.join(', ')}`, 'CriteriaUnmetError')
+  }
+}

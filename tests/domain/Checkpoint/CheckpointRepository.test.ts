@@ -15,12 +15,21 @@ import {
   UnresolvedFindingError,
 } from '../../../src/domain/Checkpoint/CheckpointViolation.js'
 import { TwinRequiredError } from '../../../src/domain/Story/StoryViolation.js'
+import {
+  createCriterionRepository,
+  type CriterionRepository,
+} from '../../../src/domain/Criterion/CriterionRepository.js'
+import {
+  CriteriaRequiredError,
+  CriteriaUnmetError,
+} from '../../../src/domain/Checkpoint/CheckpointViolation.js'
 
 const EVIDENCE = '.claude/evidence/FORGE-1/spec.md'
 
 let db: Database.Database
 let stories: StoryRepository
 let checkpoints: CheckpointRepository
+let criteria: CriterionRepository
 let storyId: number
 
 function prove(name: Parameters<CheckpointRepository['proveCheckpoint']>[0]['name'], evidencePath = EVIDENCE) {
@@ -43,11 +52,18 @@ function runCascade(): void {
   }
 }
 
+function satisfyCriteria(): void {
+  for (const criterion of criteria.listUnmetCriteria(storyId)) {
+    criteria.satisfyCriterion(criterion.id, '.claude/evidence/FORGE-1/tests.md')
+  }
+}
+
 function proveUpTo(last: string): void {
   const order = ['spec_done', 'arch_done', 'tests_written', 'build_done', 'verified', 'reviewed'] as const
   for (const name of order) {
     if (name === 'reviewed') {
       runCascade()
+      satisfyCriteria()
     }
     prove(name)
     if (name === last) {
@@ -70,6 +86,38 @@ beforeEach(() => {
   const epic = stories.createEpic({ projectId: project.id, title: 'CRUD Mail', businessIntent: 'gerer les mails' })
   storyId = stories.writeStory({ epicId: epic.id, title: 'visualiser les mails', body: 'en tant que...' }).id
   stories.writeTwin({ storyId, title: 'tests visualiser les mails', body: 'cas...' })
+  criteria = createCriterionRepository(db)
+  criteria.declareCriterion({ storyId, reference: 'AC-1', statement: 'la liste affiche les mails du client' })
+})
+
+describe('les criteres d acceptation ferment la porte', () => {
+  it('refuses spec_done on a story that declares no criterion', () => {
+    const bare = stories.writeStory({
+      epicId: stories.createEpic({ projectId: 1, title: 'autre', businessIntent: 'autre' }).id,
+      title: 'sans critere',
+      body: 'en tant que...',
+    })
+    stories.writeTwin({ storyId: bare.id, title: 'tests sans critere', body: 'cas...' })
+
+    expect(() =>
+      checkpoints.proveCheckpoint({ storyId: bare.id, name: 'spec_done', evidencePath: EVIDENCE }),
+    ).toThrow(CriteriaRequiredError)
+  })
+
+  it('refuses reviewed while a criterion is not satisfied', () => {
+    proveUpTo('verified')
+    runCascade()
+
+    expect(() => prove('reviewed')).toThrow(CriteriaUnmetError)
+  })
+
+  it('lets reviewed through once every criterion carries its proof', () => {
+    proveUpTo('verified')
+    runCascade()
+    satisfyCriteria()
+
+    expect(prove('reviewed')).toMatchObject({ name: 'reviewed' })
+  })
 })
 
 describe('proveCheckpoint', () => {
@@ -151,6 +199,7 @@ describe('reviewed', () => {
     const [finding] = checkpoints.listUnresolvedFindings(storyId)
     checkpoints.resolveFinding(finding?.id ?? 0)
     runCascade()
+    satisfyCriteria()
 
     expect(prove('reviewed').name).toBe('reviewed')
   })
@@ -174,6 +223,7 @@ describe('reviewed', () => {
       statement: 'nom de variable peu clair',
     })
     runCascade()
+    satisfyCriteria()
 
     expect(prove('reviewed').name).toBe('reviewed')
   })
