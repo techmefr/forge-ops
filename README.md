@@ -98,6 +98,7 @@ Le board expose une API HTTP (Hono). `POST /api/hooks` est aussi la cible des ho
 | `GET`/`DELETE /api/stories/:id/pilot` | Le parcours vivant et son historique, ou l'abandon |
 | `GET /api/pilots` | Les parcours que le board regarde en ce moment |
 | `GET /api/pilots/shots/:name` | La capture prise à un pas, servie comme preuve |
+| `GET /api/machine` | L'état machine lu chez le collecteur OpenTelemetry, ou le motif de son absence |
 | `GET /api/sessions/history` | L'historique des sessions : durée, coût, classe de sortie |
 | `GET /api/statistics` | Les totaux, les agents les plus sollicités, le temps par étape |
 | `GET /api/incidents` | Les signalements venus du dehors, filtrés par état |
@@ -247,7 +248,7 @@ L'orchestration bas niveau ne se réécrit pas : elle s'appuie sur le premier pa
 | Historique des sessions et statistiques | Fait, lues depuis la base du board |
 | Front : routeur, coque et les neuf écrans du pipeline | Fait |
 | Cycle de vie des worktrees et réservations de port | Fait, contre un vrai git, nettoyé après le merge |
-| Métriques machine fines | À consommer depuis OpenTelemetry, pas à collecter |
+| Métriques machine fines | Fait, lues chez un collecteur OpenTelemetry (`FORGE_OTEL_METRICS_URL`), jamais collectées ici |
 | Feature flags | À déléguer à OpenFeature, le board ne garde que le pourcentage |
 | Pilotage navigateur de l'étape 6 (ralenti, pause, inspection) | Fait, un vrai Chromium via `playwright-core`, capture à chaque pas |
 

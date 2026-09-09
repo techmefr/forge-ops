@@ -311,3 +311,17 @@ export type PilotSight = {
   screenshotPath: string | null
   consoleErrors: readonly string[]
 }
+
+export type MachineSnapshot = {
+  cpuPercent: number | null
+  memoryUsedMb: number | null
+  memoryFreeMb: number | null
+  diskPercent: number | null
+  loadAverage: number | null
+}
+
+export type MachineReading = {
+  available: boolean
+  reason: string | null
+  snapshot: MachineSnapshot | null
+}
