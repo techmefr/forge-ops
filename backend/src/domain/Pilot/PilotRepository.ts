@@ -10,7 +10,7 @@ import {
   type PilotRunState,
   type PilotStep,
 } from './Pilot.js'
-import { checkScript } from './PilotScript.js'
+import { checkDestination, checkScript } from './PilotScript.js'
 import {
   PilotRunAlreadyLiveError,
   PilotRunNotFoundError,
@@ -19,12 +19,12 @@ import {
 } from './PilotViolation.js'
 
 export type PilotRepository = {
-  start: (order: PilotOrder) => PilotRun
-  advance: (storyId: number) => PilotRun
+  start: (order: PilotOrder) => Promise<PilotRun>
+  advance: (storyId: number) => Promise<PilotRun>
   pause: (storyId: number) => PilotRun
   resume: (storyId: number) => PilotRun
-  inspect: (storyId: number) => PilotObservation
-  abandon: (storyId: number) => PilotRun
+  inspect: (storyId: number) => Promise<PilotObservation>
+  abandon: (storyId: number) => Promise<PilotRun>
   findForStory: (storyId: number) => PilotRun | null
   history: (storyId: number) => readonly PilotRun[]
   listLive: () => readonly PilotRun[]
@@ -166,18 +166,19 @@ export function createPilotRepository(
   }
 
   return {
-    start: (order) => {
+    start: async (order) => {
       const story = stories.findStory(order.storyId)
+      const url = checkDestination(order.url)
       const script = checkScript(order.script)
       if (selectLiveForStory.get(order.storyId) !== undefined) {
         throw new PilotRunAlreadyLiveError(story.reference)
       }
-      const written = insertRun.run(order.storyId, order.url, order.pace, JSON.stringify(script))
-      driver.open(order.url, order.pace)
+      const written = insertRun.run(order.storyId, url, order.pace, JSON.stringify(script))
+      await driver.open(url, order.pace)
       return reload(Number(written.lastInsertRowid))
     },
 
-    advance: (storyId) => {
+    advance: async (storyId) => {
       const run = walking(storyId)
       const step = run.script[run.position]
       if (step === undefined) {
@@ -186,7 +187,7 @@ export function createPilotRepository(
       let outcome: PilotAct['outcome'] = 'passed'
       let seen: PilotObservation
       try {
-        seen = driver.perform(step)
+        seen = await driver.perform(step)
         if (seen.consoleErrors.length > 0) {
           outcome = 'failed'
         }
@@ -212,10 +213,10 @@ export function createPilotRepository(
       moveCursor.run(position, run.id)
       if (outcome === 'failed') {
         endRun.run('failed', run.id)
-        driver.close()
+        await driver.close()
       } else if (position === run.script.length) {
         endRun.run('passed', run.id)
-        driver.close()
+        await driver.close()
       }
       return reload(run.id)
     },
@@ -232,15 +233,15 @@ export function createPilotRepository(
       return reload(run.id)
     },
 
-    inspect: (storyId) => {
+    inspect: async (storyId) => {
       liveRun(storyId)
       return driver.inspect()
     },
 
-    abandon: (storyId) => {
+    abandon: async (storyId) => {
       const run = liveRun(storyId)
       endRun.run('abandoned', run.id)
-      driver.close()
+      await driver.close()
       return reload(run.id)
     },
 

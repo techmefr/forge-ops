@@ -15,10 +15,10 @@ export type PilotObservation = {
 }
 
 export type PilotDriver = {
-  open: (url: string, pace: PilotPace) => void
-  perform: (step: PilotStep) => PilotObservation
-  inspect: () => PilotObservation
-  close: () => void
+  open: (url: string, pace: PilotPace) => Promise<void>
+  perform: (step: PilotStep) => Promise<PilotObservation>
+  inspect: () => Promise<PilotObservation>
+  close: () => Promise<void>
 }
 
 export type PilotOutcome = 'passed' | 'failed'

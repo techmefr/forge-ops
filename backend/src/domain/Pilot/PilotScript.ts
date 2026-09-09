@@ -41,6 +41,17 @@ function checkStep(step: PilotStep): PilotStep {
   }
 }
 
+export function checkDestination(url: string): string {
+  const target = url.trim()
+  if (target === "") {
+    throw new StepNeedsTargetError("goto")
+  }
+  if (!isWebAddress(target)) {
+    throw new UnsafeDestinationError(target)
+  }
+  return target
+}
+
 export function checkScript(script: readonly PilotStep[]): readonly PilotStep[] {
   if (script.length === 0) {
     throw new EmptyScriptError()
