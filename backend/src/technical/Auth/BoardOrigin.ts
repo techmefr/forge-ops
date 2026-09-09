@@ -1,0 +1,13 @@
+const LOOPBACK_NAMES: readonly string[] = ['127.0.0.1', 'localhost', '::1', '[::1]']
+
+export const DEV_SERVER_PORT = 8832
+
+export function boardOrigins(host: string, port: number): readonly string[] {
+  const hosts = LOOPBACK_NAMES.includes(host) ? ['127.0.0.1', 'localhost'] : [host]
+  const origins = [
+    ...hosts.map((name) => `http://${name}:${port}`),
+    `http://127.0.0.1:${DEV_SERVER_PORT}`,
+    `http://localhost:${DEV_SERVER_PORT}`,
+  ]
+  return [...new Set(origins)]
+}

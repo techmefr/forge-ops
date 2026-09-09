@@ -25,6 +25,7 @@ import { createSdkSessionRunner } from '../ClaudeCode/SdkSessionRunner.js'
 import { recordUsageFromEvent } from '../ClaudeCode/UsageRecorder.js'
 import { createTokenGuard } from '../Auth/TokenGuard.js'
 import { deriveHookToken, resolveBoardToken } from '../Auth/BoardToken.js'
+import { boardOrigins } from '../Auth/BoardOrigin.js'
 
 const DEFAULT_SESSION_CAP = 3
 
@@ -118,7 +119,7 @@ export function startBoardServer({
     '/api/*',
     createTokenGuard({
       token,
-      allowedOrigins: [`http://${host}:${port}`, 'http://localhost:8832', 'http://127.0.0.1:8832'],
+      allowedOrigins: boardOrigins(host, port),
       hookToken: deriveHookToken(token),
       requireIdentity: mode === 'hub',
       readIdentity: (sessionToken) => identities.readSession(sessionToken),
