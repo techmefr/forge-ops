@@ -379,6 +379,28 @@ describe('a run whose browser did not survive the board', () => {
   })
 })
 
+describe('closeBrowsers', () => {
+  it('closes nothing when nothing is open', async () => {
+    await expect(pilots.closeBrowsers()).resolves.toBe(0)
+  })
+
+  it('closes every browser still open, so none survives the board', async () => {
+    await start()
+    await pilots.start({ storyId: second, url: 'http://autre.test/', pace: 'live', script: SCRIPT })
+
+    await expect(pilots.closeBrowsers()).resolves.toBe(2)
+    expect(closed).toHaveLength(2)
+  })
+
+  it('does not close the same browser twice', async () => {
+    await start()
+    await pilots.closeBrowsers()
+    await pilots.closeBrowsers()
+
+    expect(closed).toHaveLength(1)
+  })
+})
+
 describe('abandonOrphans', () => {
   it('finds nothing to abandon on a fresh board', () => {
     expect(pilots.abandonOrphans()).toBe(0)

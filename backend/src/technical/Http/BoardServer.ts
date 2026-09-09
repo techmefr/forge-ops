@@ -190,12 +190,15 @@ export function startBoardServer({
         server,
         port: address.port,
         close: () =>
-          new Promise((closed) => {
-            server.close(() => {
-              db.close()
-              closed()
-            })
-          }),
+          pilots.closeBrowsers().then(
+            () =>
+              new Promise<void>((closed) => {
+                server.close(() => {
+                  db.close()
+                  closed()
+                })
+              }),
+          ),
       })
     })
   })

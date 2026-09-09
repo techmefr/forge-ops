@@ -30,6 +30,7 @@ export type PilotRepository = {
   history: (storyId: number) => readonly PilotRun[]
   listLive: () => readonly PilotRun[]
   abandonOrphans: () => number
+  closeBrowsers: () => Promise<number>
 }
 
 export type PilotRepositoryInput = {
@@ -273,6 +274,13 @@ export function createPilotRepository(
     history: (storyId) => selectForStory.all(storyId).map(toRun),
 
     listLive: () => selectLive.all().map(toRun),
+
+    closeBrowsers: async () => {
+      const open = [...drivers.values()]
+      drivers.clear()
+      await Promise.all(open.map((driver) => driver.close()))
+      return open.length
+    },
 
     abandonOrphans: () =>
       selectLive
