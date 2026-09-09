@@ -15,6 +15,8 @@ import { censusOfTree } from '../Tamper/TestTreeCensus.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { createIdentityRepository } from '../../domain/Identity/IdentityRepository.js'
 import { createIdentityApi } from '../../domain/Identity/IdentityApi.js'
+import { createStatisticRepository } from '../../domain/Statistic/StatisticRepository.js'
+import { createStatisticApi } from '../../domain/Statistic/StatisticApi.js'
 import { createIncidentRepository } from '../../domain/Incident/IncidentRepository.js'
 import { createIncidentApi } from '../../domain/Incident/IncidentApi.js'
 import { createEventBus } from './EventBus.js'
@@ -127,6 +129,7 @@ export function startBoardServer({
     createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
   )
   guarded.get('/api/board/mode', (context) => context.json({ mode }))
+  guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
   guarded.route('/', createIncidentApi({ incidents: createIncidentRepository(db, { stories }), events }))
   guarded.route('/', api)
   guarded.route('/', createBoardPage({ token, distDir }))
