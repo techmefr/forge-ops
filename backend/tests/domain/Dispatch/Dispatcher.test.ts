@@ -1,3 +1,4 @@
+import { createForemergeRepository } from '../../../src/domain/Foremerge/ForemergeRepository.js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type Database from 'better-sqlite3'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
@@ -45,6 +46,7 @@ function buildDispatcher(concurrencyCap = 3): Dispatcher {
     criteria: createCriterionRepository(db),
     sessions,
     budget: createBudgetRepository(db),
+    foremerge: createForemergeRepository(db, { stories }),
     runner: fakeRunner(),
     concurrencyCap,
     claudeCodeVersion: '2.1.224',
@@ -159,6 +161,7 @@ describe('dispatch', () => {
       criteria: createCriterionRepository(db),
       sessions,
       budget: createBudgetRepository(db),
+    foremerge: createForemergeRepository(db, { stories }),
       runner: {
         launch: () => Promise.reject(new Error('daemon absent')),
       },

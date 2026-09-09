@@ -145,6 +145,20 @@ export type PathConflict = {
   storyIds: readonly number[]
 }
 
+export type ScopeReservation = {
+  id: number
+  storyId: number
+  storyReference: string
+  pathPrefix: string
+  symbols: readonly string[]
+  reservedAt: string
+}
+
+export type ScopeCollision = {
+  storyIds: readonly number[]
+  reason: string
+}
+
 export type CostCapConduct = 'stop' | 'downgrade' | 'reroute'
 
 export type BudgetPolicy = {

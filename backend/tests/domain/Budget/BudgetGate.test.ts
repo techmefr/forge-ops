@@ -1,3 +1,4 @@
+import { createForemergeRepository } from '../../../src/domain/Foremerge/ForemergeRepository.js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type Database from 'better-sqlite3'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
@@ -47,6 +48,7 @@ beforeEach(() => {
     criteria: createCriterionRepository(db),
     sessions,
     budget,
+    foremerge: createForemergeRepository(db, { stories }),
     runner: {
       launch: (order) => {
         launched.push(order)

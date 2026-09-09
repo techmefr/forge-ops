@@ -6,6 +6,9 @@ import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
 import { scoreCompleteness } from '../Story/Completeness.js'
 import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import { BudgetExhaustedError } from '../Budget/BudgetViolation.js'
+import type { ForemergeRepository } from '../Foremerge/ForemergeRepository.js'
+import { ScopeTakenError } from '../Foremerge/ForemergeViolation.js'
+import { collisionsBetween } from '../Foremerge/Scope.js'
 import type { Story } from '../Story/Story.js'
 import { contractOfPhase, type Dispatched, type DispatchOrder, type SessionRunner } from './Dispatch.js'
 import { createRateBucket, DEFAULT_DISPATCH_RATE, type Clock, type DispatchRate } from './DispatchRate.js'
@@ -28,6 +31,7 @@ export type DispatcherInput = {
   sessions: AgentSessionRepository
   runner: SessionRunner
   budget: BudgetRepository
+  foremerge: ForemergeRepository
   concurrencyCap: number
   claudeCodeVersion: string
   rate?: DispatchRate
@@ -57,6 +61,7 @@ export function createDispatcher({
   sessions,
   runner,
   budget,
+  foremerge,
   concurrencyCap,
   claudeCodeVersion,
   rate = DEFAULT_DISPATCH_RATE,
@@ -116,6 +121,19 @@ export function createDispatcher({
 
       if ((countRunningOnStory.get(order.storyId, ...RUNNING_LIFECYCLES)?.total ?? 0) > 0) {
         throw new SessionAlreadyRunningError(story.reference, order.phase)
+      }
+
+      if (order.phase !== 'spec') {
+        const held = foremerge.listReservations()
+        const mine = held.filter((reservation) => reservation.storyId === order.storyId)
+        for (const claim of mine) {
+          for (const other of held) {
+            const collision = collisionsBetween([claim, other])[0]
+            if (collision !== undefined) {
+              throw new ScopeTakenError(claim.pathPrefix, other.storyReference, collision.reason)
+            }
+          }
+        }
       }
 
       const running = countRunning()
