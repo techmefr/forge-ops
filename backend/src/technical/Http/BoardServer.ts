@@ -21,6 +21,9 @@ import { cleanUpAfterMerge } from '../../domain/Deployment/MergeCleanup.js'
 import { createGitWorktree } from '../Git/GitWorktree.js'
 import { createForemergeRepository } from '../../domain/Foremerge/ForemergeRepository.js'
 import { createForemergeApi } from '../../domain/Foremerge/ForemergeApi.js'
+import { createPilotRepository } from '../../domain/Pilot/PilotRepository.js'
+import { createPilotApi } from '../../domain/Pilot/PilotApi.js'
+import { createPlaywrightPilot } from '../Browser/PlaywrightPilot.js'
 import { createStatisticRepository } from '../../domain/Statistic/StatisticRepository.js'
 import { createStatisticApi } from '../../domain/Statistic/StatisticApi.js'
 import { createIncidentRepository } from '../../domain/Incident/IncidentRepository.js'
@@ -48,6 +51,8 @@ export type BoardServerInput = {
   distDir: string
   testsDir: string
   worktreeRoot: string
+  shotDir: string
+  headedPilot: boolean
   mode: BoardMode
 }
 
@@ -69,6 +74,8 @@ export function defaultBoardServerInput(): BoardServerInput {
     distDir: process.env.FORGE_DIST_DIR ?? join('dist', 'web'),
     testsDir: process.env.FORGE_TESTS_DIR ?? 'backend/tests',
     worktreeRoot: process.env.FORGE_WORKTREE_ROOT ?? join('..', 'forge-worktrees'),
+    shotDir: process.env.FORGE_SHOT_DIR ?? join('..', 'forge-shots'),
+    headedPilot: process.env.FORGE_PILOT_HEADED === 'true',
     mode: process.env.FORGE_MODE === 'hub' ? 'hub' : 'local',
   }
 }
@@ -82,6 +89,8 @@ export function startBoardServer({
   distDir,
   testsDir,
   worktreeRoot,
+  shotDir,
+  headedPilot,
   mode,
 }: BoardServerInput): Promise<BoardServer> {
   const db = openDatabase(dbPath)
@@ -157,6 +166,16 @@ export function startBoardServer({
     createForemergeApi({ foremerge, events }),
   )
   guarded.route('/', createWorktreeApi({ worktrees, events }))
+  guarded.route(
+    '/',
+    createPilotApi({
+      pilots: createPilotRepository(db, {
+        stories,
+        driver: createPlaywrightPilot({ shotDir, headless: !headedPilot }),
+      }),
+      events,
+    }),
+  )
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
   guarded.route('/', createIncidentApi({ incidents: createIncidentRepository(db, { stories }), events }))
   guarded.route('/', api)

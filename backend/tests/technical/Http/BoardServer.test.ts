@@ -30,6 +30,8 @@ async function boot(): Promise<{ board: BoardServer; token: string }> {
     claudeHome,
     host: '127.0.0.1',
     worktreeRoot: join(claudeHome, 'worktrees'),
+    shotDir: join(claudeHome, 'shots'),
+    headedPilot: false,
     tokenPath,
     testsDir: join(claudeHome, 'tests'),
     mode: 'local',
