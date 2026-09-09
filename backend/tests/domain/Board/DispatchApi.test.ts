@@ -1,3 +1,4 @@
+import { createForemergeRepository } from '../../../src/domain/Foremerge/ForemergeRepository.js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -68,6 +69,7 @@ beforeEach(() => {
       criteria: createCriterionRepository(db),
       sessions: createAgentSessionRepository(db),
       budget: createBudgetRepository(db),
+    foremerge: createForemergeRepository(db, { stories }),
       runner: { launch: async () => ({ claudeSessionId: 'fake-session-1' }) },
       concurrencyCap: 2,
       claudeCodeVersion: '2.1.224',

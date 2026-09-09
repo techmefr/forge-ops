@@ -271,3 +271,15 @@ CREATE TABLE IF NOT EXISTS board_setting (
   value TEXT NOT NULL,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS scope_reservation (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  path_prefix TEXT NOT NULL,
+  symbols TEXT NOT NULL DEFAULT '',
+  reserved_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  released_at TEXT,
+  UNIQUE (story_id, path_prefix)
+);
+
+CREATE INDEX IF NOT EXISTS idx_scope_reservation_live ON scope_reservation(released_at);

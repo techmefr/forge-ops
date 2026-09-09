@@ -15,6 +15,8 @@ import { censusOfTree } from '../Tamper/TestTreeCensus.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { createIdentityRepository } from '../../domain/Identity/IdentityRepository.js'
 import { createIdentityApi } from '../../domain/Identity/IdentityApi.js'
+import { createForemergeRepository } from '../../domain/Foremerge/ForemergeRepository.js'
+import { createForemergeApi } from '../../domain/Foremerge/ForemergeApi.js'
 import { createStatisticRepository } from '../../domain/Statistic/StatisticRepository.js'
 import { createStatisticApi } from '../../domain/Statistic/StatisticApi.js'
 import { createIncidentRepository } from '../../domain/Incident/IncidentRepository.js'
@@ -87,6 +89,7 @@ export function startBoardServer({
     criteria: createCriterionRepository(db),
     sessions,
     budget: createBudgetRepository(db),
+    foremerge: createForemergeRepository(db, { stories }),
     runner: createSdkSessionRunner({
       cwd: process.cwd(),
       onEvent: (event) => {
@@ -130,6 +133,10 @@ export function startBoardServer({
     createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
   )
   guarded.get('/api/board/mode', (context) => context.json({ mode }))
+  guarded.route(
+    '/',
+    createForemergeApi({ foremerge: createForemergeRepository(db, { stories }), events }),
+  )
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
   guarded.route('/', createIncidentApi({ incidents: createIncidentRepository(db, { stories }), events }))
   guarded.route('/', api)

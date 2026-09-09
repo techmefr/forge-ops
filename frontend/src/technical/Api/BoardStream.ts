@@ -30,6 +30,8 @@ const WATCHED_EVENTS = [
   'session.user',
   'session.result',
   'session.failed',
+  'scope.reserved',
+  'scope.released',
 ] as const
 
 export function parseFrame(name: string, data: string): StreamedEvent | null {
