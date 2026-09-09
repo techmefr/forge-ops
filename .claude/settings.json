@@ -1,12 +1,13 @@
 {
   "hooks": {
-    "PreToolUse": [
+    "PostToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Edit|Write|NotebookEdit",
         "hooks": [
           {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/deny-hook.mjs\""
+            "type": "http",
+            "url": "http://localhost:8830/api/hooks",
+            "timeout": 2
           }
         ]
       }
