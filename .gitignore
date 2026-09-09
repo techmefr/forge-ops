@@ -9,3 +9,4 @@ dist/
 .claude/evidence/
 CLAUDE.md
 test-results.json
+dist/web/

@@ -1,0 +1,59 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Archivo', system-ui, sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --color-deep: var(--forge-deep);
+  --color-panel: var(--forge-panel);
+  --color-card: var(--forge-card);
+  --color-elev: var(--forge-elev);
+  --color-line: var(--forge-line);
+  --color-ink: var(--forge-ink);
+  --color-txt-hi: var(--forge-txthi);
+  --color-txt-mid: var(--forge-txtmid);
+  --color-txt-low: var(--forge-txtlow);
+  --color-acc: var(--forge-acc);
+  --color-acc-soft: var(--forge-accsoft);
+  --color-acc-deep: var(--forge-accdeep);
+  --color-info: var(--forge-info);
+  --color-violet: var(--forge-violet);
+  --color-violet-soft: var(--forge-violetsoft);
+  --color-green: var(--forge-green);
+  --color-green-soft: var(--forge-greensoft);
+  --color-red: var(--forge-red);
+  --color-red-soft: var(--forge-redsoft);
+  --color-orange: var(--forge-orange);
+  --color-orange-alt: var(--forge-orangealt);
+  --color-warn: var(--forge-warn);
+  --color-warn-soft: var(--forge-warnsoft);
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--forge-deep);
+  color: var(--forge-txthi);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.display-italic {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-style: italic;
+  font-variation-settings: 'wdth' 112;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+:focus-visible {
+  outline: 2px solid var(--forge-acc);
+  outline-offset: 2px;
+}
