@@ -29,6 +29,7 @@ export type PilotRepository = {
   findForStory: (storyId: number) => PilotRun | null
   history: (storyId: number) => readonly PilotRun[]
   listLive: () => readonly PilotRun[]
+  abandonOrphans: () => number
 }
 
 export type PilotRepositoryInput = {
@@ -272,6 +273,12 @@ export function createPilotRepository(
     history: (storyId) => selectForStory.all(storyId).map(toRun),
 
     listLive: () => selectLive.all().map(toRun),
+
+    abandonOrphans: () =>
+      selectLive
+        .all()
+        .filter((row) => !drivers.has(row.id))
+        .reduce((count, row) => count + endRun.run('abandoned', row.id).changes, 0),
   }
 }
 

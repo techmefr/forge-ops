@@ -379,6 +379,35 @@ describe('a run whose browser did not survive the board', () => {
   })
 })
 
+describe('abandonOrphans', () => {
+  it('finds nothing to abandon on a fresh board', () => {
+    expect(pilots.abandonOrphans()).toBe(0)
+  })
+
+  it('leaves the runs it still holds a browser for alone', async () => {
+    await start()
+
+    expect(pilots.abandonOrphans()).toBe(0)
+  })
+
+  it('abandons a run whose browser died with the previous board', async () => {
+    await start()
+    const reborn = createPilotRepository(db, { stories, openDriver: fakeDriver })
+
+    expect(reborn.abandonOrphans()).toBe(1)
+  })
+
+  it('frees the story, so a new parcours can start', async () => {
+    await start()
+    const reborn = createPilotRepository(db, { stories, openDriver: fakeDriver })
+    reborn.abandonOrphans()
+
+    await expect(
+      reborn.start({ storyId, url: 'http://localhost:5049/mails', pace: 'slow', script: SCRIPT }),
+    ).resolves.toMatchObject({ state: 'running' })
+  })
+})
+
 describe('findForStory', () => {
   it('rends nothing before any run', async () => {
     expect(pilots.findForStory(storyId)).toBeNull()
