@@ -157,13 +157,16 @@ L'orchestration bas niveau ne se réécrit pas : elle s'appuie sur le premier pa
 | Garde-fou deny (fail closed) | Fait, hook branché |
 | Port et sous-domaine déterministes | Fait |
 | Doctrine `/SPEC … /SHIP` alignée sur l'API | Fait |
+| États kanban, points, rollout, conflit de merge | Fait |
+| Cascade de review par lentille, ordonnée et bloquante | Fait |
+| Zones de fichiers avec résumé et rattachement des chemins | Fait |
 | Jetons de design lisibles (6 thèmes, clair et sombre) | Fait |
 | Dispatch d'une session par story (Agent SDK) | À faire |
 | SSE vers le board | À faire |
-| Réservation de portée refusée à l'écriture (`path_claim`) | À faire |
+| Réservation de portée refusée à l'écriture (`path_claim`) | À faire — candidat : monter `foremerge` plutôt que réécrire |
 | Cycle de vie des worktrees et réservations de port | À faire — s'appuie sur le daemon, pas de plomberie propre |
 | Ressources et statistiques | À consommer depuis OpenTelemetry, pas à collecter |
 | Feature flags | À déléguer à OpenFeature, jamais écrit ici |
 | Front (board, backlog, kanban, vue fichiers) | En cours — maquette dans [design/mockup](design/mockup) |
 
-Le relevé de l'outillage existant étape par étape, et ce qu'il faut arrêter de construire, sont dans [docs/Tooling.md](docs/Tooling.md).
+Le relevé de l'outillage existant étape par étape est dans [docs/Tooling.md](docs/Tooling.md), et le listing exhaustif du paysage — environ 120 projets, licences et mécanismes — dans [docs/Landscape.md](docs/Landscape.md).
