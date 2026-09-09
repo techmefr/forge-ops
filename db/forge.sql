@@ -1,0 +1,169 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS project (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  repository_url TEXT NOT NULL,
+  integration_branch TEXT NOT NULL,
+  colour TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS epic (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL REFERENCES project(id),
+  title TEXT NOT NULL,
+  business_intent TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS story (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  epic_id INTEGER NOT NULL REFERENCES epic(id),
+  twin_of_story_id INTEGER REFERENCES story(id),
+  reference TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('functional', 'test')),
+  state TEXT NOT NULL DEFAULT 'drafting' CHECK (state IN (
+    'drafting',
+    'backlog',
+    'architecture',
+    'blocked',
+    'building',
+    'gating',
+    'reviewing',
+    'shipping',
+    'done',
+    'escalated'
+  )),
+  escalation_reason TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CHECK (twin_of_story_id IS NULL OR kind = 'test'),
+  CHECK (escalation_reason IS NULL OR state = 'escalated')
+);
+
+CREATE INDEX IF NOT EXISTS idx_story_state ON story(state);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_story_twin ON story(twin_of_story_id)
+  WHERE twin_of_story_id IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS story_dependency (
+  blocked_story_id INTEGER NOT NULL REFERENCES story(id),
+  blocking_story_id INTEGER NOT NULL REFERENCES story(id),
+  PRIMARY KEY (blocked_story_id, blocking_story_id),
+  CHECK (blocked_story_id <> blocking_story_id)
+);
+
+CREATE TABLE IF NOT EXISTS acceptance_criterion (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  reference TEXT NOT NULL,
+  statement TEXT NOT NULL,
+  persona TEXT,
+  expects_refusal INTEGER NOT NULL DEFAULT 0 CHECK (expects_refusal IN (0, 1)),
+  UNIQUE (story_id, reference)
+);
+
+CREATE TABLE IF NOT EXISTS checkpoint (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  name TEXT NOT NULL CHECK (name IN (
+    'spec_done',
+    'arch_done',
+    'tests_written',
+    'build_done',
+    'verified',
+    'reviewed'
+  )),
+  proven_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  evidence_path TEXT NOT NULL,
+  UNIQUE (story_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS worktree (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL UNIQUE REFERENCES story(id),
+  path TEXT NOT NULL UNIQUE,
+  branch TEXT NOT NULL UNIQUE,
+  base_ref TEXT NOT NULL,
+  base_sha TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  removed_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS port_reservation (
+  port INTEGER PRIMARY KEY,
+  worktree_id INTEGER NOT NULL UNIQUE REFERENCES worktree(id),
+  subdomain TEXT NOT NULL UNIQUE,
+  reserved_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  released_at TEXT,
+  CHECK (port BETWEEN 4000 AND 5999)
+);
+
+CREATE TABLE IF NOT EXISTS path_claim (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  path_prefix TEXT NOT NULL,
+  claimed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  released_at TEXT
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_path_claim_live ON path_claim(path_prefix)
+  WHERE released_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS agent_session (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  claude_session_id TEXT NOT NULL UNIQUE,
+  phase TEXT NOT NULL CHECK (phase IN (
+    'spec',
+    'architecture',
+    'tdd',
+    'code',
+    'gate',
+    'review',
+    'ship'
+  )),
+  agent_name TEXT NOT NULL,
+  lifecycle TEXT NOT NULL DEFAULT 'starting' CHECK (lifecycle IN (
+    'starting',
+    'working',
+    'awaiting_human',
+    'finished',
+    'failed',
+    'interrupted'
+  )),
+  claude_code_version TEXT NOT NULL,
+  cost_usd REAL,
+  started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ended_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_agent_session_story ON agent_session(story_id);
+CREATE INDEX IF NOT EXISTS idx_agent_session_lifecycle ON agent_session(lifecycle);
+
+CREATE TABLE IF NOT EXISTS file_touch (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  agent_session_id INTEGER NOT NULL REFERENCES agent_session(id),
+  path TEXT NOT NULL,
+  touched_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_file_touch_path ON file_touch(path);
+
+CREATE TABLE IF NOT EXISTS review_finding (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  agent_session_id INTEGER NOT NULL REFERENCES agent_session(id),
+  lens TEXT NOT NULL CHECK (lens IN ('quality', 'security', 'accessibility')),
+  severity TEXT NOT NULL CHECK (severity IN ('strong', 'weak')),
+  path TEXT NOT NULL,
+  line INTEGER,
+  statement TEXT NOT NULL,
+  resolved_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_review_finding_story ON review_finding(story_id);
