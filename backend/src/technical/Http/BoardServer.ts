@@ -13,15 +13,13 @@ import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { createEventBus } from './EventBus.js'
 import { createSdkSessionRunner } from '../ClaudeCode/SdkSessionRunner.js'
 import { createTokenGuard } from '../Auth/TokenGuard.js'
-import { resolveBoardToken } from '../Auth/BoardToken.js'
+import { deriveHookToken, resolveBoardToken } from '../Auth/BoardToken.js'
 
 const DEFAULT_SESSION_CAP = 3
 
 type ServerType = ReturnType<typeof serve>
 
 const LOOPBACK = '127.0.0.1'
-const HOOK_INTAKE = '/api/hooks'
-const EVENT_STREAM = '/api/events'
 
 export type BoardServerInput = {
   port: number
@@ -88,7 +86,7 @@ export function startBoardServer({
     createTokenGuard({
       token,
       allowedOrigins: [`http://${host}:${port}`, 'http://localhost:8832', 'http://127.0.0.1:8832'],
-      queryTokenPaths: [EVENT_STREAM, HOOK_INTAKE],
+      hookToken: deriveHookToken(token),
     }),
   )
   guarded.route('/', api)

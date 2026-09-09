@@ -1,13 +1,17 @@
 import { timingSafeEqual } from 'node:crypto'
 import type { MiddlewareHandler } from 'hono'
+import { getCookie } from 'hono/cookie'
+
+export const BOARD_COOKIE = 'forge_token'
+export const HOOK_INTAKE_PATH = '/api/hooks'
 
 export type TokenGuardInput = {
   token: string
+  hookToken: string
   allowedOrigins: readonly string[]
-  queryTokenPaths: readonly string[]
 }
 
-function sameToken(offered: string, expected: string): boolean {
+function sameSecret(offered: string, expected: string): boolean {
   const left = Buffer.from(offered)
   const right = Buffer.from(expected)
   if (left.length !== right.length) {
@@ -16,7 +20,7 @@ function sameToken(offered: string, expected: string): boolean {
   return timingSafeEqual(left, right)
 }
 
-function headerToken(authorization: string | undefined, ownHeader: string | undefined): string | null {
+function headerSecret(authorization: string | undefined, ownHeader: string | undefined): string | null {
   if (ownHeader !== undefined && ownHeader !== '') {
     return ownHeader
   }
@@ -30,22 +34,26 @@ function headerToken(authorization: string | undefined, ownHeader: string | unde
   return value
 }
 
-export function createTokenGuard({
-  token,
-  allowedOrigins,
-  queryTokenPaths,
-}: TokenGuardInput): MiddlewareHandler {
+export function createTokenGuard({ token, hookToken, allowedOrigins }: TokenGuardInput): MiddlewareHandler {
   return async (context, next) => {
     const origin = context.req.header('origin')
     if (origin !== undefined && !allowedOrigins.includes(origin)) {
       return context.json({ error: 'ForbiddenOrigin' }, 403)
     }
 
-    const fromHeader = headerToken(context.req.header('authorization'), context.req.header('x-forge-token'))
-    const offered =
-      fromHeader ?? (queryTokenPaths.includes(context.req.path) ? (context.req.query('token') ?? null) : null)
+    const fromHeader = headerSecret(context.req.header('authorization'), context.req.header('x-forge-token'))
 
-    if (offered === null || !sameToken(offered, token)) {
+    if (context.req.path === HOOK_INTAKE_PATH) {
+      const offered = fromHeader ?? context.req.query('token') ?? null
+      if (offered === null || !sameSecret(offered, hookToken)) {
+        return context.json({ error: 'UnauthorizedHookIntake' }, 401)
+      }
+      await next()
+      return undefined
+    }
+
+    const offered = fromHeader ?? getCookie(context, BOARD_COOKIE) ?? null
+    if (offered === null || !sameSecret(offered, token)) {
       return context.json({ error: 'UnauthorizedBoardAccess' }, 401)
     }
 
