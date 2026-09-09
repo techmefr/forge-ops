@@ -82,7 +82,17 @@ Aucune n'est le bon défaut pour tout le monde : `stop` protège une facture à 
 
 Ce qui n'est pas au choix : la limite s'applique. Les trois conduites font quelque chose ; aucune n'est « prévenir et continuer ».
 
-## 6. Ce que ça ajoute en base
+## 6. Deux stacks, parce que la frontière est nette
+
+Le board local reste **TypeScript sur Node + Hono + `better-sqlite3`**. Ce n'est pas négociable : c'est lui qui pilote les sessions, et l'Agent SDK n'existe qu'en TypeScript et en Python.
+
+Le hub part sur **Laravel + `lomkit/laravel-rest-api`**. Il ne lance aucune session, n'a besoin d'aucune clé d'API, et n'est que du CRUD multi-utilisateurs avec authentification, permissions, assignations et webhooks — soit exactement ce que Laravel fait sans qu'on écrive quoi que ce soit. Socialite branche Entra ID sans écrire de couche OIDC, lomkit sert les projets, épiques et incidents avec leurs filtres sans endpoint sur mesure, et mentis sait relire du Laravel : le hub est dogfoodable, ce qu'un hub en TypeScript ne serait pas davantage.
+
+Le prix à payer, assumé : deux chaînes d'outillage, deux déploiements, et un contrat HTTP à garder synchrone entre les deux. Ça tient parce que la frontière — l'intention contre l'exécution — ne bougera pas.
+
+OSDD des deux côtés, `technical/` et `domain/`, `technical/` n'important jamais `domain/`.
+
+## 7. Ce que ça ajoute en base
 
 Côté local, quatre changements :
 
@@ -93,7 +103,7 @@ Côté local, quatre changements :
 
 Côté hub, un schéma neuf et beaucoup plus petit : comptes, projets, épiques, assignations, incidents, prises de portée. Pas de checkpoints, pas de sessions, pas de preuves.
 
-## 7. Tranché, et ce qui reste ouvert
+## 8. Tranché, et ce qui reste ouvert
 
 - **Le transport.** Tirer par appel HTTP à la demande, ou abonnement SSE depuis le hub. L'appel à la demande suffit au départ et évite d'exposer le poste local.
 - **L'authentification.** Identifiant et mot de passe pour démarrer, puis SSO — Microsoft Entra ID en premier. Ce qui veut dire : l'identité est une table à part dès le premier jour, jamais une colonne sur le compte, et le mot de passe est un fournisseur d'identité parmi d'autres. Un jeton par poste pour le board local, émis par le hub et révocable, indépendamment du mode de connexion de l'humain.
