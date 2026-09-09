@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
@@ -21,12 +21,16 @@ afterEach(async () => {
 async function boot(): Promise<{ board: BoardServer; token: string }> {
   claudeHome = mkdtempSync(join(tmpdir(), 'starfleet-claude-home-'))
   const tokenPath = join(claudeHome, '.forge-token')
+  const distDir = join(claudeHome, 'dist')
+  mkdirSync(distDir)
+  writeFileSync(join(distDir, 'index.html'), '<div id="board"></div>')
   const started = await startBoardServer({
     port: 0,
     dbPath: ':memory:',
     claudeHome,
     host: '127.0.0.1',
     tokenPath,
+    distDir,
   })
   return { board: started, token: readFileSync(tokenPath, 'utf-8').trim() }
 }
@@ -139,6 +143,27 @@ describe('startBoardServer', () => {
       },
       body: JSON.stringify({ phase: 'spec' }),
     })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('serves the board page and hands it the token it will need', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/`)
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('set-cookie')).toContain(`forge_token=${booted.token}`)
+    expect(response.headers.get('set-cookie')).toContain('HttpOnly')
+  })
+
+  it('keeps the api shut even though the page is open', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    await fetch(`http://127.0.0.1:${board.port}/`)
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/fleet`)
 
     expect(response.status).toBe(401)
   })
