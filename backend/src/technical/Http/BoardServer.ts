@@ -13,6 +13,8 @@ import { createBudgetRepository } from '../../domain/Budget/BudgetRepository.js'
 import { DEFAULT_DISPATCH_RATE } from '../../domain/Dispatch/DispatchRate.js'
 import { censusOfTree } from '../Tamper/TestTreeCensus.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
+import { createIdentityRepository } from '../../domain/Identity/IdentityRepository.js'
+import { createIdentityApi } from '../../domain/Identity/IdentityApi.js'
 import { createEventBus } from './EventBus.js'
 import { createBoardPage } from './BoardPage.js'
 import { createSdkSessionRunner } from '../ClaudeCode/SdkSessionRunner.js'
@@ -34,7 +36,10 @@ export type BoardServerInput = {
   tokenPath: string
   distDir: string
   testsDir: string
+  mode: BoardMode
 }
+
+export type BoardMode = 'local' | 'hub'
 
 export type BoardServer = {
   server: ServerType
@@ -51,6 +56,7 @@ export function defaultBoardServerInput(): BoardServerInput {
     tokenPath: process.env.FORGE_TOKEN_PATH ?? '.forge-token',
     distDir: process.env.FORGE_DIST_DIR ?? join('dist', 'web'),
     testsDir: process.env.FORGE_TESTS_DIR ?? 'backend/tests',
+    mode: process.env.FORGE_MODE === 'hub' ? 'hub' : 'local',
   }
 }
 
@@ -62,6 +68,7 @@ export function startBoardServer({
   tokenPath,
   distDir,
   testsDir,
+  mode,
 }: BoardServerInput): Promise<BoardServer> {
   const db = openDatabase(dbPath)
   const token = resolveBoardToken(tokenPath)
@@ -101,6 +108,7 @@ export function startBoardServer({
     claudeHome,
   })
 
+  const identities = createIdentityRepository(db)
   const guarded = new Hono()
   guarded.use(
     '/api/*',
@@ -108,8 +116,15 @@ export function startBoardServer({
       token,
       allowedOrigins: [`http://${host}:${port}`, 'http://localhost:8832', 'http://127.0.0.1:8832'],
       hookToken: deriveHookToken(token),
+      requireIdentity: mode === 'hub',
+      readIdentity: (sessionToken) => identities.readSession(sessionToken),
     }),
   )
+  guarded.route(
+    '/',
+    createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
+  )
+  guarded.get('/api/board/mode', (context) => context.json({ mode }))
   guarded.route('/', api)
   guarded.route('/', createBoardPage({ token, distDir }))
 

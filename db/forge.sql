@@ -212,6 +212,27 @@ CREATE TABLE IF NOT EXISTS review_finding (
 
 CREATE INDEX IF NOT EXISTS idx_review_finding_story ON review_finding(story_id);
 
+CREATE TABLE IF NOT EXISTS board_user (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  login TEXT NOT NULL UNIQUE,
+  display_name TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'architect' CHECK (role IN ('director', 'architect')),
+  external_subject TEXT UNIQUE,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  disabled_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS board_session (
+  token_hash TEXT PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES board_user(id),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at TEXT NOT NULL,
+  revoked_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_board_session_user ON board_session(user_id);
+
 CREATE TABLE IF NOT EXISTS test_census (
   story_id INTEGER PRIMARY KEY REFERENCES story(id),
   tests INTEGER NOT NULL,
