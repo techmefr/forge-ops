@@ -50,6 +50,34 @@ export function createSdkSessionRunner({ cwd, onEvent }: SdkSessionRunnerInput):
   }
 }
 
+export function textOf(message: unknown): string | null {
+  if (typeof message !== 'object' || message === null) {
+    return null
+  }
+  const inner = (message as Record<string, unknown>).message
+  if (typeof inner !== 'object' || inner === null) {
+    return null
+  }
+  const content = (inner as Record<string, unknown>).content
+  if (typeof content === 'string') {
+    return content.trim() === '' ? null : content
+  }
+  if (!Array.isArray(content)) {
+    return null
+  }
+  const spoken = content
+    .filter(
+      (block): block is { type: 'text'; text: string } =>
+        typeof block === 'object' &&
+        block !== null &&
+        (block as Record<string, unknown>).type === 'text' &&
+        typeof (block as Record<string, unknown>).text === 'string',
+    )
+    .map((block) => block.text.trim())
+    .filter((text) => text !== '')
+  return spoken.length === 0 ? null : spoken.join('\n\n')
+}
+
 export function usageOf(message: unknown): Record<string, number> {
   if (typeof message !== 'object' || message === null) {
     return {}
@@ -83,6 +111,7 @@ async function drain(
           phase: order.phase,
           claudeSessionId: order.claudeSessionId,
           ...usageOf(message),
+          ...(textOf(message) === null ? {} : { text: textOf(message) }),
         },
       })
     }
