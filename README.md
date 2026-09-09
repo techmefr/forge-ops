@@ -169,6 +169,12 @@ npm run forge
 | `CLAUDE_CONFIG_DIR` | `~/.claude` |
 | `FORGE_SESSION_CAP` | `3` |
 | `FORGE_HOST` | `127.0.0.1` |
+| `FORGE_TOKEN_PATH` | `.forge-token` |
+| `FORGE_MODE` | `local` (`hub` pour exiger une identité) |
+| `FORGE_WORKTREE_ROOT` | `../forge-worktrees` |
+| `FORGE_SHOT_DIR` | `../forge-shots` (captures du navigateur piloté) |
+| `FORGE_PILOT_HEADED` | `false` (`true` pour voir le Chromium à l'écran) |
+| `FORGE_OTEL_METRICS_URL` | vide — sans elle, l'écran ressources dit qu'il n'a pas de collecteur |
 
 ## 9. Structure
 
