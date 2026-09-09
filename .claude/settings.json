@@ -12,18 +12,6 @@
           }
         ]
       }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|NotebookEdit",
-        "hooks": [
-          {
-            "type": "http",
-            "url": "http://localhost:8830/api/hooks",
-            "timeout": 2
-          }
-        ]
-      }
     ]
   }
 }

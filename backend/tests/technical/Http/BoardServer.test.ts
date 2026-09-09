@@ -84,11 +84,24 @@ describe('startBoardServer', () => {
     expect(response.status).toBe(200)
   })
 
-  it('takes the hook intake without a token, so the hooks keep working', async () => {
+  it('refuses the hook intake when it carries no token', async () => {
     const booted = await boot()
     board = booted.board
 
     const response = await fetch(`http://127.0.0.1:${board.port}/api/hooks`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ session_id: 'inconnue', hook_event_name: 'PostToolUse' }),
+    })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('takes the hook intake when the token travels in the url', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/hooks?token=${booted.token}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ session_id: 'inconnue', hook_event_name: 'PostToolUse' }),

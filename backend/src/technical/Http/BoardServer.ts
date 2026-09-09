@@ -21,6 +21,7 @@ type ServerType = ReturnType<typeof serve>
 
 const LOOPBACK = '127.0.0.1'
 const HOOK_INTAKE = '/api/hooks'
+const EVENT_STREAM = '/api/events'
 
 export type BoardServerInput = {
   port: number
@@ -87,7 +88,7 @@ export function startBoardServer({
     createTokenGuard({
       token,
       allowedOrigins: [`http://${host}:${port}`, 'http://localhost:8832', 'http://127.0.0.1:8832'],
-      openPaths: [HOOK_INTAKE],
+      queryTokenPaths: [EVENT_STREAM, HOOK_INTAKE],
     }),
   )
   guarded.route('/', api)

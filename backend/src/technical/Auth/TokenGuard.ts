@@ -1,12 +1,10 @@
 import { timingSafeEqual } from 'node:crypto'
 import type { MiddlewareHandler } from 'hono'
 
-const STREAM_PATH = '/api/events'
-
 export type TokenGuardInput = {
   token: string
   allowedOrigins: readonly string[]
-  openPaths: readonly string[]
+  queryTokenPaths: readonly string[]
 }
 
 function sameToken(offered: string, expected: string): boolean {
@@ -18,14 +16,14 @@ function sameToken(offered: string, expected: string): boolean {
   return timingSafeEqual(left, right)
 }
 
-function offeredToken(header: string | undefined, ownHeader: string | undefined): string | null {
+function headerToken(authorization: string | undefined, ownHeader: string | undefined): string | null {
   if (ownHeader !== undefined && ownHeader !== '') {
     return ownHeader
   }
-  if (header === undefined) {
+  if (authorization === undefined) {
     return null
   }
-  const [scheme, value] = header.split(' ')
+  const [scheme, value] = authorization.split(' ')
   if (scheme !== 'Bearer' || value === undefined) {
     return null
   }
@@ -35,7 +33,7 @@ function offeredToken(header: string | undefined, ownHeader: string | undefined)
 export function createTokenGuard({
   token,
   allowedOrigins,
-  openPaths,
+  queryTokenPaths,
 }: TokenGuardInput): MiddlewareHandler {
   return async (context, next) => {
     const origin = context.req.header('origin')
@@ -43,16 +41,9 @@ export function createTokenGuard({
       return context.json({ error: 'ForbiddenOrigin' }, 403)
     }
 
-    if (openPaths.includes(context.req.path)) {
-      await next()
-      return undefined
-    }
-
+    const fromHeader = headerToken(context.req.header('authorization'), context.req.header('x-forge-token'))
     const offered =
-      context.req.path === STREAM_PATH
-        ? (context.req.query('token') ??
-          offeredToken(context.req.header('authorization'), context.req.header('x-forge-token')))
-        : offeredToken(context.req.header('authorization'), context.req.header('x-forge-token'))
+      fromHeader ?? (queryTokenPaths.includes(context.req.path) ? (context.req.query('token') ?? null) : null)
 
     if (offered === null || !sameToken(offered, token)) {
       return context.json({ error: 'UnauthorizedBoardAccess' }, 401)

@@ -14,7 +14,7 @@ beforeEach(() => {
     createTokenGuard({
       token: TOKEN,
       allowedOrigins: ['http://localhost:8832'],
-      openPaths: ['/api/hooks'],
+      queryTokenPaths: ['/api/events', '/api/hooks'],
     }),
   )
   api.post('/api/hooks', (context) => context.json({ recorded: true }, 202))
@@ -103,14 +103,26 @@ describe("l'origine du navigateur", () => {
 })
 
 describe("l'entree des hooks", () => {
-  it('accepts the hook intake without a token, since the hook carries none', async () => {
+  it('refuses the hook intake when it carries no token at all', async () => {
     const response = await api.request('/api/hooks', { method: 'POST' })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('accepts the hook intake when the token travels in the url', async () => {
+    const response = await api.request(`/api/hooks?token=${TOKEN}`, { method: 'POST' })
 
     expect(response.status).toBe(202)
   })
 
+  it('refuses a wrong token in the hook url', async () => {
+    const response = await api.request(`/api/hooks?token=${OTHER}`, { method: 'POST' })
+
+    expect(response.status).toBe(401)
+  })
+
   it('still refuses the hook intake when a browser page tries it', async () => {
-    const response = await api.request('/api/hooks', {
+    const response = await api.request(`/api/hooks?token=${TOKEN}`, {
       method: 'POST',
       headers: { origin: 'https://site-malveillant.example' },
     })
@@ -118,7 +130,7 @@ describe("l'entree des hooks", () => {
     expect(response.status).toBe(403)
   })
 
-  it('leaves the other routes closed even so', async () => {
+  it('leaves no route open without a token', async () => {
     const response = await api.request('/api/things', { method: 'POST' })
 
     expect(response.status).toBe(401)
