@@ -1,0 +1,33 @@
+{
+  "deny": [
+    "rm -rf*",
+    "sudo rm*",
+    "mkfs*",
+    "dd if=*of=/dev/*",
+    "*> /dev/sd*",
+    "*> /dev/nvme*",
+    "chmod -R 777*",
+    "git push --force",
+    "git push --force *",
+    "git push -f",
+    "git push -f *",
+    "git push --mirror*",
+    "git reset --hard*",
+    "git clean -fd*",
+    "git clean -xd*",
+    "git filter-branch*",
+    "git branch -D *",
+    "git worktree remove --force*",
+    "DROP TABLE*",
+    "DROP DATABASE*",
+    "TRUNCATE TABLE*",
+    "npm publish*",
+    "*--dangerously-skip-permissions*",
+    "curl *| sh*",
+    "curl *| bash*",
+    "wget *| sh*",
+    "wget *| bash*",
+    "Remove-Item * -Recurse*",
+    "history -c*"
+  ]
+}
