@@ -52,3 +52,15 @@ export class RolloutOutOfRangeError extends StoryViolationError {
     super(`Une exposition vaut de 0 a 100 pour cent, pas ${percent}`, 'RolloutOutOfRangeError')
   }
 }
+
+export class ProjectSlugTakenError extends StoryViolationError {
+  constructor(slug: string) {
+    super(`Le projet ${slug} existe deja sur ce board`, 'ProjectSlugTakenError')
+  }
+}
+
+export class ProjectNotFoundError extends StoryViolationError {
+  constructor(projectId: number) {
+    super(`Projet ${projectId} introuvable`, 'ProjectNotFoundError')
+  }
+}
