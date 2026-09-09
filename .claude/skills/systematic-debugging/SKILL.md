@@ -20,6 +20,8 @@ Ne propose jamais un correctif avant d'avoir compris la cause reelle. Un correct
 
 Si la meme erreur revient a l'identique apres une tentative de correction, c'est le signe que l'hypothese de depart etait fausse — changer d'angle plutot que de retenter la meme correction.
 
-## Lien avec la sequence starfleet
+## Lien avec la sequence forge
 
-Chaque tentative infructueuse incremente `attempt_count` via `record_attempt` (cap dur a 5). Chaque erreur est hashee et comparee via `record_error` : deux hashs identiques consecutifs declenchent une escalade immediate vers `status: escalated`, sans attendre le cap de tentatives. Ne pas essayer de contourner cette escalade — elle signale qu'un humain doit reprendre la main.
+Personne ne compte tes tentatives a ta place : c'est a toi de t'arreter. Deux echecs identiques d'affilee, ou une troisieme hypothese qui tombe, et tu remontes a l'humain plutot que de continuer — la story reste ou elle est, aucun checkpoint n'est prouve.
+
+Ce que tu as compris de la cause va dans le fichier de preuve de l'etape en cours (`.claude/evidence/<REFERENCE>/build.md` pendant `/BUILD`), avec la sortie brute qui l'etablit. Un blocage documente est reutilisable ; un blocage efface se repaye.

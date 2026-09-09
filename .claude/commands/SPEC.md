@@ -1,11 +1,15 @@
 ---
-description: Verrouiller ce qui doit etre construit avant la moindre ligne de code
+description: Ecrire la story et sa story de test jumelle, avant la moindre ligne de code
 ---
 
-Etape 1 de la sequence starfleet (`/SPEC /PLAN /TEST /BUILD /REVIEW /CODE-SIMPLIFY /SHIP`). Skill locale associee : `spec-clarification`.
+Etape 1 de la sequence forge (`/SPEC /PLAN /TEST /BUILD /CODE-SIMPLIFY /VERIFY /REVIEW /SHIP`). Skill locale associee : `spec-clarification`.
 
-1. Determine la branche courante (`git branch --show-current`). Si aucune tache n'existe encore pour cette branche dans starfleet, appelle l'outil MCP `create_task` avec ce nom de branche pour obtenir un port alloue de maniere deterministe.
-2. Appelle l'outil MCP `recommend_model` avec `step: "SPEC"` et la branche courante. Rapporte la recommandation a l'utilisateur (bascule de modele toujours manuelle, jamais automatique).
-3. Clarifie avec l'utilisateur ce qui doit etre construit : perimetre exact, criteres d'acceptation, ce qui est explicitement hors scope. Ne commence aucun code a cette etape.
-4. Une fois la specification actee, appelle l'outil MCP `update_checkpoint` avec `branch`, `checkpoint: "spec_done"` et un `contextSummary` condense (perimetre retenu, decisions cles, points d'attention) qui permettra une reprise fidele apres un crash.
-5. Rappelle a l'utilisateur que l'etape suivante est `/PLAN`.
+L'unite de travail est la **story**, pas la branche ni la tache. Le board te donne dans ton prompt de dispatch la reference et l'identifiant de la story sur laquelle tu travailles. Le board ecoute sur `http://localhost:8830` (`FORGE_PORT`).
+
+1. Clarifie avec l'utilisateur ce qui doit etre construit : perimetre exact, criteres d'acceptation, ce qui est explicitement hors scope. Aucun code a cette etape.
+2. Ecris la story : `POST /api/stories` avec `epicId`, `title`, `body`. Le board derive la reference du slug du projet.
+3. Ecris sa **story de test jumelle** : `POST /api/stories/:id/twin` avec `title` et `body`. Elle enonce les cas a couvrir, pas leur implementation, et suit les conventions test-casebook.
+4. Une story sans jumelle ne peut pas quitter la redaction : le board refuse `spec_done` et `POST /api/stories/:id/backlog` en 409 `TwinRequiredError`. Ce n'est pas un bug a contourner.
+5. Ecris le resume de specification dans `.claude/evidence/<REFERENCE>/spec.md` : perimetre retenu, decisions cles, hors scope, points d'attention.
+6. Prouve l'etape : `POST /api/stories/:id/checkpoints` avec `{"name":"spec_done","evidencePath":".claude/evidence/<REFERENCE>/spec.md"}`.
+7. Envoie la story au backlog (`POST /api/stories/:id/backlog`) et rappelle que l'etape suivante est `/PLAN`.

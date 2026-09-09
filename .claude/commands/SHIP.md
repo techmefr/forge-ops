@@ -1,13 +1,14 @@
 ---
-description: Push et ouverture de MR en draft, avec reviewers assignes
+description: Livrer la story derriere une validation humaine
 ---
 
-Etape 7 et derniere de la sequence starfleet. Prerequis : `checkpoint: simplified`. Si absent, arrete-toi et demande `/CODE-SIMPLIFY`. Skill locale associee : `verification-before-shipping`.
+Etape 8 de la sequence forge. Prerequis : les six checkpoints prouves. Verifie avec `GET /api/stories/:id/dod` : si une seule etape est a `proven: false`, arrete-toi et reprends a celle-la.
 
-**Regle d'or non negociable : aucun passage a `/SHIP` sans tests verts, peu importe qui a ecrit le code.** Fais tourner la suite de tests complete avant toute autre action. Si un test est rouge, arrete-toi ici et retourne a `/BUILD`.
+Aucun agent ne clot une story tout seul. La derniere porte est humaine.
 
-1. Appelle `recommend_model` avec `step: "SHIP"` pour la branche courante et rapporte la recommandation.
-2. Verifie qu'aucune commande a executer ne matche `.claude-deny.json` (jamais de `git push --force`).
-3. Push la branche, ouvre une MR en **draft** avec reviewers assignes (dev auteur + 2 collegues), template et labels conformes aux conventions du repo.
-4. Appelle `update_checkpoint` avec `checkpoint: "mr_draft_pushed"` et un `contextSummary` recapitulant ce qui est livre. Ce checkpoint bascule automatiquement le statut de la tache en `awaiting_human`.
-5. A partir d'ici, la revue humaine (MR) prend le relais. Le pipeline agent s'arrete.
+1. Relis la definition of done complete et affiche-la a l'utilisateur : les six etapes, leur preuve, le chemin de chaque preuve.
+2. Commite sur la branche dediee a la story. Message en anglais, conventional commit, description en minuscule. Aucune trace d'IA dans le code ni dans les messages.
+3. Pousse et ouvre la demande de fusion vers la branche d'integration du projet.
+4. Demande la validation humaine. Tant qu'elle n'est pas donnee, la story reste en `shipping`, pas en `done`.
+5. En cas de conflit de fusion, ne force rien : le board le signale sur la carte kanban, et la resolution se delegue explicitement.
+6. Une fois la validation obtenue, passe la story en `done`. Sa jumelle de test suit le meme sort.

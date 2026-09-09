@@ -1,12 +1,16 @@
 ---
-description: Auto-review legere de l agent, ne remplace pas la revue humaine en MR
+description: Passer la story en cascade qualite, securite, accessibilite
 ---
 
-Etape 5 de la sequence starfleet. Prerequis : `checkpoint: build_done`. Si absent, arrete-toi et demande `/BUILD`. Skill locale associee : `code-review-discipline`.
+Etape 7 de la sequence forge. Prerequis : `verified` prouve (`GET /api/stories/:id/dod`). Si absent, arrete-toi et demande `/VERIFY`. Skill locale associee : `code-review-discipline`.
 
-1. Appelle `recommend_model` avec `step: "REVIEW"` pour la branche courante et rapporte la recommandation.
-2. Relis le diff complet de la branche par rapport a sa base. Verifie coherence avec la specification (`/SPEC`) et le plan (`/PLAN`), tests verts, pas de valeurs magiques, pas de code mort.
-3. Cette auto-review reste legere : elle ne remplace jamais la revue humaine (dev auteur + 2 collegues) qui aura lieu sur la MR apres `/SHIP`.
-4. Note les points d'attention pour les relecteurs humains dans le `contextSummary`.
-5. Appelle `update_checkpoint` avec `checkpoint: "reviewed"` et ce `contextSummary`.
-6. Rappelle que l'etape suivante est `/CODE-SIMPLIFY`.
+La review se fait en **cascade, dans cet ordre** : qualite, puis securite, puis accessibilite. Chaque passe lit le diff entier de la story, avec sa propre lentille, sans reprendre les conclusions de la precedente.
+
+1. Passe qualite (`lens: "quality"`) : correction d'abord, puis reutilisation, simplification, placement. Un defaut de correction est toujours `strong`.
+2. Passe securite (`lens: "security"`) : autorisation manquante, surface d'injection, secret expose, charge utile non validee a une frontiere.
+3. Passe accessibilite (`lens: "accessibility"`) : semantique, clavier, focus visible, contraste, libelles des controles icone. Sans interface touchee, la passe se conclut en une ligne.
+4. Enregistre chaque finding avec sa severite. `strong` = la story ne peut pas partir en l'etat. `weak` = a savoir, ne bloque pas.
+5. Un finding `strong` non resolu **empeche** de prouver `reviewed` : le board repond 409 `UnresolvedFindingError`. Corrige, puis marque le finding resolu — ne baisse pas sa severite pour passer.
+6. Ecris la synthese dans `.claude/evidence/<REFERENCE>/reviewed.md` : findings par lentille, ce qui a ete corrige, ce qui reste en `weak` et pourquoi.
+7. Prouve l'etape : `POST /api/stories/:id/checkpoints` avec `{"name":"reviewed","evidencePath":".claude/evidence/<REFERENCE>/reviewed.md"}`.
+8. Rappelle que l'etape suivante est `/SHIP`.

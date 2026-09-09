@@ -15,6 +15,8 @@ Avant toute ligne de code, le perimetre doit etre verrouille. Ne jamais sauter d
 4. Distingue explicitement ce qui est demande de ce qui pourrait etre ajoute "tant qu'on y est" — ce dernier point est hors scope sauf demande explicite.
 5. Une fois le perimetre clair, resume-le : ce qui sera construit, criteres d'acceptation, ce qui est exclu.
 
-## Lien avec la sequence starfleet
+## Lien avec la sequence forge
 
-Ce resume devient le `contextSummary` ecrit via l'outil MCP `update_checkpoint` (`checkpoint: "spec_done"`). Le `/PLAN` qui suit doit rester strictement dans ce perimetre — toute derive constatee a `/PLAN` doit renvoyer a cette etape plutot que d'etre absorbee silencieusement.
+Ce resume devient `.claude/evidence/<REFERENCE>/spec.md`, la preuve du checkpoint `spec_done`. Le `/PLAN` qui suit doit rester strictement dans ce perimetre — toute derive constatee a `/PLAN` doit renvoyer a cette etape plutot que d'etre absorbee silencieusement.
+
+Le perimetre se decrit sur deux objets, pas un : la story fonctionnelle et sa story de test jumelle. Tant que la jumelle n'est pas ecrite, le board refuse `spec_done`.

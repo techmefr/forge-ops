@@ -1,11 +1,13 @@
 ---
-description: Ecrire les tests comme preuve que le code marchera (TDD)
+description: Ecrire les tests de la story jumelle, et les voir echouer pour la bonne raison
 ---
 
-Etape 3 de la sequence starfleet. Prerequis : `checkpoint: plan_done`. Si absent, arrete-toi et demande `/PLAN`. Skill locale associee : `test-driven-development`.
+Etape 3 de la sequence forge. Prerequis : `arch_done` prouve (`GET /api/stories/:id/dod`). Si absent, arrete-toi et demande `/PLAN`. Skill locale associee : `test-driven-development`.
 
-1. Appelle `recommend_model` avec `step: "TEST"` pour la branche courante et rapporte la recommandation.
-2. Ecris les tests correspondant aux taches atomiques du plan, avant tout code d'implementation. Les tests doivent echouer pour la bonne raison (absence d'implementation), pas a cause d'une erreur de setup.
-3. Si une erreur bloque l'ecriture des tests, appelle `record_error` avec un hash stable de l'erreur (par exemple un hash du message d'erreur normalise) : une boucle detectee sur 2 tentatives consecutives identiques declenche une escalade automatique.
-4. Une fois les tests ecrits (rouges, en attente d'implementation), appelle `update_checkpoint` avec `checkpoint: "tests_written"` et un `contextSummary` decrivant la couverture des tests et les cas limites geres.
-5. Rappelle que l'etape suivante est `/BUILD`.
+1. Lis la story de test jumelle. Elle enonce les cas ; c'est ici qu'ils deviennent du code.
+2. Ecris les tests avant toute implementation. Un test qui passe des sa premiere ecriture ne teste rien.
+3. Lance-les et **lis l'echec**. Un echec d'import ou de typage n'est pas un rouge valide : le rouge attendu est un comportement absent. Si le module n'existe pas encore, pose sa surface avec des signatures qui refusent, puis relance.
+4. Si les tests passent du premier coup, verifie la suite par mutation : casse volontairement la regle testee, verifie que le test tombe, puis reviens en arriere.
+5. Ecris dans `.claude/evidence/<REFERENCE>/tests.md` la liste des cas couverts et la sortie du run rouge.
+6. Prouve l'etape : `POST /api/stories/:id/checkpoints` avec `{"name":"tests_written","evidencePath":".claude/evidence/<REFERENCE>/tests.md"}`.
+7. Rappelle que l'etape suivante est `/BUILD`.
