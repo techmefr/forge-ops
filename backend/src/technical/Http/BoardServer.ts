@@ -171,16 +171,12 @@ export function startBoardServer({
     createForemergeApi({ foremerge, events }),
   )
   guarded.route('/', createWorktreeApi({ worktrees, events }))
-  guarded.route(
-    '/',
-    createPilotApi({
-      pilots: createPilotRepository(db, {
-        stories,
-        openDriver: () => createPlaywrightPilot({ shotDir, headless: !headedPilot }),
-      }),
-      events,
-    }),
-  )
+  const pilots = createPilotRepository(db, {
+    stories,
+    openDriver: () => createPlaywrightPilot({ shotDir, headless: !headedPilot }),
+  })
+  pilots.abandonOrphans()
+  guarded.route('/', createPilotApi({ pilots, events }))
   guarded.route('/', createPilotShotApi({ shotDir }))
   guarded.route('/', createMachineApi({ metricsUrl }))
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
