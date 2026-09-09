@@ -1,6 +1,6 @@
 # Le ticket en deux volets et la plateforme distante
 
-Conception du 2026-09-09. Rien de tout ceci n'est implémenté : ce document fixe le découpage avant le code.
+Conception du 2026-09-09. Seule la route du ticket est écrite à ce jour ; le reste de ce document fixe le découpage avant le code.
 
 ## 1. Le ticket en deux volets
 
@@ -8,7 +8,8 @@ Aujourd'hui la story fonctionnelle et sa jumelle de test sont deux lignes de la 
 
 - Le kanban n'affiche que les stories `functional`. La jumelle n'a jamais de carte propre — elle est déjà filtrée côté backlog.
 - Le ticket ouvert porte deux onglets : **Fonctionnel** et **Tests**. Même référence, `PS-1` et `PS-1-T`, un seul objet à l'écran.
-- Une seule route sert l'écran : `GET /api/stories/:id/ticket`, qui rend le volet fonctionnel, le volet test, les critères d'acceptation, la definition of done et la cascade de review.
+- Une seule route sert l'écran : `GET /api/stories/:id/ticket`, qui rend le volet fonctionnel, le volet test, la definition of done et la cascade de review. Les critères d'acceptation y manquent encore : la table existe, aucun dépôt ne l'écrit.
+- La route répond à l'identifiant de l'un ou de l'autre volet : demander le ticket par la référence de la jumelle rend le même objet. Le front n'a pas à savoir lequel des deux il tient.
 
 ## 2. L'écriture en deux temps
 
