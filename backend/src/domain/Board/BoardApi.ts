@@ -19,6 +19,7 @@ import { EvidencePathRefusedError } from '../Evidence/EvidencePath.js'
 import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import { BudgetViolationError } from '../Budget/BudgetViolation.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
+import { scoreCompleteness } from '../Story/Completeness.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 
 const budgetPolicySchema = z.object({
@@ -310,6 +311,13 @@ export function createBoardApi({
       criteria: criteria.listCriteria(functional.id),
       dod: checkpoints.definitionOfDone(functional.id),
       cascade: checkpoints.reviewCascade(functional.id),
+      blockers: repository.listBlockers(functional.id),
+      completeness: scoreCompleteness({
+        title: functional.title,
+        body: functional.body,
+        criteria: criteria.listCriteria(functional.id).map((criterion) => criterion.reference),
+        hasTwin: repository.findTwin(functional.id) !== null,
+      }),
     })
   })
 

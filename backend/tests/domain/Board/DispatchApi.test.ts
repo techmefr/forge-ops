@@ -38,10 +38,21 @@ beforeEach(() => {
     colour: '#ff3b00',
   })
   const epic = stories.createEpic({ projectId: project.id, title: 'CRUD Mail', businessIntent: 'gerer' })
-  const story = stories.writeStory({ epicId: epic.id, title: 'visualiser les mails', body: 'en tant que...' })
+  const story = stories.writeStory({
+    epicId: epic.id,
+    title: 'Visualiser la liste des mails du client',
+    body: [
+      'En tant que gestionnaire, je veux voir la liste des mails du client',
+      'afin de retrouver un echange sans ouvrir sa boite.',
+      '',
+      'La liste est paginee par vingt, du plus recent au plus ancien.',
+      'Quand le client n a aucun mail, la page le dit.',
+    ].join('\n'),
+  })
   storyId = story.id
   stories.writeTwin({ storyId, title: 'tests visualiser', body: 'cas...' })
   criteria.declareCriterion({ storyId, reference: 'AC-1', statement: 'le comportement attendu' })
+  criteria.declareCriterion({ storyId, reference: 'AC-2', statement: 'le cas vide est annonce' })
   api = createBoardApi({
     repository: stories,
     agentSessions: createAgentSessionRepository(db),
@@ -54,6 +65,7 @@ beforeEach(() => {
       database: db,
       stories,
       checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+      criteria: createCriterionRepository(db),
       sessions: createAgentSessionRepository(db),
       budget: createBudgetRepository(db),
       runner: { launch: async () => ({ claudeSessionId: 'fake-session-1' }) },

@@ -71,6 +71,7 @@ export function startBoardServer({
     database: db,
     stories,
     checkpoints: createCheckpointRepository(db, { takeCensus: () => censusOfTree(testsDir) }),
+    criteria: createCriterionRepository(db),
     sessions,
     budget: createBudgetRepository(db),
     runner: createSdkSessionRunner({
