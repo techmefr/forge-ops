@@ -157,8 +157,13 @@ L'orchestration bas niveau ne se réécrit pas : elle s'appuie sur le premier pa
 | Garde-fou deny (fail closed) | Fait, hook branché |
 | Port et sous-domaine déterministes | Fait |
 | Doctrine `/SPEC … /SHIP` alignée sur l'API | Fait |
+| Jetons de design lisibles (6 thèmes, clair et sombre) | Fait |
 | Dispatch d'une session par story (Agent SDK) | À faire |
 | SSE vers le board | À faire |
-| Cycle de vie des worktrees et réservations de port | À faire |
-| Estimation de ressources et statistiques | À faire |
-| Front (board, backlog, kanban, vue fichiers) | À faire — maquette Claude Design attendue |
+| Réservation de portée refusée à l'écriture (`path_claim`) | À faire |
+| Cycle de vie des worktrees et réservations de port | À faire — s'appuie sur le daemon, pas de plomberie propre |
+| Ressources et statistiques | À consommer depuis OpenTelemetry, pas à collecter |
+| Feature flags | À déléguer à OpenFeature, jamais écrit ici |
+| Front (board, backlog, kanban, vue fichiers) | En cours — maquette dans [design/mockup](design/mockup) |
+
+Le relevé de l'outillage existant étape par étape, et ce qu'il faut arrêter de construire, sont dans [docs/Tooling.md](docs/Tooling.md).
