@@ -44,22 +44,46 @@ export function createSdkSessionRunner({ cwd, onEvent }: SdkSessionRunnerInput):
         throw new SessionIdentifierMissingError(order.reference)
       }
 
-      void drain(conversation, order, onEvent)
+      void drain(conversation, { ...order, claudeSessionId }, onEvent)
       return { claudeSessionId }
     },
   }
 }
 
+export function usageOf(message: unknown): Record<string, number> {
+  if (typeof message !== 'object' || message === null) {
+    return {}
+  }
+  const record = message as Record<string, unknown>
+  const usage = record.usage as Record<string, unknown> | undefined
+  const collected: Record<string, number> = {}
+  if (typeof record.total_cost_usd === 'number') {
+    collected.costUsd = record.total_cost_usd
+  }
+  if (typeof usage?.input_tokens === 'number') {
+    collected.inputTokens = usage.input_tokens
+  }
+  if (typeof usage?.output_tokens === 'number') {
+    collected.outputTokens = usage.output_tokens
+  }
+  return collected
+}
+
 async function drain(
   conversation: AsyncIterable<{ type: string }>,
-  order: LaunchOrder,
+  order: LaunchOrder & { claudeSessionId: string },
   onEvent: SdkSessionRunnerInput['onEvent'],
 ): Promise<void> {
   try {
     for await (const message of conversation) {
       onEvent({
         name: `session.${message.type}`,
-        payload: { reference: order.reference, phase: order.phase },
+        payload: {
+          reference: order.reference,
+          phase: order.phase,
+          claudeSessionId: order.claudeSessionId,
+          ...usageOf(message),
+        },
       })
     }
   } catch (error) {

@@ -20,6 +20,7 @@ import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import { BudgetViolationError } from '../Budget/BudgetViolation.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
 import { scoreCompleteness } from '../Story/Completeness.js'
+import { buildStoryReport } from './StoryReport.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 
 const budgetPolicySchema = z.object({
@@ -476,6 +477,33 @@ export function createBoardApi({
     })
     return context.json(dispatched, 201)
   })
+
+  api.get('/api/stories/:id/report', (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    repository.findStory(storyId.data)
+    return context.json(
+      buildStoryReport({
+        storyId: storyId.data,
+        stories: repository,
+        checkpoints,
+        criteria,
+        sessions: agentSessions,
+      }),
+    )
+  })
+
+  api.get('/api/board/kanban', (context) =>
+    context.json(
+      repository.listKanban().map((story) => ({
+        ...story,
+        usage: agentSessions.sumUsage(story.id),
+        blockers: repository.listBlockers(story.id),
+      })),
+    ),
+  )
 
   api.get('/api/board/columns', (context) => context.json(KANBAN_COLUMNS))
 

@@ -57,6 +57,7 @@ export type StoryRepository = {
   startBuilding: (storyId: number) => Story
   markDone: (storyId: number) => Story
   listBacklog: () => readonly Story[]
+  listKanban: () => readonly Story[]
   estimate: (storyId: number, points: number) => Story
   rollOut: (storyId: number, percent: number) => Story
   markMergeConflict: (storyId: number) => Story
@@ -147,6 +148,11 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
   )
   const selectBacklog = db.prepare<[], StoryRow>(
     "SELECT * FROM story WHERE kind = 'functional' AND state = 'backlog' ORDER BY id",
+  )
+  const selectKanban = db.prepare<[], StoryRow>(
+    `SELECT * FROM story
+      WHERE kind = 'functional' AND state NOT IN ('drafting', 'backlog')
+      ORDER BY id`,
   )
   const updatePoints = db.prepare<[number, number]>(
     "UPDATE story SET points = ?, updated_at = datetime('now') WHERE id = ?",
@@ -321,6 +327,8 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
     markDone: (storyId) => moveTo(storyId, 'done'),
 
     listBacklog: () => selectBacklog.all().map(toStory),
+
+    listKanban: () => selectKanban.all().map(toStory),
 
     estimate: (storyId, points) => {
       const story = findStory(storyId)
