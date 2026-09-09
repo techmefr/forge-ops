@@ -8,3 +8,4 @@ dist/
 .claude/*.tmp.*
 .claude/evidence/
 CLAUDE.md
+test-results.json
