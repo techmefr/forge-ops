@@ -9,6 +9,7 @@ import { createDispatcher, type Dispatcher } from '../../../src/domain/Dispatch/
 import type { LaunchOrder } from '../../../src/domain/Dispatch/Dispatch.js'
 import { BudgetExhaustedError } from '../../../src/domain/Budget/BudgetViolation.js'
 import { DEFAULT_BUDGET_POLICY } from '../../../src/domain/Budget/Budget.js'
+import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 
 let db: Database.Database
 let stories: StoryRepository
@@ -43,6 +44,7 @@ beforeEach(() => {
     database: db,
     stories,
     checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+    criteria: createCriterionRepository(db),
     sessions,
     budget,
     runner: {

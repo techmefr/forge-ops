@@ -2,6 +2,8 @@ import type Database from 'better-sqlite3'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
+import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
+import { scoreCompleteness } from '../Story/Completeness.js'
 import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import { BudgetExhaustedError } from '../Budget/BudgetViolation.js'
 import type { Story } from '../Story/Story.js'
@@ -13,6 +15,7 @@ import {
   PhaseNotReadyError,
   SessionAlreadyRunningError,
   StoryBlockedError,
+  StoryTooThinError,
 } from './DispatchViolation.js'
 
 const RUNNING_LIFECYCLES = ['starting', 'working', 'awaiting_human'] as const
@@ -21,6 +24,7 @@ export type DispatcherInput = {
   database: Database.Database
   stories: StoryRepository
   checkpoints: CheckpointRepository
+  criteria: CriterionRepository
   sessions: AgentSessionRepository
   runner: SessionRunner
   budget: BudgetRepository
@@ -49,6 +53,7 @@ export function createDispatcher({
   database,
   stories,
   checkpoints,
+  criteria,
   sessions,
   runner,
   budget,
@@ -82,6 +87,18 @@ export function createDispatcher({
     dispatch: async (order) => {
       const story = stories.findStory(order.storyId)
       const contract = contractOfPhase(order.phase)
+
+      if (order.phase !== 'spec') {
+        const verdict = scoreCompleteness({
+          title: story.title,
+          body: story.body,
+          criteria: criteria.listCriteria(order.storyId).map((criterion) => criterion.reference),
+          hasTwin: stories.findTwin(order.storyId) !== null,
+        })
+        if (!verdict.launchable) {
+          throw new StoryTooThinError(story.reference, verdict.score, verdict.gaps)
+        }
+      }
 
       const blockers = selectBlockers.all(order.storyId).map((row) => row.reference)
       if (blockers.length > 0) {

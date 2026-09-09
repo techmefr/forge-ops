@@ -42,6 +42,7 @@ function buildDispatcher(concurrencyCap = 3): Dispatcher {
     database: db,
     stories,
     checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+    criteria: createCriterionRepository(db),
     sessions,
     budget: createBudgetRepository(db),
     runner: fakeRunner(),
@@ -50,13 +51,27 @@ function buildDispatcher(concurrencyCap = 3): Dispatcher {
   })
 }
 
+const CORPS_ETOFFE = [
+  'En tant que gestionnaire, je veux voir la liste des mails du client',
+  'afin de retrouver un echange sans ouvrir sa boite.',
+  '',
+  'La liste est paginee par vingt, du plus recent au plus ancien.',
+  'Quand le client n a aucun mail, la page le dit.',
+].join('\n')
+
 function writeReadyStory(title: string): number {
-  const story = stories.writeStory({ epicId, title, body: 'en tant que...' })
+  const story = stories.writeStory({ epicId, title: `${title} pour le client concerne`, body: CORPS_ETOFFE })
   stories.writeTwin({ storyId: story.id, title: `tests ${title}`, body: 'cas...' })
-  createCriterionRepository(db).declareCriterion({
+  const criteria = createCriterionRepository(db)
+  criteria.declareCriterion({
     storyId: story.id,
     reference: 'AC-1',
     statement: 'le comportement attendu',
+  })
+  criteria.declareCriterion({
+    storyId: story.id,
+    reference: 'AC-2',
+    statement: 'le cas vide est annonce',
   })
   return story.id
 }
@@ -141,6 +156,7 @@ describe('dispatch', () => {
       database: db,
       stories,
       checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+      criteria: createCriterionRepository(db),
       sessions,
       budget: createBudgetRepository(db),
       runner: {
