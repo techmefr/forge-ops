@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, toRef, watch } from 'vue'
 import type { PilotStepKind } from '@/domain/Board/BoardModel'
-import { describeStep } from './Walk'
+import { describeStep, shotUrlOf } from './Walk'
 import { usePilot } from './UsePilot'
 
 const props = defineProps<{ storyId: number | null }>()
@@ -203,9 +203,14 @@ function addDraft(): void {
           :class="act.outcome === 'passed' ? 'bg-green' : 'bg-red'"
         />
         <span class="text-txt-hi">{{ act.detail }}</span>
-        <span v-if="act.screenshotPath !== null" class="ml-auto font-mono text-[10px] text-txt-low">{{
-          act.screenshotPath
-        }}</span>
+        <a
+          v-if="act.screenshotPath !== null"
+          :href="shotUrlOf(act.screenshotPath)"
+          target="_blank"
+          rel="noreferrer"
+          class="ml-auto font-mono text-[10px] text-acc uppercase"
+          >Voir la capture</a
+        >
       </li>
     </ul>
 

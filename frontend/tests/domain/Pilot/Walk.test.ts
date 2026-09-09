@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { describeStep, nextStepOf, progressOf } from '@/domain/Pilot/Walk'
+import { describeStep, nextStepOf, progressOf, shotUrlOf } from '@/domain/Pilot/Walk'
 import type { PilotRun, PilotStep } from '@/domain/Board/BoardModel'
 
 const SCRIPT: readonly PilotStep[] = [
@@ -87,5 +87,23 @@ describe('describeStep', () => {
 
   it('dit qu il regarde', () => {
     expect(describeStep({ kind: 'screenshot' })).toBe('Capture l ecran')
+  })
+})
+
+describe('shotUrlOf', () => {
+  it('ne garde que le nom du fichier, le board sert le dossier', () => {
+    expect(shotUrlOf('/tmp/forge-shots/pilot-17-3.png')).toBe('/api/pilots/shots/pilot-17-3.png')
+  })
+
+  it('accepte un chemin windows', () => {
+    expect(shotUrlOf('C:/shots/pilot-1-1.png')).toBe('/api/pilots/shots/pilot-1-1.png')
+  })
+
+  it('accepte un nom nu', () => {
+    expect(shotUrlOf('pilot-1-1.png')).toBe('/api/pilots/shots/pilot-1-1.png')
+  })
+
+  it('ne fabrique pas une adresse a partir de rien', () => {
+    expect(shotUrlOf('')).toBe('/api/pilots/shots/')
   })
 })

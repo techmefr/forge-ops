@@ -42,3 +42,7 @@ export function describeStep(step: PilotStep): string {
   }
   return 'Capture l ecran'
 }
+
+export function shotUrlOf(screenshotPath: string): string {
+  return `/api/pilots/shots/${screenshotPath.split('/').filter((part) => part !== '').slice(-1)[0] ?? ''}`
+}
