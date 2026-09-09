@@ -6,7 +6,9 @@ import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import { BudgetExhaustedError } from '../Budget/BudgetViolation.js'
 import type { Story } from '../Story/Story.js'
 import { contractOfPhase, type Dispatched, type DispatchOrder, type SessionRunner } from './Dispatch.js'
+import { createRateBucket, DEFAULT_DISPATCH_RATE, type Clock, type DispatchRate } from './DispatchRate.js'
 import {
+  DispatchTooFastError,
   FleetSaturatedError,
   PhaseNotReadyError,
   SessionAlreadyRunningError,
@@ -24,6 +26,8 @@ export type DispatcherInput = {
   budget: BudgetRepository
   concurrencyCap: number
   claudeCodeVersion: string
+  rate?: DispatchRate
+  clock?: Clock
 }
 
 export type Dispatcher = {
@@ -50,7 +54,10 @@ export function createDispatcher({
   budget,
   concurrencyCap,
   claudeCodeVersion,
+  rate = DEFAULT_DISPATCH_RATE,
+  clock = Date.now,
 }: DispatcherInput): Dispatcher {
+  const bucket = createRateBucket(rate)
   const placeholders = RUNNING_LIFECYCLES.map(() => '?').join(', ')
   const countRunningSessions = database.prepare<string[], { total: number }>(
     `SELECT COUNT(*) AS total FROM agent_session WHERE lifecycle IN (${placeholders})`,
@@ -97,6 +104,10 @@ export function createDispatcher({
       const running = countRunning()
       if (running >= concurrencyCap) {
         throw new FleetSaturatedError(running, concurrencyCap)
+      }
+
+      if (!bucket.take(clock())) {
+        throw new DispatchTooFastError(rate.burst, rate.windowMs)
       }
 
       const decision = budget.decideConduct()

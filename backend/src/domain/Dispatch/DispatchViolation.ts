@@ -23,6 +23,15 @@ export class FleetSaturatedError extends DispatchViolationError {
   }
 }
 
+export class DispatchTooFastError extends DispatchViolationError {
+  constructor(burst: number, windowMs: number) {
+    super(
+      `Le debit de lancement est plafonne a ${burst} sessions par ${Math.round(windowMs / 1000)} secondes`,
+      'DispatchTooFastError',
+    )
+  }
+}
+
 export class StoryBlockedError extends DispatchViolationError {
   constructor(reference: string, blockers: readonly string[]) {
     super(`${reference} attend ${blockers.join(', ')}`, 'StoryBlockedError')

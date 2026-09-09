@@ -10,6 +10,7 @@ import { createZoneRepository } from '../../domain/Zone/ZoneRepository.js'
 import { createCriterionRepository } from '../../domain/Criterion/CriterionRepository.js'
 import { createDispatcher } from '../../domain/Dispatch/Dispatcher.js'
 import { createBudgetRepository } from '../../domain/Budget/BudgetRepository.js'
+import { DEFAULT_DISPATCH_RATE } from '../../domain/Dispatch/DispatchRate.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { createEventBus } from './EventBus.js'
 import { createBoardPage } from './BoardPage.js'
@@ -74,6 +75,10 @@ export function startBoardServer({
     }),
     concurrencyCap: Number(process.env.FORGE_SESSION_CAP ?? DEFAULT_SESSION_CAP),
     claudeCodeVersion: process.env.CLAUDE_CODE_VERSION ?? 'unknown',
+    rate: {
+      burst: Number(process.env.FORGE_DISPATCH_BURST ?? DEFAULT_DISPATCH_RATE.burst),
+      windowMs: Number(process.env.FORGE_DISPATCH_WINDOW_MS ?? DEFAULT_DISPATCH_RATE.windowMs),
+    },
   })
   const api = createBoardApi({
     zones: createZoneRepository(db),
