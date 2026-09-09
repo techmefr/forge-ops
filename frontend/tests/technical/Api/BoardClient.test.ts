@@ -85,7 +85,7 @@ describe('send', () => {
 
   it('prefixe par la base quand on lui en donne une', async () => {
     const fetcher = vi.fn(
-      () => Promise.resolve(new Response('{}', { status: 200 })) as unknown as Promise<Response>,
+      (_url: string) => Promise.resolve(new Response('{}', { status: 200 })) as unknown as Promise<Response>,
     )
     const client = createBoardClient({ baseUrl: 'http://127.0.0.1:8830', fetcher: fetcher as unknown as typeof fetch })
 

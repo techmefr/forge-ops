@@ -93,10 +93,18 @@ describe('openBoardStream', () => {
     expect(source.closed).toBe(true)
   })
 
+  it('remonte ce que l agent a dit, sinon l ecran de story reste muet', () => {
+    const { source, seen } = open()
+
+    source.emit('session.assistant', '{"text":"je propose trois stories"}')
+
+    expect(seen[0]?.payload.text).toBe('je propose trois stories')
+  })
+
   it('n ecoute pas un evenement qui ne le concerne pas', () => {
     const { source, seen } = open()
 
-    source.emit('session.assistant', '{"x":1}')
+    source.emit('nawak.inconnu', '{"x":1}')
 
     expect(seen).toEqual([])
   })

@@ -24,6 +24,12 @@ const WATCHED_EVENTS = [
   'incident.accepted',
   'incident.refused',
   'budget.policy.written',
+  'session.dispatched',
+  'session.system',
+  'session.assistant',
+  'session.user',
+  'session.result',
+  'session.failed',
 ] as const
 
 export function parseFrame(name: string, data: string): StreamedEvent | null {
