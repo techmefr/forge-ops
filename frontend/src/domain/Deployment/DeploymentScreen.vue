@@ -3,15 +3,17 @@ import { computed, onMounted, ref } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
-import type { KanbanStory, Project } from '@/domain/Board/BoardModel'
+import type { KanbanStory, MergeCleanup, Worktree } from '@/domain/Board/BoardModel'
 import { STATE_LABELS } from '@/domain/Story/Checkpoint'
 
-const SHIPPING_STATES = ['shipping', 'flagged', 'done']
+const SHIPPING_STATES = ['building', 'gating', 'reviewing', 'shipping', 'flagged', 'done']
 
 const stories = useResource<readonly KanbanStory[]>(() => board.read('/api/board/kanban'))
-const projects = useResource<readonly Project[]>(() => board.read('/api/projects'))
+const worktrees = useResource<readonly Worktree[]>(() => board.read('/api/worktrees'))
 const percents = ref<Map<number, number>>(new Map())
+const baseRef = ref('forge')
 const refusal = ref<string | null>(null)
+const lastCleanUp = ref<{ reference: string; cleanUp: MergeCleanup } | null>(null)
 const busy = ref(false)
 
 const shipping = computed(() =>
@@ -20,19 +22,32 @@ const shipping = computed(() =>
 
 const conflicted = computed(() => (stories.data.value ?? []).filter((story) => story.mergeConflict))
 
-const branch = computed(() => (story: KanbanStory) => `story/${story.reference.toLowerCase()}`)
+const worktreeOf = computed(
+  () => (storyId: number) =>
+    (worktrees.data.value ?? []).find((worktree) => worktree.storyId === storyId) ?? null,
+)
 
 async function guard(action: () => Promise<void>): Promise<void> {
   busy.value = true
   refusal.value = null
   try {
     await action()
-    await stories.reload()
+    await Promise.all([stories.reload(), worktrees.reload()])
   } catch (error) {
     refusal.value = reasonOf(error)
   } finally {
     busy.value = false
   }
+}
+
+function openWorktree(story: KanbanStory): Promise<void> {
+  return guard(() =>
+    board.send(`/api/stories/${story.id}/worktree`, 'POST', { baseRef: baseRef.value }),
+  )
+}
+
+function closeWorktree(story: KanbanStory, force: boolean): Promise<void> {
+  return guard(() => board.send(`/api/stories/${story.id}/worktree`, 'DELETE', { force }))
 }
 
 function rollOut(story: KanbanStory): Promise<void> {
@@ -41,7 +56,13 @@ function rollOut(story: KanbanStory): Promise<void> {
 }
 
 function markDone(story: KanbanStory): Promise<void> {
-  return guard(() => board.send(`/api/stories/${story.id}/done`, 'POST'))
+  return guard(async () => {
+    const answer = await board.send<{ cleanUp: MergeCleanup }>(
+      `/api/stories/${story.id}/done`,
+      'POST',
+    )
+    lastCleanUp.value = { reference: story.reference, cleanUp: answer.cleanUp }
+  })
 }
 
 function clearConflict(story: KanbanStory): Promise<void> {
@@ -52,12 +73,28 @@ function setPercent(storyId: number, value: string): void {
   percents.value = new Map(percents.value).set(storyId, Number(value))
 }
 
-onMounted(() => Promise.all([stories.reload(), projects.reload()]))
+onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
 </script>
 
 <template>
   <div class="p-8">
-    <section v-if="conflicted.length > 0" class="rounded-2xl border border-red bg-red-soft/10 p-4">
+    <div class="flex flex-wrap items-end gap-3">
+      <label class="flex flex-col gap-1">
+        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase"
+          >Branche d integration</span
+        >
+        <input
+          v-model="baseRef"
+          type="text"
+          class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
+        />
+      </label>
+      <p class="ml-auto font-mono text-[11px] text-txt-low">
+        {{ (worktrees.data.value ?? []).length }} worktrees ouverts
+      </p>
+    </div>
+
+    <section v-if="conflicted.length > 0" class="mt-6 rounded-2xl border border-red bg-red-soft/10 p-4">
       <p class="font-mono text-[10px] tracking-[0.18em] text-red uppercase">Conflits de merge</p>
       <ul class="mt-2 flex flex-col gap-2">
         <li v-for="story in conflicted" :key="story.id" class="flex items-center gap-3 text-xs">
@@ -75,12 +112,26 @@ onMounted(() => Promise.all([stories.reload(), projects.reload()]))
       </ul>
     </section>
 
+    <p
+      v-if="lastCleanUp !== null"
+      class="mt-6 rounded-2xl border border-green bg-green-soft/10 p-4 text-xs text-txt-hi"
+      role="status"
+    >
+      {{ lastCleanUp.reference }} est en production. {{ lastCleanUp.cleanUp.scopesReleased }} perimetres
+      rendus,
+      <template v-if="lastCleanUp.cleanUp.worktreeClosed">worktree retire.</template>
+      <template v-else-if="lastCleanUp.cleanUp.worktreeRefusal !== null"
+        >worktree conserve : {{ lastCleanUp.cleanUp.worktreeRefusal }}</template
+      >
+      <template v-else>aucun worktree a retirer.</template>
+    </p>
+
     <div class="mt-6">
       <ScreenState
         :pending="stories.pending.value"
         :failure="stories.failure.value"
         :empty="shipping.length === 0"
-        empty-label="Rien en cours de mise en production."
+        empty-label="Aucune story en cours de livraison."
         @retry="stories.reload()"
       >
         <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(340px,1fr))]">
@@ -96,7 +147,42 @@ onMounted(() => Promise.all([stories.reload(), projects.reload()]))
               }}</span>
             </div>
             <h2 class="display-italic mt-1 text-base">{{ story.title }}</h2>
-            <p class="mt-2 font-mono text-[11px] text-txt-low">{{ branch(story) }}</p>
+
+            <div v-if="worktreeOf(story.id) !== null" class="mt-3 rounded-xl border border-line bg-elev p-3">
+              <p class="font-mono text-[11px] text-txt-hi">{{ worktreeOf(story.id)?.branch }}</p>
+              <p class="mt-1 font-mono text-[10px] text-txt-low">
+                port {{ worktreeOf(story.id)?.port }} ·
+                {{ worktreeOf(story.id)?.subdomain }} ·
+                depuis {{ worktreeOf(story.id)?.baseSha.slice(0, 8) }}
+              </p>
+              <div class="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  :disabled="busy"
+                  class="rounded-lg border border-line bg-card px-2 py-1 text-[10px] font-bold text-txt-mid uppercase disabled:opacity-40"
+                  @click="closeWorktree(story, false)"
+                >
+                  Fermer
+                </button>
+                <button
+                  type="button"
+                  :disabled="busy"
+                  class="rounded-lg border border-red bg-card px-2 py-1 text-[10px] font-bold text-red uppercase disabled:opacity-40"
+                  @click="closeWorktree(story, true)"
+                >
+                  Fermer de force
+                </button>
+              </div>
+            </div>
+            <button
+              v-else
+              type="button"
+              :disabled="busy"
+              class="mt-3 w-full rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
+              @click="openWorktree(story)"
+            >
+              Ouvrir sa branche
+            </button>
 
             <div class="mt-4">
               <p class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">

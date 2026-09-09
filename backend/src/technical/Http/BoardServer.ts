@@ -130,7 +130,7 @@ export function startBoardServer({
       cleanUpAfterMerge({
         storyId,
         releaseScope: foremerge.release,
-        closeWorktree: (target) => worktrees.close(target),
+        closeWorktree: (target) => worktrees.close(target, { deleteBranch: true }),
       }),
     claudeHome,
   })

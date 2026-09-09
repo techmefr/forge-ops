@@ -59,6 +59,16 @@ describe('removeWorktree', () => {
   })
 })
 
+describe('deleteBranch', () => {
+  it('asks git for a safe delete, which refuses an unmerged branch', () => {
+    const { git, calls } = spying()
+
+    git.deleteBranch('story/forge-1')
+
+    expect(calls[0]?.argv).toEqual(['branch', '--delete', 'story/forge-1'])
+  })
+})
+
 describe('isDirty', () => {
   it('reads the status inside the worktree, not in the repository root', () => {
     const { git, calls } = spying('')

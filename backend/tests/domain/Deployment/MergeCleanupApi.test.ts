@@ -21,6 +21,7 @@ let api: Hono
 let stories: StoryRepository
 let storyId: number
 let removed: string[]
+let deletedBranches: string[]
 let seen: BoardEvent[]
 let foremerge: ReturnType<typeof createForemergeRepository>
 let worktrees: ReturnType<typeof createWorktreeRepository>
@@ -33,6 +34,7 @@ beforeEach(() => {
   const db = openDatabase(':memory:')
   stories = createStoryRepository(db)
   removed = []
+  deletedBranches = []
   seen = []
   const events = createEventBus()
   events.subscribe((event) => seen.push(event))
@@ -53,6 +55,9 @@ beforeEach(() => {
       addWorktree: () => undefined,
       removeWorktree: (path) => {
         removed.push(path)
+      },
+      deleteBranch: (branch) => {
+        deletedBranches.push(branch)
       },
       isDirty: () => false,
     },
@@ -85,7 +90,7 @@ beforeEach(() => {
       cleanUpAfterMerge({
         storyId: id,
         releaseScope: foremerge.release,
-        closeWorktree: (target) => worktrees.close(target),
+        closeWorktree: (target) => worktrees.close(target, { deleteBranch: true }),
       }),
     claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
   })
@@ -106,6 +111,14 @@ describe('POST /api/stories/:id/done', () => {
     await markDone(storyId)
 
     expect(removed).toEqual(['/tmp/forge-worktrees/story-forge-1-visualiser-les-mails'])
+  })
+
+  it('deletes the branch, the work is in the integration branch now', async () => {
+    worktrees.open({ storyId, baseRef: 'forge' })
+
+    await markDone(storyId)
+
+    expect(deletedBranches).toEqual(['story/forge-1-visualiser-les-mails'])
   })
 
   it('says what it cleaned up in the answer', async () => {

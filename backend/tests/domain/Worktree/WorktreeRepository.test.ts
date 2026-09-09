@@ -25,6 +25,7 @@ let worktrees: WorktreeRepository
 let added: Added[]
 let removed: string[]
 let dirty: Set<string>
+let deletedBranches: string[]
 let first: number
 let second: number
 
@@ -37,6 +38,9 @@ function fakeGit() {
     removeWorktree: (path: string) => {
       removed.push(path)
     },
+    deleteBranch: (branch: string) => {
+      deletedBranches.push(branch)
+    },
     isDirty: (path: string) => dirty.has(path),
   }
 }
@@ -46,6 +50,7 @@ beforeEach(() => {
   stories = createStoryRepository(db)
   added = []
   removed = []
+  deletedBranches = []
   dirty = new Set()
   const project = stories.createProject({
     slug: 'forge',
@@ -197,6 +202,28 @@ describe('close', () => {
 
     expect(() => worktrees.close(first, { force: true })).not.toThrow()
     expect(removed).toEqual([opened.path])
+  })
+
+  it('keeps the branch by default, the work is not lost with the folder', () => {
+    worktrees.open({ storyId: first, baseRef: 'forge' })
+    worktrees.close(first)
+
+    expect(deletedBranches).toEqual([])
+  })
+
+  it('deletes the branch when it is asked to, once the work has landed', () => {
+    worktrees.open({ storyId: first, baseRef: 'forge' })
+    worktrees.close(first, { deleteBranch: true })
+
+    expect(deletedBranches).toEqual(['story/forge-1-visualiser-les-mails'])
+  })
+
+  it('does not delete the branch of a worktree it refused to remove', () => {
+    const opened = worktrees.open({ storyId: first, baseRef: 'forge' })
+    dirty.add(opened.path)
+
+    expect(() => worktrees.close(first, { deleteBranch: true })).toThrow()
+    expect(deletedBranches).toEqual([])
   })
 
   it('refuses to close a story that has no worktree', () => {

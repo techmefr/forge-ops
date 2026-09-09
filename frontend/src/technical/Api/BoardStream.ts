@@ -32,6 +32,9 @@ const WATCHED_EVENTS = [
   'session.failed',
   'scope.reserved',
   'scope.released',
+  'worktree.opened',
+  'worktree.closed',
+  'story.merged',
 ] as const
 
 export function parseFrame(name: string, data: string): StreamedEvent | null {
