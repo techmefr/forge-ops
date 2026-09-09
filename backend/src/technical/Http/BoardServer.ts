@@ -7,7 +7,12 @@ import { createAgentSessionRepository } from '../../domain/Agent/AgentSessionRep
 import { createCheckpointRepository } from '../../domain/Checkpoint/CheckpointRepository.js'
 import { createZoneRepository } from '../../domain/Zone/ZoneRepository.js'
 import { createCriterionRepository } from '../../domain/Criterion/CriterionRepository.js'
+import { createDispatcher } from '../../domain/Dispatch/Dispatcher.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
+import { createEventBus } from './EventBus.js'
+import { createSdkSessionRunner } from '../ClaudeCode/SdkSessionRunner.js'
+
+const DEFAULT_SESSION_CAP = 3
 
 type ServerType = ReturnType<typeof serve>
 
@@ -33,12 +38,29 @@ export function defaultBoardServerInput(): BoardServerInput {
 
 export function startBoardServer({ port, dbPath, claudeHome }: BoardServerInput): Promise<BoardServer> {
   const db = openDatabase(dbPath)
+  const events = createEventBus()
+  const stories = createStoryRepository(db)
+  const sessions = createAgentSessionRepository(db)
+  const dispatcher = createDispatcher({
+    database: db,
+    stories,
+    checkpoints: createCheckpointRepository(db),
+    sessions,
+    runner: createSdkSessionRunner({
+      cwd: process.cwd(),
+      onEvent: (event) => events.publish(event),
+    }),
+    concurrencyCap: Number(process.env.FORGE_SESSION_CAP ?? DEFAULT_SESSION_CAP),
+    claudeCodeVersion: process.env.CLAUDE_CODE_VERSION ?? 'unknown',
+  })
   const api = createBoardApi({
     zones: createZoneRepository(db),
-    repository: createStoryRepository(db),
-    agentSessions: createAgentSessionRepository(db),
+    repository: stories,
+    agentSessions: sessions,
     checkpoints: createCheckpointRepository(db),
     criteria: createCriterionRepository(db),
+    events,
+    dispatcher,
     claudeHome,
   })
 

@@ -12,7 +12,14 @@ import {
 import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
 import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js'
 import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
+import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
+
+const stubDispatch = {
+  dispatch: () => Promise.reject(new Error('aucun lanceur dans ce test')),
+  countRunning: () => 0,
+}
+
 
 const CLAUDE_SESSION_ID = '9fe24018-1111-2222-3333-444455556666'
 
@@ -68,6 +75,8 @@ beforeEach(() => {
     agentSessions,
     checkpoints: createCheckpointRepository(db),
     criteria: createCriterionRepository(db),
+    events: createEventBus(),
+    dispatcher: stubDispatch,
     claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
   })
 })
@@ -164,6 +173,8 @@ describe('GET /api/files/conflicts', () => {
       agentSessions: sessions,
       checkpoints: createCheckpointRepository(db),
       criteria: createCriterionRepository(db),
+      events: createEventBus(),
+      dispatcher: stubDispatch,
       claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
     })
 
