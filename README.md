@@ -101,11 +101,15 @@ La menace n'est pas le réseau, c'est **le navigateur** : n'importe quelle page 
 
 1. **Le board n'écoute que la boucle locale.** `FORGE_HOST` vaut `127.0.0.1`. Ne le passer à `0.0.0.0` qu'une fois une vraie authentification multi-utilisateurs écrite.
 2. **L'origine est vérifiée avant tout le reste.** Une requête portant un en-tête `Origin` inconnu part en `403`, même avec un jeton valide. C'est ce qui arrête une page web, parce qu'un navigateur envoie toujours `Origin` sur une requête d'origine croisée et ne peut pas l'omettre.
-3. **Un jeton par board**, 32 octets aléatoires, écrit dans `.forge-token` (droits `600`, gitignoré) au premier démarrage. Attendu en `Authorization: Bearer` ou `X-Forge-Token`, comparé en temps constant. Deux routes seulement l'acceptent aussi en paramètre de requête, parce que leurs clients ne savent pas poser d'en-tête : `GET /api/events` (`EventSource`) et `POST /api/hooks` (le hook Claude Code).
+3. **Un jeton par board**, 32 octets aléatoires, écrit dans `.forge-token` (droits `600`, gitignoré) au premier démarrage. Comparé en temps constant.
+
+**Le jeton du board ne voyage jamais dans une URL.** Une URL finit dans les journaux d'accès, l'historique du shell, les traces d'erreur et l'en-tête `Referer` : c'est le pire endroit pour un secret. Il se présente donc en `Authorization: Bearer`, en `X-Forge-Token`, ou dans le **cookie** `forge_token` — que `EventSource` envoie tout seul, ce qui règle le cas du flux SSE sans mettre quoi que ce soit dans l'adresse. En développement, le proxy vite pose l'en-tête sur chaque appel, flux compris.
 
 Le board **refuse de démarrer** si `.forge-token` existe mais est vide, tronqué ou illisible : pas de repli silencieux sans jeton.
 
-**Aucune route n'est ouverte sans jeton**, l'entrée des hooks comprise. Le hook Claude Code ne sait pas poser d'en-tête, donc il porte le jeton dans son URL — ce qui interdit de versionner sa configuration. Elle vit dans `.claude/settings.local.json`, gitignoré et en droits `600`, généré par :
+**Aucune route n'est ouverte sans secret**, l'entrée des hooks comprise. Reste que le hook Claude Code ne sait rien porter d'autre qu'une URL. Plutôt que d'y mettre le jeton du board, `POST /api/hooks` a **son propre secret**, dérivé du jeton par HMAC-SHA256 : il n'ouvre que l'entrée des hooks, il ne permet ni de lire le board ni de lancer une session, et il ne révèle pas le jeton dont il vient. Une fuite dans un journal ne coûte alors qu'un enregistrement de fichier touché.
+
+Sa configuration ne peut donc pas être versionnée. Elle vit dans `.claude/settings.local.json`, gitignoré et en droits `600`, généré par :
 
 ```bash
 npm run hook:install

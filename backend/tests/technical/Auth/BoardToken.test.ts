@@ -2,7 +2,11 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { chmodSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { resolveBoardToken, TokenUnreadableError } from '../../../src/technical/Auth/BoardToken.js'
+import {
+  deriveHookToken,
+  resolveBoardToken,
+  TokenUnreadableError,
+} from '../../../src/technical/Auth/BoardToken.js'
 
 let home: string
 let path: string
@@ -52,6 +56,28 @@ describe('resolveBoardToken', () => {
     writeFileSync(path, '   \n', 'utf-8')
 
     expect(() => resolveBoardToken(path)).toThrow(TokenUnreadableError)
+  })
+
+  it('derives a hook secret that is not the board token', () => {
+    const token = resolveBoardToken(path)
+
+    expect(deriveHookToken(token)).not.toBe(token)
+  })
+
+  it('derives the same hook secret for the same board', () => {
+    const token = resolveBoardToken(path)
+
+    expect(deriveHookToken(token)).toBe(deriveHookToken(token))
+  })
+
+  it('derives a different hook secret for a different board', () => {
+    expect(deriveHookToken('a'.repeat(64))).not.toBe(deriveHookToken('b'.repeat(64)))
+  })
+
+  it('derives a hook secret that does not reveal the board token', () => {
+    const token = resolveBoardToken(path)
+
+    expect(deriveHookToken(token)).not.toContain(token.slice(0, 16))
   })
 
   it('refuses to run when the file cannot be read at all', () => {

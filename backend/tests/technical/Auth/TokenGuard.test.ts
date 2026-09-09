@@ -4,6 +4,7 @@ import { createTokenGuard } from '../../../src/technical/Auth/TokenGuard.js'
 
 const TOKEN = 'a'.repeat(64)
 const OTHER = 'b'.repeat(64)
+const HOOK_TOKEN = 'c'.repeat(64)
 
 let api: Hono
 
@@ -13,8 +14,8 @@ beforeEach(() => {
     '/api/*',
     createTokenGuard({
       token: TOKEN,
+      hookToken: HOOK_TOKEN,
       allowedOrigins: ['http://localhost:8832'],
-      queryTokenPaths: ['/api/events', '/api/hooks'],
     }),
   )
   api.post('/api/hooks', (context) => context.json({ recorded: true }, 202))
@@ -102,56 +103,100 @@ describe("l'origine du navigateur", () => {
   })
 })
 
-describe("l'entree des hooks", () => {
-  it('refuses the hook intake when it carries no token at all', async () => {
+describe("l'entree des hooks, avec son propre secret", () => {
+  it('refuses the hook intake when it carries nothing', async () => {
     const response = await api.request('/api/hooks', { method: 'POST' })
 
     expect(response.status).toBe(401)
   })
 
-  it('accepts the hook intake when the token travels in the url', async () => {
-    const response = await api.request(`/api/hooks?token=${TOKEN}`, { method: 'POST' })
+  it('accepts the hook token in the url, the only place the hook can carry it', async () => {
+    const response = await api.request(`/api/hooks?token=${HOOK_TOKEN}`, { method: 'POST' })
 
     expect(response.status).toBe(202)
   })
 
-  it('refuses a wrong token in the hook url', async () => {
+  it('accepts the hook token in a header too', async () => {
+    const response = await api.request('/api/hooks', {
+      method: 'POST',
+      headers: { 'x-forge-token': HOOK_TOKEN },
+    })
+
+    expect(response.status).toBe(202)
+  })
+
+  it('refuses a wrong hook token', async () => {
     const response = await api.request(`/api/hooks?token=${OTHER}`, { method: 'POST' })
 
     expect(response.status).toBe(401)
   })
 
   it('still refuses the hook intake when a browser page tries it', async () => {
-    const response = await api.request(`/api/hooks?token=${TOKEN}`, {
+    const response = await api.request(`/api/hooks?token=${HOOK_TOKEN}`, {
       method: 'POST',
       headers: { origin: 'https://site-malveillant.example' },
     })
 
     expect(response.status).toBe(403)
   })
+})
 
-  it('leaves no route open without a token', async () => {
-    const response = await api.request('/api/things', { method: 'POST' })
+describe('le secret du hook ne vaut que pour le hook', () => {
+  it('does not open a read route', async () => {
+    const response = await api.request('/api/things', { headers: { 'x-forge-token': HOOK_TOKEN } })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('does not open a dispatch', async () => {
+    const response = await api.request('/api/things', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${HOOK_TOKEN}` },
+    })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('does not open the event stream', async () => {
+    const response = await api.request(`/api/events?token=${HOOK_TOKEN}`)
 
     expect(response.status).toBe(401)
   })
 })
 
-describe('le flux SSE', () => {
-  it('accepts the token as a query parameter, since EventSource sets no header', async () => {
+describe('le jeton du board ne voyage jamais dans une url', () => {
+  it('refuses the board token in a query parameter, even on the stream', async () => {
     const response = await api.request(`/api/events?token=${TOKEN}`)
-
-    expect(response.status).toBe(200)
-  })
-
-  it('refuses a wrong token in the query parameter', async () => {
-    const response = await api.request(`/api/events?token=${OTHER}`)
 
     expect(response.status).toBe(401)
   })
 
-  it('does not accept a query parameter anywhere else', async () => {
+  it('refuses it in a query parameter anywhere else', async () => {
     const response = await api.request(`/api/things?token=${TOKEN}`)
+
+    expect(response.status).toBe(401)
+  })
+
+  it('takes it from a cookie, which EventSource sends on its own', async () => {
+    const response = await api.request('/api/events', {
+      headers: { cookie: `forge_token=${TOKEN}` },
+    })
+
+    expect(response.status).toBe(200)
+  })
+
+  it('takes the cookie on the other routes too', async () => {
+    const response = await api.request('/api/things', {
+      headers: { cookie: `forge_token=${TOKEN}` },
+    })
+
+    expect(response.status).toBe(200)
+  })
+
+  it('refuses a wrong cookie', async () => {
+    const response = await api.request('/api/things', {
+      headers: { cookie: `forge_token=${OTHER}` },
+    })
 
     expect(response.status).toBe(401)
   })

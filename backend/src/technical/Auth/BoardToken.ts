@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto'
+import { createHmac, randomBytes } from 'node:crypto'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 
 const TOKEN_BYTES = 32
@@ -9,6 +9,12 @@ export class TokenUnreadableError extends Error {
     super(`le jeton du board est illisible dans ${path} : ${reason}`)
     this.name = 'TokenUnreadableError'
   }
+}
+
+const HOOK_PURPOSE = 'forge:hook-intake'
+
+export function deriveHookToken(boardToken: string): string {
+  return createHmac('sha256', boardToken).update(HOOK_PURPOSE).digest('hex')
 }
 
 export function resolveBoardToken(path: string): string {

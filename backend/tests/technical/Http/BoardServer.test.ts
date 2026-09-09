@@ -7,6 +7,7 @@ import {
   startBoardServer,
   type BoardServer,
 } from '../../../src/technical/Http/BoardServer.js'
+import { deriveHookToken } from '../../../src/technical/Auth/BoardToken.js'
 
 let board: BoardServer | null = null
 let claudeHome: string
@@ -97,7 +98,23 @@ describe('startBoardServer', () => {
     expect(response.status).toBe(401)
   })
 
-  it('takes the hook intake when the token travels in the url', async () => {
+  it('takes the hook intake with the derived hook secret', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(
+      `http://127.0.0.1:${board.port}/api/hooks?token=${deriveHookToken(booted.token)}`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ session_id: 'inconnue', hook_event_name: 'PostToolUse' }),
+      },
+    )
+
+    expect(response.status).toBe(202)
+  })
+
+  it('refuses the hook intake when it presents the board token instead', async () => {
     const booted = await boot()
     board = booted.board
 
@@ -107,6 +124,33 @@ describe('startBoardServer', () => {
       body: JSON.stringify({ session_id: 'inconnue', hook_event_name: 'PostToolUse' }),
     })
 
-    expect(response.status).toBe(202)
+    expect(response.status).toBe(401)
+  })
+
+  it('never lets the hook secret dispatch a session', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/stories/1/dispatch`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${deriveHookToken(booted.token)}`,
+      },
+      body: JSON.stringify({ phase: 'spec' }),
+    })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('accepts the board token from a cookie, the way the served page will', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/fleet`, {
+      headers: { cookie: `forge_token=${booted.token}` },
+    })
+
+    expect(response.status).toBe(200)
   })
 })
