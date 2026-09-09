@@ -16,6 +16,7 @@ import {
   BlockedByDependencyError,
   PointsOutOfRangeError,
   RolloutOutOfRangeError,
+  DependencyCycleError,
   SelfDependencyError,
   ProjectNotFoundError,
   ProjectSlugTakenError,
@@ -51,6 +52,8 @@ export type StoryRepository = {
   findTwin: (storyId: number) => Story | null
   sendToBacklog: (storyId: number) => Story
   addDependency: (dependency: Dependency) => void
+  listBlockers: (storyId: number) => readonly string[]
+  markDoneAndUnblock: (storyId: number) => readonly Story[]
   startBuilding: (storyId: number) => Story
   markDone: (storyId: number) => Story
   listBacklog: () => readonly Story[]
@@ -124,7 +127,13 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
         AND story.kind = 'functional'`,
   )
   const insertDependency = db.prepare<[number, number]>(
-    'INSERT INTO story_dependency (blocked_story_id, blocking_story_id) VALUES (?, ?)',
+    'INSERT OR IGNORE INTO story_dependency (blocked_story_id, blocking_story_id) VALUES (?, ?)',
+  )
+  const selectBlockingOf = db.prepare<[number], { blocking_story_id: number }>(
+    'SELECT blocking_story_id FROM story_dependency WHERE blocked_story_id = ?',
+  )
+  const selectBlockedBy = db.prepare<[number], { blocked_story_id: number }>(
+    'SELECT blocked_story_id FROM story_dependency WHERE blocking_story_id = ?',
   )
   const selectUnresolvedBlockers = db.prepare<[number], { reference: string }>(
     `SELECT story.reference AS reference FROM story_dependency
@@ -169,6 +178,27 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
     }
     const written = countFunctionalStories.get(epicId)?.total ?? 0
     return `${project.slug.toUpperCase()}-${written + 1}`
+  }
+
+  function pathToward(fromStoryId: number, targetStoryId: number): number[] | null {
+    const seen = new Set<number>()
+    const walk = (current: number, trail: number[]): number[] | null => {
+      if (current === targetStoryId) {
+        return trail
+      }
+      if (seen.has(current)) {
+        return null
+      }
+      seen.add(current)
+      for (const row of selectBlockingOf.all(current)) {
+        const found = walk(row.blocking_story_id, [...trail, row.blocking_story_id])
+        if (found !== null) {
+          return found
+        }
+      }
+      return null
+    }
+    return walk(fromStoryId, [])
   }
 
   function moveTo(storyId: number, state: StoryState): Story {
@@ -255,8 +285,28 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
       if (dependency.blockedStoryId === dependency.blockingStoryId) {
         throw new SelfDependencyError(blocked.reference)
       }
-      findStory(dependency.blockingStoryId)
+      const blocking = findStory(dependency.blockingStoryId)
+      const loop = pathToward(dependency.blockingStoryId, dependency.blockedStoryId)
+      if (loop !== null) {
+        throw new DependencyCycleError(
+          blocking.reference,
+          loop.map((storyId) => findStory(storyId).reference),
+        )
+      }
       insertDependency.run(dependency.blockedStoryId, dependency.blockingStoryId)
+    },
+
+    listBlockers: (storyId) => selectUnresolvedBlockers.all(storyId).map((row) => row.reference),
+
+    markDoneAndUnblock: (storyId) => {
+      moveTo(storyId, 'done')
+      const freed: Story[] = []
+      for (const row of selectBlockedBy.all(storyId)) {
+        if (selectUnresolvedBlockers.all(row.blocked_story_id).length === 0) {
+          freed.push(findStory(row.blocked_story_id))
+        }
+      }
+      return freed
     },
 
     startBuilding: (storyId) => {

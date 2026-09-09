@@ -58,6 +58,8 @@ const twinDraftSchema = z.object({
 
 const identifierSchema = z.coerce.number().int().positive()
 
+const dependencySchema = z.object({ blockingStoryId: z.number().int().positive() })
+
 const hookPayloadSchema = z.object({
   session_id: z.string().min(1),
   hook_event_name: z.string().min(1),
@@ -244,6 +246,41 @@ export function createBoardApi({
   })
 
   api.get('/api/stories/backlog', (context) => context.json(repository.listBacklog()))
+
+  api.post('/api/stories/:id/dependencies', async (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const body = dependencySchema.safeParse(await context.req.json().catch(() => null))
+    if (!body.success) {
+      return context.json({ error: 'InvalidDependency', issues: body.error.issues }, 422)
+    }
+    repository.addDependency({ blockedStoryId: storyId.data, blockingStoryId: body.data.blockingStoryId })
+    return context.json({ blockers: repository.listBlockers(storyId.data) }, 201)
+  })
+
+  api.get('/api/stories/:id/blockers', (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    repository.findStory(storyId.data)
+    return context.json({ blockers: repository.listBlockers(storyId.data) })
+  })
+
+  api.post('/api/stories/:id/done', (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    repository.findStory(storyId.data)
+    const unblocked = repository.markDoneAndUnblock(storyId.data)
+    for (const story of unblocked) {
+      events.publish({ name: 'story.unblocked', payload: { ...story } })
+    }
+    return context.json({ story: repository.findStory(storyId.data), unblocked })
+  })
 
   api.post('/api/stories/:id/checkpoints', async (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
