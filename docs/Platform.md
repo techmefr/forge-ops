@@ -26,7 +26,11 @@ Deux déploiements, deux responsabilités qui ne se recouvrent pas.
 
 **Le hub, distant.** Le directeur y écrit les projets et les épiques, et les assigne. Il porte les comptes, les assignations et la boîte d'entrée des bugs. Il ne sait rien des sessions, des preuves ni des fichiers touchés.
 
-**Le board, local, un par poste.** Il tire ce qui lui est assigné, alimente son backlog, lance les sessions, écrit les checkpoints et garde les preuves sur le disque. Il ne rend au hub que l'avancement.
+**Le board, local, un par poste.** Il tire ce qui lui est assigné, alimente son backlog, lance les sessions, écrit les checkpoints et garde les preuves sur le disque. Il ne rend au hub que l'avancement. Le Claude Code qui travaille est celui du poste : le hub ne lance jamais de session et n'a besoin d'aucune clé d'API.
+
+Ce que le hub sert au directeur, en lecture : où en est chaque ticket, et qui en est responsable. Rien d'autre — pas de code, pas de preuve, pas de session.
+
+**Deux façons d'obtenir du travail, au choix.** Le directeur peut assigner une épique à quelqu'un ; à l'inverse une épique non assignée est prenable par qui veut. Même règle pour les incidents. Dans les deux cas la prise est enregistrée côté hub et exclusive : assigné ou pris, c'est le même verrou, seule l'initiative change.
 
 | Objet | Vérité | Sens du flux |
 |---|---|---|
@@ -38,23 +42,23 @@ Deux déploiements, deux responsabilités qui ne se recouvrent pas.
 
 Conséquences à tenir :
 
-- **Prise de portée.** On ne « reçoit » pas une épique, on la **prend**. Le hub enregistre qui l'a prise et à quelle heure ; une épique prise ailleurs revient en lecture seule. C'est la même classe de problème que les collisions de fichiers, résolue au même endroit : par un refus, pas par une alerte.
+- **Prise de portée exclusive.** Assignée ou prise, une épique a un responsable et un seul. Le hub enregistre qui et à quelle heure ; une épique déjà prise revient en lecture seule chez les autres. C'est la même classe de problème que les collisions de fichiers, résolue au même endroit : par un refus, pas par une alerte.
 - **Idempotence.** Chaque objet tiré porte son `origin` et son `origin_id`. Re-tirer ne duplique rien.
 - **Le hub ne voit pas les preuves.** Les fichiers `.claude/evidence/` restent locaux. Le hub apprend qu'une étape est prouvée, jamais son contenu — sinon la plateforme devient un dépôt de code par la petite porte.
 - **Le local fonctionne hors ligne.** Le hub tombe, les sessions continuent ; la remontée rattrape au retour.
 
 ## 4. Les bugs, en dehors du backlog
 
-Un bug n'est pas une story, c'est une **entrée à trier**. Le hub porte une boîte d'entrée alimentée par trois sources : Sentry (erreurs), les retours utilisateurs (idées, bugs signalés), et la saisie manuelle.
+Un bug n'est pas une story, c'est une **entrée à trier**. Le hub porte une boîte d'entrée, et la source est interchangeable : Sentry, GlitchTip, un autre collecteur d'erreurs, un formulaire de retour utilisateur, la saisie manuelle. Chaque source se réduit à trois champs — une empreinte, un titre, une charge utile — et le tri ne connaît que ça. Sentry est la première branchée, pas la seule prévue.
 
 Le cycle :
 
-1. Sentry poste sur le hub. L'entrée arrive à l'état `nouveau`, groupée par empreinte pour ne pas créer cent tickets d'une même exception.
+1. La source poste sur le hub. L'entrée arrive à l'état `nouveau`, groupée par empreinte pour ne pas créer cent tickets d'une même exception.
 2. Un humain **accepte ou refuse**. Rien ne devient une story sans cette validation — automatiser jusqu'à la story reviendrait à laisser Sentry remplir le backlog.
 3. Une entrée acceptée devient une story fonctionnelle dans le projet visé, prête à être tirée.
 4. Le volet Tests de cette story est le **test de non-régression** : le bug reproduit d'abord, rouge. C'est exactement le cycle TDD, l'entrée Sentry fournit le rouge.
 5. La story suit la séquence complète. Rien n'est raccourci parce que c'est un bug.
-6. Le merge met en prod **derrière un feature flag**, montée progressive. Sentry surveille la même empreinte : plus d'occurrence sur le périmètre activé, on monte ; ça réapparaît, on redescend à zéro sans redéployer.
+6. Le merge met en prod **derrière un feature flag**, montée progressive. Le collecteur surveille la même empreinte : plus d'occurrence sur le périmètre activé, on monte ; ça réapparaît, on redescend à zéro sans redéployer.
 
 La boucle se ferme : l'erreur en prod devient un ticket, le ticket devient une session, la session revient en prod derrière un flag surveillé par la source qui a signalé l'erreur.
 
@@ -65,6 +69,15 @@ Le point de départ de tout : **pendant que Claude travaille sur une story, on e
 - **Une session par story**, lancée depuis la carte, pas depuis un terminal. L'Agent SDK la pilote, le board garde l'identifiant.
 - **Un nombre de sessions simultanées plafonné**, et le plafond n'est pas décoratif : au-delà, le lancement est refusé. Le critère est la ressource machine, pas l'envie.
 - **Aucune session ne bloque l'interface.** L'écriture d'une story pendant qu'une autre construit est le cas normal, pas l'exception.
+
+Et un plafond de coût par story, qui agit au lieu d'avertir. Deux conduites au choix, portées par la story :
+
+| Conduite | Effet à la limite |
+|---|---|
+| `stop` | La session est tuée, la story passe en `escalated` avec sa raison |
+| `downgrade` | La session repart sur un modèle moins cher et continue |
+
+`downgrade` est le défaut sur un compte à forfait, où le plafond protège la fenêtre d'usage et non le portefeuille. `stop` est le défaut dès qu'il y a une facture à l'usage. Ce qui compte dans les deux cas : la limite s'applique, elle ne s'affiche pas.
 
 ## 6. Ce que ça ajoute en base
 
@@ -77,9 +90,10 @@ Côté local, quatre changements :
 
 Côté hub, un schéma neuf et beaucoup plus petit : comptes, projets, épiques, assignations, incidents, prises de portée. Pas de checkpoints, pas de sessions, pas de preuves.
 
-## 7. Ce qui reste à trancher
+## 7. Tranché, et ce qui reste ouvert
 
 - **Le transport.** Tirer par appel HTTP à la demande, ou abonnement SSE depuis le hub. L'appel à la demande suffit au départ et évite d'exposer le poste local.
-- **L'authentification.** Un jeton par poste, émis par le hub, révocable. Pas de compte partagé.
+- **L'authentification.** Identifiant et mot de passe pour démarrer, puis SSO — Microsoft Entra ID en premier. Ce qui veut dire : l'identité est une table à part dès le premier jour, jamais une colonne sur le compte, et le mot de passe est un fournisseur d'identité parmi d'autres. Un jeton par poste pour le board local, émis par le hub et révocable, indépendamment du mode de connexion de l'humain.
 - **Le stockage du hub.** SQLite tant qu'il y a un directeur et une équipe ; Postgres dès qu'il y a plusieurs organisations.
 - **Le nom.** `starfleet` reste, `forge` est un nom de branche. Deux projets publics s'appellent déjà Forge.
+- **La licence.** MIT pour démarrer : elle nous laisse vendre. Elle laisse aussi un concurrent reprendre le produit tel quel — à rouvrir seulement si ça devient un enjeu.
