@@ -8,6 +8,8 @@ import { CHECKPOINT_SEQUENCE, REVIEW_LENS_SEQUENCE } from '../Checkpoint/Checkpo
 import { CheckpointViolationError } from '../Checkpoint/CheckpointViolation.js'
 import type { ZoneRepository } from '../Zone/ZoneRepository.js'
 import { ZoneNotFoundError, ZoneViolationError } from '../Zone/ZoneViolation.js'
+import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
+import { CriterionNotFoundError, CriterionViolationError } from '../Criterion/CriterionViolation.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 
@@ -56,15 +58,32 @@ const zoneDraftSchema = z.object({
 
 const zoneSummarySchema = z.object({ pathPrefix: z.string().min(1), summary: z.string().min(1) })
 
+const criterionDraftSchema = z.object({
+  reference: z.string().min(1),
+  statement: z.string().min(1),
+  persona: z.string().nullish(),
+  expectsRefusal: z.boolean().optional(),
+})
+
+const criterionProofSchema = z.object({ evidencePath: z.string() })
+
 export type BoardApiInput = {
   repository: StoryRepository
   agentSessions: AgentSessionRepository
   checkpoints: CheckpointRepository
+  criteria: CriterionRepository
   zones: ZoneRepository
   claudeHome: string
 }
 
-export function createBoardApi({ repository, agentSessions, checkpoints, zones, claudeHome }: BoardApiInput): Hono {
+export function createBoardApi({
+  repository,
+  agentSessions,
+  checkpoints,
+  criteria,
+  zones,
+  claudeHome,
+}: BoardApiInput): Hono {
   const api = new Hono()
 
   api.onError((error, context) => {
@@ -74,10 +93,14 @@ export function createBoardApi({ repository, agentSessions, checkpoints, zones, 
     if (error instanceof ZoneNotFoundError) {
       return context.json({ error: error.name, message: error.message }, 404)
     }
+    if (error instanceof CriterionNotFoundError) {
+      return context.json({ error: error.name, message: error.message }, 404)
+    }
     if (
       error instanceof StoryViolationError ||
       error instanceof CheckpointViolationError ||
-      error instanceof ZoneViolationError
+      error instanceof ZoneViolationError ||
+      error instanceof CriterionViolationError
     ) {
       return context.json({ error: error.name, message: error.message }, 409)
     }
@@ -137,9 +160,34 @@ export function createBoardApi({ repository, agentSessions, checkpoints, zones, 
     return context.json({
       functional,
       tests: repository.findTwin(functional.id),
+      criteria: criteria.listCriteria(functional.id),
       dod: checkpoints.definitionOfDone(functional.id),
       cascade: checkpoints.reviewCascade(functional.id),
     })
+  })
+
+  api.post('/api/stories/:id/criteria', async (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const draft = criterionDraftSchema.safeParse(await context.req.json().catch(() => null))
+    if (!draft.success) {
+      return context.json({ error: 'InvalidCriterionDraft', issues: draft.error.issues }, 422)
+    }
+    return context.json(criteria.declareCriterion({ storyId: storyId.data, ...draft.data }), 201)
+  })
+
+  api.post('/api/criteria/:id/satisfy', async (context) => {
+    const criterionId = identifierSchema.safeParse(context.req.param('id'))
+    if (!criterionId.success) {
+      return context.json({ error: 'InvalidCriterionIdentifier' }, 422)
+    }
+    const body = criterionProofSchema.safeParse(await context.req.json().catch(() => null))
+    if (!body.success) {
+      return context.json({ error: 'InvalidCriterionProof', issues: body.error.issues }, 422)
+    }
+    return context.json(criteria.satisfyCriterion(criterionId.data, body.data.evidencePath))
   })
 
   api.get('/api/stories/:id/dod', (context) => {

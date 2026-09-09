@@ -16,6 +16,8 @@ import {
 import {
   CheckpointAlreadyProvenError,
   CheckpointOutOfOrderError,
+  CriteriaRequiredError,
+  CriteriaUnmetError,
   EvidenceRequiredError,
   LensAlreadyPassedError,
   LensOutOfOrderError,
@@ -74,6 +76,14 @@ export function createCheckpointRepository(db: Database.Database): CheckpointRep
     'SELECT id, reference, kind FROM story WHERE id = ?',
   )
   const selectTwin = db.prepare<[number], { id: number }>('SELECT id FROM story WHERE twin_of_story_id = ?')
+  const selectCriteriaCount = db.prepare<[number], { total: number }>(
+    'SELECT COUNT(*) AS total FROM acceptance_criterion WHERE story_id = ?',
+  )
+  const selectUnmetCriteria = db.prepare<[number], { reference: string }>(
+    `SELECT reference FROM acceptance_criterion
+      WHERE story_id = ? AND satisfied_at IS NULL
+      ORDER BY reference`,
+  )
   const insertCheckpoint = db.prepare<[number, CheckpointName, string]>(
     'INSERT INTO checkpoint (story_id, name, evidence_path) VALUES (?, ?, ?)',
   )
@@ -165,8 +175,13 @@ export function createCheckpointRepository(db: Database.Database): CheckpointRep
         throw new CheckpointOutOfOrderError(draft.name, missing)
       }
 
-      if (draft.name === 'spec_done' && story.kind === 'functional' && selectTwin.get(story.id) === undefined) {
-        throw new TwinRequiredError(story.reference)
+      if (draft.name === 'spec_done' && story.kind === 'functional') {
+        if (selectTwin.get(story.id) === undefined) {
+          throw new TwinRequiredError(story.reference)
+        }
+        if ((selectCriteriaCount.get(story.id)?.total ?? 0) === 0) {
+          throw new CriteriaRequiredError(story.reference)
+        }
       }
 
       if (draft.name === 'reviewed') {
@@ -179,6 +194,10 @@ export function createCheckpointRepository(db: Database.Database): CheckpointRep
           .map((pass) => pass.lens)
         if (pending.length > 0) {
           throw new ReviewIncompleteError(pending)
+        }
+        const unmet = selectUnmetCriteria.all(draft.storyId).map((row) => row.reference)
+        if (unmet.length > 0) {
+          throw new CriteriaUnmetError(unmet)
         }
       }
 

@@ -12,6 +12,7 @@ import {
   LensOutOfOrderError,
   ReviewIncompleteError,
 } from '../../../src/domain/Checkpoint/CheckpointViolation.js'
+import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { createStoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 
@@ -45,6 +46,13 @@ describe('review cascade', () => {
     const story = stories.writeStory({ epicId: epic.id, title: 'Panier persistant', body: 'corps' })
     stories.writeTwin({ storyId: story.id, title: 'Test — panier persistant', body: 'corps' })
     storyId = story.id
+    const criteria = createCriterionRepository(db)
+    const criterion = criteria.declareCriterion({
+      storyId,
+      reference: 'AC-1',
+      statement: 'le panier survit a la deconnexion',
+    })
+    criteria.satisfyCriterion(criterion.id, '.claude/evidence/PS-1/tests.md')
     for (const name of EARLIER_STEPS) {
       checkpoints.proveCheckpoint({ storyId, name, evidencePath: `.claude/evidence/PS-1/${name}.md` })
     }

@@ -7,6 +7,7 @@ import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { createStoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
+import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 
@@ -34,11 +35,17 @@ beforeEach(() => {
   const epic = stories.createEpic({ projectId: project.id, title: 'CRUD Mail', businessIntent: 'gerer les mails' })
   storyId = stories.writeStory({ epicId: epic.id, title: 'visualiser les mails', body: 'en tant que...' }).id
   stories.writeTwin({ storyId, title: 'tests visualiser les mails', body: 'cas...' })
+  createCriterionRepository(db).declareCriterion({
+    storyId,
+    reference: 'AC-1',
+    statement: 'la liste affiche les mails du client',
+  })
   api = createBoardApi({
     zones: createZoneRepository(db),
     repository: stories,
     agentSessions: createAgentSessionRepository(db),
     checkpoints: createCheckpointRepository(db),
+    criteria: createCriterionRepository(db),
     claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
   })
 })
