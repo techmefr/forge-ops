@@ -24,6 +24,7 @@ import { createForemergeApi } from '../../domain/Foremerge/ForemergeApi.js'
 import { createPilotRepository } from '../../domain/Pilot/PilotRepository.js'
 import { createPilotApi } from '../../domain/Pilot/PilotApi.js'
 import { createPlaywrightPilot } from '../Browser/PlaywrightPilot.js'
+import { createPilotShotApi } from './PilotShotApi.js'
 import { createStatisticRepository } from '../../domain/Statistic/StatisticRepository.js'
 import { createStatisticApi } from '../../domain/Statistic/StatisticApi.js'
 import { createIncidentRepository } from '../../domain/Incident/IncidentRepository.js'
@@ -176,6 +177,7 @@ export function startBoardServer({
       events,
     }),
   )
+  guarded.route('/', createPilotShotApi({ shotDir }))
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
   guarded.route('/', createIncidentApi({ incidents: createIncidentRepository(db, { stories }), events }))
   guarded.route('/', api)
