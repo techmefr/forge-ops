@@ -9,6 +9,7 @@ import {
   createAgentSessionRepository,
   type AgentSessionRepository,
 } from '../../../src/domain/Agent/AgentSessionRepository.js'
+import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 
 const CLAUDE_SESSION_ID = '9fe24018-1111-2222-3333-444455556666'
@@ -62,6 +63,7 @@ beforeEach(() => {
   api = createBoardApi({
     repository: stories,
     agentSessions,
+    checkpoints: createCheckpointRepository(db),
     claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
   })
 })
@@ -155,6 +157,7 @@ describe('GET /api/files/conflicts', () => {
     const conflictApi = createBoardApi({
       repository: stories,
       agentSessions: sessions,
+      checkpoints: createCheckpointRepository(db),
       claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
     })
 

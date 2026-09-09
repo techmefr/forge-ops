@@ -6,6 +6,7 @@ import type { Hono } from 'hono'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { createStoryRepository, type StoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSessionRepository.js'
+import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 
 let api: Hono
@@ -13,6 +14,7 @@ let repository: StoryRepository
 let epicId: number
 let claudeHome: string
 let agentSessions: ReturnType<typeof createAgentSessionRepository>
+let checkpoints: ReturnType<typeof createCheckpointRepository>
 
 async function post(path: string, body?: unknown): Promise<Response> {
   return await api.request(path, {
@@ -26,6 +28,7 @@ beforeEach(() => {
   const db = openDatabase(':memory:')
   repository = createStoryRepository(db)
   agentSessions = createAgentSessionRepository(db)
+  checkpoints = createCheckpointRepository(db)
   const project = repository.createProject({
     slug: 'forge',
     name: 'Forge',
@@ -39,7 +42,7 @@ beforeEach(() => {
     businessIntent: 'gerer les mails du client',
   }).id
   claudeHome = mkdtempSync(join(tmpdir(), 'starfleet-claude-home-'))
-  api = createBoardApi({ repository, agentSessions, claudeHome })
+  api = createBoardApi({ repository, agentSessions, checkpoints, claudeHome })
 })
 
 describe('POST /api/stories', () => {
@@ -118,6 +121,7 @@ describe('unexpected failures', () => {
         },
       },
       agentSessions,
+      checkpoints,
       claudeHome,
     })
 
