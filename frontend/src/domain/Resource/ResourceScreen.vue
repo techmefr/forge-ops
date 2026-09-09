@@ -3,12 +3,13 @@ import { computed, onMounted, ref } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
-import type { BudgetSettings, Fleet, Story } from '@/domain/Board/BoardModel'
+import type { BudgetSettings, Fleet, MachineReading, Story } from '@/domain/Board/BoardModel'
 import { MEMORY_PER_SESSION_MB, estimateRun } from './Estimate'
 
 const fleet = useResource<Fleet>(() => board.read('/api/fleet'))
 const budget = useResource<BudgetSettings>(() => board.read('/api/settings/budget'))
 const backlog = useResource<readonly Story[]>(() => board.read('/api/stories/backlog'))
+const machine = useResource<MachineReading>(() => board.read('/api/machine'))
 const planned = ref(1)
 
 const estimate = computed(() =>
@@ -25,7 +26,7 @@ const tokens = computed(() =>
   jobs.value.reduce((total, job) => total + (job.tokens ?? 0), 0),
 )
 
-onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload()]))
+onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), machine.reload()]))
 </script>
 
 <template>
@@ -53,6 +54,53 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload()])
         </p>
       </article>
     </div>
+
+    <section class="mt-6 rounded-2xl border border-line bg-card p-5">
+      <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+        Machine, lue chez le collecteur OpenTelemetry
+      </p>
+      <p
+        v-if="machine.data.value !== null && !machine.data.value.available"
+        class="mt-2 text-xs text-txt-low"
+      >
+        {{ machine.data.value.reason }}
+      </p>
+      <div
+        v-else-if="machine.data.value?.snapshot !== null && machine.data.value !== null"
+        class="mt-3 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(160px,1fr))]"
+      >
+        <div>
+          <p class="font-mono text-[10px] text-txt-low uppercase">Processeur</p>
+          <p class="display-italic text-2xl">
+            {{ machine.data.value.snapshot.cpuPercent ?? '--' }} %
+          </p>
+        </div>
+        <div>
+          <p class="font-mono text-[10px] text-txt-low uppercase">Memoire prise</p>
+          <p class="display-italic text-2xl">
+            {{ machine.data.value.snapshot.memoryUsedMb ?? '--' }} Mo
+          </p>
+        </div>
+        <div>
+          <p class="font-mono text-[10px] text-txt-low uppercase">Memoire libre</p>
+          <p class="display-italic text-2xl">
+            {{ machine.data.value.snapshot.memoryFreeMb ?? '--' }} Mo
+          </p>
+        </div>
+        <div>
+          <p class="font-mono text-[10px] text-txt-low uppercase">Disque</p>
+          <p class="display-italic text-2xl">
+            {{ machine.data.value.snapshot.diskPercent ?? '--' }} %
+          </p>
+        </div>
+        <div>
+          <p class="font-mono text-[10px] text-txt-low uppercase">Charge 1 min</p>
+          <p class="display-italic text-2xl">
+            {{ machine.data.value.snapshot.loadAverage ?? '--' }}
+          </p>
+        </div>
+      </div>
+    </section>
 
     <section
       class="mt-6 rounded-2xl border p-5"

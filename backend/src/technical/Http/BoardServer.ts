@@ -25,6 +25,7 @@ import { createPilotRepository } from '../../domain/Pilot/PilotRepository.js'
 import { createPilotApi } from '../../domain/Pilot/PilotApi.js'
 import { createPlaywrightPilot } from '../Browser/PlaywrightPilot.js'
 import { createPilotShotApi } from './PilotShotApi.js'
+import { createMachineApi } from '../../domain/Resource/MachineApi.js'
 import { createStatisticRepository } from '../../domain/Statistic/StatisticRepository.js'
 import { createStatisticApi } from '../../domain/Statistic/StatisticApi.js'
 import { createIncidentRepository } from '../../domain/Incident/IncidentRepository.js'
@@ -54,6 +55,7 @@ export type BoardServerInput = {
   worktreeRoot: string
   shotDir: string
   headedPilot: boolean
+  metricsUrl: string | null
   mode: BoardMode
 }
 
@@ -77,6 +79,7 @@ export function defaultBoardServerInput(): BoardServerInput {
     worktreeRoot: process.env.FORGE_WORKTREE_ROOT ?? join('..', 'forge-worktrees'),
     shotDir: process.env.FORGE_SHOT_DIR ?? join('..', 'forge-shots'),
     headedPilot: process.env.FORGE_PILOT_HEADED === 'true',
+    metricsUrl: process.env.FORGE_OTEL_METRICS_URL ?? null,
     mode: process.env.FORGE_MODE === 'hub' ? 'hub' : 'local',
   }
 }
@@ -92,6 +95,7 @@ export function startBoardServer({
   worktreeRoot,
   shotDir,
   headedPilot,
+  metricsUrl,
   mode,
 }: BoardServerInput): Promise<BoardServer> {
   const db = openDatabase(dbPath)
@@ -178,6 +182,7 @@ export function startBoardServer({
     }),
   )
   guarded.route('/', createPilotShotApi({ shotDir }))
+  guarded.route('/', createMachineApi({ metricsUrl }))
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
   guarded.route('/', createIncidentApi({ incidents: createIncidentRepository(db, { stories }), events }))
   guarded.route('/', api)
