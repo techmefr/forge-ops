@@ -101,11 +101,17 @@ La menace n'est pas le réseau, c'est **le navigateur** : n'importe quelle page 
 
 1. **Le board n'écoute que la boucle locale.** `FORGE_HOST` vaut `127.0.0.1`. Ne le passer à `0.0.0.0` qu'une fois une vraie authentification multi-utilisateurs écrite.
 2. **L'origine est vérifiée avant tout le reste.** Une requête portant un en-tête `Origin` inconnu part en `403`, même avec un jeton valide. C'est ce qui arrête une page web, parce qu'un navigateur envoie toujours `Origin` sur une requête d'origine croisée et ne peut pas l'omettre.
-3. **Un jeton par board**, 32 octets aléatoires, écrit dans `.forge-token` (droits `600`, gitignoré) au premier démarrage. Attendu en `Authorization: Bearer` ou `X-Forge-Token`, comparé en temps constant. `GET /api/events` l'accepte aussi en paramètre de requête, parce que `EventSource` ne sait pas poser d'en-tête — et seulement cette route.
+3. **Un jeton par board**, 32 octets aléatoires, écrit dans `.forge-token` (droits `600`, gitignoré) au premier démarrage. Attendu en `Authorization: Bearer` ou `X-Forge-Token`, comparé en temps constant. Deux routes seulement l'acceptent aussi en paramètre de requête, parce que leurs clients ne savent pas poser d'en-tête : `GET /api/events` (`EventSource`) et `POST /api/hooks` (le hook Claude Code).
 
 Le board **refuse de démarrer** si `.forge-token` existe mais est vide, tronqué ou illisible : pas de repli silencieux sans jeton.
 
-`POST /api/hooks` est la seule route ouverte sans jeton — les hooks Claude Code n'en portent pas, et mettre le jeton dans `.claude/settings.json` le ferait entrer dans git. Elle reste couverte par la vérification d'origine et par la boucle locale, et elle n'enregistre que des fichiers touchés pour une session déjà connue.
+**Aucune route n'est ouverte sans jeton**, l'entrée des hooks comprise. Le hook Claude Code ne sait pas poser d'en-tête, donc il porte le jeton dans son URL — ce qui interdit de versionner sa configuration. Elle vit dans `.claude/settings.local.json`, gitignoré et en droits `600`, généré par :
+
+```bash
+npm run hook:install
+```
+
+`.claude/settings.json`, lui, reste versionné et ne contient plus que le garde-fou `PreToolUse`, qui n'a besoin d'aucun secret. Les hooks étant lus au démarrage de la session, il faut redémarrer Claude Code après l'installation.
 
 Les chemins de preuve sont confinés : `evidencePath` doit vivre sous `.claude/evidence/`, sans `..`, sans chemin absolu, sans antislash, sans octet nul. Un `../../../.ssh/id_rsa` part en `409`.
 
@@ -126,6 +132,7 @@ npm run forge
 | Commande | Effet |
 |---|---|
 | `npm run forge` | Démarre le board (schéma appliqué au démarrage) |
+| `npm run hook:install` | Écrit le hook avec son jeton dans `.claude/settings.local.json` |
 | `npm test` | Suite complète (vitest) |
 | `npm run build` | Compile le TypeScript |
 
