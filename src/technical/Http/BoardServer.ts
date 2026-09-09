@@ -5,6 +5,7 @@ import { openDatabase } from '../Database/Connection.js'
 import { createStoryRepository } from '../../domain/Story/StoryRepository.js'
 import { createAgentSessionRepository } from '../../domain/Agent/AgentSessionRepository.js'
 import { createCheckpointRepository } from '../../domain/Checkpoint/CheckpointRepository.js'
+import { createZoneRepository } from '../../domain/Zone/ZoneRepository.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
 
 type ServerType = ReturnType<typeof serve>
@@ -32,6 +33,7 @@ export function defaultBoardServerInput(): BoardServerInput {
 export function startBoardServer({ port, dbPath, claudeHome }: BoardServerInput): Promise<BoardServer> {
   const db = openDatabase(dbPath)
   const api = createBoardApi({
+    zones: createZoneRepository(db),
     repository: createStoryRepository(db),
     agentSessions: createAgentSessionRepository(db),
     checkpoints: createCheckpointRepository(db),
