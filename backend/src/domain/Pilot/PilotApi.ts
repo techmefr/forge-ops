@@ -4,6 +4,7 @@ import type { EventBus } from '../../technical/Http/EventBus.js'
 import { StoryNotFoundError } from '../Story/StoryViolation.js'
 import type { PilotRepository } from './PilotRepository.js'
 import {
+  PilotBrowserLostError,
   PilotRunAlreadyLiveError,
   PilotRunNotFoundError,
   PilotRunOverError,
@@ -38,6 +39,9 @@ export function createPilotApi({ pilots, events }: PilotApiInput): Hono {
       return context.json({ error: error.name, message: error.message }, 404)
     }
     if (error instanceof PilotRunAlreadyLiveError || error instanceof PilotRunOverError) {
+      return context.json({ error: error.name, message: error.message }, 409)
+    }
+    if (error instanceof PilotBrowserLostError) {
       return context.json({ error: error.name, message: error.message }, 409)
     }
     if (error instanceof PilotRunPausedError) {
