@@ -16,8 +16,8 @@
     "forceConsistentCasingInFileNames": true,
     "allowImportingTsExtensions": true,
     "paths": {
-      "@/*": ["./web/src/*"]
+      "@/*": ["./frontend/src/*"]
     }
   },
-  "include": ["web/src", "web/env.d.ts"]
+  "include": ["frontend/src", "frontend/env.d.ts", "frontend/tests"]
 }

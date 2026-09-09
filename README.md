@@ -120,25 +120,32 @@ npm run forge
 
 ## 8. Structure
 
-OSDD des deux côtés : `technical/` ne dépend jamais de `domain/`.
+Un dossier par côté, OSDD dans chacun : `technical/` ne dépend jamais de `domain/`. Le hub, quand il viendra, sera un mode de `backend/`, pas un troisième dossier.
 
 ```
-db/forge.sql                     schéma SQLite (WAL)
-src/forge.ts                     entrypoint
-src/domain/Story/                story, jumelle, dépendances, backlog
-src/domain/Checkpoint/           les six étapes et leurs preuves
-src/domain/Criterion/            critères d'acceptation, porte de merge
-src/domain/Agent/                sessions d'agents, fichiers touchés, conflits
-src/domain/Board/                l'API HTTP du board
-src/technical/Database/          connexion SQLite
-src/technical/Http/              serveur
-src/technical/Guardrail/         liste de deny, décision, hook PreToolUse
-src/technical/ClaudeCode/        lecture du roster et des jobs Claude Code
-src/technical/Network/           port et sous-domaine déterministes
-tests/                           miroir de src/
-.claude/commands/                la séquence /SPEC … /SHIP
-.claude/skills/                  méthodologie embarquée
-.claude-deny.json                commandes jamais exécutées
+db/forge.sql                          schéma SQLite (WAL)
+
+backend/src/forge.ts                  entrypoint
+backend/src/domain/Story/             story, jumelle, dépendances, backlog
+backend/src/domain/Checkpoint/        les six étapes et leurs preuves
+backend/src/domain/Criterion/         critères d'acceptation, porte de merge
+backend/src/domain/Agent/             sessions d'agents, fichiers touchés, conflits
+backend/src/domain/Zone/              zones de fichiers et rattachement des chemins
+backend/src/domain/Board/             l'API HTTP du board
+backend/src/technical/Database/       connexion SQLite
+backend/src/technical/Http/           serveur
+backend/src/technical/Guardrail/      liste de deny, décision, hook PreToolUse
+backend/src/technical/ClaudeCode/     lecture du roster et des jobs Claude Code
+backend/src/technical/Network/        port et sous-domaine déterministes
+backend/tests/                        miroir de backend/src/
+
+frontend/index.html                   hôte de la SPA
+frontend/src/technical/Theme/         jetons de design, thèmes, contraste
+frontend/tests/                       miroir de frontend/src/
+
+.claude/commands/                     la séquence /SPEC … /SHIP
+.claude/skills/                       méthodologie embarquée
+.claude-deny.json                     commandes jamais exécutées
 ```
 
 ## 9. Stack

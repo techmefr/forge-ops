@@ -5,7 +5,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "forge": "tsx src/forge.ts",
+    "forge": "tsx backend/src/forge.ts",
     "dev:web": "vite",
     "build:back": "tsc -p tsconfig.json",
     "build:web": "vue-tsc -p tsconfig.web.json && vite build",

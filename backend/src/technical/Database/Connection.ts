@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path'
 import Database from 'better-sqlite3'
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url))
-const SCHEMA_PATH = join(MODULE_DIR, '..', '..', '..', 'db', 'forge.sql')
+const SCHEMA_PATH = join(MODULE_DIR, '..', '..', '..', '..', 'db', 'forge.sql')
 const BUSY_TIMEOUT_MS = 5000
 
 export function openDatabase(path: string): Database.Database {

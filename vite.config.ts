@@ -6,11 +6,11 @@ import { defineConfig } from 'vite'
 const BOARD_PORT = process.env.FORGE_PORT ?? '8830'
 
 export default defineConfig({
-  root: 'web',
+  root: 'frontend',
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./web/src', import.meta.url)),
+      '@': fileURLToPath(new URL('./frontend/src', import.meta.url)),
     },
   },
   server: {
