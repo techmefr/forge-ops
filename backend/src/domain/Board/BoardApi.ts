@@ -20,6 +20,7 @@ import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import { BudgetViolationError } from '../Budget/BudgetViolation.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
 import { scoreCompleteness } from '../Story/Completeness.js'
+import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
 import { buildStoryReport } from './StoryReport.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 
@@ -116,6 +117,7 @@ export type BoardApiInput = {
   budget: BudgetRepository
   events: EventBus
   dispatcher: Dispatcher
+  cleanUpAfterMerge: (storyId: number) => MergeCleanupReport
   claudeHome: string
 }
 
@@ -128,6 +130,7 @@ export function createBoardApi({
   budget,
   events,
   dispatcher,
+  cleanUpAfterMerge,
   claudeHome,
 }: BoardApiInput): Hono {
   const api = new Hono()
@@ -281,7 +284,9 @@ export function createBoardApi({
     for (const story of unblocked) {
       events.publish({ name: 'story.unblocked', payload: { ...story } })
     }
-    return context.json({ story: repository.findStory(storyId.data), unblocked })
+    const cleanUp = cleanUpAfterMerge(storyId.data)
+    events.publish({ name: 'story.merged', payload: { storyId: storyId.data, ...cleanUp } })
+    return context.json({ story: repository.findStory(storyId.data), unblocked, cleanUp })
   })
 
   api.post('/api/stories/:id/checkpoints', async (context) => {

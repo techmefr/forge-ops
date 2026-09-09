@@ -15,6 +15,10 @@ import { censusOfTree } from '../Tamper/TestTreeCensus.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { createIdentityRepository } from '../../domain/Identity/IdentityRepository.js'
 import { createIdentityApi } from '../../domain/Identity/IdentityApi.js'
+import { createWorktreeRepository } from '../../domain/Worktree/WorktreeRepository.js'
+import { createWorktreeApi } from '../../domain/Worktree/WorktreeApi.js'
+import { cleanUpAfterMerge } from '../../domain/Deployment/MergeCleanup.js'
+import { createGitWorktree } from '../Git/GitWorktree.js'
 import { createForemergeRepository } from '../../domain/Foremerge/ForemergeRepository.js'
 import { createForemergeApi } from '../../domain/Foremerge/ForemergeApi.js'
 import { createStatisticRepository } from '../../domain/Statistic/StatisticRepository.js'
@@ -43,6 +47,7 @@ export type BoardServerInput = {
   tokenPath: string
   distDir: string
   testsDir: string
+  worktreeRoot: string
   mode: BoardMode
 }
 
@@ -63,6 +68,7 @@ export function defaultBoardServerInput(): BoardServerInput {
     tokenPath: process.env.FORGE_TOKEN_PATH ?? '.forge-token',
     distDir: process.env.FORGE_DIST_DIR ?? join('dist', 'web'),
     testsDir: process.env.FORGE_TESTS_DIR ?? 'backend/tests',
+    worktreeRoot: process.env.FORGE_WORKTREE_ROOT ?? join('..', 'forge-worktrees'),
     mode: process.env.FORGE_MODE === 'hub' ? 'hub' : 'local',
   }
 }
@@ -75,6 +81,7 @@ export function startBoardServer({
   tokenPath,
   distDir,
   testsDir,
+  worktreeRoot,
   mode,
 }: BoardServerInput): Promise<BoardServer> {
   const db = openDatabase(dbPath)
@@ -82,6 +89,12 @@ export function startBoardServer({
   const events = createEventBus()
   const stories = createStoryRepository(db)
   const sessions = createAgentSessionRepository(db)
+  const foremerge = createForemergeRepository(db, { stories })
+  const worktrees = createWorktreeRepository(db, {
+    stories,
+    git: createGitWorktree({ repositoryRoot: process.cwd() }),
+    root: worktreeRoot,
+  })
   const dispatcher = createDispatcher({
     database: db,
     stories,
@@ -89,7 +102,7 @@ export function startBoardServer({
     criteria: createCriterionRepository(db),
     sessions,
     budget: createBudgetRepository(db),
-    foremerge: createForemergeRepository(db, { stories }),
+    foremerge,
     runner: createSdkSessionRunner({
       cwd: process.cwd(),
       onEvent: (event) => {
@@ -113,6 +126,12 @@ export function startBoardServer({
     criteria: createCriterionRepository(db),
     events,
     dispatcher,
+    cleanUpAfterMerge: (storyId) =>
+      cleanUpAfterMerge({
+        storyId,
+        releaseScope: foremerge.release,
+        closeWorktree: (target) => worktrees.close(target),
+      }),
     claudeHome,
   })
 
@@ -135,8 +154,9 @@ export function startBoardServer({
   guarded.get('/api/board/mode', (context) => context.json({ mode }))
   guarded.route(
     '/',
-    createForemergeApi({ foremerge: createForemergeRepository(db, { stories }), events }),
+    createForemergeApi({ foremerge, events }),
   )
+  guarded.route('/', createWorktreeApi({ worktrees, events }))
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
   guarded.route('/', createIncidentApi({ incidents: createIncidentRepository(db, { stories }), events }))
   guarded.route('/', api)

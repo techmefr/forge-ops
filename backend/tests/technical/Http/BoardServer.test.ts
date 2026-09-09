@@ -29,6 +29,7 @@ async function boot(): Promise<{ board: BoardServer; token: string }> {
     dbPath: ':memory:',
     claudeHome,
     host: '127.0.0.1',
+    worktreeRoot: join(claudeHome, 'worktrees'),
     tokenPath,
     testsDir: join(claudeHome, 'tests'),
     mode: 'local',

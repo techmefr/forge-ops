@@ -68,6 +68,7 @@ beforeEach(() => {
     events: createEventBus(),
     dispatcher: stubDispatch,
     claudeHome,
+    cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
   })
 })
 
@@ -154,6 +155,7 @@ describe('unexpected failures', () => {
       events: createEventBus(),
       dispatcher: stubDispatch,
       claudeHome,
+    cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
     })
 
     const response = await broken.request('/api/stories/backlog')

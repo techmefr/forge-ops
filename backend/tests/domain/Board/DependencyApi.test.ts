@@ -56,6 +56,7 @@ beforeEach(() => {
       countRunning: () => 0,
     },
     claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
+    cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
   })
 })
 
