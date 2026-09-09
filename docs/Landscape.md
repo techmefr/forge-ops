@@ -55,7 +55,7 @@ C'est le périmètre à construire, et il est plus étroit et plus net qu'avant 
 5. `NXTG-Forge Orchestrator` (FSL, bloqué) — **verrous exclusifs** de fichier entre Claude Code, Codex et Gemini CLI sur un même repo, testés contre 378 scénarios de concurrence.
 6. `Zaivern Code` (Apache-2.0) — **ownership de plages de lignes** appliqué à l'écriture, plus fin que le verrou de fichier.
 
-**Verdict.** Notre `path_claim` par préfixe se situe au niveau 2-3. `foremerge` est un cran au-dessus et se monte **sous** le board sans lui prendre la source de vérité : son store est un SQLite dans le `git-common-dir`, ses 18 opérations sont exposées en MCP stdio, et l'acceptation d'un changeset crée une ref git sans jamais merger. À laisser sans connecteur cloud.
+**Verdict.** Notre `scope_reservation` par préfixe et symboles se situe au niveau 2-3. `foremerge` est un cran au-dessus et se monte **sous** le board sans lui prendre la source de vérité : son store est un SQLite dans le `git-common-dir`, ses 18 opérations sont exposées en MCP stdio, et l'acceptation d'un changeset crée une ref git sans jamais merger. À laisser sans connecteur cloud.
 
 ### Étape 8 — coût et ressources : déjà résolu, plusieurs fois
 

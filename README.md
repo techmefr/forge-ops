@@ -240,7 +240,7 @@ L'orchestration bas niveau ne se réécrit pas : elle s'appuie sur le premier pa
 | Jetons de design lisibles (6 thèmes, clair et sombre) | Fait |
 | Dispatch d'une session par story (Agent SDK) | Fait |
 | SSE vers le board | Fait |
-| Réservation de périmètre refusée à l'écriture et au lancement | Fait |
+| Réservation de périmètre refusée à l'écriture et au lancement | Fait, plus un `PreToolUse` qui refuse l'écriture hors périmètre |
 | Comptes, sessions et mode hub | Fait |
 | Signalements venus du dehors, tranchés par un humain | Fait |
 | Plafond de coût qui coupe, conduite au choix | Fait |

@@ -22,7 +22,11 @@ export function createSdkSessionRunner({ cwd, onEvent }: SdkSessionRunnerInput):
           cwd,
           permissionMode: 'default',
           ...(order.model === undefined ? {} : { model: order.model }),
-          ...(order.baseUrl === undefined ? {} : { env: { ...process.env, ANTHROPIC_BASE_URL: order.baseUrl } }),
+          env: {
+            ...process.env,
+            FORGE_STORY_REFERENCE: order.reference,
+            ...(order.baseUrl === undefined ? {} : { ANTHROPIC_BASE_URL: order.baseUrl }),
+          },
         },
       })
 
