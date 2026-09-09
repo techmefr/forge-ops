@@ -84,6 +84,17 @@ Le board expose une API HTTP (Hono). `POST /api/hooks` est aussi la cible des ho
 | `GET /api/board/phases` | Le contrat des phases et leurs prérequis |
 | `GET /api/files/conflicts` | Chemins revendiqués par plus d'une story |
 | `GET /api/fleet` | État des sessions d'agents lues chez Claude Code |
+| `POST /api/stories/:id/scope` | Réserve un périmètre (dossier et symboles) pour une story |
+| `DELETE /api/stories/:id/scope` | Rend tout ce que la story tenait |
+| `GET /api/scope/reservations` | Les périmètres tenus, avec la story qui les tient |
+| `GET /api/scope/collisions` | Les recouvrements que le board subit |
+| `GET /api/sessions/history` | L'historique des sessions : durée, coût, classe de sortie |
+| `GET /api/statistics` | Les totaux, les agents les plus sollicités, le temps par étape |
+| `GET /api/incidents` | Les signalements venus du dehors, filtrés par état |
+| `POST /api/origins/:slug/incidents` | Reçoit un signalement d'une source déclarée |
+| `POST /api/incidents/:id/accept` | En fait une story et sa jumelle |
+| `POST /api/incidents/:id/refuse` | Refuse le signalement, motif obligatoire |
+| `GET`/`PUT /api/settings/budget` | Le plafond de coût et la conduite à tenir quand il tombe |
 
 Codes retour : `404` story inconnue, `409` refus métier (violation de séquence, preuve manquante, dépendance non résolue, finding `strong` ouvert), `500` uniquement pour un vrai imprévu — un refus métier ne se déguise jamais en erreur serveur, et l'inverse non plus.
 
@@ -163,6 +174,12 @@ backend/src/domain/Agent/             sessions d'agents, fichiers touchés, conf
 backend/src/domain/Zone/              zones de fichiers et rattachement des chemins
 backend/src/domain/Dispatch/          contrat des phases, plafond, lancement
 backend/src/domain/Board/             l'API HTTP du board
+backend/src/domain/Budget/            plafond de coût et conduite à tenir
+backend/src/domain/Foremerge/         réservation de périmètre et collisions
+backend/src/domain/Identity/          comptes, sessions, mode hub
+backend/src/domain/Incident/          sources et signalements du dehors
+backend/src/domain/Statistic/         historique des sessions et totaux
+backend/src/domain/Tamper/            recensement des tests avant la review
 backend/src/technical/Database/       connexion SQLite
 backend/src/technical/Http/           serveur, bus d'événements, flux SSE
 backend/src/technical/Guardrail/      liste de deny, décision, hook PreToolUse
@@ -171,7 +188,12 @@ backend/src/technical/Network/        port et sous-domaine déterministes
 backend/tests/                        miroir de backend/src/
 
 frontend/index.html                   hôte de la SPA
+frontend/src/technical/Api/           client du board, flux d'événements
+frontend/src/technical/Router/        les neuf écrans du pipeline
 frontend/src/technical/Theme/         jetons de design, thèmes, contraste
+frontend/src/technical/Ui/            états d'écran partagés
+frontend/src/domain/Shell/            coque, rail de navigation, agents actifs
+frontend/src/domain/<Ecran>/          un dossier par écran
 frontend/tests/                       miroir de frontend/src/
 
 .claude/commands/                     la séquence /SPEC … /SHIP
@@ -182,7 +204,7 @@ frontend/tests/                       miroir de frontend/src/
 ## 10. Stack
 
 - **Back** : TypeScript sur Node + Hono, `better-sqlite3`, `zod`, vitest
-- **Front** (à venir) : Vue 3 + TypeScript + Vite, SPA pure — pas de Nuxt, pas de SSR — `vue-router`, Pinia pour l'état seulement, shadcn-vue + Tailwind
+- **Front** : Vue 3 + TypeScript + Vite, SPA pure — pas de Nuxt, pas de SSR — `vue-router`, Pinia pour l'état seulement, shadcn-vue + Tailwind
 - Un process en production (le serveur sert `dist/`), deux en développement (`vite dev` proxifie `/api`)
 
 L'orchestration bas niveau ne se réécrit pas : elle s'appuie sur le premier parti — le daemon `claude agents`, l'isolation par worktree et les hooks — plutôt que sur un pilotage par scraping de terminal.
@@ -208,10 +230,15 @@ L'orchestration bas niveau ne se réécrit pas : elle s'appuie sur le premier pa
 | Jetons de design lisibles (6 thèmes, clair et sombre) | Fait |
 | Dispatch d'une session par story (Agent SDK) | Fait |
 | SSE vers le board | Fait |
-| Réservation de portée refusée à l'écriture (`path_claim`) | À faire — candidat : monter `foremerge` plutôt que réécrire |
+| Réservation de périmètre refusée à l'écriture et au lancement | Fait |
+| Comptes, sessions et mode hub | Fait |
+| Signalements venus du dehors, tranchés par un humain | Fait |
+| Plafond de coût qui coupe, conduite au choix | Fait |
+| Historique des sessions et statistiques | Fait, lues depuis la base du board |
+| Front : routeur, coque et les neuf écrans du pipeline | Fait |
 | Cycle de vie des worktrees et réservations de port | À faire — s'appuie sur le daemon, pas de plomberie propre |
-| Ressources et statistiques | À consommer depuis OpenTelemetry, pas à collecter |
-| Feature flags | À déléguer à OpenFeature, jamais écrit ici |
-| Front (board, backlog, kanban, vue fichiers) | En cours — maquette dans [design/mockup](design/mockup) |
+| Métriques machine fines | À consommer depuis OpenTelemetry, pas à collecter |
+| Feature flags | À déléguer à OpenFeature, le board ne garde que le pourcentage |
+| Pilotage navigateur de l'étape 6 (ralenti, pause, inspection) | À faire — Playwright MCP et le Browser pane |
 
 Le relevé de l'outillage existant étape par étape est dans [docs/Tooling.md](docs/Tooling.md), et le listing exhaustif du paysage — environ 120 projets, licences et mécanismes — dans [docs/Landscape.md](docs/Landscape.md).
