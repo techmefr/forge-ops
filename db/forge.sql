@@ -143,6 +143,19 @@ CREATE TABLE IF NOT EXISTS agent_session (
     'interrupted'
   )),
   claude_code_version TEXT NOT NULL,
+  outcome TEXT CHECK (outcome IS NULL OR outcome IN (
+    'succeeded',
+    'failed',
+    'interrupted',
+    'killed',
+    'timed_out',
+    'budget_exhausted',
+    'permission_denied',
+    'looping',
+    'awaiting_human',
+    'runner_missing',
+    'unknown'
+  )),
   cost_usd REAL,
   started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   ended_at TEXT

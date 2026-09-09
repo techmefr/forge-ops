@@ -1,4 +1,5 @@
 import type Database from 'better-sqlite3'
+import { classifyOutcome, lifecycleOfOutcome, type OutcomeClass, type SessionExit } from './SessionOutcome.js'
 import type {
   AgentLifecycle,
   AgentPhase,
@@ -21,10 +22,16 @@ type AgentSessionRow = {
   cost_usd: number | null
 }
 
+export type ClosedSession = AgentSession & {
+  outcome: OutcomeClass
+  statement: string
+}
+
 export type AgentSessionRepository = {
   registerSession: (draft: AgentSessionDraft) => AgentSession
   findByClaudeSessionId: (claudeSessionId: string) => AgentSession | null
   updateLifecycle: (claudeSessionId: string, lifecycle: AgentLifecycle) => AgentSession
+  closeSession: (claudeSessionId: string, exit: SessionExit) => ClosedSession
   recordFileTouch: (draft: FileTouchDraft) => void
   listTouchedPaths: (storyId: number) => readonly string[]
   listConflictingPaths: () => readonly PathConflict[]
@@ -54,6 +61,10 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
   )
   const updateSessionLifecycle = db.prepare<[AgentLifecycle, string]>(
     'UPDATE agent_session SET lifecycle = ? WHERE claude_session_id = ?',
+  )
+  const closeSessionRow = db.prepare<[AgentLifecycle, OutcomeClass, string]>(
+    `UPDATE agent_session SET lifecycle = ?, outcome = ?, ended_at = datetime('now')
+      WHERE claude_session_id = ?`,
   )
   const insertFileTouch = db.prepare<[number, number, string]>(
     'INSERT INTO file_touch (story_id, agent_session_id, path) VALUES (?, ?, ?)',
@@ -96,6 +107,14 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
       requireSession(claudeSessionId)
       updateSessionLifecycle.run(lifecycle, claudeSessionId)
       return requireSession(claudeSessionId)
+    },
+
+    closeSession: (claudeSessionId, exit) => {
+      requireSession(claudeSessionId)
+      const verdict = classifyOutcome(exit)
+      const lifecycle = lifecycleOfOutcome(verdict.outcome)
+      closeSessionRow.run(lifecycle, verdict.outcome, claudeSessionId)
+      return { ...requireSession(claudeSessionId), outcome: verdict.outcome, statement: verdict.statement }
     },
 
     recordFileTouch: (draft) => {

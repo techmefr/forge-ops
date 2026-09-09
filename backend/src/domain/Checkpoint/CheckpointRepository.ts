@@ -22,6 +22,7 @@ import {
   LensAlreadyPassedError,
   LensOutOfOrderError,
   ReviewIncompleteError,
+  SelfReviewRefusedError,
   TestsTamperedError,
   UnresolvedFindingError,
 } from './CheckpointViolation.js'
@@ -29,6 +30,8 @@ import { StoryNotFoundError, TwinRequiredError } from '../Story/StoryViolation.j
 import { assertEvidencePath } from '../Evidence/EvidencePath.js'
 import { compareCensus, type TestCensus } from '../Tamper/TestCensus.js'
 import { UnknownAgentSessionError } from '../Agent/AgentViolation.js'
+
+const PRODUCING_PHASES: readonly string[] = ['spec', 'architecture', 'tdd', 'code', 'ship']
 
 type CheckpointRow = {
   id: number
@@ -113,6 +116,9 @@ export function createCheckpointRepository(
   )
   const selectSession = db.prepare<[string], { id: number }>(
     'SELECT id FROM agent_session WHERE claude_session_id = ?',
+  )
+  const selectSessionWithPhase = db.prepare<[string], { id: number; phase: string }>(
+    'SELECT id, phase FROM agent_session WHERE claude_session_id = ?',
   )
   const insertFinding = db.prepare<[number, number, ReviewLens, FindingSeverity, string, number | null, string]>(
     `INSERT INTO review_finding (story_id, agent_session_id, lens, severity, path, line, statement)
@@ -293,9 +299,12 @@ export function createCheckpointRepository(
       if (selectStory.get(storyId) === undefined) {
         throw new StoryNotFoundError(storyId)
       }
-      const session = selectSession.get(claudeSessionId)
+      const session = selectSessionWithPhase.get(claudeSessionId)
       if (session === undefined) {
         throw new UnknownAgentSessionError(claudeSessionId)
+      }
+      if (PRODUCING_PHASES.includes(session.phase)) {
+        throw new SelfReviewRefusedError(claudeSessionId, session.phase)
       }
       const cascade = reviewCascade(storyId)
       const index = REVIEW_LENS_SEQUENCE.indexOf(lens)
