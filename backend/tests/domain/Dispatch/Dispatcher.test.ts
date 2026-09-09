@@ -9,6 +9,7 @@ import {
   type AgentSessionRepository,
 } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { createDispatcher, type Dispatcher } from '../../../src/domain/Dispatch/Dispatcher.js'
+import { createBudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
 import type { LaunchOrder, SessionRunner } from '../../../src/domain/Dispatch/Dispatch.js'
 import {
   FleetSaturatedError,
@@ -42,6 +43,7 @@ function buildDispatcher(concurrencyCap = 3): Dispatcher {
     stories,
     checkpoints: createCheckpointRepository(db),
     sessions,
+    budget: createBudgetRepository(db),
     runner: fakeRunner(),
     concurrencyCap,
     claudeCodeVersion: '2.1.224',
@@ -140,6 +142,7 @@ describe('dispatch', () => {
       stories,
       checkpoints: createCheckpointRepository(db),
       sessions,
+      budget: createBudgetRepository(db),
       runner: {
         launch: () => Promise.reject(new Error('daemon absent')),
       },

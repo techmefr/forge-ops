@@ -2,6 +2,8 @@ import type Database from 'better-sqlite3'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
+import type { BudgetRepository } from '../Budget/BudgetRepository.js'
+import { BudgetExhaustedError } from '../Budget/BudgetViolation.js'
 import type { Story } from '../Story/Story.js'
 import { contractOfPhase, type Dispatched, type DispatchOrder, type SessionRunner } from './Dispatch.js'
 import {
@@ -19,6 +21,7 @@ export type DispatcherInput = {
   checkpoints: CheckpointRepository
   sessions: AgentSessionRepository
   runner: SessionRunner
+  budget: BudgetRepository
   concurrencyCap: number
   claudeCodeVersion: string
 }
@@ -44,6 +47,7 @@ export function createDispatcher({
   checkpoints,
   sessions,
   runner,
+  budget,
   concurrencyCap,
   claudeCodeVersion,
 }: DispatcherInput): Dispatcher {
@@ -95,6 +99,11 @@ export function createDispatcher({
         throw new FleetSaturatedError(running, concurrencyCap)
       }
 
+      const decision = budget.decideConduct()
+      if (decision.conduct === 'stop') {
+        throw new BudgetExhaustedError(decision.spentUsd, decision.capUsd)
+      }
+
       const prompt = promptFor(story, order.phase)
       const { claudeSessionId } = await runner.launch({
         storyId: order.storyId,
@@ -102,6 +111,8 @@ export function createDispatcher({
         phase: order.phase,
         agentName: contract.agentName,
         prompt,
+        ...(decision.model === undefined ? {} : { model: decision.model }),
+        ...(decision.baseUrl === undefined ? {} : { baseUrl: decision.baseUrl }),
       })
 
       sessions.registerSession({
@@ -118,6 +129,8 @@ export function createDispatcher({
         phase: order.phase,
         agentName: contract.agentName,
         prompt,
+        ...(decision.model === undefined ? {} : { model: decision.model }),
+        ...(decision.baseUrl === undefined ? {} : { baseUrl: decision.baseUrl }),
       }
     },
 
