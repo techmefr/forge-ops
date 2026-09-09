@@ -31,6 +31,7 @@ async function boot(): Promise<{ board: BoardServer; token: string }> {
     host: '127.0.0.1',
     tokenPath,
     testsDir: join(claudeHome, 'tests'),
+    mode: 'local',
     distDir,
   })
   return { board: started, token: readFileSync(tokenPath, 'utf-8').trim() }

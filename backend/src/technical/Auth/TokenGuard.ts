@@ -5,10 +5,21 @@ import { getCookie } from 'hono/cookie'
 export const BOARD_COOKIE = 'forge_token'
 export const HOOK_INTAKE_PATH = '/api/hooks'
 
+export const IDENTITY_COOKIE = 'forge_identity'
+
+export const OPEN_PATHS: readonly string[] = [
+  '/api/auth/login',
+  '/api/auth/logout',
+  '/api/auth/enrol',
+  '/api/auth/state',
+]
+
 export type TokenGuardInput = {
   token: string
   hookToken: string
   allowedOrigins: readonly string[]
+  requireIdentity?: boolean
+  readIdentity?: (sessionToken: string) => { login: string } | null
 }
 
 function sameSecret(offered: string, expected: string): boolean {
@@ -34,7 +45,13 @@ function headerSecret(authorization: string | undefined, ownHeader: string | und
   return value
 }
 
-export function createTokenGuard({ token, hookToken, allowedOrigins }: TokenGuardInput): MiddlewareHandler {
+export function createTokenGuard({
+  token,
+  hookToken,
+  allowedOrigins,
+  requireIdentity = false,
+  readIdentity,
+}: TokenGuardInput): MiddlewareHandler {
   return async (context, next) => {
     const origin = context.req.header('origin')
     if (origin !== undefined && !allowedOrigins.includes(origin)) {
@@ -48,6 +65,22 @@ export function createTokenGuard({ token, hookToken, allowedOrigins }: TokenGuar
       if (offered === null || !sameSecret(offered, hookToken)) {
         return context.json({ error: 'UnauthorizedHookIntake' }, 401)
       }
+      await next()
+      return undefined
+    }
+
+    if (requireIdentity) {
+      if (OPEN_PATHS.includes(context.req.path)) {
+        await next()
+        return undefined
+      }
+      const sessionToken =
+        context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE) ?? null
+      const identity = sessionToken === null ? null : (readIdentity?.(sessionToken) ?? null)
+      if (identity === null) {
+        return context.json({ error: 'UnauthenticatedBoardAccess' }, 401)
+      }
+      context.set('login', identity.login)
       await next()
       return undefined
     }
