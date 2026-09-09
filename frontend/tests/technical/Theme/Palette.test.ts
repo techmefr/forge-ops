@@ -7,7 +7,7 @@ import {
   mixColours,
   paletteVariables,
   resolvePalette,
-} from '../../../../web/src/technical/Theme/Palette.js'
+} from '../../../src/technical/Theme/Palette.js'
 
 describe('contrastRatio', () => {
   it('gives the extreme ratio for black on white', () => {

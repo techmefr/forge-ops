@@ -4,11 +4,11 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./web/src', import.meta.url)),
+      '@': fileURLToPath(new URL('./frontend/src', import.meta.url)),
     },
   },
   test: {
     root: '.',
-    include: ['tests/**/*.test.ts'],
+    include: ['backend/tests/**/*.test.ts', 'frontend/tests/**/*.test.ts'],
   },
 })

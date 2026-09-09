@@ -19,7 +19,6 @@
     "sourceMap": true
   },
   "include": [
-    "src",
-    "tests"
+    "backend"
   ]
 }
