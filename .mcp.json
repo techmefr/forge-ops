@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "starfleet": {
-      "command": "npx",
-      "args": ["tsx", "src/mcp/server.ts"]
-    }
-  }
-}

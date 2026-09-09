@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { allocatePort, allocateSubdomain, DEFAULT_BASE_PORT, DEFAULT_PORT_RANGE } from '../src/ports.js'
+import { allocatePort, allocateSubdomain, DEFAULT_BASE_PORT, DEFAULT_PORT_RANGE } from '../../../src/technical/Network/PortAllocator.js'
 
 describe('allocatePort', () => {
   it('is deterministic for the same branch name', () => {
