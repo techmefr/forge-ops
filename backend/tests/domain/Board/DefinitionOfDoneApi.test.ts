@@ -9,7 +9,14 @@ import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSes
 import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
 import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js'
+import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
+
+const stubDispatch = {
+  dispatch: () => Promise.reject(new Error('aucun lanceur dans ce test')),
+  countRunning: () => 0,
+}
+
 
 let api: Hono
 let storyId: number
@@ -46,6 +53,8 @@ beforeEach(() => {
     agentSessions: createAgentSessionRepository(db),
     checkpoints: createCheckpointRepository(db),
     criteria: createCriterionRepository(db),
+    events: createEventBus(),
+    dispatcher: stubDispatch,
     claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
   })
 })

@@ -79,6 +79,9 @@ Le board expose une API HTTP (Hono). `POST /api/hooks` est aussi la cible des ho
 | `POST /api/stories/:id/checkpoints` | Prouve une étape (`name`, `evidencePath`) |
 | `GET /api/stories/:id/dod` | Definition of done : six étapes, prouvée ou non, avec sa preuve |
 | `POST /api/hooks` | Reçoit les hooks Claude Code, enregistre les fichiers touchés |
+| `POST /api/stories/:id/dispatch` | Lance une session sur une phase (`phase`) |
+| `GET /api/events` | Flux SSE des mutations du board |
+| `GET /api/board/phases` | Le contrat des phases et leurs prérequis |
 | `GET /api/files/conflicts` | Chemins revendiqués par plus d'une story |
 | `GET /api/fleet` | État des sessions d'agents lues chez Claude Code |
 
@@ -117,6 +120,7 @@ npm run forge
 | `FORGE_PORT` | `8830` |
 | `FORGE_DB_PATH` | `forge.db` |
 | `CLAUDE_CONFIG_DIR` | `~/.claude` |
+| `FORGE_SESSION_CAP` | `3` |
 
 ## 8. Structure
 
@@ -131,11 +135,12 @@ backend/src/domain/Checkpoint/        les six étapes et leurs preuves
 backend/src/domain/Criterion/         critères d'acceptation, porte de merge
 backend/src/domain/Agent/             sessions d'agents, fichiers touchés, conflits
 backend/src/domain/Zone/              zones de fichiers et rattachement des chemins
+backend/src/domain/Dispatch/          contrat des phases, plafond, lancement
 backend/src/domain/Board/             l'API HTTP du board
 backend/src/technical/Database/       connexion SQLite
-backend/src/technical/Http/           serveur
+backend/src/technical/Http/           serveur, bus d'événements, flux SSE
 backend/src/technical/Guardrail/      liste de deny, décision, hook PreToolUse
-backend/src/technical/ClaudeCode/     lecture du roster et des jobs Claude Code
+backend/src/technical/ClaudeCode/     roster, jobs, lanceur de session (Agent SDK)
 backend/src/technical/Network/        port et sous-domaine déterministes
 backend/tests/                        miroir de backend/src/
 
@@ -175,8 +180,8 @@ L'orchestration bas niveau ne se réécrit pas : elle s'appuie sur le premier pa
 | Cascade de review par lentille, ordonnée et bloquante | Fait |
 | Zones de fichiers avec résumé et rattachement des chemins | Fait |
 | Jetons de design lisibles (6 thèmes, clair et sombre) | Fait |
-| Dispatch d'une session par story (Agent SDK) | À faire |
-| SSE vers le board | À faire |
+| Dispatch d'une session par story (Agent SDK) | Fait |
+| SSE vers le board | Fait |
 | Réservation de portée refusée à l'écriture (`path_claim`) | À faire — candidat : monter `foremerge` plutôt que réécrire |
 | Cycle de vie des worktrees et réservations de port | À faire — s'appuie sur le daemon, pas de plomberie propre |
 | Ressources et statistiques | À consommer depuis OpenTelemetry, pas à collecter |

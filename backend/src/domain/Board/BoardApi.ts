@@ -1,5 +1,7 @@
 import { Hono } from 'hono'
+import { streamSSE } from 'hono/streaming'
 import { z } from 'zod'
+import type { EventBus } from '../../technical/Http/EventBus.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { StoryNotFoundError, StoryViolationError } from '../Story/StoryViolation.js'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
@@ -10,6 +12,9 @@ import type { ZoneRepository } from '../Zone/ZoneRepository.js'
 import { ZoneNotFoundError, ZoneViolationError } from '../Zone/ZoneViolation.js'
 import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
 import { CriterionNotFoundError, CriterionViolationError } from '../Criterion/CriterionViolation.js'
+import type { Dispatcher } from '../Dispatch/Dispatcher.js'
+import { DispatchViolationError } from '../Dispatch/DispatchViolation.js'
+import { PHASE_CONTRACTS } from '../Dispatch/Dispatch.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 
@@ -67,12 +72,18 @@ const criterionDraftSchema = z.object({
 
 const criterionProofSchema = z.object({ evidencePath: z.string() })
 
+const dispatchSchema = z.object({
+  phase: z.enum(['spec', 'architecture', 'tdd', 'code', 'gate', 'review', 'ship']),
+})
+
 export type BoardApiInput = {
   repository: StoryRepository
   agentSessions: AgentSessionRepository
   checkpoints: CheckpointRepository
   criteria: CriterionRepository
   zones: ZoneRepository
+  events: EventBus
+  dispatcher: Dispatcher
   claudeHome: string
 }
 
@@ -82,9 +93,28 @@ export function createBoardApi({
   checkpoints,
   criteria,
   zones,
+  events,
+  dispatcher,
   claudeHome,
 }: BoardApiInput): Hono {
   const api = new Hono()
+
+  api.get('/api/events', (context) =>
+    streamSSE(context, async (stream) => {
+      const frames: Promise<void>[] = []
+      const unsubscribe = events.subscribe((event) => {
+        frames.push(stream.writeSSE({ event: event.name, data: JSON.stringify(event.payload) }))
+      })
+      stream.onAbort(unsubscribe)
+      await new Promise<void>((resolve) => {
+        stream.onAbort(() => {
+          unsubscribe()
+          resolve()
+        })
+      })
+      await Promise.allSettled(frames)
+    }),
+  )
 
   api.onError((error, context) => {
     if (error instanceof StoryNotFoundError) {
@@ -100,7 +130,8 @@ export function createBoardApi({
       error instanceof StoryViolationError ||
       error instanceof CheckpointViolationError ||
       error instanceof ZoneViolationError ||
-      error instanceof CriterionViolationError
+      error instanceof CriterionViolationError ||
+      error instanceof DispatchViolationError
     ) {
       return context.json({ error: error.name, message: error.message }, 409)
     }
@@ -112,7 +143,9 @@ export function createBoardApi({
     if (!draft.success) {
       return context.json({ error: 'InvalidStoryDraft', issues: draft.error.issues }, 422)
     }
-    return context.json(repository.writeStory(draft.data), 201)
+    const story = repository.writeStory(draft.data)
+    events.publish({ name: 'story.written', payload: { ...story } })
+    return context.json(story, 201)
   })
 
   api.post('/api/stories/:id/twin', async (context) => {
@@ -146,7 +179,9 @@ export function createBoardApi({
     if (!draft.success) {
       return context.json({ error: 'InvalidCheckpointDraft', issues: draft.error.issues }, 422)
     }
-    return context.json(checkpoints.proveCheckpoint({ storyId: storyId.data, ...draft.data }), 201)
+    const checkpoint = checkpoints.proveCheckpoint({ storyId: storyId.data, ...draft.data })
+    events.publish({ name: 'checkpoint.proven', payload: { ...checkpoint } })
+    return context.json(checkpoint, 201)
   })
 
   api.get('/api/stories/:id/ticket', (context) => {
@@ -300,7 +335,31 @@ export function createBoardApi({
     return context.json(checkpoints.passLens(storyId.data, lens.data))
   })
 
+  api.post('/api/stories/:id/dispatch', async (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const body = dispatchSchema.safeParse(await context.req.json().catch(() => null))
+    if (!body.success) {
+      return context.json({ error: 'InvalidDispatchOrder', issues: body.error.issues }, 422)
+    }
+    const dispatched = await dispatcher.dispatch({ storyId: storyId.data, phase: body.data.phase })
+    events.publish({
+      name: 'session.dispatched',
+      payload: {
+        storyId: dispatched.storyId,
+        phase: dispatched.phase,
+        agentName: dispatched.agentName,
+        claudeSessionId: dispatched.claudeSessionId,
+      },
+    })
+    return context.json(dispatched, 201)
+  })
+
   api.get('/api/board/columns', (context) => context.json(KANBAN_COLUMNS))
+
+  api.get('/api/board/phases', (context) => context.json(PHASE_CONTRACTS))
 
   api.post('/api/zones', async (context) => {
     const draft = zoneDraftSchema.safeParse(await context.req.json().catch(() => null))

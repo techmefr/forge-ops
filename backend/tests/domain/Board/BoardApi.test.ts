@@ -9,7 +9,14 @@ import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSes
 import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
 import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js'
 import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
+import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
+
+const stubDispatch = {
+  dispatch: () => Promise.reject(new Error('aucun lanceur dans ce test')),
+  countRunning: () => 0,
+}
+
 
 let api: Hono
 let repository: StoryRepository
@@ -48,7 +55,16 @@ beforeEach(() => {
     businessIntent: 'gerer les mails du client',
   }).id
   claudeHome = mkdtempSync(join(tmpdir(), 'starfleet-claude-home-'))
-  api = createBoardApi({ repository, agentSessions, checkpoints, criteria, zones, claudeHome })
+  api = createBoardApi({
+    repository,
+    agentSessions,
+    checkpoints,
+    criteria,
+    zones,
+    events: createEventBus(),
+    dispatcher: stubDispatch,
+    claudeHome,
+  })
 })
 
 describe('POST /api/stories', () => {
@@ -130,6 +146,8 @@ describe('unexpected failures', () => {
       agentSessions,
       checkpoints,
       criteria,
+      events: createEventBus(),
+      dispatcher: stubDispatch,
       claudeHome,
     })
 
