@@ -5,12 +5,14 @@ import { join } from 'node:path'
 import type { Hono } from 'hono'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { createStoryRepository, type StoryRepository } from '../../../src/domain/Story/StoryRepository.js'
+import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 
 let api: Hono
 let repository: StoryRepository
 let epicId: number
 let claudeHome: string
+let agentSessions: ReturnType<typeof createAgentSessionRepository>
 
 async function post(path: string, body?: unknown): Promise<Response> {
   return await api.request(path, {
@@ -21,7 +23,9 @@ async function post(path: string, body?: unknown): Promise<Response> {
 }
 
 beforeEach(() => {
-  repository = createStoryRepository(openDatabase(':memory:'))
+  const db = openDatabase(':memory:')
+  repository = createStoryRepository(db)
+  agentSessions = createAgentSessionRepository(db)
   const project = repository.createProject({
     slug: 'forge',
     name: 'Forge',
@@ -35,7 +39,7 @@ beforeEach(() => {
     businessIntent: 'gerer les mails du client',
   }).id
   claudeHome = mkdtempSync(join(tmpdir(), 'starfleet-claude-home-'))
-  api = createBoardApi({ repository, claudeHome })
+  api = createBoardApi({ repository, agentSessions, claudeHome })
 })
 
 describe('POST /api/stories', () => {
@@ -113,6 +117,7 @@ describe('unexpected failures', () => {
           throw new TypeError('lecture sur undefined')
         },
       },
+      agentSessions,
       claudeHome,
     })
 
