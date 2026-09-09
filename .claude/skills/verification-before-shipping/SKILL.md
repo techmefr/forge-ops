@@ -1,6 +1,6 @@
 ---
 name: verification-before-shipping
-description: Use before /SHIP, or whenever about to claim work is complete, fixed, or passing — before committing or opening a merge request.
+description: Use during /VERIFY and before /SHIP, or whenever about to claim work is complete, fixed, or passing — before committing or opening a merge request.
 ---
 
 # Verification avant livraison
@@ -13,10 +13,14 @@ Ne jamais affirmer "ca marche" ou "les tests passent" sans avoir reellement fait
 2. La sortie de la commande a ete lue en entier — un exit code non verifie n'est pas une preuve.
 3. Si un test a ete modifie ou supprime pour faire passer la suite, c'est signale explicitement, pas passe sous silence.
 
-## Regle d'or de starfleet
+## Une suite verte ne prouve pas la story
 
-**Aucun passage a `/SHIP` sans tests verts, peu importe qui a ecrit le code.** Cette regle ne se contourne pas, meme sous pression de delai. Si un test est rouge, retourne a `/BUILD` plutot que de forcer `/SHIP`.
+Le vert prouve que le code fait ce que le test dit. Il ne prouve pas que la story marche. C'est pour ca que `/VERIFY` existe entre `/BUILD` et `/REVIEW` : parcourir le chemin decrit par la story pour de vrai, dans le navigateur pilote quand elle est visible, par un aller-retour reel sur l'API quand elle ne l'est pas. Les cas de refus se parcourent autant que le cas nominal.
 
-## Lien avec la sequence starfleet
+## Regle d'or de forge
 
-`/SHIP` verifie ce prerequis avant de pousser la branche et d'ouvrir la MR en draft. Le `checkpoint: "mr_draft_pushed"` bascule le statut en `awaiting_human` : a partir de la, la revue humaine (dev auteur + 2 collegues) prend le relais, elle ne remplace pas cette verification, elle vient apres.
+**Une etape se prouve par un fichier, jamais par une affirmation.** Chaque checkpoint exige un `evidencePath` non vide, et le board refuse une etape hors sequence. Si tu n'as pas pu executer ce que tu devais observer, dis-le et arrete-toi — ne prouve pas une etape que tu n'as pas franchie.
+
+## Lien avec la sequence forge
+
+`/VERIFY` ecrit `.claude/evidence/<REFERENCE>/verified.md` : ce qui a ete parcouru, ce qui a ete observe, les captures ou les reponses brutes collees. `/SHIP` relit ensuite la definition of done complete via `GET /api/stories/:id/dod` : si une seule des six etapes est a `proven: false`, il n'y a pas de livraison. La derniere porte reste humaine — la story attend en `shipping`, elle ne passe pas en `done` toute seule.
