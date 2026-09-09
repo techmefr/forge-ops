@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { StoryNotFoundError, StoryViolationError } from '../Story/StoryViolation.js'
+import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 
 const storyDraftSchema = z.object({
@@ -17,12 +18,22 @@ const twinDraftSchema = z.object({
 
 const identifierSchema = z.coerce.number().int().positive()
 
+const hookPayloadSchema = z.object({
+  session_id: z.string().min(1),
+  hook_event_name: z.string().min(1),
+  tool_name: z.string().nullish(),
+  tool_input: z.object({ file_path: z.string().nullish() }).passthrough().nullish(),
+})
+
+const FILE_TOUCHING_TOOLS: readonly string[] = ['Edit', 'Write', 'NotebookEdit']
+
 export type BoardApiInput = {
   repository: StoryRepository
+  agentSessions: AgentSessionRepository
   claudeHome: string
 }
 
-export function createBoardApi({ repository, claudeHome }: BoardApiInput): Hono {
+export function createBoardApi({ repository, agentSessions, claudeHome }: BoardApiInput): Hono {
   const api = new Hono()
 
   api.onError((error, context) => {
@@ -64,6 +75,35 @@ export function createBoardApi({ repository, claudeHome }: BoardApiInput): Hono 
   })
 
   api.get('/api/stories/backlog', (context) => context.json(repository.listBacklog()))
+
+  api.post('/api/hooks', async (context) => {
+    const payload = hookPayloadSchema.safeParse(await context.req.json().catch(() => null))
+    if (!payload.success) {
+      return context.json({ error: 'InvalidHookPayload', issues: payload.error.issues }, 422)
+    }
+
+    const hook = payload.data
+    const path = hook.tool_input?.file_path
+    const touchesAFile =
+      hook.hook_event_name === 'PostToolUse' &&
+      hook.tool_name !== null &&
+      hook.tool_name !== undefined &&
+      FILE_TOUCHING_TOOLS.includes(hook.tool_name) &&
+      path !== null &&
+      path !== undefined
+    if (!touchesAFile) {
+      return context.json({ recorded: false }, 202)
+    }
+
+    if (agentSessions.findByClaudeSessionId(hook.session_id) === null) {
+      return context.json({ recorded: false }, 202)
+    }
+
+    agentSessions.recordFileTouch({ claudeSessionId: hook.session_id, path })
+    return context.json({ recorded: true }, 202)
+  })
+
+  api.get('/api/files/conflicts', (context) => context.json(agentSessions.listConflictingPaths()))
 
   api.get('/api/fleet', (context) =>
     context.json({
