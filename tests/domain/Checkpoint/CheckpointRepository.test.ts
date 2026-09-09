@@ -7,6 +7,7 @@ import {
   createCheckpointRepository,
   type CheckpointRepository,
 } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
+import { REVIEW_LENS_SEQUENCE } from '../../../src/domain/Checkpoint/Checkpoint.js'
 import {
   CheckpointAlreadyProvenError,
   CheckpointOutOfOrderError,
@@ -26,9 +27,28 @@ function prove(name: Parameters<CheckpointRepository['proveCheckpoint']>[0]['nam
   return checkpoints.proveCheckpoint({ storyId, name, evidencePath })
 }
 
+function runCascade(): void {
+  const sessions = createAgentSessionRepository(db)
+  for (const lens of REVIEW_LENS_SEQUENCE) {
+    const claudeSessionId = `cascade-${lens}`
+    sessions.registerSession({
+      storyId,
+      claudeSessionId,
+      phase: 'review',
+      agentName: `claude-${lens}`,
+      claudeCodeVersion: '2.1.224',
+    })
+    checkpoints.startLens(storyId, lens, claudeSessionId)
+    checkpoints.passLens(storyId, lens)
+  }
+}
+
 function proveUpTo(last: string): void {
   const order = ['spec_done', 'arch_done', 'tests_written', 'build_done', 'verified', 'reviewed'] as const
   for (const name of order) {
+    if (name === 'reviewed') {
+      runCascade()
+    }
     prove(name)
     if (name === last) {
       return
@@ -130,6 +150,7 @@ describe('reviewed', () => {
     recordStrongFinding()
     const [finding] = checkpoints.listUnresolvedFindings(storyId)
     checkpoints.resolveFinding(finding?.id ?? 0)
+    runCascade()
 
     expect(prove('reviewed').name).toBe('reviewed')
   })
@@ -152,6 +173,7 @@ describe('reviewed', () => {
       path: 'src/forge.ts',
       statement: 'nom de variable peu clair',
     })
+    runCascade()
 
     expect(prove('reviewed').name).toBe('reviewed')
   })

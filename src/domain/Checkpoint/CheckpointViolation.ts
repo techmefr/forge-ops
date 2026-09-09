@@ -28,3 +28,21 @@ export class UnresolvedFindingError extends CheckpointViolationError {
     super(`${count} finding(s) fort(s) non resolu(s) empechent de clore la review`, 'UnresolvedFindingError')
   }
 }
+
+export class LensOutOfOrderError extends CheckpointViolationError {
+  constructor(lens: string, blocking: string) {
+    super(`La passe ${lens} attend que ${blocking} soit au vert`, 'LensOutOfOrderError')
+  }
+}
+
+export class ReviewIncompleteError extends CheckpointViolationError {
+  constructor(pending: readonly string[]) {
+    super(`La cascade de review n'est pas terminee, il reste ${pending.join(', ')}`, 'ReviewIncompleteError')
+  }
+}
+
+export class LensAlreadyPassedError extends CheckpointViolationError {
+  constructor(lens: string) {
+    super(`La passe ${lens} est deja au vert`, 'LensAlreadyPassedError')
+  }
+}

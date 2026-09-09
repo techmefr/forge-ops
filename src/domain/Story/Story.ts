@@ -4,13 +4,41 @@ export type StoryState =
   | 'drafting'
   | 'backlog'
   | 'architecture'
-  | 'blocked'
+  | 'plan_review'
   | 'building'
   | 'gating'
   | 'reviewing'
   | 'shipping'
+  | 'flagged'
   | 'done'
   | 'escalated'
+
+export type KanbanColumnKey = Extract<
+  StoryState,
+  'architecture' | 'plan_review' | 'building' | 'gating' | 'reviewing' | 'shipping' | 'flagged' | 'done'
+>
+
+export type KanbanColumn = {
+  key: KanbanColumnKey
+  label: string
+  colour: string
+}
+
+export const KANBAN_COLUMNS: readonly KanbanColumn[] = [
+  { key: 'architecture', label: 'Architecture', colour: 'info' },
+  { key: 'plan_review', label: 'Plan à valider', colour: 'warn' },
+  { key: 'building', label: 'Dev', colour: 'acc' },
+  { key: 'gating', label: 'Test', colour: 'info' },
+  { key: 'reviewing', label: 'Review', colour: 'violet' },
+  { key: 'shipping', label: 'Merge', colour: 'orange' },
+  { key: 'flagged', label: 'Feature flag', colour: 'violet' },
+  { key: 'done', label: 'Prod', colour: 'green' },
+]
+
+export function columnOfState(state: StoryState): KanbanColumnKey | null {
+  const column = KANBAN_COLUMNS.find((candidate) => candidate.key === state)
+  return column === undefined ? null : column.key
+}
 
 export type Project = {
   id: number
@@ -37,6 +65,9 @@ export type Story = {
   body: string
   kind: StoryKind
   state: StoryState
+  points: number | null
+  rolloutPercent: number | null
+  mergeConflict: boolean
   escalationReason: string | null
 }
 

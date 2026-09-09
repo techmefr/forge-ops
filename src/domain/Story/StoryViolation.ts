@@ -40,3 +40,15 @@ export class BlockedByDependencyError extends StoryViolationError {
     super(`La story ${reference} est bloquee par ${blockingReferences.join(', ')}`, 'BlockedByDependencyError')
   }
 }
+
+export class PointsOutOfRangeError extends StoryViolationError {
+  constructor(points: number) {
+    super(`Une estimation vaut un nombre entier de points superieur a zero, pas ${points}`, 'PointsOutOfRangeError')
+  }
+}
+
+export class RolloutOutOfRangeError extends StoryViolationError {
+  constructor(percent: number) {
+    super(`Une exposition vaut de 0 a 100 pour cent, pas ${percent}`, 'RolloutOutOfRangeError')
+  }
+}

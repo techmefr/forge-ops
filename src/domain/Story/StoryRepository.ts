@@ -13,6 +13,8 @@ import type {
 } from './Story.js'
 import {
   BlockedByDependencyError,
+  PointsOutOfRangeError,
+  RolloutOutOfRangeError,
   SelfDependencyError,
   StoryNotFoundError,
   TwinAlreadyWrittenError,
@@ -29,6 +31,9 @@ type StoryRow = {
   body: string
   kind: StoryKind
   state: StoryState
+  points: number | null
+  rollout_percent: number | null
+  merge_conflict: number
   escalation_reason: string | null
 }
 
@@ -43,6 +48,10 @@ export type StoryRepository = {
   startBuilding: (storyId: number) => Story
   markDone: (storyId: number) => Story
   listBacklog: () => readonly Story[]
+  estimate: (storyId: number, points: number) => Story
+  rollOut: (storyId: number, percent: number) => Story
+  markMergeConflict: (storyId: number) => Story
+  clearMergeConflict: (storyId: number) => Story
 }
 
 function toStory(row: StoryRow): Story {
@@ -55,6 +64,9 @@ function toStory(row: StoryRow): Story {
     body: row.body,
     kind: row.kind,
     state: row.state,
+    points: row.points,
+    rolloutPercent: row.rollout_percent,
+    mergeConflict: row.merge_conflict === 1,
     escalationReason: row.escalation_reason,
   }
 }
@@ -95,6 +107,15 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
   )
   const selectBacklog = db.prepare<[], StoryRow>(
     "SELECT * FROM story WHERE kind = 'functional' AND state = 'backlog' ORDER BY id",
+  )
+  const updatePoints = db.prepare<[number, number]>(
+    "UPDATE story SET points = ?, updated_at = datetime('now') WHERE id = ?",
+  )
+  const updateRollout = db.prepare<[number, number]>(
+    "UPDATE story SET rollout_percent = ?, state = 'flagged', updated_at = datetime('now') WHERE id = ?",
+  )
+  const updateMergeConflict = db.prepare<[number, number]>(
+    "UPDATE story SET merge_conflict = ?, updated_at = datetime('now') WHERE id = ?",
   )
 
   function findStory(storyId: number): Story {
@@ -188,5 +209,35 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
     markDone: (storyId) => moveTo(storyId, 'done'),
 
     listBacklog: () => selectBacklog.all().map(toStory),
+
+    estimate: (storyId, points) => {
+      const story = findStory(storyId)
+      if (!Number.isInteger(points) || points <= 0) {
+        throw new PointsOutOfRangeError(points)
+      }
+      updatePoints.run(points, story.id)
+      return findStory(story.id)
+    },
+
+    rollOut: (storyId, percent) => {
+      const story = findStory(storyId)
+      if (!Number.isInteger(percent) || percent < 0 || percent > 100) {
+        throw new RolloutOutOfRangeError(percent)
+      }
+      updateRollout.run(percent, story.id)
+      return findStory(story.id)
+    },
+
+    markMergeConflict: (storyId) => {
+      const story = findStory(storyId)
+      updateMergeConflict.run(1, story.id)
+      return findStory(story.id)
+    },
+
+    clearMergeConflict: (storyId) => {
+      const story = findStory(storyId)
+      updateMergeConflict.run(0, story.id)
+      return findStory(story.id)
+    },
   }
 }
