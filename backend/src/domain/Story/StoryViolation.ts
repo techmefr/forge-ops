@@ -53,6 +53,15 @@ export class RolloutOutOfRangeError extends StoryViolationError {
   }
 }
 
+export class DependencyCycleError extends StoryViolationError {
+  constructor(reference: string, through: readonly string[]) {
+    super(
+      `Ce lien ferme une boucle : ${reference} bloque deja ${through.join(' puis ')}`,
+      'DependencyCycleError',
+    )
+  }
+}
+
 export class ProjectSlugTakenError extends StoryViolationError {
   constructor(slug: string) {
     super(`Le projet ${slug} existe deja sur ce board`, 'ProjectSlugTakenError')
