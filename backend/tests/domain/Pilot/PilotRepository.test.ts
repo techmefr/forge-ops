@@ -15,6 +15,7 @@ import {
   PilotRunNotFoundError,
   PilotRunOverError,
   PilotRunPausedError,
+  UnsafeDestinationError,
 } from '../../../src/domain/Pilot/PilotViolation.js'
 
 type Opened = { url: string; pace: string }
@@ -43,17 +44,19 @@ function fakeDriver(): PilotDriver {
   return {
     open: (url, pace) => {
       opened.push({ url, pace })
+      return Promise.resolve()
     },
     perform: (step) => {
       performed.push(step)
       if (refusals.has(step.kind)) {
-        throw new Error(`le pilote n a pas trouve ${step.target}`)
+        return Promise.reject(new Error(`le pilote n a pas trouve ${step.target}`))
       }
-      return answers.get(step.kind) ?? observation(`${step.kind} fait`)
+      return Promise.resolve(answers.get(step.kind) ?? observation(`${step.kind} fait`))
     },
-    inspect: () => observation('la page dit quelque chose'),
+    inspect: () => Promise.resolve(observation('la page dit quelque chose')),
     close: () => {
       closed += 1
+      return Promise.resolve()
     },
   }
 }
@@ -83,75 +86,82 @@ beforeEach(() => {
 })
 
 describe('start', () => {
-  it('opens the browser on the story url', () => {
-    start()
+  it('opens the browser on the story url', async () => {
+    await start()
 
     expect(opened).toEqual([{ url: 'http://localhost:5049/mails', pace: 'slow' }])
   })
 
-  it('begins before the first step, nothing has been watched yet', () => {
-    expect(start().position).toBe(0)
+  it('begins before the first step, nothing has been watched yet', async () => {
+    expect((await start()).position).toBe(0)
   })
 
-  it('is running, waiting for the human to advance', () => {
-    expect(start().state).toBe('running')
+  it('is running, waiting for the human to advance', async () => {
+    expect((await start()).state).toBe('running')
   })
 
-  it('names the story it walks through', () => {
-    expect(start().storyReference).toBe('FORGE-1')
+  it('names the story it walks through', async () => {
+    expect((await start()).storyReference).toBe('FORGE-1')
   })
 
-  it('keeps the script so the board can show what is coming', () => {
-    expect(start().script).toEqual(SCRIPT)
+  it('keeps the script so the board can show what is coming', async () => {
+    expect((await start()).script).toEqual(SCRIPT)
   })
 
-  it('refuses a second run on the same story', () => {
-    start()
+  it('refuses a second run on the same story', async () => {
+    await start()
 
-    expect(() => start()).toThrow(PilotRunAlreadyLiveError)
+    await expect(start()).rejects.toThrow(PilotRunAlreadyLiveError)
   })
 
-  it('refuses a story that does not exist', () => {
-    expect(() =>
+  it('refuses a story that does not exist', async () => {
+    await expect(
       pilots.start({ storyId: 999, url: 'http://x.test/', pace: 'live', script: SCRIPT }),
-    ).toThrow()
+    ).rejects.toThrow()
   })
 
-  it('does not touch the browser when it refuses', () => {
-    start()
+  it('does not touch the browser when it refuses', async () => {
+    await start()
     opened = []
 
-    expect(() => start()).toThrow()
+    await expect(start()).rejects.toThrow()
     expect(opened).toEqual([])
   })
 
-  it('checks the script before opening anything', () => {
-    expect(() =>
+  it('refuses a destination that is not a web address, a pilot is not a file reader', async () => {
+    await expect(
+      pilots.start({ storyId, url: 'file:///etc/passwd', pace: 'live', script: SCRIPT }),
+    ).rejects.toThrow(UnsafeDestinationError)
+    expect(opened).toEqual([])
+  })
+
+  it('checks the script before opening anything', async () => {
+    await expect(
       pilots.start({ storyId, url: 'http://x.test/', pace: 'live', script: [] }),
-    ).toThrow()
+    ).rejects.toThrow()
     expect(opened).toEqual([])
   })
 })
 
 describe('advance', () => {
-  it('performs the next step of the script', () => {
-    start()
-    pilots.advance(storyId)
+  it('performs the next step of the script', async () => {
+    await start()
+    await pilots.advance(storyId)
 
     expect(performed).toEqual([SCRIPT[0]])
   })
 
-  it('moves the cursor forward', () => {
-    start()
+  it('moves the cursor forward', async () => {
+    await start()
 
-    expect(pilots.advance(storyId).position).toBe(1)
+    expect((await pilots.advance(storyId)).position).toBe(1)
   })
 
-  it('records what it saw', () => {
-    start()
+  it('records what it saw', async () => {
+    await start()
     answers.set('goto', { detail: 'la liste des mails', screenshotPath: '/tmp/1.png', consoleErrors: [] })
 
-    expect(pilots.advance(storyId).acts[0]).toMatchObject({
+    expect((await pilots.advance(storyId)).acts[0]).toMatchObject({
       position: 0,
       kind: 'goto',
       outcome: 'passed',
@@ -160,191 +170,191 @@ describe('advance', () => {
     })
   })
 
-  it('passes the run once the last step is done', () => {
-    start()
-    pilots.advance(storyId)
-    pilots.advance(storyId)
+  it('passes the run once the last step is done', async () => {
+    await start()
+    await pilots.advance(storyId)
+    await pilots.advance(storyId)
 
-    expect(pilots.advance(storyId).state).toBe('passed')
+    expect((await pilots.advance(storyId)).state).toBe('passed')
   })
 
-  it('closes the browser when the run is over', () => {
-    start()
-    pilots.advance(storyId)
-    pilots.advance(storyId)
-    pilots.advance(storyId)
+  it('closes the browser when the run is over', async () => {
+    await start()
+    await pilots.advance(storyId)
+    await pilots.advance(storyId)
+    await pilots.advance(storyId)
 
     expect(closed).toBe(1)
   })
 
-  it('fails the run on the step the browser refused', () => {
-    start()
+  it('fails the run on the step the browser refused', async () => {
+    await start()
     refusals.add('goto')
 
-    expect(pilots.advance(storyId).state).toBe('failed')
+    expect((await pilots.advance(storyId)).state).toBe('failed')
   })
 
-  it('says which step failed and why', () => {
-    start()
+  it('says which step failed and why', async () => {
+    await start()
     refusals.add('goto')
 
-    expect(pilots.advance(storyId).acts[0]).toMatchObject({
+    expect((await pilots.advance(storyId)).acts[0]).toMatchObject({
       outcome: 'failed',
       detail: expect.stringContaining('n a pas trouve'),
     })
   })
 
-  it('stops walking after a failure', () => {
-    start()
+  it('stops walking after a failure', async () => {
+    await start()
     refusals.add('goto')
-    pilots.advance(storyId)
+    await pilots.advance(storyId)
 
-    expect(() => pilots.advance(storyId)).toThrow(PilotRunOverError)
+    await expect(pilots.advance(storyId)).rejects.toThrow(PilotRunOverError)
   })
 
-  it('fails a step whose page logged an error, a red console is not a pass', () => {
-    start()
+  it('fails a step whose page logged an error, a red console is not a pass', async () => {
+    await start()
     answers.set('goto', {
       detail: 'la liste des mails',
       screenshotPath: null,
       consoleErrors: ['TypeError: undefined is not a function'],
     })
 
-    expect(pilots.advance(storyId).acts[0]?.outcome).toBe('failed')
+    expect((await pilots.advance(storyId)).acts[0]?.outcome).toBe('failed')
   })
 
-  it('refuses to advance a paused run', () => {
-    start()
+  it('refuses to advance a paused run', async () => {
+    await start()
     pilots.pause(storyId)
 
-    expect(() => pilots.advance(storyId)).toThrow(PilotRunPausedError)
+    await expect(pilots.advance(storyId)).rejects.toThrow(PilotRunPausedError)
   })
 
-  it('refuses to advance a story with no run', () => {
-    expect(() => pilots.advance(storyId)).toThrow(PilotRunNotFoundError)
+  it('refuses to advance a story with no run', async () => {
+    await expect(pilots.advance(storyId)).rejects.toThrow(PilotRunNotFoundError)
   })
 })
 
 describe('pause and resume', () => {
-  it('pauses so the human can look around', () => {
-    start()
+  it('pauses so the human can look around', async () => {
+    await start()
 
     expect(pilots.pause(storyId).state).toBe('paused')
   })
 
-  it('keeps the browser open while paused, that is the point', () => {
-    start()
+  it('keeps the browser open while paused, that is the point', async () => {
+    await start()
     pilots.pause(storyId)
 
     expect(closed).toBe(0)
   })
 
-  it('resumes where it stopped', () => {
-    start()
-    pilots.advance(storyId)
+  it('resumes where it stopped', async () => {
+    await start()
+    await pilots.advance(storyId)
     pilots.pause(storyId)
 
     expect(pilots.resume(storyId).position).toBe(1)
   })
 
-  it('walks again once resumed', () => {
-    start()
+  it('walks again once resumed', async () => {
+    await start()
     pilots.pause(storyId)
     pilots.resume(storyId)
 
-    expect(() => pilots.advance(storyId)).not.toThrow()
+    await expect(pilots.advance(storyId)).resolves.toBeDefined()
   })
 
-  it('refuses to pause a run that is already over', () => {
-    start()
+  it('refuses to pause a run that is already over', async () => {
+    await start()
     refusals.add('goto')
-    pilots.advance(storyId)
+    await pilots.advance(storyId)
 
     expect(() => pilots.pause(storyId)).toThrow(PilotRunOverError)
   })
 })
 
 describe('inspect', () => {
-  it('reads the page without moving the cursor', () => {
-    start()
+  it('reads the page without moving the cursor', async () => {
+    await start()
     pilots.pause(storyId)
 
-    expect(pilots.inspect(storyId).detail).toBe('la page dit quelque chose')
+    expect((await pilots.inspect(storyId)).detail).toBe('la page dit quelque chose')
     expect(pilots.findForStory(storyId)?.position).toBe(0)
   })
 
-  it('refuses to inspect a story with no run', () => {
-    expect(() => pilots.inspect(storyId)).toThrow(PilotRunNotFoundError)
+  it('refuses to inspect a story with no run', async () => {
+    await expect(pilots.inspect(storyId)).rejects.toThrow(PilotRunNotFoundError)
   })
 })
 
 describe('abandon', () => {
-  it('closes the browser and gives up', () => {
-    start()
-    pilots.abandon(storyId)
+  it('closes the browser and gives up', async () => {
+    await start()
+    await pilots.abandon(storyId)
 
     expect(closed).toBe(1)
   })
 
-  it('leaves no live run behind', () => {
-    start()
-    pilots.abandon(storyId)
+  it('leaves no live run behind', async () => {
+    await start()
+    await pilots.abandon(storyId)
 
     expect(pilots.findForStory(storyId)).toBeNull()
   })
 
-  it('lets a new run start afterwards', () => {
-    start()
-    pilots.abandon(storyId)
+  it('lets a new run start afterwards', async () => {
+    await start()
+    await pilots.abandon(storyId)
 
-    expect(() => start()).not.toThrow()
+    await expect(start()).resolves.toBeDefined()
   })
 
-  it('refuses to abandon a story with no run', () => {
-    expect(() => pilots.abandon(storyId)).toThrow(PilotRunNotFoundError)
+  it('refuses to abandon a story with no run', async () => {
+    await expect(pilots.abandon(storyId)).rejects.toThrow(PilotRunNotFoundError)
   })
 })
 
 describe('findForStory', () => {
-  it('rends nothing before any run', () => {
+  it('rends nothing before any run', async () => {
     expect(pilots.findForStory(storyId)).toBeNull()
   })
 
-  it('rends nothing once the run has passed', () => {
-    start()
-    pilots.advance(storyId)
-    pilots.advance(storyId)
-    pilots.advance(storyId)
+  it('rends nothing once the run has passed', async () => {
+    await start()
+    await pilots.advance(storyId)
+    await pilots.advance(storyId)
+    await pilots.advance(storyId)
 
     expect(pilots.findForStory(storyId)).toBeNull()
   })
 })
 
 describe('history', () => {
-  it('is empty on a fresh board', () => {
+  it('is empty on a fresh board', async () => {
     expect(pilots.history(storyId)).toEqual([])
   })
 
-  it('keeps a finished run, the evidence outlives the browser', () => {
-    start()
-    pilots.abandon(storyId)
+  it('keeps a finished run, the evidence outlives the browser', async () => {
+    await start()
+    await pilots.abandon(storyId)
 
     expect(pilots.history(storyId)).toHaveLength(1)
   })
 
-  it('keeps the acts of a finished run', () => {
-    start()
-    pilots.advance(storyId)
-    pilots.abandon(storyId)
+  it('keeps the acts of a finished run', async () => {
+    await start()
+    await pilots.advance(storyId)
+    await pilots.abandon(storyId)
 
     expect(pilots.history(storyId)[0]?.acts).toHaveLength(1)
   })
 
-  it('shows the most recent run first', () => {
-    start()
-    pilots.abandon(storyId)
-    start()
-    pilots.abandon(storyId)
+  it('shows the most recent run first', async () => {
+    await start()
+    await pilots.abandon(storyId)
+    await start()
+    await pilots.abandon(storyId)
 
     const runs = pilots.history(storyId)
 
