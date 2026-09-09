@@ -3,6 +3,7 @@ import type {
   Dependency,
   Epic,
   EpicDraft,
+  EpicOverview,
   Project,
   ProjectDraft,
   Story,
@@ -16,6 +17,8 @@ import {
   PointsOutOfRangeError,
   RolloutOutOfRangeError,
   SelfDependencyError,
+  ProjectNotFoundError,
+  ProjectSlugTakenError,
   StoryNotFoundError,
   TwinAlreadyWrittenError,
   TwinOfTwinError,
@@ -39,7 +42,9 @@ type StoryRow = {
 
 export type StoryRepository = {
   createProject: (draft: ProjectDraft) => Project
+  listProjects: () => readonly Project[]
   createEpic: (draft: EpicDraft) => Epic
+  listEpics: (projectId: number) => readonly EpicOverview[]
   writeStory: (draft: StoryDraft) => Story
   writeTwin: (draft: TwinDraft) => Story
   findStory: (storyId: number) => Story
@@ -82,6 +87,31 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
   const insertStory = db.prepare<[number, number | null, string, string, string, StoryKind]>(
     'INSERT INTO story (epic_id, twin_of_story_id, reference, title, body, kind) VALUES (?, ?, ?, ?, ?, ?)',
   )
+  const selectProjects = db.prepare<
+    [],
+    {
+      id: number
+      slug: string
+      name: string
+      repository_url: string
+      integration_branch: string
+      colour: string
+    }
+  >('SELECT * FROM project ORDER BY name')
+  const selectEpics = db.prepare<
+    [number],
+    { id: number; project_id: number; title: string; business_intent: string; story_count: number }
+  >(
+    `SELECT epic.id, epic.project_id, epic.title, epic.business_intent,
+            COUNT(story.id) AS story_count
+       FROM epic
+       LEFT JOIN story ON story.epic_id = epic.id AND story.kind = 'functional'
+      WHERE epic.project_id = ?
+      GROUP BY epic.id
+      ORDER BY epic.id`,
+  )
+  const selectProjectById = db.prepare<[number], { id: number }>('SELECT id FROM project WHERE id = ?')
+  const selectProjectBySlug = db.prepare<[string], { id: number }>('SELECT id FROM project WHERE slug = ?')
   const selectStory = db.prepare<[number], StoryRow>('SELECT * FROM story WHERE id = ?')
   const selectTwin = db.prepare<[number], StoryRow>('SELECT * FROM story WHERE twin_of_story_id = ?')
   const selectProjectSlug = db.prepare<[number], { slug: string }>(
@@ -148,6 +178,9 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
 
   return {
     createProject: (draft) => {
+      if (selectProjectBySlug.get(draft.slug) !== undefined) {
+        throw new ProjectSlugTakenError(draft.slug)
+      }
       const info = insertProject.run(
         draft.slug,
         draft.name,
@@ -158,10 +191,32 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
       return { id: Number(info.lastInsertRowid), ...draft }
     },
 
+    listProjects: () =>
+      selectProjects.all().map((row) => ({
+        id: row.id,
+        slug: row.slug,
+        name: row.name,
+        repositoryUrl: row.repository_url,
+        integrationBranch: row.integration_branch,
+        colour: row.colour,
+      })),
+
     createEpic: (draft) => {
+      if (selectProjectById.get(draft.projectId) === undefined) {
+        throw new ProjectNotFoundError(draft.projectId)
+      }
       const info = insertEpic.run(draft.projectId, draft.title, draft.businessIntent)
       return { id: Number(info.lastInsertRowid), ...draft }
     },
+
+    listEpics: (projectId) =>
+      selectEpics.all(projectId).map((row) => ({
+        id: row.id,
+        projectId: row.project_id,
+        title: row.title,
+        businessIntent: row.business_intent,
+        storyCount: row.story_count,
+      })),
 
     writeStory: (draft) => {
       const info = insertStory.run(draft.epicId, null, nextReference(draft.epicId), draft.title, draft.body, 'functional')

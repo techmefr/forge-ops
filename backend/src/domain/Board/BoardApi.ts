@@ -19,6 +19,23 @@ import { EvidencePathRefusedError } from '../Evidence/EvidencePath.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 
+const projectDraftSchema = z.object({
+  slug: z
+    .string()
+    .min(1)
+    .regex(/^[a-z0-9][a-z0-9-]*$/),
+  name: z.string().min(1),
+  repositoryUrl: z.string().min(1),
+  integrationBranch: z.string().min(1),
+  colour: z.string().min(1),
+})
+
+const epicDraftSchema = z.object({
+  projectId: z.number().int().positive(),
+  title: z.string().min(1),
+  businessIntent: z.string().min(1),
+})
+
 const storyDraftSchema = z.object({
   epicId: z.number().int().positive(),
   title: z.string().min(1),
@@ -138,6 +155,36 @@ export function createBoardApi({
       return context.json({ error: error.name, message: error.message }, 409)
     }
     return context.json({ error: 'UnexpectedError' }, 500)
+  })
+
+  api.post('/api/projects', async (context) => {
+    const draft = projectDraftSchema.safeParse(await context.req.json().catch(() => null))
+    if (!draft.success) {
+      return context.json({ error: 'InvalidProjectDraft', issues: draft.error.issues }, 422)
+    }
+    const project = repository.createProject(draft.data)
+    events.publish({ name: 'project.created', payload: { ...project } })
+    return context.json(project, 201)
+  })
+
+  api.get('/api/projects', (context) => context.json(repository.listProjects()))
+
+  api.post('/api/epics', async (context) => {
+    const draft = epicDraftSchema.safeParse(await context.req.json().catch(() => null))
+    if (!draft.success) {
+      return context.json({ error: 'InvalidEpicDraft', issues: draft.error.issues }, 422)
+    }
+    const epic = repository.createEpic(draft.data)
+    events.publish({ name: 'epic.created', payload: { ...epic } })
+    return context.json(epic, 201)
+  })
+
+  api.get('/api/projects/:id/epics', (context) => {
+    const projectId = identifierSchema.safeParse(context.req.param('id'))
+    if (!projectId.success) {
+      return context.json({ error: 'InvalidProjectIdentifier' }, 422)
+    }
+    return context.json(repository.listEpics(projectId.data))
   })
 
   api.post('/api/stories', async (context) => {

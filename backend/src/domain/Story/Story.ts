@@ -56,6 +56,10 @@ export type Epic = {
   businessIntent: string
 }
 
+export type EpicOverview = Epic & {
+  storyCount: number
+}
+
 export type Story = {
   id: number
   epicId: number
