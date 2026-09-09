@@ -35,6 +35,11 @@ const WATCHED_EVENTS = [
   'worktree.opened',
   'worktree.closed',
   'story.merged',
+  'pilot.started',
+  'pilot.advanced',
+  'pilot.paused',
+  'pilot.resumed',
+  'pilot.ended',
 ] as const
 
 export function parseFrame(name: string, data: string): StreamedEvent | null {
