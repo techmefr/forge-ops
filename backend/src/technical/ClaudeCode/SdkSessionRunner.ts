@@ -18,7 +18,12 @@ export function createSdkSessionRunner({ cwd, onEvent }: SdkSessionRunnerInput):
     launch: async (order: LaunchOrder) => {
       const conversation = query({
         prompt: order.prompt,
-        options: { cwd, permissionMode: 'default' },
+        options: {
+          cwd,
+          permissionMode: 'default',
+          ...(order.model === undefined ? {} : { model: order.model }),
+          ...(order.baseUrl === undefined ? {} : { env: { ...process.env, ANTHROPIC_BASE_URL: order.baseUrl } }),
+        },
       })
 
       let claudeSessionId: string | null = null

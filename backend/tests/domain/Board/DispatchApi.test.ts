@@ -10,6 +10,7 @@ import { createCheckpointRepository } from '../../../src/domain/Checkpoint/Check
 import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js'
 import { createDispatcher } from '../../../src/domain/Dispatch/Dispatcher.js'
+import { createBudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 
@@ -47,12 +48,14 @@ beforeEach(() => {
     checkpoints: createCheckpointRepository(db),
     criteria,
     zones: createZoneRepository(db),
+    budget: createBudgetRepository(db),
     events: createEventBus(),
     dispatcher: createDispatcher({
       database: db,
       stories,
       checkpoints: createCheckpointRepository(db),
       sessions: createAgentSessionRepository(db),
+      budget: createBudgetRepository(db),
       runner: { launch: async () => ({ claudeSessionId: 'fake-session-1' }) },
       concurrencyCap: 2,
       claudeCodeVersion: '2.1.224',

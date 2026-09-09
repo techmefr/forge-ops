@@ -196,3 +196,9 @@ CREATE TABLE IF NOT EXISTS review_finding (
 );
 
 CREATE INDEX IF NOT EXISTS idx_review_finding_story ON review_finding(story_id);
+
+CREATE TABLE IF NOT EXISTS board_setting (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

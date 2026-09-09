@@ -11,6 +11,7 @@ import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js
 import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
+import { createBudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
 
 const stubDispatch = {
   dispatch: () => Promise.reject(new Error('aucun lanceur dans ce test')),
@@ -26,6 +27,7 @@ let agentSessions: ReturnType<typeof createAgentSessionRepository>
 let checkpoints: ReturnType<typeof createCheckpointRepository>
 let zones: ReturnType<typeof createZoneRepository>
 let criteria: ReturnType<typeof createCriterionRepository>
+let budget: ReturnType<typeof createBudgetRepository>
 
 async function post(path: string, body?: unknown): Promise<Response> {
   return await api.request(path, {
@@ -42,6 +44,7 @@ beforeEach(() => {
   agentSessions = createAgentSessionRepository(db)
   checkpoints = createCheckpointRepository(db)
   criteria = createCriterionRepository(db)
+  budget = createBudgetRepository(db)
   const project = repository.createProject({
     slug: 'forge',
     name: 'Forge',
@@ -61,6 +64,7 @@ beforeEach(() => {
     checkpoints,
     criteria,
     zones,
+    budget,
     events: createEventBus(),
     dispatcher: stubDispatch,
     claudeHome,
@@ -137,6 +141,7 @@ describe('unexpected failures', () => {
   it('does not disguise a programming error as a domain refusal', async () => {
     const broken = createBoardApi({
       zones,
+      budget,
       repository: {
         ...repository,
         listBacklog: () => {

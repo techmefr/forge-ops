@@ -16,8 +16,17 @@ import type { Dispatcher } from '../Dispatch/Dispatcher.js'
 import { DispatchViolationError } from '../Dispatch/DispatchViolation.js'
 import { PHASE_CONTRACTS } from '../Dispatch/Dispatch.js'
 import { EvidencePathRefusedError } from '../Evidence/EvidencePath.js'
+import type { BudgetRepository } from '../Budget/BudgetRepository.js'
+import { BudgetViolationError } from '../Budget/BudgetViolation.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
+
+const budgetPolicySchema = z.object({
+  capUsd: z.number().positive(),
+  conduct: z.enum(['stop', 'downgrade', 'reroute']),
+  downgradeModel: z.string(),
+  rerouteBaseUrl: z.string().nullable(),
+})
 
 const projectDraftSchema = z.object({
   slug: z
@@ -100,6 +109,7 @@ export type BoardApiInput = {
   checkpoints: CheckpointRepository
   criteria: CriterionRepository
   zones: ZoneRepository
+  budget: BudgetRepository
   events: EventBus
   dispatcher: Dispatcher
   claudeHome: string
@@ -111,6 +121,7 @@ export function createBoardApi({
   checkpoints,
   criteria,
   zones,
+  budget,
   events,
   dispatcher,
   claudeHome,
@@ -150,11 +161,26 @@ export function createBoardApi({
       error instanceof ZoneViolationError ||
       error instanceof CriterionViolationError ||
       error instanceof DispatchViolationError ||
+      error instanceof BudgetViolationError ||
       error instanceof EvidencePathRefusedError
     ) {
       return context.json({ error: error.name, message: error.message }, 409)
     }
     return context.json({ error: 'UnexpectedError' }, 500)
+  })
+
+  api.get('/api/settings/budget', (context) =>
+    context.json({ policy: budget.readPolicy(), spentUsd: budget.spentToday() }),
+  )
+
+  api.put('/api/settings/budget', async (context) => {
+    const policy = budgetPolicySchema.safeParse(await context.req.json().catch(() => null))
+    if (!policy.success) {
+      return context.json({ error: 'InvalidBudgetPolicy', issues: policy.error.issues }, 422)
+    }
+    const written = budget.writePolicy(policy.data)
+    events.publish({ name: 'budget.policy.written', payload: { ...written } })
+    return context.json(written)
   })
 
   api.post('/api/projects', async (context) => {

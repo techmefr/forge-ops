@@ -11,6 +11,7 @@ import { createCriterionRepository } from '../../../src/domain/Criterion/Criteri
 import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js'
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
+import { createBudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
 
 let api: Hono
 let repository: StoryRepository
@@ -40,6 +41,7 @@ beforeEach(() => {
     checkpoints: createCheckpointRepository(db),
     criteria: createCriterionRepository(db),
     zones: createZoneRepository(db),
+    budget: createBudgetRepository(db),
     events: createEventBus(),
     dispatcher: {
       dispatch: () => Promise.reject(new Error('aucun lanceur dans ce test')),

@@ -9,6 +9,7 @@ import { createCheckpointRepository } from '../../domain/Checkpoint/CheckpointRe
 import { createZoneRepository } from '../../domain/Zone/ZoneRepository.js'
 import { createCriterionRepository } from '../../domain/Criterion/CriterionRepository.js'
 import { createDispatcher } from '../../domain/Dispatch/Dispatcher.js'
+import { createBudgetRepository } from '../../domain/Budget/BudgetRepository.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { createEventBus } from './EventBus.js'
 import { createBoardPage } from './BoardPage.js'
@@ -66,6 +67,7 @@ export function startBoardServer({
     stories,
     checkpoints: createCheckpointRepository(db),
     sessions,
+    budget: createBudgetRepository(db),
     runner: createSdkSessionRunner({
       cwd: process.cwd(),
       onEvent: (event) => events.publish(event),
@@ -75,6 +77,7 @@ export function startBoardServer({
   })
   const api = createBoardApi({
     zones: createZoneRepository(db),
+    budget: createBudgetRepository(db),
     repository: stories,
     agentSessions: sessions,
     checkpoints: createCheckpointRepository(db),

@@ -14,6 +14,7 @@ import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js
 import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
+import { createBudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
 
 const stubDispatch = {
   dispatch: () => Promise.reject(new Error('aucun lanceur dans ce test')),
@@ -71,6 +72,7 @@ beforeEach(() => {
   })
   api = createBoardApi({
     zones: createZoneRepository(db),
+    budget: createBudgetRepository(db),
     repository: stories,
     agentSessions,
     checkpoints: createCheckpointRepository(db),
@@ -169,6 +171,7 @@ describe('GET /api/files/conflicts', () => {
     sessions.recordFileTouch({ claudeSessionId: 'bbbb', path: 'src/domain/Story/Story.ts' })
     const conflictApi = createBoardApi({
       zones: createZoneRepository(db),
+      budget: createBudgetRepository(db),
       repository: stories,
       agentSessions: sessions,
       checkpoints: createCheckpointRepository(db),

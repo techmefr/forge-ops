@@ -48,6 +48,8 @@ export type Dispatched = {
   phase: AgentPhase
   agentName: string
   prompt: string
+  model?: string
+  baseUrl?: string
 }
 
 export type SessionRunner = {
@@ -60,4 +62,6 @@ export type LaunchOrder = {
   phase: AgentPhase
   agentName: string
   prompt: string
+  model?: string
+  baseUrl?: string
 }
