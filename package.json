@@ -11,7 +11,8 @@
     "example:dev": "tsx examples/demo-app/src/server.ts",
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "forge": "tsx src/forge.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.1",
