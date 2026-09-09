@@ -43,6 +43,7 @@ export type StoryRepository = {
   writeStory: (draft: StoryDraft) => Story
   writeTwin: (draft: TwinDraft) => Story
   findStory: (storyId: number) => Story
+  findTwin: (storyId: number) => Story | null
   sendToBacklog: (storyId: number) => Story
   addDependency: (dependency: Dependency) => void
   startBuilding: (storyId: number) => Story
@@ -126,6 +127,11 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
     return toStory(row)
   }
 
+  function findTwin(storyId: number): Story | null {
+    const row = selectTwin.get(storyId)
+    return row === undefined ? null : toStory(row)
+  }
+
   function nextReference(epicId: number): string {
     const project = selectProjectSlug.get(epicId)
     if (project === undefined) {
@@ -175,6 +181,7 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
     },
 
     findStory,
+    findTwin,
 
     sendToBacklog: (storyId) => {
       const story = findStory(storyId)
