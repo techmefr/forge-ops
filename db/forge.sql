@@ -283,3 +283,33 @@ CREATE TABLE IF NOT EXISTS scope_reservation (
 );
 
 CREATE INDEX IF NOT EXISTS idx_scope_reservation_live ON scope_reservation(released_at);
+
+CREATE TABLE IF NOT EXISTS pilot_run (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  url TEXT NOT NULL,
+  pace TEXT NOT NULL CHECK (pace IN ('live', 'slow', 'step')),
+  state TEXT NOT NULL DEFAULT 'running' CHECK (state IN ('running', 'paused', 'passed', 'failed', 'abandoned')),
+  script TEXT NOT NULL,
+  position INTEGER NOT NULL DEFAULT 0,
+  started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ended_at TEXT,
+  CHECK (state IN ('running', 'paused') OR ended_at IS NOT NULL)
+);
+
+CREATE INDEX IF NOT EXISTS idx_pilot_run_story ON pilot_run(story_id, state);
+
+CREATE TABLE IF NOT EXISTS pilot_act (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  pilot_run_id INTEGER NOT NULL REFERENCES pilot_run(id),
+  position INTEGER NOT NULL,
+  kind TEXT NOT NULL,
+  target TEXT,
+  value TEXT,
+  outcome TEXT NOT NULL CHECK (outcome IN ('passed', 'failed')),
+  detail TEXT NOT NULL,
+  screenshot_path TEXT,
+  acted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_pilot_act_run ON pilot_act(pilot_run_id, position);
