@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
@@ -17,15 +17,56 @@ afterEach(async () => {
   rmSync(claudeHome, { recursive: true, force: true })
 })
 
-describe('startBoardServer', () => {
-  it('boots on a free port and answers the fleet route', async () => {
-    claudeHome = mkdtempSync(join(tmpdir(), 'starfleet-claude-home-'))
-    board = await startBoardServer({ port: 0, dbPath: ':memory:', claudeHome, host: '127.0.0.1' })
+async function boot(): Promise<{ board: BoardServer; token: string }> {
+  claudeHome = mkdtempSync(join(tmpdir(), 'starfleet-claude-home-'))
+  const tokenPath = join(claudeHome, '.forge-token')
+  const started = await startBoardServer({
+    port: 0,
+    dbPath: ':memory:',
+    claudeHome,
+    host: '127.0.0.1',
+    tokenPath,
+  })
+  return { board: started, token: readFileSync(tokenPath, 'utf-8').trim() }
+}
 
-    const response = await fetch(`http://127.0.0.1:${board.port}/api/fleet`)
+describe('startBoardServer', () => {
+  it('boots on a free port and answers the fleet route to a holder of the token', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/fleet`, {
+      headers: { authorization: `Bearer ${booted.token}` },
+    })
 
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toEqual({ roster: null, jobs: [] })
+  })
+
+  it('refuses the very same route without the token', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/fleet`)
+
+    expect(response.status).toBe(401)
+  })
+
+  it('refuses a dispatch coming from a web page', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/stories/1/dispatch`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${booted.token}`,
+        origin: 'https://site-malveillant.example',
+      },
+      body: JSON.stringify({ phase: 'spec' }),
+    })
+
+    expect(response.status).toBe(403)
   })
 
   it('binds the loopback interface by default, never every interface', () => {
@@ -33,11 +74,26 @@ describe('startBoardServer', () => {
   })
 
   it('answers on the loopback address it claims to bind', async () => {
-    claudeHome = mkdtempSync(join(tmpdir(), 'starfleet-claude-home-'))
-    board = await startBoardServer({ port: 0, dbPath: ':memory:', claudeHome, host: '127.0.0.1' })
+    const booted = await boot()
+    board = booted.board
 
-    const response = await fetch(`http://127.0.0.1:${board.port}/api/fleet`)
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/fleet`, {
+      headers: { authorization: `Bearer ${booted.token}` },
+    })
 
     expect(response.status).toBe(200)
+  })
+
+  it('takes the hook intake without a token, so the hooks keep working', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/hooks`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ session_id: 'inconnue', hook_event_name: 'PostToolUse' }),
+    })
+
+    expect(response.status).toBe(202)
   })
 })

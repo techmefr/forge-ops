@@ -25,6 +25,7 @@ import {
   UnresolvedFindingError,
 } from './CheckpointViolation.js'
 import { StoryNotFoundError, TwinRequiredError } from '../Story/StoryViolation.js'
+import { assertEvidencePath } from '../Evidence/EvidencePath.js'
 import { UnknownAgentSessionError } from '../Agent/AgentViolation.js'
 
 type CheckpointRow = {
@@ -162,6 +163,7 @@ export function createCheckpointRepository(db: Database.Database): CheckpointRep
       if (draft.evidencePath.trim().length === 0) {
         throw new EvidenceRequiredError(draft.name)
       }
+      const evidencePath = assertEvidencePath(draft.evidencePath)
 
       const proven = provenNames(draft.storyId)
       if (proven.includes(draft.name)) {
@@ -201,12 +203,12 @@ export function createCheckpointRepository(db: Database.Database): CheckpointRep
         }
       }
 
-      const info = insertCheckpoint.run(draft.storyId, draft.name, draft.evidencePath)
+      const info = insertCheckpoint.run(draft.storyId, draft.name, evidencePath)
       return {
         id: Number(info.lastInsertRowid),
         storyId: draft.storyId,
         name: draft.name,
-        evidencePath: draft.evidencePath,
+        evidencePath,
       }
     },
 

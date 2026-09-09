@@ -15,6 +15,7 @@ import { CriterionNotFoundError, CriterionViolationError } from '../Criterion/Cr
 import type { Dispatcher } from '../Dispatch/Dispatcher.js'
 import { DispatchViolationError } from '../Dispatch/DispatchViolation.js'
 import { PHASE_CONTRACTS } from '../Dispatch/Dispatch.js'
+import { EvidencePathRefusedError } from '../Evidence/EvidencePath.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 
@@ -131,7 +132,8 @@ export function createBoardApi({
       error instanceof CheckpointViolationError ||
       error instanceof ZoneViolationError ||
       error instanceof CriterionViolationError ||
-      error instanceof DispatchViolationError
+      error instanceof DispatchViolationError ||
+      error instanceof EvidencePathRefusedError
     ) {
       return context.json({ error: error.name, message: error.message }, 409)
     }

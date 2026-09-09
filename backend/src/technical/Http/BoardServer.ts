@@ -1,4 +1,5 @@
 import { serve } from '@hono/node-server'
+import { Hono } from 'hono'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { openDatabase } from '../Database/Connection.js'
@@ -11,18 +12,22 @@ import { createDispatcher } from '../../domain/Dispatch/Dispatcher.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { createEventBus } from './EventBus.js'
 import { createSdkSessionRunner } from '../ClaudeCode/SdkSessionRunner.js'
+import { createTokenGuard } from '../Auth/TokenGuard.js'
+import { resolveBoardToken } from '../Auth/BoardToken.js'
 
 const DEFAULT_SESSION_CAP = 3
 
 type ServerType = ReturnType<typeof serve>
 
 const LOOPBACK = '127.0.0.1'
+const HOOK_INTAKE = '/api/hooks'
 
 export type BoardServerInput = {
   port: number
   dbPath: string
   claudeHome: string
   host: string
+  tokenPath: string
 }
 
 export type BoardServer = {
@@ -37,11 +42,19 @@ export function defaultBoardServerInput(): BoardServerInput {
     dbPath: process.env.FORGE_DB_PATH ?? 'forge.db',
     claudeHome: process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), '.claude'),
     host: process.env.FORGE_HOST ?? LOOPBACK,
+    tokenPath: process.env.FORGE_TOKEN_PATH ?? '.forge-token',
   }
 }
 
-export function startBoardServer({ port, dbPath, claudeHome, host }: BoardServerInput): Promise<BoardServer> {
+export function startBoardServer({
+  port,
+  dbPath,
+  claudeHome,
+  host,
+  tokenPath,
+}: BoardServerInput): Promise<BoardServer> {
   const db = openDatabase(dbPath)
+  const token = resolveBoardToken(tokenPath)
   const events = createEventBus()
   const stories = createStoryRepository(db)
   const sessions = createAgentSessionRepository(db)
@@ -68,8 +81,19 @@ export function startBoardServer({ port, dbPath, claudeHome, host }: BoardServer
     claudeHome,
   })
 
+  const guarded = new Hono()
+  guarded.use(
+    '/api/*',
+    createTokenGuard({
+      token,
+      allowedOrigins: [`http://${host}:${port}`, 'http://localhost:8832', 'http://127.0.0.1:8832'],
+      openPaths: [HOOK_INTAKE],
+    }),
+  )
+  guarded.route('/', api)
+
   return new Promise((resolve) => {
-    const server = serve({ fetch: api.fetch, port, hostname: host }, (address) => {
+    const server = serve({ fetch: guarded.fetch, port, hostname: host }, (address) => {
       resolve({
         server,
         port: address.port,

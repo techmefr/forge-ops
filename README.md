@@ -95,11 +95,23 @@ Codes retour : `404` story inconnue, `409` refus métier (violation de séquence
 - Il **échoue fermé** : payload illisible, commande absente, liste de deny introuvable → refus.
 - `git push --force` et `-f` sont bloqués, `git push --force-with-lease` reste autorisé volontairement.
 
-**Le board n'écoute que la boucle locale.** `FORGE_HOST` vaut `127.0.0.1` par défaut, et ce n'est pas cosmétique : `POST /api/stories/:id/dispatch` lance une session qui écrit dans le repo et consomme le forfait. Aucune route n'est authentifiée — la seule protection est de ne pas être joignable. Ne mettre `FORGE_HOST` à `0.0.0.0` qu'une fois l'authentification écrite, jamais avant.
+## 7. Accès à l'API
+
+La menace n'est pas le réseau, c'est **le navigateur** : n'importe quelle page ouverte dans un onglet peut envoyer des requêtes sur `127.0.0.1`. Or `POST /api/stories/:id/dispatch` lance une session qui écrit dans le repo et consomme le forfait. Trois défenses, dans cet ordre.
+
+1. **Le board n'écoute que la boucle locale.** `FORGE_HOST` vaut `127.0.0.1`. Ne le passer à `0.0.0.0` qu'une fois une vraie authentification multi-utilisateurs écrite.
+2. **L'origine est vérifiée avant tout le reste.** Une requête portant un en-tête `Origin` inconnu part en `403`, même avec un jeton valide. C'est ce qui arrête une page web, parce qu'un navigateur envoie toujours `Origin` sur une requête d'origine croisée et ne peut pas l'omettre.
+3. **Un jeton par board**, 32 octets aléatoires, écrit dans `.forge-token` (droits `600`, gitignoré) au premier démarrage. Attendu en `Authorization: Bearer` ou `X-Forge-Token`, comparé en temps constant. `GET /api/events` l'accepte aussi en paramètre de requête, parce que `EventSource` ne sait pas poser d'en-tête — et seulement cette route.
+
+Le board **refuse de démarrer** si `.forge-token` existe mais est vide, tronqué ou illisible : pas de repli silencieux sans jeton.
+
+`POST /api/hooks` est la seule route ouverte sans jeton — les hooks Claude Code n'en portent pas, et mettre le jeton dans `.claude/settings.json` le ferait entrer dans git. Elle reste couverte par la vérification d'origine et par la boucle locale, et elle n'enregistre que des fichiers touchés pour une session déjà connue.
+
+Les chemins de preuve sont confinés : `evidencePath` doit vivre sous `.claude/evidence/`, sans `..`, sans chemin absolu, sans antislash, sans octet nul. Un `../../../.ssh/id_rsa` part en `409`.
 
 Le hook `PostToolUse` sur `Edit|Write|NotebookEdit` est de type `http` et poste sur `POST /api/hooks`. Les hooks sont lus au démarrage de la session : modifier `.claude/settings.json` n'a d'effet qu'à la session suivante.
 
-## 7. Installation et usage
+## 8. Installation et usage
 
 ### Prérequis
 
@@ -125,7 +137,7 @@ npm run forge
 | `FORGE_SESSION_CAP` | `3` |
 | `FORGE_HOST` | `127.0.0.1` |
 
-## 8. Structure
+## 9. Structure
 
 Un dossier par côté, OSDD dans chacun : `technical/` ne dépend jamais de `domain/`. Le hub, quand il viendra, sera un mode de `backend/`, pas un troisième dossier.
 
@@ -156,7 +168,7 @@ frontend/tests/                       miroir de frontend/src/
 .claude-deny.json                     commandes jamais exécutées
 ```
 
-## 9. Stack
+## 10. Stack
 
 - **Back** : TypeScript sur Node + Hono, `better-sqlite3`, `zod`, vitest
 - **Front** (à venir) : Vue 3 + TypeScript + Vite, SPA pure — pas de Nuxt, pas de SSR — `vue-router`, Pinia pour l'état seulement, shadcn-vue + Tailwind
@@ -164,7 +176,7 @@ frontend/tests/                       miroir de frontend/src/
 
 L'orchestration bas niveau ne se réécrit pas : elle s'appuie sur le premier parti — le daemon `claude agents`, l'isolation par worktree et les hooks — plutôt que sur un pilotage par scraping de terminal.
 
-## 10. État d'implémentation
+## 11. État d'implémentation
 
 | Brique | Statut |
 |---|---|
