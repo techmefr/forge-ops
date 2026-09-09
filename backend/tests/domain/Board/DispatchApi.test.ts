@@ -75,6 +75,7 @@ beforeEach(() => {
       claudeCodeVersion: '2.1.224',
     }),
     claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
+    cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
   })
 })
 

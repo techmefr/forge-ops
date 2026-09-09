@@ -80,6 +80,7 @@ beforeEach(() => {
     events: createEventBus(),
     dispatcher: stubDispatch,
     claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
+    cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
   })
 })
 
@@ -179,6 +180,7 @@ describe('GET /api/files/conflicts', () => {
       events: createEventBus(),
       dispatcher: stubDispatch,
       claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
+    cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
     })
 
     const response = await conflictApi.request('/api/files/conflicts')
