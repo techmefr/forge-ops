@@ -26,5 +26,6 @@ export type GitWorktreeRunner = {
   headSha: (baseRef: string) => string
   addWorktree: (addition: WorktreeAddition) => void
   removeWorktree: (path: string) => void
+  deleteBranch: (branch: string) => void
   isDirty: (path: string) => boolean
 }

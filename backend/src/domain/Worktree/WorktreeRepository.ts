@@ -12,7 +12,7 @@ import {
 
 export type WorktreeRepository = {
   open: (order: WorktreeOrder) => Worktree
-  close: (storyId: number, options?: { force?: boolean }) => void
+  close: (storyId: number, options?: { force?: boolean; deleteBranch?: boolean }) => void
   findForStory: (storyId: number) => Worktree | null
   listLive: () => readonly Worktree[]
 }
@@ -165,6 +165,9 @@ export function createWorktreeRepository(
         throw new WorktreeNotRemovableError(live.branch, 'du travail non commite y dort encore')
       }
       git.removeWorktree(live.path)
+      if (options.deleteBranch === true) {
+        git.deleteBranch(live.branch)
+      }
       releaseReservation.run(live.id)
       markRemoved.run(live.id)
     },

@@ -145,6 +145,25 @@ export type PathConflict = {
   storyIds: readonly number[]
 }
 
+export type Worktree = {
+  id: number
+  storyId: number
+  storyReference: string
+  path: string
+  branch: string
+  baseRef: string
+  baseSha: string
+  port: number
+  subdomain: string
+  createdAt: string
+}
+
+export type MergeCleanup = {
+  scopesReleased: number
+  worktreeClosed: boolean
+  worktreeRefusal: string | null
+}
+
 export type ScopeReservation = {
   id: number
   storyId: number
