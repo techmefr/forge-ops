@@ -3,6 +3,9 @@ import { z } from 'zod'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { StoryNotFoundError, StoryViolationError } from '../Story/StoryViolation.js'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
+import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
+import { CHECKPOINT_SEQUENCE } from '../Checkpoint/Checkpoint.js'
+import { CheckpointViolationError } from '../Checkpoint/CheckpointViolation.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 
 const storyDraftSchema = z.object({
@@ -27,20 +30,26 @@ const hookPayloadSchema = z.object({
 
 const FILE_TOUCHING_TOOLS: readonly string[] = ['Edit', 'Write', 'NotebookEdit']
 
+const checkpointDraftSchema = z.object({
+  name: z.enum(CHECKPOINT_SEQUENCE),
+  evidencePath: z.string(),
+})
+
 export type BoardApiInput = {
   repository: StoryRepository
   agentSessions: AgentSessionRepository
+  checkpoints: CheckpointRepository
   claudeHome: string
 }
 
-export function createBoardApi({ repository, agentSessions, claudeHome }: BoardApiInput): Hono {
+export function createBoardApi({ repository, agentSessions, checkpoints, claudeHome }: BoardApiInput): Hono {
   const api = new Hono()
 
   api.onError((error, context) => {
     if (error instanceof StoryNotFoundError) {
       return context.json({ error: error.name, message: error.message }, 404)
     }
-    if (error instanceof StoryViolationError) {
+    if (error instanceof StoryViolationError || error instanceof CheckpointViolationError) {
       return context.json({ error: error.name, message: error.message }, 409)
     }
     return context.json({ error: 'UnexpectedError' }, 500)
@@ -75,6 +84,26 @@ export function createBoardApi({ repository, agentSessions, claudeHome }: BoardA
   })
 
   api.get('/api/stories/backlog', (context) => context.json(repository.listBacklog()))
+
+  api.post('/api/stories/:id/checkpoints', async (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const draft = checkpointDraftSchema.safeParse(await context.req.json().catch(() => null))
+    if (!draft.success) {
+      return context.json({ error: 'InvalidCheckpointDraft', issues: draft.error.issues }, 422)
+    }
+    return context.json(checkpoints.proveCheckpoint({ storyId: storyId.data, ...draft.data }), 201)
+  })
+
+  api.get('/api/stories/:id/dod', (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    return context.json(checkpoints.definitionOfDone(storyId.data))
+  })
 
   api.post('/api/hooks', async (context) => {
     const payload = hookPayloadSchema.safeParse(await context.req.json().catch(() => null))
