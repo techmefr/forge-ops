@@ -9,7 +9,17 @@ export const CHECKPOINT_SEQUENCE = [
 
 export type CheckpointName = (typeof CHECKPOINT_SEQUENCE)[number]
 
-export type ReviewLens = 'quality' | 'security' | 'accessibility'
+export const REVIEW_LENS_SEQUENCE = ['quality', 'security', 'accessibility'] as const
+
+export type ReviewLens = (typeof REVIEW_LENS_SEQUENCE)[number]
+
+export type ReviewPassState = 'pending' | 'running' | 'passed'
+
+export type ReviewPass = {
+  lens: ReviewLens
+  state: ReviewPassState
+  agentName: string | null
+}
 
 export type FindingSeverity = 'strong' | 'weak'
 

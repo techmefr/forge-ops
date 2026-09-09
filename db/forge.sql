@@ -30,14 +30,18 @@ CREATE TABLE IF NOT EXISTS story (
     'drafting',
     'backlog',
     'architecture',
-    'blocked',
+    'plan_review',
     'building',
     'gating',
     'reviewing',
     'shipping',
+    'flagged',
     'done',
     'escalated'
   )),
+  points INTEGER CHECK (points IS NULL OR points > 0),
+  rollout_percent INTEGER CHECK (rollout_percent IS NULL OR rollout_percent BETWEEN 0 AND 100),
+  merge_conflict INTEGER NOT NULL DEFAULT 0 CHECK (merge_conflict IN (0, 1)),
   escalation_reason TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -153,6 +157,28 @@ CREATE TABLE IF NOT EXISTS file_touch (
 );
 
 CREATE INDEX IF NOT EXISTS idx_file_touch_path ON file_touch(path);
+
+CREATE TABLE IF NOT EXISTS zone (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL REFERENCES project(id),
+  path_prefix TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  colour TEXT NOT NULL,
+  summary TEXT,
+  summarised_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS review_pass (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  lens TEXT NOT NULL CHECK (lens IN ('quality', 'security', 'accessibility')),
+  state TEXT NOT NULL DEFAULT 'pending' CHECK (state IN ('pending', 'running', 'passed')),
+  agent_session_id INTEGER REFERENCES agent_session(id),
+  started_at TEXT,
+  finished_at TEXT,
+  UNIQUE (story_id, lens),
+  CHECK (state <> 'passed' OR finished_at IS NOT NULL)
+);
 
 CREATE TABLE IF NOT EXISTS review_finding (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
