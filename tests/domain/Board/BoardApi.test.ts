@@ -167,3 +167,52 @@ describe('GET /api/fleet', () => {
     await expect(response.json()).resolves.toEqual({ roster: null, jobs: [] })
   })
 })
+
+describe('GET /api/stories/:id/ticket', () => {
+  it('serves both panels of the ticket', async () => {
+    const story = repository.writeStory({ epicId, title: 'visualiser les mails', body: 'en tant que...' })
+    repository.writeTwin({ storyId: story.id, title: 'tests visualiser', body: 'cas...' })
+
+    const response = await api.request(`/api/stories/${story.id}/ticket`)
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toMatchObject({
+      functional: { reference: 'FORGE-1', kind: 'functional' },
+      tests: { reference: 'FORGE-1-T', kind: 'test' },
+    })
+  })
+
+  it('serves a closed tests panel while the twin is not written', async () => {
+    const story = repository.writeStory({ epicId, title: 'visualiser les mails', body: 'en tant que...' })
+
+    const response = await api.request(`/api/stories/${story.id}/ticket`)
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toMatchObject({ tests: null })
+  })
+
+  it('serves the same ticket when asked by the twin identifier', async () => {
+    const story = repository.writeStory({ epicId, title: 'visualiser les mails', body: 'en tant que...' })
+    const twin = repository.writeTwin({ storyId: story.id, title: 'tests visualiser', body: 'cas...' })
+
+    const response = await api.request(`/api/stories/${twin.id}/ticket`)
+
+    await expect(response.json()).resolves.toMatchObject({ functional: { reference: 'FORGE-1' } })
+  })
+
+  it('carries the definition of done and the review cascade', async () => {
+    const story = repository.writeStory({ epicId, title: 'visualiser les mails', body: 'en tant que...' })
+
+    const response = await api.request(`/api/stories/${story.id}/ticket`)
+
+    const ticket = (await response.json()) as { dod: unknown[]; cascade: unknown[] }
+    expect(ticket.dod).toHaveLength(6)
+    expect(ticket.cascade).toHaveLength(3)
+  })
+
+  it('reports an unknown story as not found', async () => {
+    const response = await api.request('/api/stories/404/ticket')
+
+    expect(response.status).toBe(404)
+  })
+})

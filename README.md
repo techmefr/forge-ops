@@ -72,6 +72,7 @@ Le board expose une API HTTP (Hono). `POST /api/hooks` est aussi la cible des ho
 | `POST /api/stories/:id/twin` | Écrit sa jumelle de test |
 | `POST /api/stories/:id/backlog` | Envoie au backlog (refusé sans jumelle) |
 | `GET /api/stories/backlog` | Liste le backlog |
+| `GET /api/stories/:id/ticket` | Le ticket entier : volet fonctionnel, volet tests, DoD, cascade |
 | `POST /api/stories/:id/checkpoints` | Prouve une étape (`name`, `evidencePath`) |
 | `GET /api/stories/:id/dod` | Definition of done : six étapes, prouvée ou non, avec sa preuve |
 | `POST /api/hooks` | Reçoit les hooks Claude Code, enregistre les fichiers touchés |

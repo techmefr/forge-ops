@@ -126,6 +126,22 @@ export function createBoardApi({ repository, agentSessions, checkpoints, zones, 
     return context.json(checkpoints.proveCheckpoint({ storyId: storyId.data, ...draft.data }), 201)
   })
 
+  api.get('/api/stories/:id/ticket', (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const asked = repository.findStory(storyId.data)
+    const functional =
+      asked.twinOfStoryId === null ? asked : repository.findStory(asked.twinOfStoryId)
+    return context.json({
+      functional,
+      tests: repository.findTwin(functional.id),
+      dod: checkpoints.definitionOfDone(functional.id),
+      cascade: checkpoints.reviewCascade(functional.id),
+    })
+  })
+
   api.get('/api/stories/:id/dod', (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
     if (!storyId.success) {
