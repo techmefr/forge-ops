@@ -11,6 +11,7 @@ import { createCriterionRepository } from '../../domain/Criterion/CriterionRepos
 import { createDispatcher } from '../../domain/Dispatch/Dispatcher.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { createEventBus } from './EventBus.js'
+import { createBoardPage } from './BoardPage.js'
 import { createSdkSessionRunner } from '../ClaudeCode/SdkSessionRunner.js'
 import { createTokenGuard } from '../Auth/TokenGuard.js'
 import { deriveHookToken, resolveBoardToken } from '../Auth/BoardToken.js'
@@ -27,6 +28,7 @@ export type BoardServerInput = {
   claudeHome: string
   host: string
   tokenPath: string
+  distDir: string
 }
 
 export type BoardServer = {
@@ -42,6 +44,7 @@ export function defaultBoardServerInput(): BoardServerInput {
     claudeHome: process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), '.claude'),
     host: process.env.FORGE_HOST ?? LOOPBACK,
     tokenPath: process.env.FORGE_TOKEN_PATH ?? '.forge-token',
+    distDir: process.env.FORGE_DIST_DIR ?? join('dist', 'web'),
   }
 }
 
@@ -51,6 +54,7 @@ export function startBoardServer({
   claudeHome,
   host,
   tokenPath,
+  distDir,
 }: BoardServerInput): Promise<BoardServer> {
   const db = openDatabase(dbPath)
   const token = resolveBoardToken(tokenPath)
@@ -90,6 +94,7 @@ export function startBoardServer({
     }),
   )
   guarded.route('/', api)
+  guarded.route('/', createBoardPage({ token, distDir }))
 
   return new Promise((resolve) => {
     const server = serve({ fetch: guarded.fetch, port, hostname: host }, (address) => {
