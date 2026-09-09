@@ -16,10 +16,13 @@ const DEFAULT_SESSION_CAP = 3
 
 type ServerType = ReturnType<typeof serve>
 
+const LOOPBACK = '127.0.0.1'
+
 export type BoardServerInput = {
   port: number
   dbPath: string
   claudeHome: string
+  host: string
 }
 
 export type BoardServer = {
@@ -33,10 +36,11 @@ export function defaultBoardServerInput(): BoardServerInput {
     port: Number(process.env.FORGE_PORT ?? 8830),
     dbPath: process.env.FORGE_DB_PATH ?? 'forge.db',
     claudeHome: process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), '.claude'),
+    host: process.env.FORGE_HOST ?? LOOPBACK,
   }
 }
 
-export function startBoardServer({ port, dbPath, claudeHome }: BoardServerInput): Promise<BoardServer> {
+export function startBoardServer({ port, dbPath, claudeHome, host }: BoardServerInput): Promise<BoardServer> {
   const db = openDatabase(dbPath)
   const events = createEventBus()
   const stories = createStoryRepository(db)
@@ -65,7 +69,7 @@ export function startBoardServer({ port, dbPath, claudeHome }: BoardServerInput)
   })
 
   return new Promise((resolve) => {
-    const server = serve({ fetch: api.fetch, port }, (address) => {
+    const server = serve({ fetch: api.fetch, port, hostname: host }, (address) => {
       resolve({
         server,
         port: address.port,

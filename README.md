@@ -95,6 +95,8 @@ Codes retour : `404` story inconnue, `409` refus métier (violation de séquence
 - Il **échoue fermé** : payload illisible, commande absente, liste de deny introuvable → refus.
 - `git push --force` et `-f` sont bloqués, `git push --force-with-lease` reste autorisé volontairement.
 
+**Le board n'écoute que la boucle locale.** `FORGE_HOST` vaut `127.0.0.1` par défaut, et ce n'est pas cosmétique : `POST /api/stories/:id/dispatch` lance une session qui écrit dans le repo et consomme le forfait. Aucune route n'est authentifiée — la seule protection est de ne pas être joignable. Ne mettre `FORGE_HOST` à `0.0.0.0` qu'une fois l'authentification écrite, jamais avant.
+
 Le hook `PostToolUse` sur `Edit|Write|NotebookEdit` est de type `http` et poste sur `POST /api/hooks`. Les hooks sont lus au démarrage de la session : modifier `.claude/settings.json` n'a d'effet qu'à la session suivante.
 
 ## 7. Installation et usage
@@ -121,6 +123,7 @@ npm run forge
 | `FORGE_DB_PATH` | `forge.db` |
 | `CLAUDE_CONFIG_DIR` | `~/.claude` |
 | `FORGE_SESSION_CAP` | `3` |
+| `FORGE_HOST` | `127.0.0.1` |
 
 ## 8. Structure
 
