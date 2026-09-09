@@ -212,6 +212,31 @@ CREATE TABLE IF NOT EXISTS review_finding (
 
 CREATE INDEX IF NOT EXISTS idx_review_finding_story ON review_finding(story_id);
 
+CREATE TABLE IF NOT EXISTS incident_origin (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('sentry', 'user_report', 'idea', 'manual')),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS incident (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  origin_id INTEGER NOT NULL REFERENCES incident_origin(id),
+  fingerprint TEXT NOT NULL,
+  title TEXT NOT NULL,
+  detail TEXT NOT NULL,
+  occurrences INTEGER NOT NULL DEFAULT 1,
+  state TEXT NOT NULL DEFAULT 'pending' CHECK (state IN ('pending', 'accepted', 'refused')),
+  story_id INTEGER REFERENCES story(id),
+  refusal_reason TEXT,
+  first_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (origin_id, fingerprint)
+);
+
+CREATE INDEX IF NOT EXISTS idx_incident_state ON incident(state);
+
 CREATE TABLE IF NOT EXISTS board_user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   login TEXT NOT NULL UNIQUE,
