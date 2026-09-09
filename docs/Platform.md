@@ -70,14 +70,17 @@ Le point de départ de tout : **pendant que Claude travaille sur une story, on e
 - **Un nombre de sessions simultanées plafonné**, et le plafond n'est pas décoratif : au-delà, le lancement est refusé. Le critère est la ressource machine, pas l'envie.
 - **Aucune session ne bloque l'interface.** L'écriture d'une story pendant qu'une autre construit est le cas normal, pas l'exception.
 
-Et un plafond de coût par story, qui agit au lieu d'avertir. Deux conduites au choix, portées par la story :
+Et un plafond de coût par story, qui **agit** au lieu d'avertir. Ce qu'il fait à la limite n'est pas décidé par le board : c'est un réglage de la personne, parmi trois conduites.
 
 | Conduite | Effet à la limite |
 |---|---|
 | `stop` | La session est tuée, la story passe en `escalated` avec sa raison |
-| `downgrade` | La session repart sur un modèle moins cher et continue |
+| `downgrade` | La session repart sur un modèle Claude moins cher et continue |
+| `reroute` | La session repart chez un autre fournisseur, par un routeur, et continue |
 
-`downgrade` est le défaut sur un compte à forfait, où le plafond protège la fenêtre d'usage et non le portefeuille. `stop` est le défaut dès qu'il y a une facture à l'usage. Ce qui compte dans les deux cas : la limite s'applique, elle ne s'affiche pas.
+Aucune n'est le bon défaut pour tout le monde : `stop` protège une facture à l'usage, `downgrade` protège une fenêtre de forfait, `reroute` ne protège rien mais ne s'arrête jamais. Le choix vit dans les réglages du poste, et une story peut le surcharger — un correctif de production ne s'arrête pas parce qu'un plafond générique a été atteint.
+
+Ce qui n'est pas au choix : la limite s'applique. Les trois conduites font quelque chose ; aucune n'est « prévenir et continuer ».
 
 ## 6. Ce que ça ajoute en base
 
