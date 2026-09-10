@@ -566,13 +566,32 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
   const atlasStory = storyIds.get('atlas/zones')
 
   if (scopeStory !== undefined) {
-    const reviewSession = sessionOf.get('forge/scope/review') ?? workerOn('forge/scope') ?? ''
-    checkpoints.startLens(scopeStory, 'quality', reviewSession)
+    const lensSessionOf = (lens: 'quality' | 'security'): string => {
+      const claudeSessionId = `forge-scope-lens-${lens}`
+      sessions.registerSession({
+        storyId: scopeStory,
+        claudeSessionId,
+        phase: 'review',
+        agentName: LENS_AGENTS[lens],
+        claudeCodeVersion: '2.1.224',
+      })
+      sessions.recordUsage(claudeSessionId, {
+        costUsd: LENS_COST[lens],
+        inputTokens: LENS_TOKENS[lens],
+        outputTokens: Math.round(LENS_TOKENS[lens] / 8),
+      })
+      backdateSession.run(-1, -LENS_SECONDS[lens], -1, claudeSessionId)
+      return claudeSessionId
+    }
+    const qualitySession = lensSessionOf('quality')
+    const securitySession = lensSessionOf('security')
+    sessions.closeSession(qualitySession, { exitCode: 0 })
+    checkpoints.startLens(scopeStory, 'quality', qualitySession)
     checkpoints.passLens(scopeStory, 'quality')
-    checkpoints.startLens(scopeStory, 'security', reviewSession)
+    checkpoints.startLens(scopeStory, 'security', securitySession)
     checkpoints.recordFinding({
       storyId: scopeStory,
-      claudeSessionId: reviewSession,
+      claudeSessionId: securitySession,
       lens: 'security',
       severity: 'weak',
       path: 'backend/src/domain/Foremerge/ScopeGuard.ts',
