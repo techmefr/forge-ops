@@ -2,8 +2,11 @@
 import { computed } from 'vue'
 import type { Ticket } from '@/domain/Board/BoardModel'
 import { CHECKPOINT_LABELS } from './Checkpoint'
+import { PART_LABELS, partOf, type StoryPart } from './StoryPart'
 
-const { ticket } = defineProps<{ ticket: Ticket | null }>()
+const { ticket, part } = defineProps<{ ticket: Ticket | null; part: StoryPart }>()
+
+const shown = computed(() => partOf(ticket, part))
 
 const scoreColour = computed(() => {
   if (ticket === null) {
@@ -19,15 +22,22 @@ const scoreColour = computed(() => {
   </p>
 
   <article v-else class="flex flex-col gap-5">
-    <header class="rounded-2xl border border-line bg-card p-4">
+    <p
+      v-if="shown === null"
+      class="rounded-2xl border border-violet bg-violet-soft/10 p-4 text-sm text-txt-mid"
+    >
+      {{ PART_LABELS[part] }} pas encore ecrite. Elle prouve la fonctionnelle, et le backlog l attend.
+    </p>
+
+    <header v-else class="rounded-2xl border border-line bg-card p-4">
       <div class="flex items-baseline gap-2">
-        <span class="font-mono text-[11px] font-semibold text-acc">{{ ticket.functional.reference }}</span>
+        <span class="font-mono text-[11px] font-semibold text-acc">{{ shown.reference }}</span>
         <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">{{
-          ticket.functional.state
+          shown.state
         }}</span>
       </div>
-      <h2 class="display-italic mt-1 text-xl">{{ ticket.functional.title }}</h2>
-      <p class="mt-2 text-sm whitespace-pre-wrap text-txt-mid">{{ ticket.functional.body }}</p>
+      <h2 class="display-italic mt-1 text-xl">{{ shown.title }}</h2>
+      <p class="mt-2 text-sm whitespace-pre-wrap text-txt-mid">{{ shown.body }}</p>
       <p class="mt-3 font-mono text-[11px]" :class="scoreColour">
         Completude {{ ticket.completeness.score }}/100
         <span v-if="!ticket.completeness.launchable"> · rien ne partira en dessous de 60</span>
@@ -36,15 +46,6 @@ const scoreColour = computed(() => {
         <li v-for="gap in ticket.completeness.gaps" :key="gap" class="text-xs text-orange">{{ gap }}</li>
       </ul>
     </header>
-
-    <section
-      v-if="ticket.tests !== null"
-      class="rounded-2xl border border-violet bg-violet-soft/10 p-4"
-    >
-      <p class="font-mono text-[10px] tracking-[0.18em] text-violet uppercase">Jumelle de test</p>
-      <p class="mt-1 text-sm text-txt-hi">{{ ticket.tests.title }}</p>
-      <p class="mt-1.5 text-xs whitespace-pre-wrap text-txt-mid">{{ ticket.tests.body }}</p>
-    </section>
 
     <section class="rounded-2xl border border-line bg-card p-4">
       <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
