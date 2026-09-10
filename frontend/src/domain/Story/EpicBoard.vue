@@ -138,7 +138,7 @@ onMounted(async () => {
         class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
         @click="write()"
       >
-        Ecrire les stories
+        {{ picked.length > 1 ? 'Ecrire les stories' : 'Ecrire la story' }}
       </button>
     </div>
 
@@ -154,38 +154,40 @@ onMounted(async () => {
       empty-label="Aucune epique sous ce filtre."
       @retry="projects.reload()"
     >
-      <ul class="flex flex-col gap-2">
-        <li
+      <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+        <article
           v-for="epic in shown"
           :key="epic.id"
-          class="flex items-start gap-3 rounded-xl border bg-card p-4"
+          class="flex flex-col rounded-2xl border bg-card p-4 transition-colors"
           :class="picked.includes(epic.id) ? 'border-acc' : 'border-line'"
         >
-          <input
-            type="checkbox"
-            class="mt-1"
-            :checked="picked.includes(epic.id)"
-            :aria-label="`Choisir ${epic.title}`"
-            @change="toggle(epic.id)"
-          />
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <span
-                class="h-2 w-2 flex-none rounded-full"
-                :style="{ background: projectOf(epic.projectId)?.colour ?? 'var(--forge-line)' }"
-                aria-hidden="true"
+          <div class="flex items-center gap-2">
+            <span
+              class="h-3 w-3 flex-none rounded-full"
+              :style="{ background: projectOf(epic.projectId)?.colour ?? 'var(--forge-line)' }"
+              aria-hidden="true"
+            />
+            <span class="font-mono text-[11px] font-semibold text-acc">{{
+              projectOf(epic.projectId)?.name ?? 'Projet inconnu'
+            }}</span>
+            <label class="ml-auto flex items-center gap-1.5 text-[10px] text-txt-low uppercase">
+              <input
+                type="checkbox"
+                :checked="picked.includes(epic.id)"
+                :aria-label="`Choisir ${epic.title}`"
+                @change="toggle(epic.id)"
               />
-              <span class="font-mono text-[10px] text-txt-low uppercase">{{
-                projectOf(epic.projectId)?.name ?? 'Projet inconnu'
-              }}</span>
-              <span class="ml-2 font-mono text-[10px] text-txt-low"
-                >{{ epic.storyCount }} {{ epic.storyCount > 1 ? 'stories' : 'story' }}</span
-              >
-            </div>
-            <p class="display-italic mt-1 text-base">{{ epic.title }}</p>
-            <p class="mt-1 text-xs text-txt-mid">{{ epic.businessIntent }}</p>
+              Prendre
+            </label>
           </div>
-          <div class="flex flex-none flex-col items-end gap-2">
+
+          <h2 class="display-italic mt-2 text-base">{{ epic.title }}</h2>
+          <p class="mt-2 line-clamp-3 text-xs text-txt-mid">{{ epic.businessIntent }}</p>
+
+          <div class="mt-3 flex items-center gap-3 border-t border-line pt-3">
+            <span class="font-mono text-[10px] text-txt-low"
+              >{{ epic.storyCount }} {{ epic.storyCount > 1 ? 'stories' : 'story' }}</span
+            >
             <span
               class="font-mono text-[10px] uppercase"
               :class="epic.assignee === null ? 'text-green' : 'text-violet'"
@@ -195,23 +197,23 @@ onMounted(async () => {
               v-if="epic.assignee === null"
               type="button"
               :disabled="busy"
-              class="rounded-lg border border-line bg-elev px-3 py-1.5 text-[10px] font-bold text-txt-mid uppercase disabled:opacity-40 hover:border-acc"
+              class="ml-auto font-mono text-[10px] text-acc uppercase hover:underline disabled:opacity-40"
               @click="claim(epic.id)"
             >
-              Prendre
+              M attribuer
             </button>
             <button
               v-else-if="epic.assignee === self.data.value?.login"
               type="button"
               :disabled="busy"
-              class="rounded-lg border border-line bg-elev px-3 py-1.5 text-[10px] font-bold text-txt-mid uppercase disabled:opacity-40 hover:border-acc"
+              class="ml-auto font-mono text-[10px] text-txt-low uppercase hover:underline disabled:opacity-40"
               @click="release(epic.id)"
             >
               Rendre
             </button>
           </div>
-        </li>
-      </ul>
+        </article>
+      </div>
     </ScreenState>
   </div>
 </template>

@@ -55,9 +55,29 @@ export function useTicket() {
     await open(storyId)
   }
 
+  async function edit(storyId: number, draft: TwinDraft): Promise<void> {
+    await board.send(`/api/stories/${storyId}`, 'PUT', draft)
+    await open(storyId)
+  }
+
+  async function talk(storyId: number, message: string): Promise<void> {
+    await board.send(`/api/stories/${storyId}/talk`, 'POST', { message })
+  }
+
   async function dispatch(storyId: number, phase: string): Promise<void> {
     await board.send(`/api/stories/${storyId}/dispatch`, 'POST', { phase })
   }
 
-  return { openStoryId, ticket, open, write, writeTwin, declareCriterion, sendToBacklog, dispatch }
+  return {
+    openStoryId,
+    ticket,
+    open,
+    write,
+    writeTwin,
+    declareCriterion,
+    sendToBacklog,
+    dispatch,
+    edit,
+    talk,
+  }
 }

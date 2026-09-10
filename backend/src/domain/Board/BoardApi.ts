@@ -50,6 +50,11 @@ const projectDraftSchema = z.object({
   colour: z.string().min(1),
 })
 
+const cardSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  body: z.string().trim().min(1).max(8000),
+})
+
 const epicDraftSchema = z.object({
   projectId: z.number().int().positive(),
   title: z.string().min(1),
@@ -258,6 +263,21 @@ export function createBoardApi({
     const story = repository.writeStory(draft.data)
     events.publish({ name: 'story.written', payload: { ...story } })
     return context.json(story, 201)
+  })
+
+
+  api.put('/api/stories/:id', async (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const draft = cardSchema.safeParse(await context.req.json().catch(() => null))
+    if (!draft.success) {
+      return context.json({ error: 'InvalidCard', issues: draft.error.issues }, 422)
+    }
+    const story = repository.editStory(storyId.data, draft.data)
+    events.publish({ name: 'story.edited', payload: { ...story } })
+    return context.json(story)
   })
 
   api.post('/api/stories/:id/twin', async (context) => {

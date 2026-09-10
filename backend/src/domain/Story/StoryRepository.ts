@@ -17,6 +17,7 @@ import {
   PointsOutOfRangeError,
   RolloutOutOfRangeError,
   DependencyCycleError,
+  EmptyCardError,
   EpicNotFoundError,
   EpicTakenError,
   SelfDependencyError,
@@ -63,6 +64,7 @@ export type StoryRepository = {
   markDone: (storyId: number) => Story
   listBacklog: () => readonly Story[]
   listKanban: () => readonly Story[]
+  editStory: (storyId: number, draft: { title: string; body: string }) => Story
   estimate: (storyId: number, points: number) => Story
   rollOut: (storyId: number, percent: number) => Story
   markMergeConflict: (storyId: number) => Story
@@ -171,6 +173,9 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
     `SELECT * FROM story
       WHERE kind = 'functional' AND state NOT IN ('drafting', 'backlog')
       ORDER BY id`,
+  )
+  const updateCard = db.prepare<[string, string, number]>(
+    'UPDATE story SET title = ?, body = ? WHERE id = ?',
   )
   const updatePoints = db.prepare<[number, number]>(
     "UPDATE story SET points = ?, updated_at = datetime('now') WHERE id = ?",
@@ -372,6 +377,17 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
     listBacklog: () => selectBacklog.all().map(toStory),
 
     listKanban: () => selectKanban.all().map(toStory),
+
+    editStory: (storyId, draft) => {
+      const story = findStory(storyId)
+      const title = draft.title.trim()
+      const body = draft.body.trim()
+      if (title === '' || body === '') {
+        throw new EmptyCardError(story.reference)
+      }
+      updateCard.run(title, body, story.id)
+      return findStory(story.id)
+    },
 
     estimate: (storyId, points) => {
       const story = findStory(storyId)

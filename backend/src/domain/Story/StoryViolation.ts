@@ -85,3 +85,9 @@ export class EpicTakenError extends StoryViolationError {
     super(`L epique ${epicId} est attribuee a ${assignee}`, 'EpicTakenError')
   }
 }
+
+export class EmptyCardError extends StoryViolationError {
+  constructor(reference: string) {
+    super(`La carte ${reference} a besoin d un titre et d un corps`, 'EmptyCardError')
+  }
+}
