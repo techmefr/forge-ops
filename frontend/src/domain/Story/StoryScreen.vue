@@ -8,6 +8,7 @@ import EpicBoard from './EpicBoard.vue'
 import { useTranscript } from '@/domain/Session/UseTranscript'
 import { useTicket } from './UseTicket'
 import StoryTicket from './StoryTicket.vue'
+import { PARTS, PART_LABELS, bothPartsWritten, partOf, type StoryPart } from './StoryPart'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,6 +26,7 @@ const transcript = useTranscript(reference)
 const said = computed(() => transcript.visible())
 
 const turn = ref('')
+const part = ref<StoryPart>('functional')
 const cardTitle = ref('')
 const cardBody = ref('')
 const twinTitle = ref('')
@@ -41,6 +43,8 @@ const chosenEpicTitle = computed(
   () => queueEpics.value.find((epic) => epic.id === chosenEpic.value)?.title ?? null,
 )
 const listing = computed(() => queue.value.length === 0 && ticket.data.value === null)
+const shownPart = computed(() => partOf(ticket.data.value, part.value))
+const complete = computed(() => bothPartsWritten(ticket.data.value))
 
 async function startQueue(chosen: readonly number[]): Promise<void> {
   const found = await Promise.all(
@@ -109,11 +113,11 @@ function sendTurn(): Promise<void> {
 }
 
 function saveCard(): Promise<void> {
-  const storyId = ticket.data.value?.functional.id
-  if (storyId === undefined) {
+  const shown = shownPart.value
+  if (shown === null) {
     return Promise.resolve()
   }
-  return guard(() => edit(storyId, { title: cardTitle.value, body: cardBody.value }))
+  return guard(() => edit(shown.id, { title: cardTitle.value, body: cardBody.value }))
 }
 
 async function submitTwin(): Promise<void> {
@@ -168,11 +172,12 @@ watch(
 watch(chosenEpic, () => void openCurrentEpic())
 
 watch(
-  () => ticket.data.value?.functional,
+  shownPart,
   (story) => {
     cardTitle.value = story?.title ?? ''
     cardBody.value = story?.body ?? ''
   },
+  { immediate: true },
 )
 
 onMounted(async () => {
@@ -280,10 +285,14 @@ onMounted(async () => {
         </button>
       </form>
 
+      <p v-if="ticket.data.value !== null && !complete" class="mt-3 text-xs text-orange">
+        Le backlog attend les deux parties : ecris la story de test jumelle dans son onglet.
+      </p>
+
       <div class="mt-3 flex flex-none flex-wrap gap-2">
         <button
           type="button"
-          :disabled="busy || ticket.data.value === null"
+          :disabled="busy || !complete"
           class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
           @click="toBacklog()"
         >
@@ -302,14 +311,36 @@ onMounted(async () => {
     </section>
 
     <section class="min-w-0 overflow-auto p-6">
-      <StoryTicket :ticket="ticket.data.value" />
+      <nav class="flex gap-0.5 border-b border-line" aria-label="Les deux parties de la story">
+        <button
+          v-for="name in PARTS"
+          :key="name"
+          type="button"
+          :aria-current="name === part ? 'page' : undefined"
+          class="border-b-[3px] px-3 py-2.5 font-mono text-[10px] font-bold whitespace-nowrap uppercase"
+          :class="
+            name === part ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'
+          "
+          @click="part = name"
+        >
+          {{ PART_LABELS[name] }}
+          <span v-if="name === 'tests' && !complete" class="text-orange">·</span>
+        </button>
+      </nav>
+
+      <div class="mt-5">
+        <StoryTicket :ticket="ticket.data.value" />
+      </div>
 
       <template v-if="ticket.data.value !== null">
         <form
+          v-if="shownPart !== null"
           class="mt-6 flex flex-col gap-2 rounded-2xl border border-acc bg-card p-4"
           @submit.prevent="saveCard"
         >
-          <p class="display-italic text-sm text-acc">La carte, a la main</p>
+          <p class="display-italic text-sm text-acc">
+            {{ PART_LABELS[part] }}, a la main
+          </p>
           <input
             v-model="cardTitle"
             type="text"
@@ -332,7 +363,7 @@ onMounted(async () => {
         </form>
 
         <form
-          v-if="ticket.data.value.tests === null"
+          v-if="part === 'tests' && ticket.data.value.tests === null"
           class="mt-6 flex flex-col gap-2 rounded-2xl border border-violet bg-card p-4"
           @submit.prevent="submitTwin"
         >
@@ -359,6 +390,7 @@ onMounted(async () => {
         </form>
 
         <form
+          v-if="part === 'functional'"
           class="mt-4 flex flex-col gap-2 rounded-2xl border border-line bg-card p-4"
           @submit.prevent="submitCriterion"
         >

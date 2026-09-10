@@ -309,3 +309,26 @@ CREATE TABLE IF NOT EXISTS pilot_act (
 );
 
 CREATE INDEX IF NOT EXISTS idx_pilot_act_run ON pilot_act(pilot_run_id, position);
+
+CREATE TABLE IF NOT EXISTS story_remark (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  author TEXT NOT NULL,
+  voice TEXT NOT NULL CHECK (voice IN ('human', 'agent')),
+  body TEXT NOT NULL,
+  written_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_story_remark_story ON story_remark(story_id, id);
+
+CREATE TABLE IF NOT EXISTS story_hold (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  reason TEXT NOT NULL,
+  asked_by TEXT NOT NULL,
+  raised_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  lifted_at TEXT,
+  lifted_by_remark_id INTEGER REFERENCES story_remark(id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_story_hold_open ON story_hold(story_id) WHERE lifted_at IS NULL;

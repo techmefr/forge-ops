@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import type { KanbanStory } from '@/domain/Board/BoardModel'
 import { DRAWER_TABS, DRAWER_TAB_LABELS, tabOfState, type DrawerTab } from './DrawerTab'
 import DeliveryTab from './DeliveryTab.vue'
+import DiscussionTab from './DiscussionTab.vue'
 import PlanTab from './PlanTab.vue'
 import ReviewTab from './ReviewTab.vue'
 import StoryTab from './StoryTab.vue'
@@ -61,10 +62,7 @@ watch(
       <PlanTab v-else-if="tab === 'plan'" :story="story" @moved="emit('moved')" />
       <ReviewTab v-else-if="tab === 'review'" :story="story" @moved="emit('moved')" />
       <DeliveryTab v-else-if="tab === 'delivery'" :story="story" @moved="emit('moved')" />
-      <p v-else class="text-sm text-txt-low">
-        La discussion arrive dans le lot suivant : un fil par story, et une reponse humaine qui leve
-        l alerte.
-      </p>
+      <DiscussionTab v-else :story="story" @freed="emit('moved')" />
     </div>
   </aside>
 </template>

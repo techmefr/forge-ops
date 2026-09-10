@@ -3,11 +3,15 @@ import { computed, onMounted, ref } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
-import type { KanbanColumn, KanbanStory } from '@/domain/Board/BoardModel'
+import type { KanbanColumn, KanbanStory, StoryHold } from '@/domain/Board/BoardModel'
 import CardDrawer from './CardDrawer.vue'
+import { holdOf } from './Hold'
 
 const columns = useResource<readonly KanbanColumn[]>(() => board.read('/api/board/columns'))
 const stories = useResource<readonly KanbanStory[]>(() => board.read('/api/board/kanban'))
+const holds = useResource<readonly StoryHold[]>(() => board.read('/api/board/holds'))
+
+const heldStory = computed(() => (storyId: number) => holdOf(holds.data.value ?? [], storyId))
 const refusal = ref<string | null>(null)
 const blockedStoryId = ref<number | null>(null)
 const blockingStoryId = ref<number | null>(null)
@@ -47,7 +51,11 @@ async function declareDependency(): Promise<void> {
   }
 }
 
-onMounted(() => Promise.all([columns.reload(), stories.reload()]))
+function reloadBoard(): Promise<unknown> {
+  return Promise.all([stories.reload(), holds.reload()])
+}
+
+onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
 </script>
 
 <template>
@@ -142,6 +150,10 @@ onMounted(() => Promise.all([columns.reload(), stories.reload()]))
                 <p v-if="story.mergeConflict" class="mt-2 font-mono text-[10px] text-red uppercase">
                   Conflit de merge
                 </p>
+                <p v-if="heldStory(story.id) !== null" class="mt-2 text-[11px] text-orange">
+                  <span class="font-mono text-[10px] font-bold uppercase">Bloquee</span>
+                  · {{ heldStory(story.id)?.reason }}
+                </p>
                 <p v-if="story.blockers.length > 0" class="mt-2 text-[11px] text-orange">
                   Bloquee par
                   <span
@@ -167,7 +179,7 @@ onMounted(() => Promise.all([columns.reload(), stories.reload()]))
       v-if="openStory !== null"
       :story="openStory"
       @close="drawerId = null"
-      @moved="stories.reload()"
+      @moved="reloadBoard()"
     />
   </div>
 </template>
