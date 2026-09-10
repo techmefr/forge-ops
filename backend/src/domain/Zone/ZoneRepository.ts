@@ -23,6 +23,7 @@ export type ZoneRepository = {
   findZone: (pathPrefix: string) => Zone
   listZones: (projectId: number) => readonly Zone[]
   overview: (projectId: number) => readonly ZoneOverview[]
+  overviewOfZone: (pathPrefix: string) => ZoneOverview
   zoneOfPath: (path: string) => Zone | null
 }
 
@@ -82,6 +83,12 @@ export function createZoneRepository(db: Database.Database): ZoneRepository {
     return toZone(row)
   }
 
+  function overviewOfZone(pathPrefix: string): ZoneOverview {
+    const zone = findZone(pathPrefix)
+    const files = selectZoneFiles.all(zone.pathPrefix).map(toFile)
+    return { zone, files, storyCount: new Set(files.map((file) => file.storyReference)).size }
+  }
+
   return {
     declareZone: (draft) => {
       if (draft.pathPrefix.trim().length === 0) {
@@ -106,11 +113,9 @@ export function createZoneRepository(db: Database.Database): ZoneRepository {
     listZones: (projectId) => selectZones.all(projectId).map(toZone),
 
     overview: (projectId) =>
-      selectZones.all(projectId).map((row) => {
-        const files = selectZoneFiles.all(row.path_prefix).map(toFile)
-        const references = new Set(files.map((file) => file.storyReference))
-        return { zone: toZone(row), files, storyCount: references.size }
-      }),
+      selectZones.all(projectId).map((row) => overviewOfZone(row.path_prefix)),
+
+    overviewOfZone,
 
     zoneOfPath: (path) => {
       const row = selectLongestPrefix.get(path)
