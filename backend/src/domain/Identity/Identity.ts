@@ -5,6 +5,7 @@ export type BoardUser = {
   login: string
   displayName: string
   role: UserRole
+  email: string | null
 }
 
 export type UserDraft = {

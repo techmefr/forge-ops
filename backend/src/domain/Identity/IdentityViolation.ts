@@ -28,3 +28,15 @@ export class AccountDisabledError extends IdentityViolationError {
     super(`Le compte ${login} est desactive`, 'AccountDisabledError')
   }
 }
+
+export class EmailTakenError extends IdentityViolationError {
+  constructor(email: string) {
+    super(`L adresse ${email} est deja portee par un autre compte`, 'EmailTakenError')
+  }
+}
+
+export class UnknownAccountError extends IdentityViolationError {
+  constructor(login: string) {
+    super(`Le compte ${login} est introuvable`, 'UnknownAccountError')
+  }
+}

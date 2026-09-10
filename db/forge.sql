@@ -233,9 +233,12 @@ CREATE TABLE IF NOT EXISTS board_user (
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL DEFAULT 'architect' CHECK (role IN ('director', 'architect')),
   external_subject TEXT UNIQUE,
+  email TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   disabled_at TEXT
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_board_user_email ON board_user(email) WHERE email IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS board_session (
   token_hash TEXT PRIMARY KEY,

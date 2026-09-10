@@ -37,7 +37,13 @@ describe('enrolUser', () => {
       role: 'director',
     })
 
-    expect(user).toEqual({ id: 1, login: 'gaetan', displayName: 'Gaetan', role: 'director' })
+    expect(user).toEqual({
+      id: 1,
+      login: 'gaetan',
+      displayName: 'Gaetan',
+      role: 'director',
+      email: null,
+    })
   })
 
   it('refuse deux comptes sur le meme identifiant', () => {

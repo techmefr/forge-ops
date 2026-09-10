@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { SCREENS, screenOfPath } from '@/technical/Router/Screen'
+import { SCREENS, screenOfPath, type Screen } from '@/technical/Router/Screen'
 import { ARMED, IDLE, resolveStroke, type Phase } from '@/technical/Router/Shortcut'
-import { THEME_LABELS, THEME_NAMES } from '@/technical/Theme/Palette'
+import { screenTextOf, shellTextOf, type ShellKey } from '@/technical/Language/Language'
+import { useLanguage } from '@/technical/Language/UseLanguage'
+import { useAppearance } from '@/technical/Appearance/UseAppearance'
 import { useTheme } from '@/technical/Theme/UseTheme'
-import { NAV_LAYOUTS, NAV_LAYOUT_LABELS } from '@/technical/Shell/Navigation'
 import { useNavigation } from '@/technical/Shell/UseNavigation'
 import { useFleet } from './UseFleet'
 
 const route = useRoute()
 const router = useRouter()
-const { theme, mode, selectTheme, selectMode } = useTheme()
-const { layout, selectLayout } = useNavigation()
+useTheme()
+useAppearance()
+const { language } = useLanguage()
+const { layout } = useNavigation()
 const { working } = useFleet()
 
 const current = computed(() => screenOfPath(route.path))
@@ -55,17 +58,26 @@ watch(
   { flush: 'post' },
 )
 
+function say(key: ShellKey): string {
+  return shellTextOf(key, language.value)
+}
+
+function titleOf(screen: Screen): string {
+  return screenTextOf(screen.key, language.value).label
+}
+
 const heading = computed(() => {
   if (current.value !== null) {
-    return { digit: current.value.digit, label: current.value.label, sub: current.value.sub }
+    const text = screenTextOf(current.value.key, language.value)
+    return { digit: current.value.digit, label: text.label, sub: text.sub }
   }
   if (route.path === '/settings') {
-    return { digit: '~', label: 'Reglages', sub: 'Le plafond de cout et la conduite a tenir quand il tombe' }
+    return { digit: '~', label: say('settings'), sub: say('settingsSub') }
   }
   if (route.path === '/incidents') {
-    return { digit: '~', label: 'Signalements', sub: 'Ce qui remonte du dehors, a trancher un par un' }
+    return { digit: '~', label: say('incidents'), sub: say('incidentsSub') }
   }
-  return { digit: '~', label: 'Acces', sub: 'Ouvrir une session sur le board' }
+  return { digit: '~', label: say('access'), sub: say('accessSub') }
 })
 </script>
 
@@ -78,11 +90,11 @@ const heading = computed(() => {
       <div class="border-b border-line px-5 pt-6 pb-4">
         <p class="display-italic text-2xl leading-none">Forge<span class="text-acc">.</span>ops</p>
         <p class="mt-2 font-mono text-[10px] font-semibold tracking-[0.22em] text-txt-low uppercase">
-          Agent orchestration
+          {{ say('orchestration') }}
         </p>
       </div>
 
-      <nav class="flex flex-col gap-[3px] overflow-auto p-3" aria-label="Etapes du pipeline">
+      <nav class="flex flex-col gap-[3px] overflow-auto p-3" :aria-label="say('pipeline')">
         <RouterLink
           v-for="screen in SCREENS"
           :key="screen.key"
@@ -101,7 +113,7 @@ const heading = computed(() => {
             :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
             >{{ screen.digit }}</span
           >
-          <span class="display-italic text-[14.5px]">{{ screen.label }}</span>
+          <span class="display-italic text-[14.5px]">{{ titleOf(screen) }}</span>
         </RouterLink>
       </nav>
 
@@ -109,17 +121,17 @@ const heading = computed(() => {
         <RouterLink
           to="/incidents"
           class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase hover:text-acc"
-          >Signalements</RouterLink
+          >{{ say('incidents') }}</RouterLink
         >
         <RouterLink
           to="/settings"
           class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase hover:text-acc"
-          >Reglages</RouterLink
+          >{{ say('settings') }}</RouterLink
         >
         <p class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase">
-          Agents actifs
+          {{ say('agents') }}
         </p>
-        <p v-if="working.length === 0" class="text-xs text-txt-low">Aucune session en cours</p>
+        <p v-if="working.length === 0" class="text-xs text-txt-low">{{ say('noSession') }}</p>
         <div
           v-for="job in working"
           :key="job.id"
@@ -140,7 +152,7 @@ const heading = computed(() => {
         <div class="flex flex-none items-center gap-3 py-4">
           <p class="display-italic text-[22px] leading-none">Forge<span class="text-acc">.</span>ops</p>
         </div>
-        <nav ref="strip" class="flex items-stretch gap-0.5" aria-label="Etapes du pipeline">
+        <nav ref="strip" class="flex items-stretch gap-0.5" :aria-label="say('pipeline')">
           <RouterLink
             v-for="screen in SCREENS"
             :key="screen.key"
@@ -159,7 +171,7 @@ const heading = computed(() => {
               :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
               >{{ screen.digit }}</span
             >
-            <span class="display-italic text-sm whitespace-nowrap uppercase">{{ screen.label }}</span>
+            <span class="display-italic text-sm whitespace-nowrap uppercase">{{ titleOf(screen) }}</span>
           </RouterLink>
         </nav>
       </header>
@@ -180,64 +192,27 @@ const heading = computed(() => {
             <RouterLink
               to="/incidents"
               class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase hover:text-acc"
-              >Signalements</RouterLink
+              >{{ say('incidents') }}</RouterLink
             >
             <RouterLink
               to="/settings"
               class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase hover:text-acc"
-              >Reglages</RouterLink
+              >{{ say('settings') }}</RouterLink
             >
             <span class="flex items-center gap-2 font-mono text-[10px] text-txt-low uppercase">
               <span
                 class="h-1.5 w-1.5 flex-none rounded-full"
                 :class="working.length === 0 ? 'bg-line' : 'bg-green'"
               />
-              {{ working.length }} agents
+              {{ working.length }} {{ say('agents') }}
             </span>
-            <span class="mx-1 h-5 w-px bg-line" />
           </template>
-          <button
-            v-for="name in NAV_LAYOUTS"
-            :key="name"
-            type="button"
-            class="rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold uppercase"
-            :class="
-              name === layout
-                ? 'border-acc bg-acc text-ink'
-                : 'border-line bg-card text-txt-mid hover:border-acc'
-            "
-            @click="selectLayout(name)"
-          >
-            {{ NAV_LAYOUT_LABELS[name] }}
-          </button>
           <span
             v-if="phase !== IDLE"
             class="rounded-lg border border-acc px-2.5 py-1.5 font-mono text-[10px] text-acc uppercase"
             role="status"
             >{{ phase === ARMED ? 'z z … chiffre' : 'z …' }}</span
           >
-          <span class="mx-1 h-5 w-px bg-line" />
-          <button
-            v-for="name in THEME_NAMES"
-            :key="name"
-            type="button"
-            class="rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold uppercase"
-            :class="
-              name === theme
-                ? 'border-acc bg-acc text-ink'
-                : 'border-line bg-card text-txt-mid hover:border-acc'
-            "
-            @click="selectTheme(name)"
-          >
-            {{ THEME_LABELS[name] }}
-          </button>
-          <button
-            type="button"
-            class="rounded-lg border border-line bg-card px-2.5 py-1.5 text-[11px] font-semibold text-txt-mid uppercase hover:border-acc"
-            @click="selectMode(mode === 'dark' ? 'light' : 'dark')"
-          >
-            {{ mode === 'dark' ? 'Sombre' : 'Clair' }}
-          </button>
         </div>
       </header>
 

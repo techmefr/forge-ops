@@ -7,7 +7,14 @@ import {
   verifyPassword,
 } from '../../technical/Auth/PasswordHash.js'
 import { SESSION_LIFETIME_MS, type BoardUser, type OpenedSession, type UserDraft, type UserRole } from './Identity.js'
-import { AccountDisabledError, LoginRefusedError, LoginTakenError, PasswordRefusedError } from './IdentityViolation.js'
+import {
+  AccountDisabledError,
+  EmailTakenError,
+  LoginRefusedError,
+  LoginTakenError,
+  PasswordRefusedError,
+  UnknownAccountError,
+} from './IdentityViolation.js'
 
 const TOKEN_BYTES = 32
 
@@ -17,6 +24,7 @@ type UserRow = {
   display_name: string
   password_hash: string
   role: UserRole
+  email: string | null
   disabled_at: string | null
 }
 
@@ -33,10 +41,20 @@ export type IdentityRepository = {
   openSession: (login: string, password: string) => OpenedSession
   readSession: (token: string) => BoardUser | null
   closeSession: (token: string) => void
+  findUser: (login: string) => BoardUser | null
+  changeEmail: (login: string, email: string) => BoardUser
+  changeDisplayName: (login: string, displayName: string) => BoardUser
+  changePassword: (login: string, current: string, next: string) => void
 }
 
 function toUser(row: UserRow): BoardUser {
-  return { id: row.id, login: row.login, displayName: row.display_name, role: row.role }
+  return {
+    id: row.id,
+    login: row.login,
+    displayName: row.display_name,
+    role: row.role,
+    email: row.email ?? null,
+  }
 }
 
 function digest(token: string): string {
@@ -67,6 +85,25 @@ export function createIdentityRepository(
   const revokeSession = db.prepare<[string]>(
     "UPDATE board_session SET revoked_at = datetime('now') WHERE token_hash = ?",
   )
+  const revokeSessionsOfUser = db.prepare<[number]>(
+    "UPDATE board_session SET revoked_at = datetime('now') WHERE user_id = ? AND revoked_at IS NULL",
+  )
+  const selectUserByEmail = db.prepare<[string], UserRow>('SELECT * FROM board_user WHERE email = ?')
+  const updateEmail = db.prepare<[string, string]>('UPDATE board_user SET email = ? WHERE login = ?')
+  const updateDisplayName = db.prepare<[string, string]>(
+    'UPDATE board_user SET display_name = ? WHERE login = ?',
+  )
+  const updatePassword = db.prepare<[string, string]>(
+    'UPDATE board_user SET password_hash = ? WHERE login = ?',
+  )
+
+  function demandUser(login: string): UserRow {
+    const row = selectUserByLogin.get(login)
+    if (row === undefined) {
+      throw new UnknownAccountError(login)
+    }
+    return row
+  }
 
   return {
     enrolUser: (draft) => {
@@ -86,6 +123,7 @@ export function createIdentityRepository(
         login: draft.login,
         displayName: draft.displayName,
         role: draft.role,
+        email: null,
       }
     },
 
@@ -122,6 +160,42 @@ export function createIdentityRepository(
 
     closeSession: (token) => {
       revokeSession.run(digest(token))
+    },
+
+    findUser: (login) => {
+      const row = selectUserByLogin.get(login)
+      return row === undefined ? null : toUser(row)
+    },
+
+    changeEmail: (login, email) => {
+      const row = demandUser(login)
+      const worn = selectUserByEmail.get(email)
+      if (worn !== undefined && worn.id !== row.id) {
+        throw new EmailTakenError(email)
+      }
+      updateEmail.run(email, login)
+      return { ...toUser(row), email }
+    },
+
+    changeDisplayName: (login, displayName) => {
+      const row = demandUser(login)
+      updateDisplayName.run(displayName, login)
+      return { ...toUser(row), displayName }
+    },
+
+    changePassword: (login, current, next) => {
+      const row = demandUser(login)
+      if (!verifyPassword(current, row.password_hash)) {
+        throw new LoginRefusedError()
+      }
+      if (next.length < PASSWORD_MIN_LENGTH) {
+        throw new PasswordRefusedError(`il faut au moins ${PASSWORD_MIN_LENGTH} caracteres`)
+      }
+      if (next.length > PASSWORD_MAX_LENGTH) {
+        throw new PasswordRefusedError(`il faut au plus ${PASSWORD_MAX_LENGTH} caracteres`)
+      }
+      updatePassword.run(hashPassword(next), login)
+      revokeSessionsOfUser.run(row.id)
     },
   }
 }

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import Database from 'better-sqlite3'
+import { addMissingColumns } from './Migration.js'
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url))
 const SCHEMA_PATH = join(MODULE_DIR, '..', '..', '..', '..', 'db', 'forge.sql')
@@ -12,6 +13,7 @@ export function openDatabase(path: string): Database.Database {
   db.pragma('journal_mode = WAL')
   db.pragma(`busy_timeout = ${BUSY_TIMEOUT_MS}`)
   db.pragma('foreign_keys = ON')
+  addMissingColumns(db)
   db.exec(readFileSync(SCHEMA_PATH, 'utf-8'))
   return db
 }
