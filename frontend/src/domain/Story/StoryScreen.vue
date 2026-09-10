@@ -3,8 +3,8 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
-import ScreenState from '@/technical/Ui/ScreenState.vue'
-import type { Epic, Project, Story } from '@/domain/Board/BoardModel'
+import type { EpicOverview, Project } from '@/domain/Board/BoardModel'
+import EpicBoard from './EpicBoard.vue'
 import { useTranscript } from '@/domain/Session/UseTranscript'
 import { useTicket } from './UseTicket'
 import StoryTicket from './StoryTicket.vue'
@@ -13,13 +13,9 @@ const route = useRoute()
 const router = useRouter()
 
 const projects = useResource<readonly Project[]>(() => board.read('/api/projects'))
-const chosenProject = ref<number | null>(null)
-const epics = useResource<readonly Epic[]>(() =>
-  chosenProject.value === null
-    ? Promise.resolve([])
-    : board.read(`/api/projects/${chosenProject.value}/epics`),
-)
-const drafts = useResource<readonly Story[]>(() => board.read('/api/stories/backlog'))
+const queue = ref<readonly number[]>([])
+const queueIndex = ref(0)
+const queueEpics = ref<readonly EpicOverview[]>([])
 
 const { ticket, open, write, writeTwin, declareCriterion, sendToBacklog, dispatch } = useTicket()
 
@@ -27,7 +23,6 @@ const reference = computed(() => ticket.data.value?.functional.reference ?? null
 const transcript = useTranscript(reference)
 const said = computed(() => transcript.visible())
 
-const chosenEpic = ref<number | null>(null)
 const title = ref('')
 const body = ref('')
 const twinTitle = ref('')
@@ -38,6 +33,35 @@ const criterionPersona = ref('')
 const criterionRefusal = ref(false)
 const refusal = ref<string | null>(null)
 const busy = ref(false)
+
+const chosenEpic = computed(() => queue.value[queueIndex.value] ?? null)
+const chosenEpicTitle = computed(
+  () => queueEpics.value.find((epic) => epic.id === chosenEpic.value)?.title ?? null,
+)
+const listing = computed(() => queue.value.length === 0 && ticket.data.value === null)
+
+async function startQueue(chosen: readonly number[]): Promise<void> {
+  const found = await Promise.all(
+    (projects.data.value ?? []).map((project) =>
+      board.read<readonly EpicOverview[]>(`/api/projects/${project.id}/epics`),
+    ),
+  )
+  queueEpics.value = found.flat().filter((epic) => chosen.includes(epic.id))
+  queueIndex.value = 0
+  queue.value = chosen
+}
+
+function leaveQueue(): void {
+  queue.value = []
+  queueIndex.value = 0
+  queueEpics.value = []
+}
+
+async function backToEpics(): Promise<void> {
+  leaveQueue()
+  await router.push('/story')
+  ticket.data.value = null
+}
 
 async function guard(action: () => Promise<void>): Promise<void> {
   busy.value = true
@@ -61,8 +85,12 @@ async function submitStory(): Promise<void> {
     const story = await write({ epicId, title: title.value, body: body.value })
     title.value = ''
     body.value = ''
+    if (queueIndex.value + 1 < queue.value.length) {
+      queueIndex.value += 1
+      return
+    }
+    leaveQueue()
     await router.push(`/story/${story.id}`)
-    await drafts.reload()
   })
 }
 
@@ -108,14 +136,8 @@ function toBacklog(): Promise<void> {
     ? Promise.resolve()
     : guard(async () => {
         await sendToBacklog(storyId)
-        await drafts.reload()
       })
 }
-
-watch(chosenProject, () => {
-  chosenEpic.value = null
-  void epics.reload()
-})
 
 watch(
   () => route.params.id,
@@ -127,8 +149,8 @@ watch(
 )
 
 onMounted(async () => {
-  await Promise.all([projects.reload(), drafts.reload()])
-  chosenProject.value = projects.data.value?.[0]?.id ?? null
+  await projects.reload()
+
   const id = route.params.id
   if (typeof id === 'string' && id !== '') {
     await open(Number(id))
@@ -137,49 +159,43 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="grid h-full min-h-[600px] grid-cols-[260px_minmax(0,1fr)_minmax(0,420px)]">
+  <EpicBoard v-if="listing" @chosen="startQueue" />
+
+  <div v-else class="grid h-full min-h-[600px] grid-cols-[260px_minmax(0,1fr)_minmax(0,420px)]">
     <section class="border-r border-line p-5">
-      <h2 class="display-italic text-sm text-txt-mid">Projet</h2>
-      <ScreenState
-        :pending="projects.pending.value"
-        :failure="projects.failure.value"
-        :empty="(projects.data.value ?? []).length === 0"
-        empty-label="Aucun projet. Cree-le d abord cote board."
-        @retry="projects.reload()"
+      <button
+        type="button"
+        class="rounded-lg border border-line bg-card px-3 py-2 font-mono text-[10px] font-bold text-txt-mid uppercase hover:border-acc"
+        @click="backToEpics()"
       >
-        <select
-          v-model="chosenProject"
-          class="mt-2 w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
-        >
-          <option v-for="project in projects.data.value ?? []" :key="project.id" :value="project.id">
-            {{ project.name }}
-          </option>
-        </select>
-      </ScreenState>
+        Retour aux epiques
+      </button>
 
-      <h2 class="display-italic mt-6 text-sm text-txt-mid">Epique</h2>
-      <select
-        v-model="chosenEpic"
-        class="mt-2 w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
-      >
-        <option :value="null">A choisir</option>
-        <option v-for="epic in epics.data.value ?? []" :key="epic.id" :value="epic.id">
-          {{ epic.title }}
-        </option>
-      </select>
+      <template v-if="queue.length > 0">
+        <h2 class="display-italic mt-6 text-sm text-txt-mid">Epique en cours</h2>
+        <p class="mt-2 rounded-xl border border-acc bg-card p-3 text-sm text-txt-hi">
+          {{ chosenEpicTitle ?? 'Epique inconnue' }}
+        </p>
+        <p class="mt-2 font-mono text-[10px] text-txt-low uppercase">
+          {{ queueIndex + 1 }} sur {{ queue.length }}
+        </p>
 
-      <h2 class="display-italic mt-6 text-sm text-txt-mid">Stories au backlog</h2>
-      <div class="mt-2 flex flex-col gap-1">
-        <RouterLink
-          v-for="story in drafts.data.value ?? []"
-          :key="story.id"
-          :to="`/story/${story.id}`"
-          class="rounded-lg border border-line bg-card px-3 py-2 text-xs text-txt-mid hover:border-acc"
-        >
-          <span class="font-mono text-[10px] text-acc">{{ story.reference }}</span>
-          <span class="mt-1 block text-txt-hi">{{ story.title }}</span>
-        </RouterLink>
-      </div>
+        <h2 class="display-italic mt-6 text-sm text-txt-mid">La fournee</h2>
+        <ol class="mt-2 flex flex-col gap-1">
+          <li
+            v-for="(epic, index) in queueEpics"
+            :key="epic.id"
+            class="rounded-lg border px-3 py-2 text-xs"
+            :class="
+              index === queueIndex
+                ? 'border-acc bg-card text-txt-hi'
+                : 'border-line bg-card text-txt-low'
+            "
+          >
+            {{ epic.title }}
+          </li>
+        </ol>
+      </template>
     </section>
 
     <section class="flex min-w-0 flex-col border-r border-line p-6">

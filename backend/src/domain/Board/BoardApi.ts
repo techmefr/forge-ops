@@ -3,7 +3,12 @@ import { streamSSE } from 'hono/streaming'
 import { z } from 'zod'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
-import { StoryNotFoundError, StoryViolationError } from '../Story/StoryViolation.js'
+import {
+  EpicNotFoundError,
+  StoryNotFoundError,
+  StoryViolationError,
+} from '../Story/StoryViolation.js'
+import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
 import { CHECKPOINT_SEQUENCE, REVIEW_LENS_SEQUENCE } from '../Checkpoint/Checkpoint.js'
@@ -158,7 +163,7 @@ export function createBoardApi({
   )
 
   api.onError((error, context) => {
-    if (error instanceof StoryNotFoundError) {
+    if (error instanceof StoryNotFoundError || error instanceof EpicNotFoundError) {
       return context.json({ error: error.name, message: error.message }, 404)
     }
     if (error instanceof ZoneNotFoundError) {
@@ -215,6 +220,26 @@ export function createBoardApi({
     const epic = repository.createEpic(draft.data)
     events.publish({ name: 'epic.created', payload: { ...epic } })
     return context.json(epic, 201)
+  })
+
+  api.get('/api/board/self', (context) => context.json({ login: operatorOf(context) }))
+
+  api.post('/api/epics/:id/claim', (context) => {
+    const epicId = identifierSchema.safeParse(context.req.param('id'))
+    if (!epicId.success) {
+      return context.json({ error: 'InvalidEpicIdentifier' }, 422)
+    }
+    repository.claimEpic(epicId.data, operatorOf(context))
+    return context.json({ claimed: true })
+  })
+
+  api.delete('/api/epics/:id/claim', (context) => {
+    const epicId = identifierSchema.safeParse(context.req.param('id'))
+    if (!epicId.success) {
+      return context.json({ error: 'InvalidEpicIdentifier' }, 422)
+    }
+    repository.releaseEpic(epicId.data, operatorOf(context))
+    return context.json({ released: true })
   })
 
   api.get('/api/projects/:id/epics', (context) => {

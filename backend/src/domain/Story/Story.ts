@@ -58,6 +58,7 @@ export type Epic = {
 
 export type EpicOverview = Epic & {
   storyCount: number
+  assignee: string | null
 }
 
 export type Story = {

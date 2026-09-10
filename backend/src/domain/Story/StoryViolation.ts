@@ -73,3 +73,15 @@ export class ProjectNotFoundError extends StoryViolationError {
     super(`Projet ${projectId} introuvable`, 'ProjectNotFoundError')
   }
 }
+
+export class EpicNotFoundError extends StoryViolationError {
+  constructor(epicId: number) {
+    super(`Epique ${epicId} introuvable`, 'EpicNotFoundError')
+  }
+}
+
+export class EpicTakenError extends StoryViolationError {
+  constructor(epicId: number, assignee: string) {
+    super(`L epique ${epicId} est attribuee a ${assignee}`, 'EpicTakenError')
+  }
+}
