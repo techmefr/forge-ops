@@ -135,10 +135,13 @@ Peu de projets en ont de sérieux. Les meilleurs : `ralph-claude-code` (coupe ap
 | [Aperant](https://github.com/AndyMik90/Aperant) | AGPL-3.0 | actif | prévention automatique de conflit entre 12 agents parallèles |
 | [Fletch](https://github.com/fwdai/fletch) | AGPL-3.0 | bêta | **workflow déterministe plan→build→review→test avec conditions de complétion vérifiables** |
 | [Paseo](https://paseo.sh/) | Apache-2.0 | actif, jeune, un mainteneur | **clients mobile iOS/Android à parité et relais chiffré bout-en-bout**, plus 30 agents autres que Claude Code |
+| [T3 Code](https://t3.codes/) | MIT | actif, 21k+ étoiles, T3 Tools | **changement de modèle en cours de thread** et **flux PR complet** : création en un bouton avec titre et description générés, revue du diff inline avant push, PR draft / stacked / amended |
 
 Le plus gros concurrent en notoriété est à l'arrêt. Les deux plus actifs conceptuellement proches, `claude-code-kanban` et `kanban-code`, sont permissifs et ne couvrent ni la story jumelle, ni la DoD prouvée, ni les dépendances.
 
 **Paseo n'est pas un concurrent, c'est une couche basse.** Il fait tourner des sessions d'agents et des worktrees, il n'a aucune représentation du travail : pas de story, pas de jumelle de test, pas de definition of done, pas de zones, pas de cascade de review. Le recouvrement se limite à ce qu'on avait déjà décidé de ne pas réécrire. Deux idées à reprendre plus tard, pas maintenant : les clients mobiles à parité, et le relais chiffré bout-en-bout qui donnerait l'accès distant sans casser le bind loopback.
+
+**T3 Code est le seul du paysage qui empiète sur du travail déjà fait.** Comme Paseo il tient la couche basse — sessions, worktrees, mobile — mais il porte en plus le flux PR, donc l'étape 7. Sa notoriété et sa licence MIT en font le candidat le plus crédible pour reprendre un jour cette couche : on peut le forker sans contrainte, ce que les concurrents AGPL du tableau interdisent. Deux réserves : ses *stacked PRs* vont contre la règle « une story, une MR, jamais empilée », et il ne couvre toujours ni la story jumelle, ni la definition of done prouvée, ni les zones, ni la cascade qualité → sécurité → accessibilité. Pas maintenant, pour la même raison que Paseo : on ne règle pas les mêmes choses.
 
 **Collision de nom** : `jedarden/forge` s'appelle littéralement « FORGE: Federated Orchestration & Resource Generation Engine », et `nxtg-ai/forge-orchestrator` porte « Forge » aussi. Le nom n'est pas libre.
 
