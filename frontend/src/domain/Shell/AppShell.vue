@@ -82,7 +82,7 @@ const heading = computed(() => {
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-deep text-txt-hi">
+  <div class="flex h-screen overflow-hidden bg-deep text-txt-hi">
     <aside
       v-if="layout === 'rail'"
       class="sticky top-0 flex h-screen w-[250px] flex-none flex-col border-r border-line bg-panel"
@@ -144,10 +144,10 @@ const heading = computed(() => {
       </div>
     </aside>
 
-    <div class="flex min-w-0 flex-1 flex-col">
+    <div class="flex min-w-0 min-h-0 flex-1 flex-col">
       <header
         v-if="layout === 'tabs'"
-        class="flex items-stretch gap-6 overflow-auto border-b border-line bg-panel px-6"
+        class="flex flex-none items-stretch gap-6 overflow-x-auto border-b border-line bg-panel px-6"
       >
         <div class="flex flex-none items-center gap-3 py-4">
           <p class="display-italic text-[22px] leading-none">Forge<span class="text-acc">.</span>ops</p>
@@ -216,7 +216,7 @@ const heading = computed(() => {
         </div>
       </header>
 
-      <main class="min-w-0 flex-1">
+      <main class="min-h-0 min-w-0 flex-1 overflow-auto">
         <RouterView />
       </main>
     </div>

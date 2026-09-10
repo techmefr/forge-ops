@@ -193,8 +193,11 @@ onMounted(async () => {
 <template>
   <EpicBoard v-if="listing" @chosen="startQueue" />
 
-  <div v-else class="grid h-full min-h-[600px] grid-cols-[260px_minmax(0,1fr)_minmax(0,420px)]">
-    <section class="border-r border-line p-5">
+  <div
+    v-else
+    class="grid h-full min-h-0 grid-cols-[260px_minmax(0,1fr)_minmax(0,420px)] overflow-hidden"
+  >
+    <section class="min-h-0 overflow-auto border-r border-line p-5">
       <button
         type="button"
         class="rounded-lg border border-line bg-card px-3 py-2 font-mono text-[10px] font-bold text-txt-mid uppercase hover:border-acc"
@@ -230,7 +233,7 @@ onMounted(async () => {
       </template>
     </section>
 
-    <section class="flex min-w-0 flex-col border-r border-line p-6">
+    <section class="flex min-h-0 min-w-0 flex-col border-r border-line p-6">
       <h2 class="display-italic text-lg">Ecrire avec Claude</h2>
       <p class="mt-1 text-xs text-txt-low">
         Claude part de l epique et ecrit la carte. Reponds-lui, elle se reecrit.
@@ -310,8 +313,11 @@ onMounted(async () => {
       </div>
     </section>
 
-    <section class="min-w-0 overflow-auto p-6">
-      <nav class="flex gap-0.5 border-b border-line" aria-label="Les deux parties de la story">
+    <section class="flex min-h-0 min-w-0 flex-col p-6">
+      <nav
+        class="flex flex-none gap-0.5 border-b border-line"
+        aria-label="Les deux parties de la story"
+      >
         <button
           v-for="name in PARTS"
           :key="name"
@@ -328,11 +334,8 @@ onMounted(async () => {
         </button>
       </nav>
 
-      <div class="mt-5">
+      <div class="mt-5 min-h-0 flex-1 overflow-auto">
         <StoryTicket :ticket="ticket.data.value" :part="part" />
-      </div>
-
-      <template v-if="ticket.data.value !== null">
         <form
           v-if="shownPart !== null"
           class="mt-6 flex flex-col gap-2 rounded-2xl border border-acc bg-card p-4"
@@ -363,7 +366,7 @@ onMounted(async () => {
         </form>
 
         <form
-          v-if="part === 'tests' && ticket.data.value.tests === null"
+          v-if="part === 'tests' && ticket.data.value?.tests === null"
           class="mt-6 flex flex-col gap-2 rounded-2xl border border-violet bg-card p-4"
           @submit.prevent="submitTwin"
         >
@@ -390,7 +393,7 @@ onMounted(async () => {
         </form>
 
         <form
-          v-if="part === 'functional'"
+          v-if="part === 'functional' && ticket.data.value !== null"
           class="mt-4 flex flex-col gap-2 rounded-2xl border border-line bg-card p-4"
           @submit.prevent="submitCriterion"
         >
@@ -425,7 +428,7 @@ onMounted(async () => {
             Declarer le critere
           </button>
         </form>
-      </template>
+      </div>
     </section>
   </div>
 </template>
