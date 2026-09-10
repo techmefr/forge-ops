@@ -46,10 +46,14 @@ function jump(event: KeyboardEvent): void {
 onMounted(() => window.addEventListener('keydown', jump))
 onBeforeUnmount(() => window.removeEventListener('keydown', jump))
 
-watch([current, layout], () => {
-  const open = strip.value?.querySelector('[aria-current="page"]')
-  open?.scrollIntoView?.({ inline: 'center', block: 'nearest' })
-})
+watch(
+  [current, layout],
+  () => {
+    const open = strip.value?.querySelector('[aria-current="page"]')
+    open?.scrollIntoView?.({ inline: 'center', block: 'nearest' })
+  },
+  { flush: 'post' },
+)
 
 const heading = computed(() => {
   if (current.value !== null) {
