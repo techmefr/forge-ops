@@ -16,15 +16,12 @@ describe('userTurn', () => {
 })
 
 describe('deliverTurn', () => {
-  it('pushes into the living session rather than starting another query', () => {
+  it('pushes into the living session', () => {
     const live = createLiveSessions<SdkUserTurn>()
     const started = live.start()
     started.adopt('sess-1')
-    const resumed: string[] = []
 
-    const route = deliverTurn(TURN, live, (turn) => resumed.push(turn.message))
-
-    expect([route, resumed]).toEqual(['live', []])
+    expect(deliverTurn(TURN, live)).toBe('live')
   })
 
   it('hands the living session the text of the turn', async () => {
@@ -32,7 +29,7 @@ describe('deliverTurn', () => {
     const started = live.start()
     started.adopt('sess-1')
 
-    deliverTurn(TURN, live, () => {})
+    deliverTurn(TURN, live)
     started.channel.close()
     const seen: SdkUserTurn[] = []
     for await (const message of started.channel) {
@@ -42,35 +39,33 @@ describe('deliverTurn', () => {
     expect(seen).toEqual([userTurn('reponds moi')])
   })
 
-  it('resumes a dormant session that has no living channel', () => {
+  it('reports a closed conversation when no channel is living', () => {
     const live = createLiveSessions<SdkUserTurn>()
-    const resumed: string[] = []
 
-    const route = deliverTurn(TURN, live, (turn) => resumed.push(turn.message))
-
-    expect([route, resumed]).toEqual(['resumed', ['reponds moi']])
+    expect(deliverTurn(TURN, live)).toBe('closed')
   })
 
-  it('resumes when the living channel died before the turn arrived', () => {
+  it('reports a closed conversation when the channel died before the turn', () => {
     const live = createLiveSessions<SdkUserTurn>()
     const started = live.start()
     started.adopt('sess-1')
     started.channel.close()
-    const resumed: string[] = []
 
-    const route = deliverTurn(TURN, live, (turn) => resumed.push(turn.message))
-
-    expect([route, resumed]).toEqual(['resumed', ['reponds moi']])
+    expect(deliverTurn(TURN, live)).toBe('closed')
   })
 
-  it('speaks to the session named by the turn, not to a neighbour', () => {
+  it('never speaks to a neighbour session', async () => {
     const live = createLiveSessions<SdkUserTurn>()
     const other = live.start()
     other.adopt('sess-9')
-    const resumed: string[] = []
 
-    const route = deliverTurn(TURN, live, (turn) => resumed.push(turn.message))
+    const route = deliverTurn(TURN, live)
+    other.channel.close()
+    const seen: SdkUserTurn[] = []
+    for await (const message of other.channel) {
+      seen.push(message)
+    }
 
-    expect([route, resumed]).toEqual(['resumed', ['reponds moi']])
+    expect([route, seen]).toEqual(['closed', []])
   })
 })

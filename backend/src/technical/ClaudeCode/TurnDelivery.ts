@@ -7,21 +7,13 @@ export type SdkUserTurn = {
   parent_tool_use_id: null
 }
 
-export type TurnRoute = 'live' | 'resumed'
+export type TurnRoute = 'live' | 'closed'
 
 export function userTurn(text: string): SdkUserTurn {
   return { type: 'user', message: { role: 'user', content: text }, parent_tool_use_id: null }
 }
 
-export function deliverTurn(
-  turn: SpokenTurn,
-  live: LiveSessions<SdkUserTurn>,
-  resume: (turn: SpokenTurn) => void,
-): TurnRoute {
+export function deliverTurn(turn: SpokenTurn, live: LiveSessions<SdkUserTurn>): TurnRoute {
   const channel = live.find(turn.claudeSessionId)
-  if (channel !== null && channel.push(userTurn(turn.message))) {
-    return 'live'
-  }
-  resume(turn)
-  return 'resumed'
+  return channel !== null && channel.push(userTurn(turn.message)) ? 'live' : 'closed'
 }

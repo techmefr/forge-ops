@@ -196,13 +196,7 @@ export function startBoardServer({
       sessions,
       events,
       talker: createSdkSessionTalker({
-        cwd: process.cwd(),
         live,
-        onResume: (claudeSessionId) => {
-          if (sessions.findByClaudeSessionId(claudeSessionId) !== null) {
-            sessions.carryUsage(claudeSessionId)
-          }
-        },
         onEvent: (event) => {
           recordUsageFromEvent(sessions, event)
           events.publish(event)

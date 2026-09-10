@@ -13,6 +13,7 @@ let api: Hono
 let storyId: number
 let said: SpokenTurn[]
 let hungUp: string[]
+let living: boolean
 let published: string[]
 
 function talk(id: number, body: unknown): Promise<Response> {
@@ -30,6 +31,7 @@ beforeEach(() => {
   const events = createEventBus()
   said = []
   hungUp = []
+  living = true
   published = []
   events.subscribe((event) => {
     published.push(event.name)
@@ -59,6 +61,7 @@ beforeEach(() => {
       hangUp: (claudeSessionId) => {
         hungUp.push(claudeSessionId)
       },
+      isLive: () => living,
     },
   })
 })
@@ -201,5 +204,44 @@ describe('DELETE /api/stories/:id/talk', () => {
     await hangUp(storyId)
 
     expect((await hangUp(storyId)).status).toBe(200)
+  })
+})
+
+describe('talking to a conversation that is over', () => {
+  it('refuses the turn instead of pretending to resume', async () => {
+    openSession()
+    living = false
+
+    const response = await talk(storyId, { message: 'tu es la ?' })
+
+    expect(response.status).toBe(409)
+    await expect(response.json()).resolves.toMatchObject({ error: 'ConversationClosed' })
+  })
+
+  it('says nothing to the agent', async () => {
+    openSession()
+    living = false
+
+    await talk(storyId, { message: 'tu es la ?' })
+
+    expect(said).toEqual([])
+  })
+
+  it('keeps the human line out of the transcript', async () => {
+    openSession()
+    living = false
+
+    await talk(storyId, { message: 'tu es la ?' })
+
+    expect(published).not.toContain('session.human')
+  })
+
+  it('names the story so the screen can offer a new session', async () => {
+    openSession()
+    living = false
+
+    const response = await talk(storyId, { message: 'tu es la ?' })
+
+    await expect(response.json()).resolves.toMatchObject({ reference: 'FORGE-1' })
   })
 })

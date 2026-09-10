@@ -46,6 +46,9 @@ export function createConversationApi({
     if (session === null) {
       return context.json({ error: 'NoSessionToTalkTo', reference: story.reference }, 409)
     }
+    if (!talker.isLive(session.claudeSessionId)) {
+      return context.json({ error: 'ConversationClosed', reference: story.reference }, 409)
+    }
     events.publish({
       name: 'session.human',
       payload: {
