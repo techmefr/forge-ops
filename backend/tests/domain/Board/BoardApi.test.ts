@@ -69,6 +69,8 @@ beforeEach(() => {
     dispatcher: stubDispatch,
     claudeHome,
     cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
+    advanceReviewCascade: () =>
+      Promise.resolve({ dispatched: null, reason: 'pas de cascade dans ce test' }),
   })
 })
 
@@ -156,6 +158,8 @@ describe('unexpected failures', () => {
       dispatcher: stubDispatch,
       claudeHome,
     cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
+    advanceReviewCascade: () =>
+      Promise.resolve({ dispatched: null, reason: 'pas de cascade dans ce test' }),
     })
 
     const response = await broken.request('/api/stories/backlog')

@@ -1,5 +1,5 @@
 import type { AgentPhase } from '../Agent/AgentSession.js'
-import type { CheckpointName } from '../Checkpoint/Checkpoint.js'
+import type { CheckpointName, ReviewLens } from '../Checkpoint/Checkpoint.js'
 
 export type PhaseContract = {
   phase: AgentPhase
@@ -40,12 +40,14 @@ export function contractOfPhase(phase: AgentPhase): PhaseContract {
 export type DispatchOrder = {
   storyId: number
   phase: AgentPhase
+  lens?: ReviewLens
 }
 
 export type Dispatched = {
   claudeSessionId: string
   storyId: number
   phase: AgentPhase
+  lens?: ReviewLens
   agentName: string
   prompt: string
   model?: string

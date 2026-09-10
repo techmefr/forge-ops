@@ -13,6 +13,7 @@ import { createBudgetRepository } from '../../domain/Budget/BudgetRepository.js'
 import { DEFAULT_DISPATCH_RATE } from '../../domain/Dispatch/DispatchRate.js'
 import { censusOfTree } from '../Tamper/TestTreeCensus.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
+import { advanceCascade } from '../../domain/Checkpoint/ReviewCascade.js'
 import { createIdentityRepository } from '../../domain/Identity/IdentityRepository.js'
 import { createIdentityApi } from '../../domain/Identity/IdentityApi.js'
 import { createWorktreeRepository } from '../../domain/Worktree/WorktreeRepository.js'
@@ -131,6 +132,9 @@ export function startBoardServer({
       windowMs: Number(process.env.FORGE_DISPATCH_WINDOW_MS ?? DEFAULT_DISPATCH_RATE.windowMs),
     },
   })
+  const cascadeCheckpoints = createCheckpointRepository(db, {
+    takeCensus: () => censusOfTree(testsDir),
+  })
   const api = createBoardApi({
     zones: createZoneRepository(db),
     budget: createBudgetRepository(db),
@@ -140,6 +144,13 @@ export function startBoardServer({
     criteria: createCriterionRepository(db),
     events,
     dispatcher,
+    advanceReviewCascade: (storyId) =>
+      advanceCascade({
+        cascade: cascadeCheckpoints.reviewCascade(storyId),
+        dispatchLens: async (lens) => {
+          await dispatcher.dispatch({ storyId, phase: 'review', lens })
+        },
+      }),
     cleanUpAfterMerge: (storyId) =>
       cleanUpAfterMerge({
         storyId,

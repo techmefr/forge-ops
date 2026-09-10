@@ -46,3 +46,9 @@ export class StoryBlockedError extends DispatchViolationError {
     super(`${reference} attend ${blockers.join(', ')}`, 'StoryBlockedError')
   }
 }
+
+export class LensOutsideReviewError extends DispatchViolationError {
+  constructor(phase: string) {
+    super(`une lentille de review ne se lit pas en phase ${phase}`, 'LensOutsideReviewError')
+  }
+}
