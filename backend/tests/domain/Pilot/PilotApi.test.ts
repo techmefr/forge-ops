@@ -62,7 +62,11 @@ beforeEach(() => {
   })
   const epic = stories.createEpic({ projectId: project.id, title: 'CRUD', businessIntent: 'gerer' })
   storyId = stories.writeStory({ epicId: epic.id, title: 'visualiser les mails', body: 'en tant que' }).id
-  api = createPilotApi({ pilots: createPilotRepository(db, { stories, openDriver: driver }), events })
+  api = createPilotApi({
+    pilots: createPilotRepository(db, { stories, openDriver: driver }),
+    events,
+    suggest: () => ({ url: 'http://localhost:5049/', script: [], reason: 'suggestion de test' }),
+  })
 })
 
 describe('POST /api/stories/:id/pilot', () => {
@@ -136,6 +140,7 @@ describe('POST /api/stories/:id/pilot/advance', () => {
     api = createPilotApi({
       pilots: createPilotRepository(db, { stories, openDriver: driver }),
       events: createEventBus(),
+      suggest: () => ({ url: '', script: [], reason: 'suggestion de test' }),
     })
 
     expect((await send(`/api/stories/${storyId}/pilot/advance`, 'POST')).status).toBe(409)
@@ -204,7 +209,7 @@ describe('GET /api/stories/:id/pilot', () => {
     const response = await send(`/api/stories/${storyId}/pilot`, 'GET')
 
     expect(response.status).toBe(200)
-    await expect(response.json()).resolves.toEqual({ run: null, history: [] })
+    await expect(response.json()).resolves.toMatchObject({ run: null, history: [] })
   })
 
   it('rends the live run and its past ones', async () => {
@@ -213,6 +218,14 @@ describe('GET /api/stories/:id/pilot', () => {
     await expect((await send(`/api/stories/${storyId}/pilot`, 'GET')).json()).resolves.toMatchObject({
       run: { state: 'running' },
       history: [{ state: 'running' }],
+    })
+  })
+})
+
+describe('the suggested parcours', () => {
+  it('travels with the run, so the screen can prefill it', async () => {
+    await expect((await send(`/api/stories/${storyId}/pilot`, 'GET')).json()).resolves.toMatchObject({
+      suggestion: { url: 'http://localhost:5049/' },
     })
   })
 })

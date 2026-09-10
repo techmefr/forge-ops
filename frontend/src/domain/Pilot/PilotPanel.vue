@@ -6,6 +6,8 @@ import { usePilot } from './UsePilot'
 
 const props = defineProps<{ storyId: number | null }>()
 
+const emit = defineEmits<{ proven: [{ evidencePath: string }] }>()
+
 const STEP_KINDS: readonly { kind: PilotStepKind; label: string }[] = [
   { kind: 'goto', label: 'Ouvrir' },
   { kind: 'click', label: 'Cliquer' },
@@ -58,6 +60,21 @@ function addDraft(): void {
     </div>
 
     <template v-if="!live">
+      <div
+        v-if="desk.suggestion.value !== null"
+        class="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-elev p-3"
+      >
+        <p class="flex-1 text-xs text-txt-mid">{{ desk.suggestion.value.reason }}</p>
+        <button
+          type="button"
+          :disabled="desk.suggestion.value.script.length === 0"
+          class="rounded-lg border border-acc px-3 py-1.5 text-[10px] font-bold text-acc uppercase disabled:opacity-40"
+          @click="desk.takeSuggestion()"
+        >
+          Prendre le parcours propose
+        </button>
+      </div>
+
       <div class="mt-3 flex flex-wrap gap-2">
         <input
           v-model="desk.url.value"
@@ -211,6 +228,14 @@ function addDraft(): void {
           class="ml-auto font-mono text-[10px] text-acc uppercase"
           >Voir la capture</a
         >
+        <button
+          v-if="act.screenshotPath !== null"
+          type="button"
+          class="font-mono text-[10px] text-green uppercase"
+          @click="emit('proven', { evidencePath: act.screenshotPath })"
+        >
+          En faire une preuve
+        </button>
       </li>
     </ul>
 

@@ -325,3 +325,9 @@ export type MachineReading = {
   reason: string | null
   snapshot: MachineSnapshot | null
 }
+
+export type ParcoursSuggestion = {
+  url: string
+  script: readonly PilotStep[]
+  reason: string
+}

@@ -144,7 +144,7 @@ onMounted(() => stories.reload())
         </section>
 
         <div class="mt-5">
-          <PilotPanel :story-id="openStoryId" />
+          <PilotPanel :story-id="openStoryId" @proven="evidencePath = $event.evidencePath" />
         </div>
 
         <form class="mt-5 rounded-2xl border border-line bg-card p-4" @submit.prevent="prove">

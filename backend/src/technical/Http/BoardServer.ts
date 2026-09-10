@@ -24,6 +24,7 @@ import { createForemergeRepository } from '../../domain/Foremerge/ForemergeRepos
 import { createForemergeApi } from '../../domain/Foremerge/ForemergeApi.js'
 import { createPilotRepository } from '../../domain/Pilot/PilotRepository.js'
 import { createPilotApi } from '../../domain/Pilot/PilotApi.js'
+import { suggestParcours } from '../../domain/Pilot/Parcours.js'
 import { createPlaywrightPilot } from '../Browser/PlaywrightPilot.js'
 import { createPilotShotApi } from './PilotShotApi.js'
 import { createMachineApi } from '../../domain/Resource/MachineApi.js'
@@ -187,7 +188,19 @@ export function startBoardServer({
     openDriver: () => createPlaywrightPilot({ shotDir, headless: !headedPilot }),
   })
   pilots.abandonOrphans()
-  guarded.route('/', createPilotApi({ pilots, events }))
+  const pilotCriteria = createCriterionRepository(db)
+  guarded.route(
+    '/',
+    createPilotApi({
+      pilots,
+      events,
+      suggest: (storyId) =>
+        suggestParcours({
+          port: worktrees.findForStory(storyId)?.port ?? null,
+          criteria: pilotCriteria.listCriteria(storyId),
+        }),
+    }),
+  )
   guarded.route('/', createPilotShotApi({ shotDir }))
   guarded.route('/', createMachineApi({ metricsUrl }))
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
