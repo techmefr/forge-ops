@@ -20,6 +20,7 @@ import { EvidencePathRefusedError } from '../Evidence/EvidencePath.js'
 import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import { BudgetViolationError } from '../Budget/BudgetViolation.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
+import { stateAfterCheckpoint } from '../Story/Advance.js'
 import { scoreCompleteness } from '../Story/Completeness.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
 import type { CascadeStep } from '../Checkpoint/ReviewCascade.js'
@@ -304,12 +305,31 @@ export function createBoardApi({
     }
     const checkpoint = checkpoints.proveCheckpoint({ storyId: storyId.data, ...draft.data })
     events.publish({ name: 'checkpoint.proven', payload: { ...checkpoint } })
+    const moved = stateAfterCheckpoint(draft.data.name)
+    if (moved !== null) {
+      const story = repository.moveToState(storyId.data, moved)
+      events.publish({ name: 'story.moved', payload: { storyId: story.id, state: story.state } })
+    }
     if (draft.data.name !== 'verified') {
       return context.json(checkpoint, 201)
     }
     const cascade = await advanceReviewCascade(storyId.data)
     events.publish({ name: 'review.cascade', payload: { storyId: storyId.data, ...cascade } })
     return context.json({ ...checkpoint, cascade }, 201)
+  })
+
+  api.post('/api/stories/:id/plan/accept', (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const story = repository.findStory(storyId.data)
+    if (story.state !== 'plan_review') {
+      return context.json({ error: 'PlanNotSettled', state: story.state }, 409)
+    }
+    const building = repository.startBuilding(storyId.data)
+    events.publish({ name: 'story.moved', payload: { storyId: building.id, state: building.state } })
+    return context.json(building)
   })
 
   api.get('/api/stories/:id/ticket', (context) => {
