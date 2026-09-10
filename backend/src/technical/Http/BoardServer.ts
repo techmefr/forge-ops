@@ -35,6 +35,8 @@ import { createIncidentApi } from '../../domain/Incident/IncidentApi.js'
 import { createEventBus } from './EventBus.js'
 import { createBoardPage } from './BoardPage.js'
 import { createSdkSessionRunner, createSdkSessionTalker } from '../ClaudeCode/SdkSessionRunner.js'
+import { createLiveSessions } from '../ClaudeCode/LiveSessions.js'
+import type { SdkUserTurn } from '../ClaudeCode/TurnDelivery.js'
 import { createConversationApi } from '../../domain/Conversation/ConversationApi.js'
 import { recordUsageFromEvent } from '../ClaudeCode/UsageRecorder.js'
 import { createTokenGuard } from '../Auth/TokenGuard.js'
@@ -107,6 +109,7 @@ export function startBoardServer({
   const stories = createStoryRepository(db)
   const sessions = createAgentSessionRepository(db)
   const foremerge = createForemergeRepository(db, { stories })
+  const live = createLiveSessions<SdkUserTurn>()
   const worktrees = createWorktreeRepository(db, {
     stories,
     git: createGitWorktree({ repositoryRoot: process.cwd() }),
@@ -122,6 +125,7 @@ export function startBoardServer({
     foremerge,
     runner: createSdkSessionRunner({
       cwd: process.cwd(),
+      live,
       onEvent: (event) => {
         recordUsageFromEvent(sessions, event)
         events.publish(event)
@@ -187,6 +191,12 @@ export function startBoardServer({
       events,
       talker: createSdkSessionTalker({
         cwd: process.cwd(),
+        live,
+        onResume: (claudeSessionId) => {
+          if (sessions.findByClaudeSessionId(claudeSessionId) !== null) {
+            sessions.carryUsage(claudeSessionId)
+          }
+        },
         onEvent: (event) => {
           recordUsageFromEvent(sessions, event)
           events.publish(event)
@@ -230,7 +240,9 @@ export function startBoardServer({
         server,
         port: address.port,
         close: () =>
-          pilots.closeBrowsers().then(
+          Promise.resolve(live.closeAll())
+            .then(() => pilots.closeBrowsers())
+            .then(
             () =>
               new Promise<void>((closed) => {
                 server.close(() => {

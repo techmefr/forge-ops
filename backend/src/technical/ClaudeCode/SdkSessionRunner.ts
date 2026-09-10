@@ -1,10 +1,13 @@
 import { query } from '@anthropic-ai/claude-agent-sdk'
 import type { LaunchOrder, SessionRunner } from '../../domain/Dispatch/Dispatch.js'
 import type { SessionTalker, SpokenTurn } from '../../domain/Conversation/Conversation.js'
+import type { LiveSessions } from './LiveSessions.js'
+import { deliverTurn, userTurn, type SdkUserTurn } from './TurnDelivery.js'
 
 export type SdkSessionRunnerInput = {
   cwd: string
   onEvent: (event: { name: string; payload: Record<string, unknown> }) => void
+  live: LiveSessions<SdkUserTurn>
 }
 
 export class SessionIdentifierMissingError extends Error {
@@ -14,11 +17,13 @@ export class SessionIdentifierMissingError extends Error {
   }
 }
 
-export function createSdkSessionRunner({ cwd, onEvent }: SdkSessionRunnerInput): SessionRunner {
+export function createSdkSessionRunner({ cwd, onEvent, live }: SdkSessionRunnerInput): SessionRunner {
   return {
     launch: async (order: LaunchOrder) => {
+      const started = live.start()
+      started.channel.push(userTurn(order.prompt))
       const conversation = query({
-        prompt: order.prompt,
+        prompt: started.channel,
         options: {
           cwd,
           permissionMode: 'default',
@@ -46,10 +51,15 @@ export function createSdkSessionRunner({ cwd, onEvent }: SdkSessionRunnerInput):
       }
 
       if (claudeSessionId === null) {
+        started.channel.close()
         throw new SessionIdentifierMissingError(order.reference)
       }
 
-      void drain(conversation, { ...order, claudeSessionId }, onEvent)
+      started.adopt(claudeSessionId)
+      const identifier = claudeSessionId
+      void drain(conversation, { ...order, claudeSessionId: identifier }, onEvent).finally(() =>
+        live.close(identifier),
+      )
       return { claudeSessionId }
     },
   }
@@ -135,30 +145,49 @@ async function drain(
 export type SdkSessionTalkerInput = {
   cwd: string
   onEvent: (event: { name: string; payload: Record<string, unknown> }) => void
+  live: LiveSessions<SdkUserTurn>
+  onResume: (claudeSessionId: string) => void
 }
 
-export function createSdkSessionTalker({ cwd, onEvent }: SdkSessionTalkerInput): SessionTalker {
+export function createSdkSessionTalker({
+  cwd,
+  onEvent,
+  live,
+  onResume,
+}: SdkSessionTalkerInput): SessionTalker {
+  function resume(turn: SpokenTurn): void {
+    onResume(turn.claudeSessionId)
+    const started = live.start()
+    started.channel.push(userTurn(turn.message))
+    started.adopt(turn.claudeSessionId)
+    const conversation = query({
+      prompt: started.channel,
+      options: {
+        cwd,
+        permissionMode: 'default',
+        resume: turn.claudeSessionId,
+        env: { ...process.env, FORGE_STORY_REFERENCE: turn.reference },
+      },
+    })
+    void drain(
+      conversation,
+      {
+        reference: turn.reference,
+        phase: 'spec',
+        prompt: turn.message,
+        claudeSessionId: turn.claudeSessionId,
+      } as LaunchOrder & { claudeSessionId: string },
+      onEvent,
+    ).finally(() => live.close(turn.claudeSessionId))
+  }
+
   return {
     say: (turn: SpokenTurn) => {
-      const conversation = query({
-        prompt: turn.message,
-        options: {
-          cwd,
-          permissionMode: 'default',
-          resume: turn.claudeSessionId,
-          env: { ...process.env, FORGE_STORY_REFERENCE: turn.reference },
-        },
+      const route = deliverTurn(turn, live, resume)
+      onEvent({
+        name: 'session.turn_routed',
+        payload: { reference: turn.reference, claudeSessionId: turn.claudeSessionId, route },
       })
-      void drain(
-        conversation,
-        {
-          reference: turn.reference,
-          phase: 'spec',
-          prompt: turn.message,
-          claudeSessionId: turn.claudeSessionId,
-        } as LaunchOrder & { claudeSessionId: string },
-        onEvent,
-      )
       return Promise.resolve()
     },
   }
