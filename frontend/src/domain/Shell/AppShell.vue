@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { SCREENS, screenOfPath } from '@/technical/Router/Screen'
-import { resolveStroke } from '@/technical/Router/Shortcut'
+import { ARMED, IDLE, resolveStroke, type Phase } from '@/technical/Router/Shortcut'
 import { THEME_LABELS, THEME_NAMES } from '@/technical/Theme/Palette'
 import { useTheme } from '@/technical/Theme/UseTheme'
 import { NAV_LAYOUTS, NAV_LAYOUT_LABELS } from '@/technical/Shell/Navigation'
@@ -27,15 +27,15 @@ function editing(target: EventTarget | null): boolean {
   return node.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(node.tagName)
 }
 
-const armed = ref(false)
+const phase = ref<Phase>(IDLE)
 
 function jump(event: KeyboardEvent): void {
   if (editing(event.target)) {
-    armed.value = false
+    phase.value = IDLE
     return
   }
-  const answer = resolveStroke(event, armed.value)
-  armed.value = answer.armed
+  const answer = resolveStroke(event, phase.value)
+  phase.value = answer.phase
   if (answer.path === null) {
     return
   }
@@ -57,15 +57,15 @@ watch(
 
 const heading = computed(() => {
   if (current.value !== null) {
-    return { letter: current.value.letter, label: current.value.label, sub: current.value.sub }
+    return { digit: current.value.digit, label: current.value.label, sub: current.value.sub }
   }
   if (route.path === '/settings') {
-    return { letter: '~', label: 'Reglages', sub: 'Le plafond de cout et la conduite a tenir quand il tombe' }
+    return { digit: '~', label: 'Reglages', sub: 'Le plafond de cout et la conduite a tenir quand il tombe' }
   }
   if (route.path === '/incidents') {
-    return { letter: '~', label: 'Signalements', sub: 'Ce qui remonte du dehors, a trancher un par un' }
+    return { digit: '~', label: 'Signalements', sub: 'Ce qui remonte du dehors, a trancher un par un' }
   }
-  return { letter: '~', label: 'Acces', sub: 'Ouvrir une session sur le board' }
+  return { digit: '~', label: 'Acces', sub: 'Ouvrir une session sur le board' }
 })
 </script>
 
@@ -87,8 +87,8 @@ const heading = computed(() => {
           v-for="screen in SCREENS"
           :key="screen.key"
           :to="screen.path"
-          :aria-keyshortcuts="`Alt+Shift+${screen.letter}`"
-          :title="`g puis ${screen.letter}, ou Alt+Maj+${screen.letter}`"
+          :aria-keyshortcuts="`Alt+Shift+${screen.digit}`"
+          :title="`z z puis ${screen.digit}, ou Alt+Maj+${screen.digit}`"
           class="flex items-center gap-3 rounded-[10px] px-3 py-[11px] transition-colors"
           :class="
             current?.key === screen.key
@@ -99,7 +99,7 @@ const heading = computed(() => {
           <span
             class="min-w-[18px] font-mono text-[10px] font-semibold"
             :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
-            >{{ screen.letter }}</span
+            >{{ screen.digit }}</span
           >
           <span class="display-italic text-[14.5px]">{{ screen.label }}</span>
         </RouterLink>
@@ -145,8 +145,8 @@ const heading = computed(() => {
             v-for="screen in SCREENS"
             :key="screen.key"
             :to="screen.path"
-            :aria-keyshortcuts="`Alt+Shift+${screen.letter}`"
-            :title="`g puis ${screen.letter}, ou Alt+Maj+${screen.letter}`"
+            :aria-keyshortcuts="`Alt+Shift+${screen.digit}`"
+            :title="`z z puis ${screen.digit}, ou Alt+Maj+${screen.digit}`"
             class="flex flex-col justify-center gap-[3px] border-b-[3px] px-4 transition-colors"
             :class="
               current?.key === screen.key
@@ -157,7 +157,7 @@ const heading = computed(() => {
             <span
               class="font-mono text-[9.5px]"
               :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
-              >{{ screen.letter }}</span
+              >{{ screen.digit }}</span
             >
             <span class="display-italic text-sm whitespace-nowrap uppercase">{{ screen.label }}</span>
           </RouterLink>
@@ -169,7 +169,7 @@ const heading = computed(() => {
       >
         <div class="min-w-0 flex-[1_1_240px]">
           <div class="flex items-baseline gap-2.5">
-            <span class="font-mono text-[11px] font-semibold text-acc">{{ heading.letter }}</span>
+            <span class="font-mono text-[11px] font-semibold text-acc">{{ heading.digit }}</span>
             <h1 class="display-italic m-0 text-[34px] leading-none">{{ heading.label }}</h1>
           </div>
           <p class="mt-1 text-[12.5px] text-txt-low">{{ heading.sub }}</p>
@@ -211,10 +211,10 @@ const heading = computed(() => {
             {{ NAV_LAYOUT_LABELS[name] }}
           </button>
           <span
-            v-if="armed"
+            v-if="phase !== IDLE"
             class="rounded-lg border border-acc px-2.5 py-1.5 font-mono text-[10px] text-acc uppercase"
             role="status"
-            >g … lettre</span
+            >{{ phase === ARMED ? 'z z … chiffre' : 'z …' }}</span
           >
           <span class="mx-1 h-5 w-px bg-line" />
           <button

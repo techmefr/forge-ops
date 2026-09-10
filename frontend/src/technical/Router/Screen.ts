@@ -12,7 +12,7 @@ export type ScreenKey =
 
 export type Screen = {
   key: ScreenKey
-  letter: string
+  digit: string
   path: string
   label: string
   tiny: string
@@ -22,7 +22,7 @@ export type Screen = {
 export const SCREENS: readonly Screen[] = [
   {
     key: 'story',
-    letter: 'S',
+    digit: '1',
     path: '/story',
     label: 'Story',
     tiny: 'sto',
@@ -30,7 +30,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'backlog',
-    letter: 'B',
+    digit: '2',
     path: '/backlog',
     label: 'Backlog',
     tiny: 'bkl',
@@ -38,7 +38,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'architecture',
-    letter: 'A',
+    digit: '3',
     path: '/architecture',
     label: 'Architecture',
     tiny: 'arc',
@@ -46,7 +46,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'kanban',
-    letter: 'K',
+    digit: '4',
     path: '/kanban',
     label: 'Kanban',
     tiny: 'kbn',
@@ -54,7 +54,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'project',
-    letter: 'P',
+    digit: '5',
     path: '/project',
     label: 'Projet',
     tiny: 'prj',
@@ -62,7 +62,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'review',
-    letter: 'R',
+    digit: '6',
     path: '/review',
     label: 'Review',
     tiny: 'rev',
@@ -70,7 +70,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'view',
-    letter: 'V',
+    digit: '7',
     path: '/view',
     label: 'View',
     tiny: 'vue',
@@ -78,7 +78,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'deployment',
-    letter: 'D',
+    digit: '8',
     path: '/deployment',
     label: 'Deploiement',
     tiny: 'dep',
@@ -86,7 +86,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'resources',
-    letter: 'E',
+    digit: '9',
     path: '/resources',
     label: 'Ressources',
     tiny: 'res',
@@ -94,7 +94,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'statistics',
-    letter: 'T',
+    digit: '0',
     path: '/statistics',
     label: 'Statistiques',
     tiny: 'sta',
