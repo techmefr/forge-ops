@@ -4,6 +4,13 @@ export type PathKind = 'tests' | 'interface' | 'schema' | 'code'
 
 const EMPTY_ZONE = 'Aucun fichier touche pour l instant.'
 
+const SHARE: Readonly<Record<PathKind, string>> = {
+  tests: 'des tests',
+  interface: 'de l interface',
+  schema: 'du schema',
+  code: 'du code',
+}
+
 export function kindOfPath(path: string): PathKind {
   const segments = path.split('/')
   if (segments.includes('tests') || path.endsWith('.test.ts')) {
@@ -34,5 +41,5 @@ export function describeZone({ files }: ZoneOverview): string {
   const references = [...new Set(files.map((file) => file.storyReference))].sort()
   const count = `${files.length} fichier${files.length > 1 ? 's' : ''}`
   const who = references.length === 1 ? `par ${references[0]}` : `par ${references.join(' et ')}`
-  return `${count} ${who}. Surtout du ${dominantKind(files.map((file) => file.path))}.`
+  return `${count} ${who}. Surtout ${SHARE[dominantKind(files.map((file) => file.path))]}.`
 }

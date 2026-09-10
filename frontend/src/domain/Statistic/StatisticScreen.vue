@@ -143,7 +143,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
                   <td class="py-2 font-mono text-[11px] text-txt-hi">{{ entry.agentName }}</td>
                   <td class="py-2 text-txt-mid">{{ humanDuration(entry.seconds) }}</td>
                   <td class="py-2 font-mono text-[11px] text-txt-mid">
-                    {{ entry.costUsd === null ? '—' : `${entry.costUsd.toFixed(4)} $` }}
+                    {{ entry.costUsd === null ? '—' : `${entry.costUsd.toFixed(2)} $` }}
                   </td>
                   <td class="py-2 font-mono text-[11px]" :class="colourOf(entry.outcome)">
                     {{ entry.outcome ?? entry.lifecycle }}

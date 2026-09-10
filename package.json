@@ -7,6 +7,7 @@
   "scripts": {
     "forge": "tsx backend/src/forge.ts",
     "hook:install": "tsx backend/src/installHook.ts",
+    "seed:demo": "tsx backend/src/seedDemo.ts",
     "dev:web": "vite",
     "build:back": "tsc -p tsconfig.json",
     "build:web": "vue-tsc -p tsconfig.web.json && vite build",

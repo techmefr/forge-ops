@@ -71,6 +71,26 @@ describe('a zone one story works in', () => {
   })
 })
 
+describe('the share of a zone', () => {
+  it('reads as French for an interface, not as a bare word', () => {
+    expect(describeZone(overview([touched('frontend/src/domain/Mail/MailScreen.vue')]))).toContain(
+      'de l interface',
+    )
+  })
+
+  it('reads as French for tests', () => {
+    expect(describeZone(overview([touched('backend/tests/domain/Mail/A.test.ts')]))).toContain('des tests')
+  })
+
+  it('reads as French for the schema', () => {
+    expect(describeZone(overview([touched('db/forge.sql')]))).toContain('du schema')
+  })
+
+  it('reads as French for the rest', () => {
+    expect(describeZone(overview([touched('backend/src/domain/Mail/Mail.ts')]))).toContain('du code')
+  })
+})
+
 describe('a zone two stories share', () => {
   it('names both, that is how a collision gets noticed', () => {
     const digest = describeZone(
