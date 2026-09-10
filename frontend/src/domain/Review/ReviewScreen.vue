@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
-import PilotPanel from '@/domain/Pilot/PilotPanel.vue'
 import type { KanbanStory, ReviewPass, StoryReport, Ticket } from '@/domain/Board/BoardModel'
 import { CHECKPOINT_LABELS, LENS_LABELS } from '@/domain/Story/Checkpoint'
 
@@ -142,10 +141,6 @@ onMounted(() => stories.reload())
             </li>
           </ol>
         </section>
-
-        <div class="mt-5">
-          <PilotPanel :story-id="openStoryId" @proven="evidencePath = $event.evidencePath" />
-        </div>
 
         <form class="mt-5 rounded-2xl border border-line bg-card p-4" @submit.prevent="prove">
           <p class="display-italic text-sm text-txt-mid">Prouver un point de controle</p>

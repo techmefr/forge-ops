@@ -12,8 +12,9 @@ export const ROUTES: readonly RouteRecordRaw[] = [
     component: () => import('@/domain/Architecture/ArchitectureScreen.vue'),
   },
   { path: '/kanban', name: 'kanban', component: () => import('@/domain/Kanban/KanbanScreen.vue') },
-  { path: '/files', name: 'files', component: () => import('@/domain/File/FileScreen.vue') },
+  { path: '/project', name: 'project', component: () => import('@/domain/File/FileScreen.vue') },
   { path: '/review', name: 'review', component: () => import('@/domain/Review/ReviewScreen.vue') },
+  { path: '/view', name: 'view', component: () => import('@/domain/View/ViewScreen.vue') },
   {
     path: '/deployment',
     name: 'deployment',
