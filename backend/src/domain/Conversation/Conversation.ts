@@ -7,6 +7,7 @@ export type SpokenTurn = {
 export type SessionTalker = {
   say: (turn: SpokenTurn) => Promise<void>
   hangUp: (claudeSessionId: string) => void
+  isLive: (claudeSessionId: string) => boolean
 }
 
 export function framedTurn(message: string, reference: string): string {

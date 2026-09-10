@@ -10,6 +10,8 @@ import { useTicket } from './UseTicket'
 import StoryTicket from './StoryTicket.vue'
 import { PARTS, PART_LABELS, bothPartsWritten, partOf, type StoryPart } from './StoryPart'
 import { storiesOfEpic } from './Batch'
+import { requestFor, type TicketPoint } from './TicketRequest'
+import { provisionalTitle } from './Slice'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,18 +21,7 @@ const queue = ref<readonly number[]>([])
 const queueEpics = ref<readonly EpicOverview[]>([])
 const written = ref<readonly Story[]>([])
 
-const {
-  ticket,
-  open,
-  write,
-  writeTwin,
-  declareCriterion,
-  sendToBacklog,
-  dispatch,
-  edit,
-  talk,
-  hangUp,
-} = useTicket()
+const { ticket, open, write, writeTwin, sendToBacklog, dispatch, talk, hangUp } = useTicket()
 
 const reference = computed(() => ticket.data.value?.functional.reference ?? null)
 const transcript = useTranscript(reference)
@@ -38,14 +29,8 @@ const said = computed(() => transcript.visible())
 
 const turn = ref('')
 const part = ref<StoryPart>('functional')
-const cardTitle = ref('')
-const cardBody = ref('')
 const twinTitle = ref('')
 const twinBody = ref('')
-const criterionReference = ref('')
-const criterionStatement = ref('')
-const criterionPersona = ref('')
-const criterionRefusal = ref(false)
 const refusal = ref<string | null>(null)
 const busy = ref(false)
 
@@ -64,9 +49,8 @@ async function startQueue(chosen: readonly number[]): Promise<void> {
   queueEpics.value = found.flat().filter((epic) => chosen.includes(epic.id))
   written.value = []
   queue.value = chosen
-  const first = queueEpics.value[0]
-  if (first !== undefined) {
-    await newStory(first)
+  for (const epic of queueEpics.value) {
+    await newStory(epic)
   }
 }
 
@@ -99,7 +83,11 @@ async function guard(action: () => Promise<void>): Promise<void> {
 function newStory(epic: EpicOverview): Promise<void> {
   return guard(async () => {
     transcript.clear()
-    const story = await write({ epicId: epic.id, title: epic.title, body: epic.businessIntent })
+    const story = await write({
+      epicId: epic.id,
+      title: provisionalTitle(storiesOfEpic(written.value, epic.id).length),
+      body: epic.businessIntent,
+    })
     written.value = [...written.value, story]
     await dispatch(story.id, 'spec')
   })
@@ -123,12 +111,8 @@ function sendTurn(): Promise<void> {
   })
 }
 
-function saveCard(): Promise<void> {
-  const shown = shownPart.value
-  if (shown === null) {
-    return Promise.resolve()
-  }
-  return guard(() => edit(shown.id, { title: cardTitle.value, body: cardBody.value }))
+function askClaude(point: TicketPoint): void {
+  turn.value = requestFor(point)
 }
 
 async function submitTwin(): Promise<void> {
@@ -140,25 +124,6 @@ async function submitTwin(): Promise<void> {
     await writeTwin(storyId, { title: twinTitle.value, body: twinBody.value })
     twinTitle.value = ''
     twinBody.value = ''
-  })
-}
-
-async function submitCriterion(): Promise<void> {
-  const storyId = ticket.data.value?.functional.id
-  if (storyId === undefined) {
-    return
-  }
-  await guard(async () => {
-    await declareCriterion(storyId, {
-      reference: criterionReference.value,
-      statement: criterionStatement.value,
-      persona: criterionPersona.value === '' ? null : criterionPersona.value,
-      expectsRefusal: criterionRefusal.value,
-    })
-    criterionReference.value = ''
-    criterionStatement.value = ''
-    criterionPersona.value = ''
-    criterionRefusal.value = false
   })
 }
 
@@ -181,15 +146,6 @@ watch(
   },
 )
 
-
-watch(
-  shownPart,
-  (story) => {
-    cardTitle.value = story?.title ?? ''
-    cardBody.value = story?.body ?? ''
-  },
-  { immediate: true },
-)
 
 onMounted(async () => {
   await projects.reload()
@@ -252,7 +208,7 @@ onMounted(async () => {
             class="mt-1.5 w-full rounded-lg border border-dashed border-line px-3 py-2 font-mono text-[10px] text-txt-mid uppercase hover:border-acc disabled:opacity-40"
             @click="newStory(epic)"
           >
-            + Une story de plus
+            {{ storiesOf(epic.id).length === 0 ? 'Ecrire la premiere story' : '+ Une story de plus' }}
           </button>
         </div>
       </template>
@@ -270,7 +226,7 @@ onMounted(async () => {
         Le flux du board est coupe, recharge la page
       </p>
       <p v-else-if="said.length === 0" class="mt-3 text-xs text-txt-low">
-        La session demarre, Claude lit l epique.
+        La fournee demarre, Claude lit l epique.
       </p>
 
       <div class="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
@@ -314,7 +270,7 @@ onMounted(async () => {
       </form>
 
       <p v-if="ticket.data.value !== null && !complete" class="mt-3 text-xs text-orange">
-        Le backlog attend les deux parties : ecris la story de test jumelle dans son onglet.
+        Les deux parties d abord : une fois la jumelle ecrite, la story part au backlog.
       </p>
 
       <div class="mt-3 flex flex-none flex-wrap gap-2">
@@ -360,35 +316,7 @@ onMounted(async () => {
       </nav>
 
       <div class="mt-5 min-h-0 flex-1 overflow-auto">
-        <StoryTicket :ticket="ticket.data.value" :part="part" />
-        <form
-          v-if="shownPart !== null"
-          class="mt-6 flex flex-col gap-2 rounded-2xl border border-acc bg-card p-4"
-          @submit.prevent="saveCard"
-        >
-          <p class="display-italic text-sm text-acc">
-            {{ PART_LABELS[part] }}, a la main
-          </p>
-          <input
-            v-model="cardTitle"
-            type="text"
-            aria-label="Titre de la carte"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
-          />
-          <textarea
-            v-model="cardBody"
-            rows="6"
-            aria-label="Corps de la carte"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
-          ></textarea>
-          <button
-            type="submit"
-            :disabled="busy || cardTitle.trim() === '' || cardBody.trim() === ''"
-            class="self-start rounded-lg border border-acc bg-acc px-3 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
-          >
-            Reecrire la carte
-          </button>
-        </form>
+        <StoryTicket :ticket="ticket.data.value" :part="part" @pick="askClaude" />
 
         <form
           v-if="part === 'tests' && ticket.data.value?.tests === null"
@@ -417,42 +345,6 @@ onMounted(async () => {
           </button>
         </form>
 
-        <form
-          v-if="part === 'functional' && ticket.data.value !== null"
-          class="mt-4 flex flex-col gap-2 rounded-2xl border border-line bg-card p-4"
-          @submit.prevent="submitCriterion"
-        >
-          <p class="display-italic text-sm text-txt-mid">Critere d acceptation</p>
-          <input
-            v-model="criterionReference"
-            type="text"
-            placeholder="Reference, ex CA-1"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
-          />
-          <input
-            v-model="criterionStatement"
-            type="text"
-            placeholder="Ce qui doit etre vrai"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
-          />
-          <input
-            v-model="criterionPersona"
-            type="text"
-            placeholder="Persona, facultatif"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
-          />
-          <label class="flex items-center gap-2 text-xs text-txt-mid">
-            <input v-model="criterionRefusal" type="checkbox" />
-            Ce critere attend un refus
-          </label>
-          <button
-            type="submit"
-            :disabled="busy"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-50"
-          >
-            Declarer le critere
-          </button>
-        </form>
       </div>
     </section>
   </div>

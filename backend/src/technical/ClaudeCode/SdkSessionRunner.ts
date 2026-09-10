@@ -143,51 +143,20 @@ async function drain(
 }
 
 export type SdkSessionTalkerInput = {
-  cwd: string
-  onEvent: (event: { name: string; payload: Record<string, unknown> }) => void
   live: LiveSessions<SdkUserTurn>
-  onResume: (claudeSessionId: string) => void
+  onEvent: (event: { name: string; payload: Record<string, unknown> }) => void
 }
 
-export function createSdkSessionTalker({
-  cwd,
-  onEvent,
-  live,
-  onResume,
-}: SdkSessionTalkerInput): SessionTalker {
-  function resume(turn: SpokenTurn): void {
-    onResume(turn.claudeSessionId)
-    const started = live.start()
-    started.channel.push(userTurn(turn.message))
-    started.adopt(turn.claudeSessionId)
-    const conversation = query({
-      prompt: started.channel,
-      options: {
-        cwd,
-        permissionMode: 'default',
-        resume: turn.claudeSessionId,
-        env: { ...process.env, FORGE_STORY_REFERENCE: turn.reference },
-      },
-    })
-    void drain(
-      conversation,
-      {
-        reference: turn.reference,
-        phase: 'spec',
-        prompt: turn.message,
-        claudeSessionId: turn.claudeSessionId,
-      } as LaunchOrder & { claudeSessionId: string },
-      onEvent,
-    ).finally(() => live.close(turn.claudeSessionId))
-  }
-
+export function createSdkSessionTalker({ live, onEvent }: SdkSessionTalkerInput): SessionTalker {
   return {
+    isLive: (claudeSessionId: string) => live.find(claudeSessionId) !== null,
+
     hangUp: (claudeSessionId: string) => {
       live.close(claudeSessionId)
     },
 
     say: (turn: SpokenTurn) => {
-      const route = deliverTurn(turn, live, resume)
+      const route = deliverTurn(turn, live)
       onEvent({
         name: 'session.turn_routed',
         payload: { reference: turn.reference, claudeSessionId: turn.claudeSessionId, route },
