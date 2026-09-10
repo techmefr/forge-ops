@@ -329,7 +329,7 @@ onMounted(async () => {
       </nav>
 
       <div class="mt-5">
-        <StoryTicket :ticket="ticket.data.value" />
+        <StoryTicket :ticket="ticket.data.value" :part="part" />
       </div>
 
       <template v-if="ticket.data.value !== null">
