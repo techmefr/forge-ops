@@ -79,10 +79,8 @@ describe('story board fields', () => {
 })
 
 describe('kanban columns', () => {
-  it('runs from architecture to production', () => {
+  it('runs from the dev to production', () => {
     expect(KANBAN_COLUMNS.map((column) => column.key)).toEqual([
-      'architecture',
-      'plan_review',
       'building',
       'gating',
       'reviewing',
@@ -90,6 +88,11 @@ describe('kanban columns', () => {
       'flagged',
       'done',
     ])
+  })
+
+  it('leaves the planning to its own screen rather than a column', () => {
+    expect(columnOfState('architecture')).toBeNull()
+    expect(columnOfState('plan_review')).toBeNull()
   })
 
   it('places every board state in exactly one column', () => {
