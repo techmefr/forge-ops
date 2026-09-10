@@ -25,21 +25,13 @@ const ENGLISH: Readonly<Record<ScreenKey, ScreenText>> = {
     label: 'Backlog',
     sub: 'Pick the stories for the session about to be launched',
   },
-  architecture: {
-    label: 'Architecture',
-    sub: 'The plan Claude proposes, to accept or to send back',
-  },
   kanban: {
     label: 'Kanban',
-    sub: 'Follow every story through its steps and its dependencies',
+    sub: 'The plan, the build, the review and the delivery of each story, column by column',
   },
   project: {
     label: 'Project',
     sub: 'Walk the files, learn what they serve and who edits them',
-  },
-  review: {
-    label: 'Review',
-    sub: 'Read the diffs and the quality, security, accessibility cascade',
   },
   view: {
     label: 'View',

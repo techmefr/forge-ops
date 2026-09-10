@@ -15,7 +15,7 @@ export type StoryState =
 
 export type KanbanColumnKey = Extract<
   StoryState,
-  'building' | 'gating' | 'reviewing' | 'shipping' | 'flagged' | 'done'
+  'architecture' | 'plan_review' | 'building' | 'gating' | 'reviewing' | 'shipping' | 'flagged' | 'done'
 >
 
 export type KanbanColumn = {
@@ -25,6 +25,8 @@ export type KanbanColumn = {
 }
 
 export const KANBAN_COLUMNS: readonly KanbanColumn[] = [
+  { key: 'architecture', label: 'Plan', colour: 'info' },
+  { key: 'plan_review', label: 'Plan a valider', colour: 'warn' },
   { key: 'building', label: 'Dev', colour: 'acc' },
   { key: 'gating', label: 'Test', colour: 'info' },
   { key: 'reviewing', label: 'Review', colour: 'violet' },

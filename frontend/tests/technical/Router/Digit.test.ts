@@ -7,12 +7,12 @@ describe('screenOfDigit', () => {
     expect(screenOfDigit('1')?.key).toBe('story')
   })
 
-  it('accepte le zero pour le dixieme ecran', () => {
-    expect(screenOfDigit('0')?.key).toBe('statistics')
+  it('mene au dernier ecran par son chiffre', () => {
+    expect(screenOfDigit('8')?.key).toBe('statistics')
   })
 
-  it('ne mene nulle part sur un chiffre libre', () => {
-    expect(screenOfDigit('9')?.key).toBe('resources')
+  it('ne mene nulle part sur un chiffre au dela du rail', () => {
+    expect(screenOfDigit('9')).toBeNull()
   })
 
   it('refuse une lettre', () => {
@@ -39,8 +39,6 @@ describe('les chiffres des ecrans', () => {
       '6',
       '7',
       '8',
-      '9',
-      '0',
     ])
   })
 

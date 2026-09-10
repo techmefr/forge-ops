@@ -1,10 +1,8 @@
 export type ScreenKey =
   | 'story'
   | 'backlog'
-  | 'architecture'
   | 'kanban'
   | 'project'
-  | 'review'
   | 'view'
   | 'deployment'
   | 'resources'
@@ -37,40 +35,24 @@ export const SCREENS: readonly Screen[] = [
     sub: 'Choisir les stories de la session qu on veut lancer',
   },
   {
-    key: 'architecture',
-    digit: '3',
-    path: '/architecture',
-    label: 'Architecture',
-    tiny: 'arc',
-    sub: 'Le plan propose par Claude, a valider ou a renvoyer',
-  },
-  {
     key: 'kanban',
-    digit: '4',
+    digit: '3',
     path: '/kanban',
     label: 'Kanban',
     tiny: 'kbn',
-    sub: 'Suivre les etapes de chaque story et leurs dependances',
+    sub: 'Le plan, le dev, la review et la livraison de chaque story, colonne par colonne',
   },
   {
     key: 'project',
-    digit: '5',
+    digit: '4',
     path: '/project',
     label: 'Projet',
     tiny: 'prj',
     sub: 'Naviguer dans les fichiers, savoir a quoi ils servent et qui les edite',
   },
   {
-    key: 'review',
-    digit: '6',
-    path: '/review',
-    label: 'Review',
-    tiny: 'rev',
-    sub: 'Lire les diffs et la cascade qualite, securite, accessibilite',
-  },
-  {
     key: 'view',
-    digit: '7',
+    digit: '5',
     path: '/view',
     label: 'View',
     tiny: 'vue',
@@ -78,7 +60,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'deployment',
-    digit: '8',
+    digit: '6',
     path: '/deployment',
     label: 'Deploiement',
     tiny: 'dep',
@@ -86,7 +68,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'resources',
-    digit: '9',
+    digit: '7',
     path: '/resources',
     label: 'Ressources',
     tiny: 'res',
@@ -94,7 +76,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'statistics',
-    digit: '0',
+    digit: '8',
     path: '/statistics',
     label: 'Statistiques',
     tiny: 'sta',

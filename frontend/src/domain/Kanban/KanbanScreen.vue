@@ -4,6 +4,7 @@ import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import type { KanbanColumn, KanbanStory } from '@/domain/Board/BoardModel'
+import CardDrawer from './CardDrawer.vue'
 
 const columns = useResource<readonly KanbanColumn[]>(() => board.read('/api/board/columns'))
 const stories = useResource<readonly KanbanStory[]>(() => board.read('/api/board/kanban'))
@@ -11,6 +12,11 @@ const refusal = ref<string | null>(null)
 const blockedStoryId = ref<number | null>(null)
 const blockingStoryId = ref<number | null>(null)
 const busy = ref(false)
+const drawerId = ref<number | null>(null)
+
+const openStory = computed(
+  () => (stories.data.value ?? []).find((story) => story.id === drawerId.value) ?? null,
+)
 
 const byColumn = computed(() => {
   const grouped = new Map<string, KanbanStory[]>()
@@ -45,7 +51,8 @@ onMounted(() => Promise.all([columns.reload(), stories.reload()]))
 </script>
 
 <template>
-  <div class="flex h-full flex-col p-6">
+  <div class="flex h-full min-w-0">
+  <div class="flex min-w-0 flex-1 flex-col p-6">
     <form class="flex flex-wrap items-end gap-3" @submit.prevent="declareDependency">
       <label class="flex flex-col gap-1">
         <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">Story bloquee</span>
@@ -125,9 +132,13 @@ onMounted(() => Promise.all([columns.reload(), stories.reload()]))
                     >{{ story.points }} pts</span
                   >
                 </div>
-                <RouterLink :to="`/story/${story.id}`" class="mt-1.5 block text-sm text-txt-hi hover:text-acc">
+                <button
+                  type="button"
+                  class="mt-1.5 block w-full text-left text-sm text-txt-hi hover:text-acc"
+                  @click="drawerId = story.id"
+                >
                   {{ story.title }}
-                </RouterLink>
+                </button>
                 <p v-if="story.mergeConflict" class="mt-2 font-mono text-[10px] text-red uppercase">
                   Conflit de merge
                 </p>
@@ -150,5 +161,13 @@ onMounted(() => Promise.all([columns.reload(), stories.reload()]))
         </div>
       </ScreenState>
     </div>
+  </div>
+
+    <CardDrawer
+      v-if="openStory !== null"
+      :story="openStory"
+      @close="drawerId = null"
+      @moved="stories.reload()"
+    />
   </div>
 </template>
