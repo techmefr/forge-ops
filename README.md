@@ -243,7 +243,7 @@ L'orchestration bas niveau ne se réécrit pas : elle s'appuie sur le premier pa
 | Doctrine `/SPEC … /SHIP` alignée sur l'API | Fait |
 | États kanban, points, rollout, conflit de merge | Fait |
 | Cascade de review par lentille, ordonnée et bloquante | Fait |
-| Zones de fichiers avec résumé et rattachement des chemins | Fait |
+| Zones de fichiers avec résumé automatique et rattachement des chemins | Fait |
 | Jetons de design lisibles (6 thèmes, clair et sombre) | Fait |
 | Dispatch d'une session par story (Agent SDK) | Fait |
 | SSE vers le board | Fait |
