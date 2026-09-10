@@ -12,7 +12,7 @@ export type ScreenKey =
 
 export type Screen = {
   key: ScreenKey
-  n: string
+  letter: string
   path: string
   label: string
   tiny: string
@@ -22,7 +22,7 @@ export type Screen = {
 export const SCREENS: readonly Screen[] = [
   {
     key: 'story',
-    n: '01',
+    letter: 'S',
     path: '/story',
     label: 'Story',
     tiny: 'sto',
@@ -30,7 +30,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'backlog',
-    n: '02',
+    letter: 'B',
     path: '/backlog',
     label: 'Backlog',
     tiny: 'bkl',
@@ -38,7 +38,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'architecture',
-    n: '03',
+    letter: 'A',
     path: '/architecture',
     label: 'Architecture',
     tiny: 'arc',
@@ -46,7 +46,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'kanban',
-    n: '04',
+    letter: 'K',
     path: '/kanban',
     label: 'Kanban',
     tiny: 'kbn',
@@ -54,7 +54,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'project',
-    n: '05',
+    letter: 'P',
     path: '/project',
     label: 'Projet',
     tiny: 'prj',
@@ -62,7 +62,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'review',
-    n: '06',
+    letter: 'R',
     path: '/review',
     label: 'Review',
     tiny: 'rev',
@@ -70,7 +70,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'view',
-    n: '07',
+    letter: 'V',
     path: '/view',
     label: 'View',
     tiny: 'vue',
@@ -78,7 +78,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'deployment',
-    n: '08',
+    letter: 'D',
     path: '/deployment',
     label: 'Deploiement',
     tiny: 'dep',
@@ -86,7 +86,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'resources',
-    n: '09',
+    letter: 'E',
     path: '/resources',
     label: 'Ressources',
     tiny: 'res',
@@ -94,7 +94,7 @@ export const SCREENS: readonly Screen[] = [
   },
   {
     key: 'statistics',
-    n: '10',
+    letter: 'T',
     path: '/statistics',
     label: 'Statistiques',
     tiny: 'sta',

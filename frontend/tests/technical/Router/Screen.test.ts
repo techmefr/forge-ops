@@ -15,8 +15,8 @@ describe('SCREENS', () => {
     expect(SCREENS.find((screen) => screen.key === 'project')?.path).toBe('/project')
   })
 
-  it('numerote chaque etape une seule fois', () => {
-    expect(new Set(SCREENS.map((screen) => screen.n)).size).toBe(SCREENS.length)
+  it('donne une lettre unique a chaque etape', () => {
+    expect(new Set(SCREENS.map((screen) => screen.letter)).size).toBe(SCREENS.length)
   })
 
   it('donne un chemin unique a chaque etape', () => {
