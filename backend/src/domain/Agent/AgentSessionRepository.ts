@@ -36,6 +36,7 @@ export type ClosedSession = AgentSession & {
 export type AgentSessionRepository = {
   registerSession: (draft: AgentSessionDraft) => AgentSession
   findByClaudeSessionId: (claudeSessionId: string) => AgentSession | null
+  latestSessionOf: (storyId: number) => AgentSession | null
   updateLifecycle: (claudeSessionId: string, lifecycle: AgentLifecycle) => AgentSession
   closeSession: (claudeSessionId: string, exit: SessionExit) => ClosedSession
   recordUsage: (claudeSessionId: string, usage: SessionUsage) => AgentSession & SessionUsage
@@ -63,6 +64,9 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
   const insertSession = db.prepare<[number, string, AgentPhase, string, string]>(
     `INSERT INTO agent_session (story_id, claude_session_id, phase, agent_name, claude_code_version)
      VALUES (?, ?, ?, ?, ?)`,
+  )
+  const selectLatestOfStory = db.prepare<[number], AgentSessionRow>(
+    'SELECT * FROM agent_session WHERE story_id = ? ORDER BY id DESC LIMIT 1',
   )
   const selectSession = db.prepare<[string], AgentSessionRow>(
     'SELECT * FROM agent_session WHERE claude_session_id = ?',
@@ -103,6 +107,11 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
     return row === undefined ? null : toAgentSession(row)
   }
 
+  function latestSessionOf(storyId: number): AgentSession | null {
+    const row = selectLatestOfStory.get(storyId)
+    return row === undefined ? null : toAgentSession(row)
+  }
+
   function requireSession(claudeSessionId: string): AgentSession {
     const session = findByClaudeSessionId(claudeSessionId)
     if (session === null) {
@@ -121,6 +130,7 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
     },
 
     findByClaudeSessionId,
+    latestSessionOf,
 
     updateLifecycle: (claudeSessionId, lifecycle) => {
       requireSession(claudeSessionId)

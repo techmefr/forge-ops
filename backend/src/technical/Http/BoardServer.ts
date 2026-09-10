@@ -34,7 +34,8 @@ import { createIncidentRepository } from '../../domain/Incident/IncidentReposito
 import { createIncidentApi } from '../../domain/Incident/IncidentApi.js'
 import { createEventBus } from './EventBus.js'
 import { createBoardPage } from './BoardPage.js'
-import { createSdkSessionRunner } from '../ClaudeCode/SdkSessionRunner.js'
+import { createSdkSessionRunner, createSdkSessionTalker } from '../ClaudeCode/SdkSessionRunner.js'
+import { createConversationApi } from '../../domain/Conversation/ConversationApi.js'
 import { recordUsageFromEvent } from '../ClaudeCode/UsageRecorder.js'
 import { createTokenGuard } from '../Auth/TokenGuard.js'
 import { deriveHookToken, resolveBoardToken } from '../Auth/BoardToken.js'
@@ -178,6 +179,21 @@ export function startBoardServer({
     createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
   )
   guarded.get('/api/board/mode', (context) => context.json({ mode }))
+  guarded.route(
+    '/',
+    createConversationApi({
+      stories,
+      sessions,
+      events,
+      talker: createSdkSessionTalker({
+        cwd: process.cwd(),
+        onEvent: (event) => {
+          recordUsageFromEvent(sessions, event)
+          events.publish(event)
+        },
+      }),
+    }),
+  )
   guarded.route(
     '/',
     createForemergeApi({ foremerge, events }),

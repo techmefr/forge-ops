@@ -1,5 +1,6 @@
 import { query } from '@anthropic-ai/claude-agent-sdk'
 import type { LaunchOrder, SessionRunner } from '../../domain/Dispatch/Dispatch.js'
+import type { SessionTalker, SpokenTurn } from '../../domain/Conversation/Conversation.js'
 
 export type SdkSessionRunnerInput = {
   cwd: string
@@ -128,5 +129,37 @@ async function drain(
         message: error instanceof Error ? error.message : String(error),
       },
     })
+  }
+}
+
+export type SdkSessionTalkerInput = {
+  cwd: string
+  onEvent: (event: { name: string; payload: Record<string, unknown> }) => void
+}
+
+export function createSdkSessionTalker({ cwd, onEvent }: SdkSessionTalkerInput): SessionTalker {
+  return {
+    say: (turn: SpokenTurn) => {
+      const conversation = query({
+        prompt: turn.message,
+        options: {
+          cwd,
+          permissionMode: 'default',
+          resume: turn.claudeSessionId,
+          env: { ...process.env, FORGE_STORY_REFERENCE: turn.reference },
+        },
+      })
+      void drain(
+        conversation,
+        {
+          reference: turn.reference,
+          phase: 'spec',
+          prompt: turn.message,
+          claudeSessionId: turn.claudeSessionId,
+        } as LaunchOrder & { claudeSessionId: string },
+        onEvent,
+      )
+      return Promise.resolve()
+    },
   }
 }

@@ -17,14 +17,16 @@ const queue = ref<readonly number[]>([])
 const queueIndex = ref(0)
 const queueEpics = ref<readonly EpicOverview[]>([])
 
-const { ticket, open, write, writeTwin, declareCriterion, sendToBacklog, dispatch } = useTicket()
+const { ticket, open, write, writeTwin, declareCriterion, sendToBacklog, dispatch, edit, talk } =
+  useTicket()
 
 const reference = computed(() => ticket.data.value?.functional.reference ?? null)
 const transcript = useTranscript(reference)
 const said = computed(() => transcript.visible())
 
-const title = ref('')
-const body = ref('')
+const turn = ref('')
+const cardTitle = ref('')
+const cardBody = ref('')
 const twinTitle = ref('')
 const twinBody = ref('')
 const criterionReference = ref('')
@@ -75,23 +77,43 @@ async function guard(action: () => Promise<void>): Promise<void> {
   }
 }
 
-async function submitStory(): Promise<void> {
-  const epicId = chosenEpic.value
-  if (epicId === null) {
-    refusal.value = 'Choisis une epique avant d ecrire la story'
+async function openCurrentEpic(): Promise<void> {
+  const epic = queueEpics.value.find((found) => found.id === chosenEpic.value)
+  if (epic === undefined) {
     return
   }
   await guard(async () => {
-    const story = await write({ epicId, title: title.value, body: body.value })
-    title.value = ''
-    body.value = ''
-    if (queueIndex.value + 1 < queue.value.length) {
-      queueIndex.value += 1
-      return
-    }
-    leaveQueue()
-    await router.push(`/story/${story.id}`)
+    transcript.clear()
+    const story = await write({ epicId: epic.id, title: epic.title, body: epic.businessIntent })
+    await dispatch(story.id, 'spec')
   })
+}
+
+function nextEpic(): Promise<void> {
+  if (queueIndex.value + 1 < queue.value.length) {
+    queueIndex.value += 1
+    return Promise.resolve()
+  }
+  return backToEpics()
+}
+
+function sendTurn(): Promise<void> {
+  const storyId = ticket.data.value?.functional.id
+  if (storyId === undefined || turn.value.trim() === '') {
+    return Promise.resolve()
+  }
+  return guard(async () => {
+    await talk(storyId, turn.value)
+    turn.value = ''
+  })
+}
+
+function saveCard(): Promise<void> {
+  const storyId = ticket.data.value?.functional.id
+  if (storyId === undefined) {
+    return Promise.resolve()
+  }
+  return guard(() => edit(storyId, { title: cardTitle.value, body: cardBody.value }))
 }
 
 async function submitTwin(): Promise<void> {
@@ -125,11 +147,6 @@ async function submitCriterion(): Promise<void> {
   })
 }
 
-function askClaude(): Promise<void> {
-  const storyId = ticket.data.value?.functional.id
-  return storyId === undefined ? Promise.resolve() : guard(() => dispatch(storyId, 'spec'))
-}
-
 function toBacklog(): Promise<void> {
   const storyId = ticket.data.value?.functional.id
   return storyId === undefined
@@ -145,6 +162,16 @@ watch(
     if (typeof id === 'string' && id !== '') {
       void open(Number(id))
     }
+  },
+)
+
+watch(chosenEpic, () => void openCurrentEpic())
+
+watch(
+  () => ticket.data.value?.functional,
+  (story) => {
+    cardTitle.value = story?.title ?? ''
+    cardBody.value = story?.body ?? ''
   },
 )
 
@@ -200,64 +227,33 @@ onMounted(async () => {
 
     <section class="flex min-w-0 flex-col border-r border-line p-6">
       <h2 class="display-italic text-lg">Ecrire avec Claude</h2>
-
-      <form class="mt-4 flex flex-col gap-3" @submit.prevent="submitStory">
-        <input
-          v-model="title"
-          type="text"
-          placeholder="Titre de la story"
-          class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
-        />
-        <textarea
-          v-model="body"
-          rows="5"
-          placeholder="En tant que... je veux... afin de..."
-          class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
-        ></textarea>
-        <div class="flex flex-wrap gap-2">
-          <button
-            type="submit"
-            :disabled="busy"
-            class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-50"
-          >
-            Ecrire la story
-          </button>
-          <button
-            type="button"
-            :disabled="busy || ticket.data.value === null"
-            class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
-            @click="askClaude()"
-          >
-            Demander a Claude
-          </button>
-          <button
-            type="button"
-            :disabled="busy || ticket.data.value === null"
-            class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
-            @click="toBacklog()"
-          >
-            Envoyer au backlog
-          </button>
-        </div>
-      </form>
+      <p class="mt-1 text-xs text-txt-low">
+        Claude part de l epique et ecrit la carte. Reponds-lui, elle se reecrit.
+      </p>
 
       <p v-if="refusal !== null" class="mt-3 text-xs text-red" role="alert">{{ refusal }}</p>
 
-      <h3 class="display-italic mt-8 text-sm text-txt-mid">Ce que dit la session</h3>
-      <p v-if="transcript.broken.value" class="mt-2 text-xs text-orange">
+      <p v-if="transcript.broken.value" class="mt-3 text-xs text-orange">
         Le flux du board est coupe, recharge la page
       </p>
-      <p v-else-if="said.length === 0" class="mt-2 text-xs text-txt-low">
-        Rien encore. Lance une phase de specification.
+      <p v-else-if="said.length === 0" class="mt-3 text-xs text-txt-low">
+        La session demarre, Claude lit l epique.
       </p>
-      <div class="mt-2 flex flex-col gap-2 overflow-auto">
+
+      <div class="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
         <article
           v-for="(utterance, index) in said"
           :key="index"
-          class="rounded-xl border border-line bg-card p-3"
+          class="rounded-xl border p-3"
+          :class="
+            utterance.name === 'session.human'
+              ? 'ml-8 border-acc bg-acc-soft/10'
+              : 'mr-8 border-line bg-card'
+          "
         >
           <p class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">
-            {{ utterance.name }}<span v-if="utterance.phase !== null"> · {{ utterance.phase }}</span>
+            {{ utterance.name === 'session.human' ? 'Toi' : 'Claude' }}
+            <span v-if="utterance.phase !== null"> · {{ utterance.phase }}</span>
           </p>
           <p v-if="utterance.text !== null" class="mt-1.5 text-sm whitespace-pre-wrap text-txt-hi">
             {{ utterance.text }}
@@ -267,12 +263,74 @@ onMounted(async () => {
           </p>
         </article>
       </div>
+
+      <form class="mt-3 flex flex-none gap-2" @submit.prevent="sendTurn">
+        <textarea
+          v-model="turn"
+          rows="2"
+          placeholder="Dis-lui ce qui manque, ce qui change..."
+          class="min-w-0 flex-1 rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
+        ></textarea>
+        <button
+          type="submit"
+          :disabled="busy || turn.trim() === '' || ticket.data.value === null"
+          class="flex-none self-end rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+        >
+          Envoyer
+        </button>
+      </form>
+
+      <div class="mt-3 flex flex-none flex-wrap gap-2">
+        <button
+          type="button"
+          :disabled="busy || ticket.data.value === null"
+          class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
+          @click="toBacklog()"
+        >
+          Envoyer au backlog
+        </button>
+        <button
+          v-if="queue.length > 0"
+          type="button"
+          :disabled="busy"
+          class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
+          @click="nextEpic()"
+        >
+          {{ queueIndex + 1 < queue.length ? 'Epique suivante' : 'Terminer la fournee' }}
+        </button>
+      </div>
     </section>
 
     <section class="min-w-0 overflow-auto p-6">
       <StoryTicket :ticket="ticket.data.value" />
 
       <template v-if="ticket.data.value !== null">
+        <form
+          class="mt-6 flex flex-col gap-2 rounded-2xl border border-acc bg-card p-4"
+          @submit.prevent="saveCard"
+        >
+          <p class="display-italic text-sm text-acc">La carte, a la main</p>
+          <input
+            v-model="cardTitle"
+            type="text"
+            aria-label="Titre de la carte"
+            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          />
+          <textarea
+            v-model="cardBody"
+            rows="6"
+            aria-label="Corps de la carte"
+            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          ></textarea>
+          <button
+            type="submit"
+            :disabled="busy || cardTitle.trim() === '' || cardBody.trim() === ''"
+            class="self-start rounded-lg border border-acc bg-acc px-3 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+          >
+            Reecrire la carte
+          </button>
+        </form>
+
         <form
           v-if="ticket.data.value.tests === null"
           class="mt-6 flex flex-col gap-2 rounded-2xl border border-violet bg-card p-4"
