@@ -16,7 +16,7 @@ describe('SCREENS', () => {
   })
 
   it('donne une lettre unique a chaque etape', () => {
-    expect(new Set(SCREENS.map((screen) => screen.letter)).size).toBe(SCREENS.length)
+    expect(new Set(SCREENS.map((screen) => screen.digit)).size).toBe(SCREENS.length)
   })
 
   it('donne un chemin unique a chaque etape', () => {
