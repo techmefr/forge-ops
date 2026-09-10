@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import { StoryNotFoundError } from '../Story/StoryViolation.js'
 import type { PilotRepository } from './PilotRepository.js'
+import type { ParcoursSuggestion } from './Parcours.js'
 import {
   PilotBrowserLostError,
   PilotRunAlreadyLiveError,
@@ -29,9 +30,10 @@ const orderSchema = z.object({
 export type PilotApiInput = {
   pilots: PilotRepository
   events: EventBus
+  suggest: (storyId: number) => ParcoursSuggestion
 }
 
-export function createPilotApi({ pilots, events }: PilotApiInput): Hono {
+export function createPilotApi({ pilots, events, suggest }: PilotApiInput): Hono {
   const api = new Hono()
 
   api.onError((error, context) => {
@@ -68,6 +70,7 @@ export function createPilotApi({ pilots, events }: PilotApiInput): Hono {
     return context.json({
       run: pilots.findForStory(storyId),
       history: pilots.history(storyId),
+      suggestion: suggest(storyId),
     })
   })
 

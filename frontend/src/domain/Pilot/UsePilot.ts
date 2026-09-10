@@ -1,13 +1,20 @@
 import { computed, ref, type ComputedRef, type Ref } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf } from '@/technical/Api/UseResource'
-import type { PilotPace, PilotRun, PilotSight, PilotStep } from '@/domain/Board/BoardModel'
+import type {
+  ParcoursSuggestion,
+  PilotPace,
+  PilotRun,
+  PilotSight,
+  PilotStep,
+} from '@/domain/Board/BoardModel'
 import { nextStepOf, progressOf, type WalkProgress } from './Walk'
 
 export type PilotDesk = {
   run: Ref<PilotRun | null>
   history: Ref<readonly PilotRun[]>
   sight: Ref<PilotSight | null>
+  suggestion: Ref<ParcoursSuggestion | null>
   refusal: Ref<string | null>
   busy: Ref<boolean>
   pace: Ref<PilotPace>
@@ -16,6 +23,7 @@ export type PilotDesk = {
   progress: ComputedRef<WalkProgress>
   nextStep: ComputedRef<PilotStep | null>
   load: () => Promise<void>
+  takeSuggestion: () => void
   addStep: (step: PilotStep) => void
   dropStep: (index: number) => void
   start: () => Promise<void>
@@ -26,12 +34,17 @@ export type PilotDesk = {
   abandon: () => Promise<void>
 }
 
-type Answer = { run: PilotRun | null; history: readonly PilotRun[] }
+type Answer = {
+  run: PilotRun | null
+  history: readonly PilotRun[]
+  suggestion: ParcoursSuggestion | null
+}
 
 export function usePilot(storyId: Ref<number | null>): PilotDesk {
   const run = ref<PilotRun | null>(null)
   const history = ref<readonly PilotRun[]>([])
   const sight = ref<PilotSight | null>(null)
+  const suggestion = ref<ParcoursSuggestion | null>(null)
   const refusal = ref<string | null>(null)
   const busy = ref(false)
   const pace = ref<PilotPace>('slow')
@@ -43,11 +56,13 @@ export function usePilot(storyId: Ref<number | null>): PilotDesk {
     if (target === null) {
       run.value = null
       history.value = []
+      suggestion.value = null
       return
     }
     const answer = await board.read<Answer>(`/api/stories/${target}/pilot`)
     run.value = answer.run
     history.value = answer.history
+    suggestion.value = answer.suggestion
   }
 
   async function guard(action: (target: number) => Promise<void>): Promise<void> {
@@ -77,6 +92,7 @@ export function usePilot(storyId: Ref<number | null>): PilotDesk {
     run,
     history,
     sight,
+    suggestion,
     refusal,
     busy,
     pace,
@@ -85,6 +101,15 @@ export function usePilot(storyId: Ref<number | null>): PilotDesk {
     progress: computed(() => progressOf(run.value)),
     nextStep: computed(() => nextStepOf(run.value)),
     load,
+
+    takeSuggestion: () => {
+      const proposed = suggestion.value
+      if (proposed === null) {
+        return
+      }
+      url.value = proposed.url
+      script.value = [...proposed.script]
+    },
 
     addStep: (step) => {
       script.value = [...script.value, step]
