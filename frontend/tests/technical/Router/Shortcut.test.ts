@@ -25,15 +25,15 @@ describe('la touche de tete', () => {
   })
 
   it('mene a l ecran du chiffre qui suit', () => {
-    expect(resolveStroke(stroke('4'), ARMED)).toEqual({ path: '/kanban', phase: IDLE })
+    expect(resolveStroke(stroke('3'), ARMED)).toEqual({ path: '/kanban', phase: IDLE })
   })
 
   it('retombe quand une seule frappe est suivie d autre chose', () => {
-    expect(resolveStroke(stroke('4'), 1)).toEqual({ path: null, phase: IDLE })
+    expect(resolveStroke(stroke('3'), 1)).toEqual({ path: null, phase: IDLE })
   })
 
   it('ne mene nulle part sur un chiffre seul', () => {
-    expect(resolveStroke(stroke('4'), IDLE)).toEqual({ path: null, phase: IDLE })
+    expect(resolveStroke(stroke('3'), IDLE)).toEqual({ path: null, phase: IDLE })
   })
 
   it('se desarme sur une touche qui n est pas un chiffre', () => {
@@ -62,29 +62,29 @@ describe('la touche de tete', () => {
 
 describe('le raccourci direct', () => {
   it('mene a l ecran avec alt et majuscule', () => {
-    expect(resolveStroke(stroke('4', { altKey: true, shiftKey: true }), IDLE)).toEqual({
+    expect(resolveStroke(stroke('3', { altKey: true, shiftKey: true }), IDLE)).toEqual({
       path: '/kanban',
       phase: IDLE,
     })
   })
 
   it('refuse alt seul, on tape des caracteres avec', () => {
-    expect(resolveStroke(stroke('4', { altKey: true }), IDLE)).toEqual({ path: null, phase: IDLE })
+    expect(resolveStroke(stroke('3', { altKey: true }), IDLE)).toEqual({ path: null, phase: IDLE })
   })
 
   it('refuse ctrl et alt, c est l altgr du clavier francais', () => {
-    expect(resolveStroke(stroke('4', { ctrlKey: true, altKey: true }), IDLE)).toEqual({
+    expect(resolveStroke(stroke('3', { ctrlKey: true, altKey: true }), IDLE)).toEqual({
       path: null,
       phase: IDLE,
     })
   })
 
   it('refuse la touche windows, le systeme la garde pour lui', () => {
-    expect(resolveStroke(stroke('4', { metaKey: true }), IDLE)).toEqual({ path: null, phase: IDLE })
+    expect(resolveStroke(stroke('3', { metaKey: true }), IDLE)).toEqual({ path: null, phase: IDLE })
   })
 
   it('remet la tete a zero quand il sert', () => {
-    expect(resolveStroke(stroke('7', { altKey: true, shiftKey: true }), 1)).toEqual({
+    expect(resolveStroke(stroke('5', { altKey: true, shiftKey: true }), 1)).toEqual({
       path: '/view',
       phase: IDLE,
     })
