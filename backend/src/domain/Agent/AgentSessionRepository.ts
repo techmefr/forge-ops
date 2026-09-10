@@ -42,6 +42,7 @@ export type AgentSessionRepository = {
   closeSession: (claudeSessionId: string, exit: SessionExit) => ClosedSession
   recordUsage: (claudeSessionId: string, usage: SessionUsage) => AgentSession & SessionUsage
   carryUsage: (claudeSessionId: string) => void
+  abandonRunningSessions: () => number
   sumUsage: (storyId: number) => SessionUsage
   recordFileTouch: (draft: FileTouchDraft) => void
   listTouchedPaths: (storyId: number) => readonly string[]
@@ -83,6 +84,11 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
   const updateUsage = db.prepare<[number, number, number, string]>(
     `UPDATE agent_session SET cost_usd = ?, input_tokens = ?, output_tokens = ?
       WHERE claude_session_id = ?`,
+  )
+  const abandonRunning = db.prepare(
+    `UPDATE agent_session
+        SET lifecycle = 'interrupted', outcome = 'interrupted', ended_at = datetime('now')
+      WHERE lifecycle IN ('starting', 'working', 'awaiting_human')`,
   )
   const carryRowUsage = db.prepare<[string]>(
     `UPDATE agent_session
@@ -166,6 +172,9 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
       const session = requireSession(claudeSessionId)
       return { ...session, ...usage, costUsd: session.costUsd }
     },
+
+    abandonRunningSessions: () =>
+      abandonRunning.run().changes,
 
     carryUsage: (claudeSessionId) => {
       requireSession(claudeSessionId)

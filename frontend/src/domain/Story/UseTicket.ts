@@ -64,6 +64,10 @@ export function useTicket() {
     await board.send(`/api/stories/${storyId}/talk`, 'POST', { message })
   }
 
+  async function hangUp(storyId: number): Promise<void> {
+    await board.send(`/api/stories/${storyId}/talk`, 'DELETE')
+  }
+
   async function dispatch(storyId: number, phase: string): Promise<void> {
     await board.send(`/api/stories/${storyId}/dispatch`, 'POST', { phase })
   }
@@ -79,5 +83,6 @@ export function useTicket() {
     dispatch,
     edit,
     talk,
+    hangUp,
   }
 }

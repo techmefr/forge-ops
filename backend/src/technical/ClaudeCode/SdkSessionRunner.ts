@@ -182,6 +182,10 @@ export function createSdkSessionTalker({
   }
 
   return {
+    hangUp: (claudeSessionId: string) => {
+      live.close(claudeSessionId)
+    },
+
     say: (turn: SpokenTurn) => {
       const route = deliverTurn(turn, live, resume)
       onEvent({

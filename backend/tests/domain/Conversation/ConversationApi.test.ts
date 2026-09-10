@@ -12,6 +12,7 @@ let db: Database.Database
 let api: Hono
 let storyId: number
 let said: SpokenTurn[]
+let hungUp: string[]
 let published: string[]
 
 function talk(id: number, body: unknown): Promise<Response> {
@@ -28,6 +29,7 @@ beforeEach(() => {
   const sessions = createAgentSessionRepository(db)
   const events = createEventBus()
   said = []
+  hungUp = []
   published = []
   events.subscribe((event) => {
     published.push(event.name)
@@ -53,6 +55,9 @@ beforeEach(() => {
       say: (turn) => {
         said.push(turn)
         return Promise.resolve()
+      },
+      hangUp: (claudeSessionId) => {
+        hungUp.push(claudeSessionId)
       },
     },
   })
@@ -141,5 +146,60 @@ describe('POST /api/stories/:id/talk', () => {
 
   it('refuses an unknown story', async () => {
     expect((await talk(storyId + 500, { message: 'parle' })).status).toBe(404)
+  })
+})
+
+describe('DELETE /api/stories/:id/talk', () => {
+  function hangUp(id: number): Promise<Response> {
+    return api.request(`/api/stories/${id}/talk`, { method: 'DELETE' }) as Promise<Response>
+  }
+
+  it('closes the session so its slot comes back', async () => {
+    openSession()
+
+    const response = await hangUp(storyId)
+
+    expect([response.status, hungUp]).toEqual([200, ['session-abc']])
+  })
+
+  it('marks the session finished', async () => {
+    openSession()
+
+    await hangUp(storyId)
+
+    expect(createAgentSessionRepository(db).findByClaudeSessionId('session-abc')?.lifecycle).toBe(
+      'finished',
+    )
+  })
+
+  it('announces the end on the bus', async () => {
+    openSession()
+
+    await hangUp(storyId)
+
+    expect(published).toContain('session.hung_up')
+  })
+
+  it('stays quiet when no session ever ran', async () => {
+    const response = await hangUp(storyId)
+
+    expect([response.status, hungUp]).toEqual([200, []])
+  })
+
+  it('answers 404 on an unknown story', async () => {
+    expect((await hangUp(9999)).status).toBe(404)
+  })
+
+  it('refuses an unreadable identifier', async () => {
+    const response = await api.request('/api/stories/rien/talk', { method: 'DELETE' })
+
+    expect(response.status).toBe(422)
+  })
+
+  it('lets a second hang-up pass without breaking', async () => {
+    openSession()
+    await hangUp(storyId)
+
+    expect((await hangUp(storyId)).status).toBe(200)
   })
 })

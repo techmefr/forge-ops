@@ -215,3 +215,62 @@ describe('carryUsage', () => {
     })
   })
 })
+
+describe('abandonRunningSessions', () => {
+  function openSession(claudeSessionId: string): void {
+    repository.registerSession({
+      storyId,
+      claudeSessionId,
+      phase: 'spec',
+      agentName: 'neo',
+      claudeCodeVersion: '2.1.218',
+    })
+  }
+
+  it('interrupts a session that was still starting', () => {
+    openSession('sess-ghost-1')
+
+    repository.abandonRunningSessions()
+
+    expect(repository.findByClaudeSessionId('sess-ghost-1')?.lifecycle).toBe('interrupted')
+  })
+
+  it('interrupts a session that was working', () => {
+    openSession('sess-ghost-2')
+    repository.updateLifecycle('sess-ghost-2', 'working')
+
+    repository.abandonRunningSessions()
+
+    expect(repository.findByClaudeSessionId('sess-ghost-2')?.lifecycle).toBe('interrupted')
+  })
+
+  it('leaves a finished session alone', () => {
+    openSession('sess-done')
+    repository.updateLifecycle('sess-done', 'finished')
+
+    repository.abandonRunningSessions()
+
+    expect(repository.findByClaudeSessionId('sess-done')?.lifecycle).toBe('finished')
+  })
+
+  it('reports how many it abandoned', () => {
+    openSession('sess-ghost-3')
+    openSession('sess-ghost-4')
+    repository.updateLifecycle('sess-ghost-4', 'finished')
+
+    expect(repository.abandonRunningSessions()).toBe(1)
+  })
+
+  it('abandons nothing when everything is closed', () => {
+    expect(repository.abandonRunningSessions()).toBe(0)
+  })
+
+  it('interrupts a session that was awaiting a human, since no process survived', () => {
+    openSession('sess-waiting')
+    repository.updateLifecycle('sess-waiting', 'awaiting_human')
+
+    repository.abandonRunningSessions()
+
+    expect(repository.findByClaudeSessionId('sess-waiting')?.lifecycle).toBe('interrupted')
+  })
+})

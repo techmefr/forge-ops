@@ -170,7 +170,9 @@ onMounted(async () => {
             <span class="font-mono text-[11px] font-semibold text-acc">{{
               projectOf(epic.projectId)?.name ?? 'Projet inconnu'
             }}</span>
-            <label class="ml-auto flex items-center gap-1.5 text-[10px] text-txt-low uppercase">
+            <label
+              class="ml-auto flex cursor-pointer items-center gap-1.5 px-2 py-1 text-[10px] text-txt-low uppercase"
+            >
               <input
                 type="checkbox"
                 :checked="picked.includes(epic.id)"
@@ -181,8 +183,10 @@ onMounted(async () => {
             </label>
           </div>
 
-          <h2 class="display-italic mt-2 text-base">{{ epic.title }}</h2>
-          <p class="mt-2 line-clamp-3 text-xs text-txt-mid">{{ epic.businessIntent }}</p>
+          <button type="button" class="mt-2 text-left" @click="toggle(epic.id)">
+            <h2 class="display-italic text-base">{{ epic.title }}</h2>
+            <p class="mt-2 line-clamp-3 text-xs text-txt-mid">{{ epic.businessIntent }}</p>
+          </button>
 
           <div class="mt-3 flex items-center gap-3 border-t border-line pt-3">
             <span class="font-mono text-[10px] text-txt-low"
