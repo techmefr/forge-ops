@@ -148,3 +148,70 @@ describe('listConflictingPaths', () => {
     expect(repository.listConflictingPaths()).toEqual([])
   })
 })
+
+describe('carryUsage', () => {
+  function openSession(claudeSessionId: string): void {
+    repository.registerSession({
+      storyId,
+      claudeSessionId,
+      phase: 'spec',
+      agentName: 'neo',
+      claudeCodeVersion: '2.1.218',
+    })
+  }
+
+  it('keeps what a session already spent when a new query starts from zero', () => {
+    openSession('sess-carry-1')
+    repository.recordUsage('sess-carry-1', { costUsd: 0.4, inputTokens: 100, outputTokens: 40 })
+
+    repository.carryUsage('sess-carry-1')
+    repository.recordUsage('sess-carry-1', { costUsd: 0.1, inputTokens: 20, outputTokens: 5 })
+
+    expect(repository.sumUsage(storyId)).toEqual({
+      costUsd: 0.5,
+      inputTokens: 120,
+      outputTokens: 45,
+    })
+  })
+
+  it('reports the carried spend on the session itself', () => {
+    openSession('sess-carry-2')
+    repository.recordUsage('sess-carry-2', { costUsd: 0.4, inputTokens: 100, outputTokens: 40 })
+    repository.carryUsage('sess-carry-2')
+
+    const session = repository.recordUsage('sess-carry-2', {
+      costUsd: 0.1,
+      inputTokens: 20,
+      outputTokens: 5,
+    })
+
+    expect(session.costUsd).toBe(0.5)
+  })
+
+  it('leaves a fresh session at zero', () => {
+    openSession('sess-carry-3')
+
+    repository.carryUsage('sess-carry-3')
+
+    expect(repository.sumUsage(storyId)).toEqual({ costUsd: 0, inputTokens: 0, outputTokens: 0 })
+  })
+
+  it('refuses to carry an unknown session', () => {
+    expect(() => repository.carryUsage('jamais-vu')).toThrow(UnknownAgentSessionError)
+  })
+
+  it('adds up several carried queries', () => {
+    openSession('sess-carry-4')
+    repository.recordUsage('sess-carry-4', { costUsd: 0.2, inputTokens: 10, outputTokens: 2 })
+    repository.carryUsage('sess-carry-4')
+    repository.recordUsage('sess-carry-4', { costUsd: 0.3, inputTokens: 20, outputTokens: 4 })
+    repository.carryUsage('sess-carry-4')
+    repository.recordUsage('sess-carry-4', { costUsd: 0.5, inputTokens: 30, outputTokens: 6 })
+
+    expect(repository.sumUsage(storyId)).toEqual({
+      costUsd: 1,
+      inputTokens: 60,
+      outputTokens: 12,
+    })
+  })
+})

@@ -10,7 +10,7 @@ export type AgentSession = {
   agentName: string
   lifecycle: AgentLifecycle
   claudeCodeVersion: string
-  costUsd: number | null
+  costUsd: number
 }
 
 export type AgentSessionDraft = {
