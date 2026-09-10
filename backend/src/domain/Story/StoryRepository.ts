@@ -55,6 +55,7 @@ export type StoryRepository = {
   listBlockers: (storyId: number) => readonly string[]
   markDoneAndUnblock: (storyId: number) => readonly Story[]
   startBuilding: (storyId: number) => Story
+  moveToState: (storyId: number, state: StoryState) => Story
   markDone: (storyId: number) => Story
   listBacklog: () => readonly Story[]
   listKanban: () => readonly Story[]
@@ -323,6 +324,8 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
       }
       return moveTo(story.id, 'building')
     },
+
+    moveToState: (storyId, state) => moveTo(findStory(storyId).id, state),
 
     markDone: (storyId) => moveTo(storyId, 'done'),
 
