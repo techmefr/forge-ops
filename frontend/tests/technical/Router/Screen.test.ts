@@ -2,8 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { HOME_PATH, SCREENS, screenOfPath } from '../../../src/technical/Router/Screen.js'
 
 describe('SCREENS', () => {
-  it('couvre les neuf etapes du pipeline', () => {
-    expect(SCREENS).toHaveLength(9)
+  it('couvre les dix etapes du pipeline', () => {
+    expect(SCREENS).toHaveLength(10)
+  })
+
+  it('separe la lecture des diffs du rendu a l ecran', () => {
+    expect(SCREENS.map((screen) => screen.key)).toContain('review')
+    expect(SCREENS.map((screen) => screen.key)).toContain('view')
+  })
+
+  it('nomme l ecran des fichiers par le projet qu il donne a lire', () => {
+    expect(SCREENS.find((screen) => screen.key === 'project')?.path).toBe('/project')
   })
 
   it('numerote chaque etape une seule fois', () => {

@@ -3,8 +3,9 @@ export type ScreenKey =
   | 'backlog'
   | 'architecture'
   | 'kanban'
-  | 'files'
+  | 'project'
   | 'review'
+  | 'view'
   | 'deployment'
   | 'resources'
   | 'statistics'
@@ -25,7 +26,7 @@ export const SCREENS: readonly Screen[] = [
     path: '/story',
     label: 'Story',
     tiny: 'sto',
-    sub: 'Ecrire la story et sa jumelle de test avec Claude',
+    sub: 'Partir d une epique du directeur, ecrire la story et sa jumelle de test',
   },
   {
     key: 'backlog',
@@ -33,7 +34,7 @@ export const SCREENS: readonly Screen[] = [
     path: '/backlog',
     label: 'Backlog',
     tiny: 'bkl',
-    sub: 'Les stories pretes, a envoyer en architecture',
+    sub: 'Choisir les stories de la session qu on veut lancer',
   },
   {
     key: 'architecture',
@@ -49,47 +50,55 @@ export const SCREENS: readonly Screen[] = [
     path: '/kanban',
     label: 'Kanban',
     tiny: 'kbn',
-    sub: 'L avancement des stories et leurs dependances',
+    sub: 'Suivre les etapes de chaque story et leurs dependances',
   },
   {
-    key: 'files',
+    key: 'project',
     n: '05',
-    path: '/files',
-    label: 'Fichiers',
-    tiny: 'fic',
-    sub: 'L architecture qui emerge, zone par zone',
+    path: '/project',
+    label: 'Projet',
+    tiny: 'prj',
+    sub: 'Naviguer dans les fichiers, savoir a quoi ils servent et qui les edite',
   },
   {
     key: 'review',
     n: '06',
     path: '/review',
-    label: 'Test / review',
+    label: 'Review',
     tiny: 'rev',
-    sub: 'La cascade qualite, securite, accessibilite',
+    sub: 'Lire les diffs et la cascade qualite, securite, accessibilite',
+  },
+  {
+    key: 'view',
+    n: '07',
+    path: '/view',
+    label: 'View',
+    tiny: 'vue',
+    sub: 'Voir le rendu et tester le front de chaque session de travail',
   },
   {
     key: 'deployment',
-    n: '07',
+    n: '08',
     path: '/deployment',
     label: 'Deploiement',
     tiny: 'dep',
-    sub: 'Branches, conflits de merge et feature flags',
+    sub: 'Ou en est la livraison, branches, conflits et etapes de CI/CD',
   },
   {
     key: 'resources',
-    n: '08',
+    n: '09',
     path: '/resources',
     label: 'Ressources',
     tiny: 'res',
-    sub: 'Ce que la flotte consomme, et ce qu elle va consommer',
+    sub: 'Ce que la machine consomme, et ce qu elle va consommer',
   },
   {
     key: 'statistics',
-    n: '09',
+    n: '10',
     path: '/statistics',
     label: 'Statistiques',
     tiny: 'sta',
-    sub: 'L historique des sessions et leurs sorties',
+    sub: 'Ce que donne le travail lance, session par session',
   },
 ]
 
