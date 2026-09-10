@@ -6,6 +6,7 @@ export type SpokenTurn = {
 
 export type SessionTalker = {
   say: (turn: SpokenTurn) => Promise<void>
+  hangUp: (claudeSessionId: string) => void
 }
 
 export function framedTurn(message: string, reference: string): string {

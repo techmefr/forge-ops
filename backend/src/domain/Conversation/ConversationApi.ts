@@ -63,5 +63,28 @@ export function createConversationApi({
     return context.json({ said: true, claudeSessionId: session.claudeSessionId }, 202)
   })
 
+  api.delete('/api/stories/:id/talk', (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const story = stories.findStory(storyId.data)
+    const session = sessions.latestSessionOf(story.id)
+    if (session === null || session.lifecycle === 'finished') {
+      return context.json({ hungUp: false })
+    }
+    talker.hangUp(session.claudeSessionId)
+    sessions.updateLifecycle(session.claudeSessionId, 'finished')
+    events.publish({
+      name: 'session.hung_up',
+      payload: {
+        reference: story.reference,
+        phase: session.phase,
+        claudeSessionId: session.claudeSessionId,
+      },
+    })
+    return context.json({ hungUp: true, claudeSessionId: session.claudeSessionId })
+  })
+
   return api
 }

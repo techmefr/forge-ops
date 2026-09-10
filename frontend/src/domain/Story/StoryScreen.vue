@@ -3,23 +3,34 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
-import type { EpicOverview, Project } from '@/domain/Board/BoardModel'
+import type { EpicOverview, Project, Story } from '@/domain/Board/BoardModel'
 import EpicBoard from './EpicBoard.vue'
 import { useTranscript } from '@/domain/Session/UseTranscript'
 import { useTicket } from './UseTicket'
 import StoryTicket from './StoryTicket.vue'
 import { PARTS, PART_LABELS, bothPartsWritten, partOf, type StoryPart } from './StoryPart'
+import { storiesOfEpic } from './Batch'
 
 const route = useRoute()
 const router = useRouter()
 
 const projects = useResource<readonly Project[]>(() => board.read('/api/projects'))
 const queue = ref<readonly number[]>([])
-const queueIndex = ref(0)
 const queueEpics = ref<readonly EpicOverview[]>([])
+const written = ref<readonly Story[]>([])
 
-const { ticket, open, write, writeTwin, declareCriterion, sendToBacklog, dispatch, edit, talk } =
-  useTicket()
+const {
+  ticket,
+  open,
+  write,
+  writeTwin,
+  declareCriterion,
+  sendToBacklog,
+  dispatch,
+  edit,
+  talk,
+  hangUp,
+} = useTicket()
 
 const reference = computed(() => ticket.data.value?.functional.reference ?? null)
 const transcript = useTranscript(reference)
@@ -38,11 +49,9 @@ const criterionRefusal = ref(false)
 const refusal = ref<string | null>(null)
 const busy = ref(false)
 
-const chosenEpic = computed(() => queue.value[queueIndex.value] ?? null)
-const chosenEpicTitle = computed(
-  () => queueEpics.value.find((epic) => epic.id === chosenEpic.value)?.title ?? null,
-)
 const listing = computed(() => queue.value.length === 0 && ticket.data.value === null)
+const openId = computed(() => ticket.data.value?.functional.id ?? null)
+const storiesOf = computed(() => (epicId: number) => storiesOfEpic(written.value, epicId))
 const shownPart = computed(() => partOf(ticket.data.value, part.value))
 const complete = computed(() => bothPartsWritten(ticket.data.value))
 
@@ -53,20 +62,26 @@ async function startQueue(chosen: readonly number[]): Promise<void> {
     ),
   )
   queueEpics.value = found.flat().filter((epic) => chosen.includes(epic.id))
-  queueIndex.value = 0
+  written.value = []
   queue.value = chosen
+  const first = queueEpics.value[0]
+  if (first !== undefined) {
+    await newStory(first)
+  }
 }
 
 function leaveQueue(): void {
   queue.value = []
-  queueIndex.value = 0
   queueEpics.value = []
+  written.value = []
 }
 
 async function backToEpics(): Promise<void> {
+  const talking = written.value.map((story) => story.id)
   leaveQueue()
   await router.push('/story')
   ticket.data.value = null
+  await Promise.all(talking.map((storyId) => hangUp(storyId).catch(() => undefined)))
 }
 
 async function guard(action: () => Promise<void>): Promise<void> {
@@ -81,24 +96,20 @@ async function guard(action: () => Promise<void>): Promise<void> {
   }
 }
 
-async function openCurrentEpic(): Promise<void> {
-  const epic = queueEpics.value.find((found) => found.id === chosenEpic.value)
-  if (epic === undefined) {
-    return
-  }
-  await guard(async () => {
+function newStory(epic: EpicOverview): Promise<void> {
+  return guard(async () => {
     transcript.clear()
     const story = await write({ epicId: epic.id, title: epic.title, body: epic.businessIntent })
+    written.value = [...written.value, story]
     await dispatch(story.id, 'spec')
   })
 }
 
-function nextEpic(): Promise<void> {
-  if (queueIndex.value + 1 < queue.value.length) {
-    queueIndex.value += 1
-    return Promise.resolve()
-  }
-  return backToEpics()
+function openWritten(storyId: number): Promise<void> {
+  return guard(async () => {
+    transcript.clear()
+    await open(storyId)
+  })
 }
 
 function sendTurn(): Promise<void> {
@@ -157,6 +168,7 @@ function toBacklog(): Promise<void> {
     ? Promise.resolve()
     : guard(async () => {
         await sendToBacklog(storyId)
+        await hangUp(storyId)
       })
 }
 
@@ -169,7 +181,6 @@ watch(
   },
 )
 
-watch(chosenEpic, () => void openCurrentEpic())
 
 watch(
   shownPart,
@@ -207,29 +218,43 @@ onMounted(async () => {
       </button>
 
       <template v-if="queue.length > 0">
-        <h2 class="display-italic mt-6 text-sm text-txt-mid">Epique en cours</h2>
-        <p class="mt-2 rounded-xl border border-acc bg-card p-3 text-sm text-txt-hi">
-          {{ chosenEpicTitle ?? 'Epique inconnue' }}
-        </p>
-        <p class="mt-2 font-mono text-[10px] text-txt-low uppercase">
-          {{ queueIndex + 1 }} sur {{ queue.length }}
+        <h2 class="display-italic mt-6 text-sm text-txt-mid">La fournee</h2>
+        <p class="mt-1 text-[11px] text-txt-low">
+          Autant de stories que l epique en demande. Elles partent au backlog une par une.
         </p>
 
-        <h2 class="display-italic mt-6 text-sm text-txt-mid">La fournee</h2>
-        <ol class="mt-2 flex flex-col gap-1">
-          <li
-            v-for="(epic, index) in queueEpics"
-            :key="epic.id"
-            class="rounded-lg border px-3 py-2 text-xs"
-            :class="
-              index === queueIndex
-                ? 'border-acc bg-card text-txt-hi'
-                : 'border-line bg-card text-txt-low'
-            "
+        <div v-for="epic in queueEpics" :key="epic.id" class="mt-4">
+          <p class="font-mono text-[10px] tracking-[0.16em] text-acc uppercase">{{ epic.title }}</p>
+
+          <ol class="mt-1.5 flex flex-col gap-1">
+            <li v-for="story in storiesOf(epic.id)" :key="story.id">
+              <button
+                type="button"
+                :disabled="busy"
+                :aria-current="story.id === openId ? 'true' : undefined"
+                class="w-full rounded-lg border px-3 py-2 text-left text-xs disabled:opacity-40"
+                :class="
+                  story.id === openId
+                    ? 'border-acc bg-card text-txt-hi'
+                    : 'border-line bg-card text-txt-low hover:border-acc'
+                "
+                @click="openWritten(story.id)"
+              >
+                <span class="font-mono text-[10px] text-txt-low">{{ story.reference }}</span>
+                <span class="mt-0.5 block">{{ story.title }}</span>
+              </button>
+            </li>
+          </ol>
+
+          <button
+            type="button"
+            :disabled="busy"
+            class="mt-1.5 w-full rounded-lg border border-dashed border-line px-3 py-2 font-mono text-[10px] text-txt-mid uppercase hover:border-acc disabled:opacity-40"
+            @click="newStory(epic)"
           >
-            {{ epic.title }}
-          </li>
-        </ol>
+            + Une story de plus
+          </button>
+        </div>
       </template>
     </section>
 
@@ -306,9 +331,9 @@ onMounted(async () => {
           type="button"
           :disabled="busy"
           class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
-          @click="nextEpic()"
+          @click="backToEpics()"
         >
-          {{ queueIndex + 1 < queue.length ? 'Epique suivante' : 'Terminer la fournee' }}
+          Terminer la fournee
         </button>
       </div>
     </section>

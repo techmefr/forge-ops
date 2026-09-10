@@ -110,6 +110,10 @@ export function startBoardServer({
   const events = createEventBus()
   const stories = createStoryRepository(db)
   const sessions = createAgentSessionRepository(db)
+  const abandoned = sessions.abandonRunningSessions()
+  if (abandoned > 0) {
+    console.log(`${abandoned} session${abandoned > 1 ? 's' : ''} orpheline${abandoned > 1 ? 's' : ''} liberee${abandoned > 1 ? 's' : ''}`)
+  }
   const foremerge = createForemergeRepository(db, { stories })
   const live = createLiveSessions<SdkUserTurn>()
   const worktrees = createWorktreeRepository(db, {
