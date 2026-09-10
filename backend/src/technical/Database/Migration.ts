@@ -8,6 +8,7 @@ type AddedColumn = {
 
 const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'board_user', column: 'email', declaration: 'TEXT' },
+  { table: 'epic', column: 'assignee', declaration: 'TEXT' },
 ]
 
 function tableExists(db: Database.Database, table: string): boolean {

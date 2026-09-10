@@ -17,6 +17,8 @@ import {
   PointsOutOfRangeError,
   RolloutOutOfRangeError,
   DependencyCycleError,
+  EpicNotFoundError,
+  EpicTakenError,
   SelfDependencyError,
   ProjectNotFoundError,
   ProjectSlugTakenError,
@@ -46,6 +48,8 @@ export type StoryRepository = {
   listProjects: () => readonly Project[]
   createEpic: (draft: EpicDraft) => Epic
   listEpics: (projectId: number) => readonly EpicOverview[]
+  claimEpic: (epicId: number, login: string) => void
+  releaseEpic: (epicId: number, login: string) => void
   writeStory: (draft: StoryDraft) => Story
   writeTwin: (draft: TwinDraft) => Story
   findStory: (storyId: number) => Story
@@ -105,15 +109,28 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
   >('SELECT * FROM project ORDER BY name')
   const selectEpics = db.prepare<
     [number],
-    { id: number; project_id: number; title: string; business_intent: string; story_count: number }
+    {
+      id: number
+      project_id: number
+      title: string
+      business_intent: string
+      assignee: string | null
+      story_count: number
+    }
   >(
-    `SELECT epic.id, epic.project_id, epic.title, epic.business_intent,
+    `SELECT epic.id, epic.project_id, epic.title, epic.business_intent, epic.assignee,
             COUNT(story.id) AS story_count
        FROM epic
        LEFT JOIN story ON story.epic_id = epic.id AND story.kind = 'functional'
       WHERE epic.project_id = ?
       GROUP BY epic.id
       ORDER BY epic.id`,
+  )
+  const selectEpicById = db.prepare<[number], { id: number; assignee: string | null }>(
+    'SELECT id, assignee FROM epic WHERE id = ?',
+  )
+  const updateEpicAssignee = db.prepare<[string | null, number]>(
+    'UPDATE epic SET assignee = ? WHERE id = ?',
   )
   const selectProjectById = db.prepare<[number], { id: number }>('SELECT id FROM project WHERE id = ?')
   const selectProjectBySlug = db.prepare<[string], { id: number }>('SELECT id FROM project WHERE slug = ?')
@@ -252,8 +269,31 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
         projectId: row.project_id,
         title: row.title,
         businessIntent: row.business_intent,
+        assignee: row.assignee,
         storyCount: row.story_count,
       })),
+
+    claimEpic: (epicId, login) => {
+      const epic = selectEpicById.get(epicId)
+      if (epic === undefined) {
+        throw new EpicNotFoundError(epicId)
+      }
+      if (epic.assignee !== null && epic.assignee !== login) {
+        throw new EpicTakenError(epicId, epic.assignee)
+      }
+      updateEpicAssignee.run(login, epicId)
+    },
+
+    releaseEpic: (epicId, login) => {
+      const epic = selectEpicById.get(epicId)
+      if (epic === undefined) {
+        throw new EpicNotFoundError(epicId)
+      }
+      if (epic.assignee !== null && epic.assignee !== login) {
+        throw new EpicTakenError(epicId, epic.assignee)
+      }
+      updateEpicAssignee.run(null, epicId)
+    },
 
     writeStory: (draft) => {
       const info = insertStory.run(draft.epicId, null, nextReference(draft.epicId), draft.title, draft.body, 'functional')

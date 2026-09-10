@@ -194,3 +194,53 @@ describe('seedDemoBoard', () => {
     expect(createStoryRepository(db).listKanban().length).toBe(before)
   })
 })
+
+describe('the epics the seed leaves on the story screen', () => {
+  it('leaves some epics free to be picked up', () => {
+    expect(
+      db
+        .prepare<[], { total: number }>('SELECT COUNT(*) AS total FROM epic WHERE assignee IS NULL')
+        .get()?.total ?? 0,
+    ).toBeGreaterThan(1)
+  })
+
+  it('puts some epics under the local operator', () => {
+    expect(
+      db
+        .prepare<[string], { total: number }>(
+          'SELECT COUNT(*) AS total FROM epic WHERE assignee = ?',
+        )
+        .get('local')?.total ?? 0,
+    ).toBeGreaterThan(1)
+  })
+
+  it('puts at least one epic under someone else, so the filter proves something', () => {
+    expect(
+      db
+        .prepare<[string], { total: number }>(
+          "SELECT COUNT(*) AS total FROM epic WHERE assignee IS NOT NULL AND assignee != ?",
+        )
+        .get('local')?.total ?? 0,
+    ).toBeGreaterThan(0)
+  })
+
+  it('gives more than one epic to a project, so the project filter proves something', () => {
+    const most =
+      db
+        .prepare<[], { total: number }>(
+          'SELECT COUNT(*) AS total FROM epic GROUP BY project_id ORDER BY total DESC LIMIT 1',
+        )
+        .get()?.total ?? 0
+    expect(most).toBeGreaterThan(1)
+  })
+
+  it('leaves the spare epics without any story, they are subjects to pick up', () => {
+    const bare =
+      db
+        .prepare<[], { total: number }>(
+          'SELECT COUNT(*) AS total FROM epic WHERE id NOT IN (SELECT epic_id FROM story)',
+        )
+        .get()?.total ?? 0
+    expect(bare).toBe(5)
+  })
+})

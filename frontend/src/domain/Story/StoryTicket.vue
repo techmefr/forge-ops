@@ -15,7 +15,7 @@ const scoreColour = computed(() => {
 
 <template>
   <p v-if="ticket === null" class="text-sm text-txt-low">
-    Aucune story ouverte. Ecris-en une, ou choisis-en une a gauche.
+    Aucune story ouverte. Le ticket se remplit des que tu ecris la story.
   </p>
 
   <article v-else class="flex flex-col gap-5">

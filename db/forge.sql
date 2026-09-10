@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS epic (
   project_id INTEGER NOT NULL REFERENCES project(id),
   title TEXT NOT NULL,
   business_intent TEXT NOT NULL,
+  assignee TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

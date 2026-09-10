@@ -56,6 +56,47 @@ const PROVEN_UP_TO: readonly CheckpointName[] = [
   'reviewed',
 ]
 
+
+type SpareEpicPlan = {
+  project: string
+  title: string
+  intent: string
+  assignee: string | null
+}
+
+const SPARE_EPICS: readonly SpareEpicPlan[] = [
+  {
+    project: 'forge',
+    title: 'Discussion sur une carte',
+    intent: 'permettre de debloquer une story par un echange plutot que par un clic',
+    assignee: null,
+  },
+  {
+    project: 'forge',
+    title: 'Passerelle GitLab',
+    intent: 'suivre les merge requests du travail lance depuis le board',
+    assignee: 'local',
+  },
+  {
+    project: 'mailer',
+    title: 'Recherche dans les mails',
+    intent: 'retrouver un mail par son sujet, son expediteur ou son contenu',
+    assignee: null,
+  },
+  {
+    project: 'mailer',
+    title: 'Signature par compte',
+    intent: 'laisser chaque compte porter sa propre signature',
+    assignee: 'seraph',
+  },
+  {
+    project: 'atlas',
+    title: 'Alerte de zone chaude',
+    intent: 'prevenir quand deux stories touchent le meme dossier en meme temps',
+    assignee: null,
+  },
+]
+
 const PLAN: readonly ProjectPlan[] = [
   {
     slug: 'forge',
@@ -404,6 +445,7 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
 
   const storyIds = new Map<string, number>()
   const references = new Map<string, string>()
+  const projectIds = new Map<string, number>()
 
   for (const project of PLAN) {
     const written = stories.createProject({
@@ -413,11 +455,13 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
       integrationBranch: project.slug === 'forge' ? 'forge' : 'main',
       colour: project.colour,
     })
+    projectIds.set(project.slug, written.id)
     const epic = stories.createEpic({
       projectId: written.id,
       title: project.epicTitle,
       businessIntent: project.epicIntent,
     })
+    stories.claimEpic(epic.id, 'local')
 
     for (const plan of project.stories) {
       const story = stories.writeStory({ epicId: epic.id, title: plan.title, body: plan.body })
@@ -452,6 +496,21 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
     }
   }
 
+
+  for (const spare of SPARE_EPICS) {
+    const projectId = projectIds.get(spare.project)
+    if (projectId === undefined) {
+      continue
+    }
+    const epic = stories.createEpic({
+      projectId,
+      title: spare.title,
+      businessIntent: spare.intent,
+    })
+    if (spare.assignee !== null) {
+      stories.claimEpic(epic.id, spare.assignee)
+    }
+  }
   const sessionOf = new Map<string, string>()
   SESSION_PLAN.forEach((plan, index) => {
     const storyId = storyIds.get(plan.story)
