@@ -580,12 +580,13 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
         inputTokens: LENS_TOKENS[lens],
         outputTokens: Math.round(LENS_TOKENS[lens] / 8),
       })
-      backdateSession.run(-1, -LENS_SECONDS[lens], -1, claudeSessionId)
       return claudeSessionId
     }
     const qualitySession = lensSessionOf('quality')
     const securitySession = lensSessionOf('security')
     sessions.closeSession(qualitySession, { exitCode: 0 })
+    backdateSession.run(-1, -LENS_SECONDS.quality, -1, qualitySession)
+    backdateSession.run(-1, -LENS_SECONDS.security, -1, securitySession)
     checkpoints.startLens(scopeStory, 'quality', qualitySession)
     checkpoints.passLens(scopeStory, 'quality')
     checkpoints.startLens(scopeStory, 'security', securitySession)
