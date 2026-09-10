@@ -336,3 +336,27 @@ export type ParcoursSuggestion = {
   script: readonly PilotStep[]
   reason: string
 }
+
+export type RemarkVoice = 'human' | 'agent'
+
+export type StoryRemark = {
+  id: number
+  storyId: number
+  author: string
+  voice: RemarkVoice
+  body: string
+  writtenAt: string
+}
+
+export type StoryHold = {
+  id: number
+  storyId: number
+  reason: string
+  askedBy: string
+  raisedAt: string
+}
+
+export type Discussion = {
+  remarks: readonly StoryRemark[]
+  hold: StoryHold | null
+}

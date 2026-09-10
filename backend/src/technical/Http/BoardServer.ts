@@ -36,6 +36,8 @@ import { createEventBus } from './EventBus.js'
 import { createBoardPage } from './BoardPage.js'
 import { createSdkSessionRunner, createSdkSessionTalker } from '../ClaudeCode/SdkSessionRunner.js'
 import { createLiveSessions } from '../ClaudeCode/LiveSessions.js'
+import { createDiscussionApi } from '../../domain/Discussion/DiscussionApi.js'
+import { createDiscussionRepository } from '../../domain/Discussion/DiscussionRepository.js'
 import type { SdkUserTurn } from '../ClaudeCode/TurnDelivery.js'
 import { createConversationApi } from '../../domain/Conversation/ConversationApi.js'
 import { recordUsageFromEvent } from '../ClaudeCode/UsageRecorder.js'
@@ -202,6 +204,14 @@ export function startBoardServer({
           events.publish(event)
         },
       }),
+    }),
+  )
+  guarded.route(
+    '/',
+    createDiscussionApi({
+      stories,
+      discussion: createDiscussionRepository(db, { stories }),
+      events,
     }),
   )
   guarded.route(
