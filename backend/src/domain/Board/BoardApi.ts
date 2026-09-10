@@ -8,6 +8,7 @@ import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
 import { CHECKPOINT_SEQUENCE, REVIEW_LENS_SEQUENCE } from '../Checkpoint/Checkpoint.js'
 import { CheckpointViolationError } from '../Checkpoint/CheckpointViolation.js'
+import { describeZone } from '../Zone/ZoneDigest.js'
 import type { ZoneRepository } from '../Zone/ZoneRepository.js'
 import { ZoneNotFoundError, ZoneViolationError } from '../Zone/ZoneViolation.js'
 import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
@@ -391,6 +392,10 @@ export function createBoardApi({
     }
 
     agentSessions.recordFileTouch({ claudeSessionId: hook.session_id, path })
+    const zone = zones.zoneOfPath(path)
+    if (zone !== null) {
+      zones.summariseZone(zone.pathPrefix, describeZone(zones.overviewOfZone(zone.pathPrefix)))
+    }
     return context.json({ recorded: true }, 202)
   })
 

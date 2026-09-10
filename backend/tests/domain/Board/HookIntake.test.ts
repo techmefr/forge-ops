@@ -10,7 +10,10 @@ import {
   type AgentSessionRepository,
 } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
-import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js'
+import {
+  createZoneRepository,
+  type ZoneRepository,
+} from '../../../src/domain/Zone/ZoneRepository.js'
 import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
@@ -26,6 +29,8 @@ const CLAUDE_SESSION_ID = '9fe24018-1111-2222-3333-444455556666'
 
 let api: Hono
 let agentSessions: AgentSessionRepository
+let zones: ZoneRepository
+let projectId: number
 let storyId: number
 
 function postHook(payload: unknown): Promise<Response> {
@@ -61,7 +66,9 @@ beforeEach(() => {
     title: 'CRUD Mail',
     businessIntent: 'gerer les mails du client',
   })
+  projectId = project.id
   storyId = stories.writeStory({ epicId: epic.id, title: 'visualiser les mails', body: 'en tant que...' }).id
+  zones = createZoneRepository(db)
   agentSessions = createAgentSessionRepository(db)
   agentSessions.registerSession({
     storyId,
@@ -71,7 +78,7 @@ beforeEach(() => {
     claudeCodeVersion: '2.1.218',
   })
   api = createBoardApi({
-    zones: createZoneRepository(db),
+    zones,
     budget: createBudgetRepository(db),
     repository: stories,
     agentSessions,
@@ -193,5 +200,48 @@ describe('GET /api/files/conflicts', () => {
     await expect(response.json()).resolves.toEqual([
       { path: 'src/domain/Story/Story.ts', storyIds: [first, second] },
     ])
+  })
+})
+
+describe('the zone digest after a hook', () => {
+  it('describes the zone the touched file belongs to', async () => {
+    zones.declareZone({ projectId, pathPrefix: 'src/domain/Story', name: 'Story', colour: '#ff3b00' })
+
+    await postToolUse('Edit', 'src/domain/Story/Story.ts')
+
+    expect(zones.findZone('src/domain/Story').summary).toContain('1 fichier')
+  })
+
+  it('names the story working in the zone', async () => {
+    zones.declareZone({ projectId, pathPrefix: 'src/domain/Story', name: 'Story', colour: '#ff3b00' })
+
+    await postToolUse('Edit', 'src/domain/Story/Story.ts')
+
+    expect(zones.findZone('src/domain/Story').summary).toContain('FORGE-1')
+  })
+
+  it('rewrites the digest as the zone grows', async () => {
+    zones.declareZone({ projectId, pathPrefix: 'src/domain/Story', name: 'Story', colour: '#ff3b00' })
+
+    await postToolUse('Edit', 'src/domain/Story/Story.ts')
+    await postToolUse('Edit', 'src/domain/Story/StoryApi.ts')
+
+    expect(zones.findZone('src/domain/Story').summary).toContain('2 fichiers')
+  })
+
+  it('leaves a neighbouring zone alone', async () => {
+    zones.declareZone({ projectId, pathPrefix: 'src/domain/Story', name: 'Story', colour: '#ff3b00' })
+    zones.declareZone({ projectId, pathPrefix: 'src/domain/Mail', name: 'Mail', colour: '#00b3ff' })
+
+    await postToolUse('Edit', 'src/domain/Story/Story.ts')
+
+    expect(zones.findZone('src/domain/Mail').summary).toBeNull()
+  })
+
+  it('records a file that belongs to no zone all the same', async () => {
+    const response = await postToolUse('Edit', 'src/technical/Http/BoardServer.ts')
+
+    expect(response.status).toBe(202)
+    expect(agentSessions.listTouchedPaths(storyId)).toEqual(['src/technical/Http/BoardServer.ts'])
   })
 })
