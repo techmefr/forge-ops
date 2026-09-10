@@ -1,16 +1,26 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { SCREENS, screenOfPath } from '@/technical/Router/Screen'
 import { THEME_LABELS, THEME_NAMES } from '@/technical/Theme/Palette'
 import { useTheme } from '@/technical/Theme/UseTheme'
+import { NAV_LAYOUTS, NAV_LAYOUT_LABELS } from '@/technical/Shell/Navigation'
+import { useNavigation } from '@/technical/Shell/UseNavigation'
 import { useFleet } from './UseFleet'
 
 const route = useRoute()
 const { theme, mode, selectTheme, selectMode } = useTheme()
+const { layout, selectLayout } = useNavigation()
 const { working } = useFleet()
 
 const current = computed(() => screenOfPath(route.path))
+
+const strip = ref<HTMLElement | null>(null)
+
+watch([current, layout], () => {
+  const open = strip.value?.querySelector('[aria-current="page"]')
+  open?.scrollIntoView?.({ inline: 'center', block: 'nearest' })
+})
 
 const heading = computed(() => {
   if (current.value !== null) {
@@ -29,6 +39,7 @@ const heading = computed(() => {
 <template>
   <div class="flex min-h-screen bg-deep text-txt-hi">
     <aside
+      v-if="layout === 'rail'"
       class="sticky top-0 flex h-screen w-[250px] flex-none flex-col border-r border-line bg-panel"
     >
       <div class="border-b border-line px-5 pt-6 pb-4">
@@ -88,9 +99,38 @@ const heading = computed(() => {
 
     <div class="flex min-w-0 flex-1 flex-col">
       <header
+        v-if="layout === 'tabs'"
+        class="flex items-stretch gap-6 overflow-auto border-b border-line bg-panel px-6"
+      >
+        <div class="flex flex-none items-center gap-3 py-4">
+          <p class="display-italic text-[22px] leading-none">Forge<span class="text-acc">.</span>ops</p>
+        </div>
+        <nav ref="strip" class="flex items-stretch gap-0.5" aria-label="Etapes du pipeline">
+          <RouterLink
+            v-for="screen in SCREENS"
+            :key="screen.key"
+            :to="screen.path"
+            class="flex flex-col justify-center gap-[3px] border-b-[3px] px-4 transition-colors"
+            :class="
+              current?.key === screen.key
+                ? 'border-acc text-txt-hi'
+                : 'border-transparent text-txt-mid hover:text-txt-hi'
+            "
+          >
+            <span
+              class="font-mono text-[9.5px]"
+              :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
+              >{{ screen.n }}</span
+            >
+            <span class="display-italic text-sm whitespace-nowrap uppercase">{{ screen.label }}</span>
+          </RouterLink>
+        </nav>
+      </header>
+
+      <header
         class="sticky top-0 z-40 flex flex-wrap items-center gap-4 border-b border-line bg-panel/80 px-8 py-4 backdrop-blur"
       >
-        <div class="min-w-0 flex-1">
+        <div class="min-w-0 flex-[1_1_240px]">
           <div class="flex items-baseline gap-2.5">
             <span class="font-mono text-[11px] font-semibold text-acc">{{ heading.n }}</span>
             <h1 class="display-italic m-0 text-[34px] leading-none">{{ heading.label }}</h1>
@@ -99,6 +139,41 @@ const heading = computed(() => {
         </div>
 
         <div class="ml-auto flex flex-wrap items-center gap-2">
+          <template v-if="layout === 'tabs'">
+            <RouterLink
+              to="/incidents"
+              class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase hover:text-acc"
+              >Signalements</RouterLink
+            >
+            <RouterLink
+              to="/settings"
+              class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase hover:text-acc"
+              >Reglages</RouterLink
+            >
+            <span class="flex items-center gap-2 font-mono text-[10px] text-txt-low uppercase">
+              <span
+                class="h-1.5 w-1.5 flex-none rounded-full"
+                :class="working.length === 0 ? 'bg-line' : 'bg-green'"
+              />
+              {{ working.length }} agents
+            </span>
+            <span class="mx-1 h-5 w-px bg-line" />
+          </template>
+          <button
+            v-for="name in NAV_LAYOUTS"
+            :key="name"
+            type="button"
+            class="rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold uppercase"
+            :class="
+              name === layout
+                ? 'border-acc bg-acc text-ink'
+                : 'border-line bg-card text-txt-mid hover:border-acc'
+            "
+            @click="selectLayout(name)"
+          >
+            {{ NAV_LAYOUT_LABELS[name] }}
+          </button>
+          <span class="mx-1 h-5 w-px bg-line" />
           <button
             v-for="name in THEME_NAMES"
             :key="name"
