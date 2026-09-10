@@ -1,143 +1,131 @@
-import { mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import type Database from 'better-sqlite3'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import type { AgentSessionRepository } from '../../../src/domain/Agent/AgentSessionRepository.js'
-import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSessionRepository.js'
-import { REVIEW_LENS_SEQUENCE } from '../../../src/domain/Checkpoint/Checkpoint.js'
-import type { CheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
-import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
+import { describe, expect, it } from 'vitest'
 import {
-  LensOutOfOrderError,
-  ReviewIncompleteError,
-} from '../../../src/domain/Checkpoint/CheckpointViolation.js'
-import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
-import { createStoryRepository } from '../../../src/domain/Story/StoryRepository.js'
-import { openDatabase } from '../../../src/technical/Database/Connection.js'
+  advanceCascade,
+  LENS_AGENTS,
+  nextLensOf,
+  runningLensOf,
+} from '../../../src/domain/Checkpoint/ReviewCascade.js'
+import { REVIEW_LENS_SEQUENCE, type ReviewLens, type ReviewPass } from '../../../src/domain/Checkpoint/Checkpoint.js'
 
-const EARLIER_STEPS = ['spec_done', 'arch_done', 'tests_written', 'build_done', 'verified'] as const
+function cascade(states: readonly ReviewPass['state'][]): readonly ReviewPass[] {
+  return REVIEW_LENS_SEQUENCE.map((lens, index) => ({
+    lens,
+    state: states[index] ?? 'pending',
+    agentName: null,
+  }))
+}
 
-describe('review cascade', () => {
-  let home: string
-  let db: Database.Database
-  let checkpoints: CheckpointRepository
-  let sessions: AgentSessionRepository
-  let storyId: number
+describe('LENS_AGENTS', () => {
+  it('gives every lens its own reader', () => {
+    expect(Object.keys(LENS_AGENTS)).toEqual([...REVIEW_LENS_SEQUENCE])
+  })
 
-  beforeEach(() => {
-    home = mkdtempSync(join(tmpdir(), 'forge-cascade-'))
-    db = openDatabase(join(home, 'forge.db'))
-    const stories = createStoryRepository(db)
-    checkpoints = createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) })
-    sessions = createAgentSessionRepository(db)
-    const project = stories.createProject({
-      slug: 'ps',
-      name: 'Panier',
-      repositoryUrl: 'git@example.com:ps.git',
-      integrationBranch: 'main',
-      colour: '#8B5CFF',
+  it('never sends the same agent twice, a reader does not review itself', () => {
+    expect(new Set(Object.values(LENS_AGENTS)).size).toBe(REVIEW_LENS_SEQUENCE.length)
+  })
+})
+
+describe('nextLensOf', () => {
+  it('starts with the first lens of the sequence', () => {
+    expect(nextLensOf(cascade([]))).toBe('quality')
+  })
+
+  it('moves on once the first one passed', () => {
+    expect(nextLensOf(cascade(['passed']))).toBe('security')
+  })
+
+  it('rends nothing once every lens passed', () => {
+    expect(nextLensOf(cascade(['passed', 'passed', 'passed']))).toBeNull()
+  })
+
+  it('does not skip a lens that is merely running', () => {
+    expect(nextLensOf(cascade(['running']))).toBe('quality')
+  })
+})
+
+describe('runningLensOf', () => {
+  it('rends nothing on an untouched cascade', () => {
+    expect(runningLensOf(cascade([]))).toBeNull()
+  })
+
+  it('names the lens a reader is working on', () => {
+    expect(runningLensOf(cascade(['passed', 'running']))).toBe('security')
+  })
+})
+
+describe('advanceCascade', () => {
+  it('dispatches the first lens of an untouched cascade', async () => {
+    const asked: ReviewLens[] = []
+
+    const step = await advanceCascade({
+      cascade: cascade([]),
+      dispatchLens: (lens) => {
+        asked.push(lens)
+        return Promise.resolve()
+      },
     })
-    const epic = stories.createEpic({
-      projectId: project.id,
-      title: 'Panier',
-      businessIntent: 'Retrouver son panier',
+
+    expect(asked).toEqual(['quality'])
+    expect(step.dispatched).toBe('quality')
+  })
+
+  it('dispatches the next lens once the previous one passed', async () => {
+    const step = await advanceCascade({
+      cascade: cascade(['passed']),
+      dispatchLens: () => Promise.resolve(),
     })
-    const story = stories.writeStory({ epicId: epic.id, title: 'Panier persistant', body: 'corps' })
-    stories.writeTwin({ storyId: story.id, title: 'Test — panier persistant', body: 'corps' })
-    storyId = story.id
-    const criteria = createCriterionRepository(db)
-    const criterion = criteria.declareCriterion({
-      storyId,
-      reference: 'AC-1',
-      statement: 'le panier survit a la deconnexion',
+
+    expect(step.dispatched).toBe('security')
+  })
+
+  it('waits while a reader is still working', async () => {
+    const asked: ReviewLens[] = []
+
+    const step = await advanceCascade({
+      cascade: cascade(['running']),
+      dispatchLens: (lens) => {
+        asked.push(lens)
+        return Promise.resolve()
+      },
     })
-    criteria.satisfyCriterion(criterion.id, '.claude/evidence/PS-1/tests.md')
-    for (const name of EARLIER_STEPS) {
-      checkpoints.proveCheckpoint({ storyId, name, evidencePath: `.claude/evidence/PS-1/${name}.md` })
-    }
+
+    expect(asked).toEqual([])
+    expect(step.dispatched).toBeNull()
   })
 
-  afterEach(() => {
-    db.close()
-    rmSync(home, { recursive: true, force: true })
-  })
-
-  function openSession(agentName: string): string {
-    const claudeSessionId = `session-${agentName}`
-    sessions.registerSession({
-      storyId,
-      claudeSessionId,
-      phase: 'review',
-      agentName,
-      claudeCodeVersion: '2.1.224',
+  it('says it is waiting, and on which lens', async () => {
+    const step = await advanceCascade({
+      cascade: cascade(['running']),
+      dispatchLens: () => Promise.resolve(),
     })
-    return claudeSessionId
-  }
 
-  it('starts every story with the three lenses pending', () => {
-    const passes = checkpoints.reviewCascade(storyId)
-    expect(passes.map((pass) => pass.lens)).toEqual([...REVIEW_LENS_SEQUENCE])
-    expect(passes.every((pass) => pass.state === 'pending')).toBe(true)
+    expect(step.reason).toContain('quality')
   })
 
-  it('runs the lenses in order, quality first', () => {
-    const pass = checkpoints.startLens(storyId, 'quality', openSession('claude-qual-1'))
-    expect(pass.state).toBe('running')
-    expect(pass.agentName).toBe('claude-qual-1')
-  })
-
-  it('refuses a lens whose predecessor has not passed', () => {
-    expect(() => checkpoints.startLens(storyId, 'security', openSession('claude-sec-1'))).toThrow(
-      LensOutOfOrderError,
-    )
-  })
-
-  it('unlocks the next lens once the previous one has passed', () => {
-    checkpoints.startLens(storyId, 'quality', openSession('claude-qual-1'))
-    checkpoints.passLens(storyId, 'quality')
-    expect(checkpoints.startLens(storyId, 'security', openSession('claude-sec-1')).state).toBe(
-      'running',
-    )
-  })
-
-  it('refuses the reviewed checkpoint while a lens has not passed', () => {
-    checkpoints.startLens(storyId, 'quality', openSession('claude-qual-1'))
-    checkpoints.passLens(storyId, 'quality')
-    expect(() =>
-      checkpoints.proveCheckpoint({
-        storyId,
-        name: 'reviewed',
-        evidencePath: '.claude/evidence/PS-1/reviewed.md',
-      }),
-    ).toThrow(ReviewIncompleteError)
-  })
-
-  it('proves the reviewed checkpoint once the three lenses have passed', () => {
-    for (const lens of REVIEW_LENS_SEQUENCE) {
-      checkpoints.startLens(storyId, lens, openSession(`claude-${lens}-1`))
-      checkpoints.passLens(storyId, lens)
-    }
-    expect(
-      checkpoints.proveCheckpoint({
-        storyId,
-        name: 'reviewed',
-        evidencePath: '.claude/evidence/PS-1/reviewed.md',
-      }).name,
-    ).toBe('reviewed')
-  })
-
-  it('refuses to pass a lens that still carries a strong finding', () => {
-    const claudeSessionId = openSession('claude-qual-1')
-    checkpoints.startLens(storyId, 'quality', claudeSessionId)
-    checkpoints.recordFinding({
-      storyId,
-      claudeSessionId,
-      lens: 'quality',
-      severity: 'strong',
-      path: 'src/domain/Cart/CartTotals.ts',
-      statement: 'Le total repasse a zero apres un retrait',
+  it('dispatches nothing once the cascade is through', async () => {
+    const step = await advanceCascade({
+      cascade: cascade(['passed', 'passed', 'passed']),
+      dispatchLens: () => Promise.resolve(),
     })
-    expect(() => checkpoints.passLens(storyId, 'quality')).toThrow()
+
+    expect(step).toEqual({ dispatched: null, reason: 'la cascade est passee en entier' })
+  })
+
+  it('reports a refused dispatch rather than losing the checkpoint that triggered it', async () => {
+    const step = await advanceCascade({
+      cascade: cascade([]),
+      dispatchLens: () => Promise.reject(new Error('la flotte est saturee')),
+    })
+
+    expect(step).toEqual({ dispatched: null, reason: 'la flotte est saturee' })
+  })
+
+  it('does not swallow a refusal silently, the reason names it', async () => {
+    const step = await advanceCascade({
+      cascade: cascade(['passed']),
+      dispatchLens: () => Promise.reject(new Error('plafond de cout atteint')),
+    })
+
+    expect(step.reason).toBe('plafond de cout atteint')
   })
 })

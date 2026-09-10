@@ -59,6 +59,8 @@ beforeEach(() => {
     dispatcher: stubDispatch,
     claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
     cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
+    advanceReviewCascade: () =>
+      Promise.resolve({ dispatched: null, reason: 'pas de cascade dans ce test' }),
   })
 })
 

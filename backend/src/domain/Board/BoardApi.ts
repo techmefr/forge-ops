@@ -21,6 +21,7 @@ import { BudgetViolationError } from '../Budget/BudgetViolation.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
 import { scoreCompleteness } from '../Story/Completeness.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
+import type { CascadeStep } from '../Checkpoint/ReviewCascade.js'
 import { buildStoryReport } from './StoryReport.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 
@@ -118,6 +119,7 @@ export type BoardApiInput = {
   events: EventBus
   dispatcher: Dispatcher
   cleanUpAfterMerge: (storyId: number) => MergeCleanupReport
+  advanceReviewCascade: (storyId: number) => Promise<CascadeStep>
   claudeHome: string
 }
 
@@ -131,6 +133,7 @@ export function createBoardApi({
   events,
   dispatcher,
   cleanUpAfterMerge,
+  advanceReviewCascade,
   claudeHome,
 }: BoardApiInput): Hono {
   const api = new Hono()
@@ -300,7 +303,12 @@ export function createBoardApi({
     }
     const checkpoint = checkpoints.proveCheckpoint({ storyId: storyId.data, ...draft.data })
     events.publish({ name: 'checkpoint.proven', payload: { ...checkpoint } })
-    return context.json(checkpoint, 201)
+    if (draft.data.name !== 'verified') {
+      return context.json(checkpoint, 201)
+    }
+    const cascade = await advanceReviewCascade(storyId.data)
+    events.publish({ name: 'review.cascade', payload: { storyId: storyId.data, ...cascade } })
+    return context.json({ ...checkpoint, cascade }, 201)
   })
 
   api.get('/api/stories/:id/ticket', (context) => {
@@ -449,7 +457,7 @@ export function createBoardApi({
     )
   })
 
-  api.post('/api/stories/:id/review/:lens/pass', (context) => {
+  api.post('/api/stories/:id/review/:lens/pass', async (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
@@ -458,7 +466,10 @@ export function createBoardApi({
     if (!lens.success) {
       return context.json({ error: 'InvalidReviewLens' }, 422)
     }
-    return context.json(checkpoints.passLens(storyId.data, lens.data))
+    const passed = checkpoints.passLens(storyId.data, lens.data)
+    const cascade = await advanceReviewCascade(storyId.data)
+    events.publish({ name: 'review.cascade', payload: { storyId: storyId.data, ...cascade } })
+    return context.json({ ...passed, cascade })
   })
 
   api.post('/api/stories/:id/dispatch', async (context) => {

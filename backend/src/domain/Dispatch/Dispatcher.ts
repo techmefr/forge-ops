@@ -11,10 +11,13 @@ import { ScopeTakenError } from '../Foremerge/ForemergeViolation.js'
 import { collisionsBetween } from '../Foremerge/Scope.js'
 import type { Story } from '../Story/Story.js'
 import { contractOfPhase, type Dispatched, type DispatchOrder, type SessionRunner } from './Dispatch.js'
+import { LENS_AGENTS, nextLensOf } from '../Checkpoint/ReviewCascade.js'
 import { createRateBucket, DEFAULT_DISPATCH_RATE, type Clock, type DispatchRate } from './DispatchRate.js'
+import { LensOutOfOrderError } from '../Checkpoint/CheckpointViolation.js'
 import {
   DispatchTooFastError,
   FleetSaturatedError,
+  LensOutsideReviewError,
   PhaseNotReadyError,
   SessionAlreadyRunningError,
   StoryBlockedError,
@@ -43,13 +46,15 @@ export type Dispatcher = {
   countRunning: () => number
 }
 
-function promptFor(story: Story, phase: string): string {
+function promptFor(story: Story, phase: string, lens: string | undefined): string {
   return [
     `Story ${story.reference} — ${story.title}`,
     ``,
     story.body,
     ``,
-    `Phase : ${phase}. Suis la doctrine de .claude/commands et prouve l'etape par un fichier sous .claude/evidence/${story.reference}/.`,
+    lens === undefined
+      ? `Phase : ${phase}. Suis la doctrine de .claude/commands et prouve l'etape par un fichier sous .claude/evidence/${story.reference}/.`
+      : `Phase : ${phase}, lentille ${lens}. Ne lis que cette lentille, et prouve-la par un fichier sous .claude/evidence/${story.reference}/.`,
   ].join('\n')
 }
 
@@ -92,6 +97,16 @@ export function createDispatcher({
     dispatch: async (order) => {
       const story = stories.findStory(order.storyId)
       const contract = contractOfPhase(order.phase)
+      if (order.lens !== undefined && order.phase !== 'review') {
+        throw new LensOutsideReviewError(order.phase)
+      }
+      const agentName = order.lens === undefined ? contract.agentName : LENS_AGENTS[order.lens]
+      if (order.lens !== undefined) {
+        const expected = nextLensOf(checkpoints.reviewCascade(order.storyId))
+        if (expected !== order.lens) {
+          throw new LensOutOfOrderError(order.lens, expected ?? order.lens)
+        }
+      }
 
       if (order.phase !== 'spec') {
         const verdict = scoreCompleteness({
@@ -150,12 +165,12 @@ export function createDispatcher({
         throw new BudgetExhaustedError(decision.spentUsd, decision.capUsd)
       }
 
-      const prompt = promptFor(story, order.phase)
+      const prompt = promptFor(story, order.phase, order.lens)
       const { claudeSessionId } = await runner.launch({
         storyId: order.storyId,
         reference: story.reference,
         phase: order.phase,
-        agentName: contract.agentName,
+        agentName,
         prompt,
         ...(decision.model === undefined ? {} : { model: decision.model }),
         ...(decision.baseUrl === undefined ? {} : { baseUrl: decision.baseUrl }),
@@ -165,15 +180,20 @@ export function createDispatcher({
         storyId: order.storyId,
         claudeSessionId,
         phase: order.phase,
-        agentName: contract.agentName,
+        agentName,
         claudeCodeVersion,
       })
+
+      if (order.lens !== undefined) {
+        checkpoints.startLens(order.storyId, order.lens, claudeSessionId)
+      }
 
       return {
         claudeSessionId,
         storyId: order.storyId,
         phase: order.phase,
-        agentName: contract.agentName,
+        ...(order.lens === undefined ? {} : { lens: order.lens }),
+        agentName,
         prompt,
         ...(decision.model === undefined ? {} : { model: decision.model }),
         ...(decision.baseUrl === undefined ? {} : { baseUrl: decision.baseUrl }),

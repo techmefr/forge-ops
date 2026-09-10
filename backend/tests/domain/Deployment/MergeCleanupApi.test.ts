@@ -92,6 +92,8 @@ beforeEach(() => {
         releaseScope: foremerge.release,
         closeWorktree: (target) => worktrees.close(target, { deleteBranch: true }),
       }),
+    advanceReviewCascade: () =>
+      Promise.resolve({ dispatched: null, reason: 'pas de cascade dans ce test' }),
     claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
   })
 })
