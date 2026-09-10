@@ -1,10 +1,16 @@
 import { Hono } from 'hono'
-import { deleteCookie, setCookie } from 'hono/cookie'
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { z } from 'zod'
 import type { IdentityRepository } from './IdentityRepository.js'
-import { IdentityViolationError, LoginRefusedError } from './IdentityViolation.js'
+import {
+  IdentityViolationError,
+  LoginRefusedError,
+  PasswordRefusedError,
+} from './IdentityViolation.js'
 
-export const IDENTITY_COOKIE = 'forge_identity'
+import { IDENTITY_COOKIE } from '../../technical/Auth/TokenGuard.js'
+
+export { IDENTITY_COOKIE }
 
 const credentialsSchema = z.object({
   login: z.string().min(1).max(120),
@@ -22,6 +28,18 @@ const enrolmentSchema = z.object({
   role: z.enum(['director', 'architect']),
 })
 
+const profileSchema = z
+  .object({
+    displayName: z.string().min(1).max(120).optional(),
+    email: z.string().email().max(200).optional(),
+  })
+  .refine((draft) => draft.displayName !== undefined || draft.email !== undefined)
+
+const passwordChangeSchema = z.object({
+  current: z.string().min(1).max(256),
+  next: z.string().min(1).max(256),
+})
+
 export type IdentityApiInput = {
   identities: IdentityRepository
   allowEnrolment: () => boolean
@@ -29,6 +47,12 @@ export type IdentityApiInput = {
 
 export function createIdentityApi({ identities, allowEnrolment }: IdentityApiInput): Hono {
   const api = new Hono()
+
+  function caller(sessionToken: string | undefined) {
+    return sessionToken === undefined || sessionToken === ''
+      ? null
+      : identities.readSession(sessionToken)
+  }
 
   api.onError((error, context) => {
     if (error instanceof LoginRefusedError) {
@@ -73,6 +97,53 @@ export function createIdentityApi({ identities, allowEnrolment }: IdentityApiInp
       return context.json({ error: 'InvalidEnrolment', issues: draft.error.issues }, 422)
     }
     return context.json(identities.enrolUser(draft.data), 201)
+  })
+
+  api.get('/api/auth/me', (context) => {
+    const user = caller(context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE))
+    if (user === null) {
+      return context.json({ error: 'UnauthenticatedAccount' }, 401)
+    }
+    return context.json(user)
+  })
+
+  api.put('/api/auth/profile', async (context) => {
+    const user = caller(context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE))
+    if (user === null) {
+      return context.json({ error: 'UnauthenticatedAccount' }, 401)
+    }
+    const draft = profileSchema.safeParse(await context.req.json().catch(() => null))
+    if (!draft.success) {
+      return context.json({ error: 'InvalidProfile', issues: draft.error.issues }, 422)
+    }
+    if (draft.data.displayName !== undefined) {
+      identities.changeDisplayName(user.login, draft.data.displayName)
+    }
+    if (draft.data.email !== undefined) {
+      identities.changeEmail(user.login, draft.data.email)
+    }
+    return context.json(identities.findUser(user.login))
+  })
+
+  api.put('/api/auth/password', async (context) => {
+    const user = caller(context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE))
+    if (user === null) {
+      return context.json({ error: 'UnauthenticatedAccount' }, 401)
+    }
+    const draft = passwordChangeSchema.safeParse(await context.req.json().catch(() => null))
+    if (!draft.success) {
+      return context.json({ error: 'InvalidPasswordChange' }, 422)
+    }
+    try {
+      identities.changePassword(user.login, draft.data.current, draft.data.next)
+    } catch (error) {
+      if (error instanceof PasswordRefusedError) {
+        return context.json({ error: error.name, message: error.message }, 422)
+      }
+      throw error
+    }
+    deleteCookie(context, IDENTITY_COOKIE, { path: '/' })
+    return context.json({ changed: true })
   })
 
   api.get('/api/auth/state', (context) =>

@@ -2,7 +2,7 @@
 
 @theme {
   --font-display: 'Archivo', system-ui, sans-serif;
-  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-body: var(--forge-font-body, 'Barlow', system-ui, sans-serif);
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   --color-deep: var(--forge-deep);
