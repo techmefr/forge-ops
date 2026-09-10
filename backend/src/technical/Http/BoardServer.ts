@@ -45,7 +45,7 @@ import { createTokenGuard } from '../Auth/TokenGuard.js'
 import { deriveHookToken, resolveBoardToken } from '../Auth/BoardToken.js'
 import { boardOrigins } from '../Auth/BoardOrigin.js'
 
-const DEFAULT_SESSION_CAP = 3
+const DEFAULT_SESSION_CAP = 5
 
 type ServerType = ReturnType<typeof serve>
 
