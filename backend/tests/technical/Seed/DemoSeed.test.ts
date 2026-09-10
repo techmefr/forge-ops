@@ -78,6 +78,19 @@ describe('seedDemoBoard', () => {
     expect(running.length).toBeGreaterThan(0)
   })
 
+  it('names the lens agent that is actually reading, not the previous one', () => {
+    const checkpoints = createCheckpointRepository(db, { takeCensus: () => CENSUS })
+    const kanban = createStoryRepository(db).listKanban()
+    const running = kanban.flatMap((story) =>
+      checkpoints.reviewCascade(story.id).filter((pass) => pass.state === 'running'),
+    )
+
+    expect(running.length).toBeGreaterThan(0)
+    for (const pass of running) {
+      expect(pass.agentName).toBe({ quality: 'elrond', security: 'seraph', accessibility: 'link' }[pass.lens])
+    }
+  })
+
   it('leaves an unresolved finding to read', () => {
     const checkpoints = createCheckpointRepository(db, { takeCensus: () => CENSUS })
     const kanban = createStoryRepository(db).listKanban()
