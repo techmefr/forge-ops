@@ -6,7 +6,10 @@ const denyFileSchema = z.object({
   deny: z.array(z.string().min(1)),
 })
 
-const SEGMENT_SEPARATORS = /&&|\|\||;|\||\n/
+const SEGMENT_SEPARATORS = /&&|\|\||;|&|\||\n|\$\(|\$\{|`|\(|\)|\}/
+const QUOTED_RUNS = /"([^"]*)"|'([^']*)'/g
+const LEADING_ASSIGNMENT = /^(?:export\s+)?[A-Za-z_][A-Za-z0-9_]*=/
+const HEAD_TOKEN_LIMIT = 2
 
 function escapeExceptWildcard(pattern: string): string {
   return pattern.replace(/[.+?^${}()|[\]\\]/g, (match) => `\\${match}`)
@@ -16,14 +19,61 @@ function toRegExp(pattern: string): RegExp {
   return new RegExp(`^${escapeExceptWildcard(pattern).replace(/\*/g, '.*')}$`, 's')
 }
 
+function collapseWhitespace(value: string): string {
+  return value.trim().replace(/\s+/g, ' ')
+}
+
+function unquote(value: string): string {
+  const trimmed = value.trim()
+  const isQuoted =
+    trimmed.length >= 2 &&
+    ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'")))
+
+  return isQuoted ? trimmed.slice(1, -1) : trimmed
+}
+
+function quotedRunsOf(command: string): readonly string[] {
+  return [...command.matchAll(QUOTED_RUNS)].map((match) => match[1] ?? match[2] ?? '')
+}
+
+function assignedValueOf(segment: string): string | null {
+  if (!LEADING_ASSIGNMENT.test(segment)) {
+    return null
+  }
+
+  return collapseWhitespace(unquote(segment.slice(segment.indexOf('=') + 1)))
+}
+
+function flagVariantsOf(candidate: string): readonly string[] {
+  const tokens = candidate.split(' ').filter((token) => token.length > 0)
+  if (tokens.length < 3) {
+    return []
+  }
+
+  const headLength = tokens[1]?.startsWith('-') === true ? 1 : HEAD_TOKEN_LIMIT
+  const head = tokens.slice(0, headLength)
+  const tail = tokens.slice(headLength)
+
+  return tail.flatMap((token, index) =>
+    index === 0 || !token.startsWith('-')
+      ? []
+      : [[...head, token, ...tail.filter((_, other) => other !== index)].join(' ')],
+  )
+}
+
 function candidatesOf(command: string): readonly string[] {
-  const whole = command.trim()
-  const segments = whole
-    .split(SEGMENT_SEPARATORS)
-    .map((segment) => segment.trim())
+  const whole = collapseWhitespace(command)
+  const segments = [whole, ...command.split(SEGMENT_SEPARATORS), ...quotedRunsOf(command)]
+    .map(collapseWhitespace)
     .filter((segment) => segment.length > 0)
 
-  return [whole, ...segments]
+  const assigned = segments
+    .map(assignedValueOf)
+    .filter((value): value is string => value !== null && value.length > 0)
+
+  const normalised = [...segments, ...assigned]
+
+  return [...new Set([...normalised, ...normalised.flatMap(flagVariantsOf)])]
 }
 
 export function loadDenyPatterns(path: string): readonly string[] {
