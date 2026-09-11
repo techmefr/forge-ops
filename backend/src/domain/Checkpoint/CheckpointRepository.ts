@@ -28,6 +28,7 @@ import {
 } from './CheckpointViolation.js'
 import { StoryNotFoundError, TwinRequiredError } from '../Story/StoryViolation.js'
 import { assertEvidencePath } from '../Evidence/EvidencePath.js'
+import { assertEvidenceShape } from '../Evidence/EvidenceShape.js'
 import { compareCensus, type TestCensus } from '../Tamper/TestCensus.js'
 import { UnknownAgentSessionError } from '../Agent/AgentViolation.js'
 
@@ -79,11 +80,12 @@ function toFinding(row: FindingRow): ReviewFinding {
 
 export type CheckpointRepositoryInput = {
   takeCensus: () => TestCensus
+  readEvidence?: (path: string) => string | null
 }
 
 export function createCheckpointRepository(
   db: Database.Database,
-  { takeCensus }: CheckpointRepositoryInput,
+  { takeCensus, readEvidence = () => null }: CheckpointRepositoryInput,
 ): CheckpointRepository {
   const upsertCensus = db.prepare<[number, number, number, number]>(
     `INSERT INTO test_census (story_id, tests, skipped, tautologies) VALUES (?, ?, ?, ?)
@@ -190,6 +192,10 @@ export function createCheckpointRepository(
         throw new EvidenceRequiredError(draft.name)
       }
       const evidencePath = assertEvidencePath(draft.evidencePath)
+      const content = readEvidence(evidencePath)
+      if (content !== null) {
+        assertEvidenceShape(draft.name, evidencePath, content)
+      }
 
       const proven = provenNames(draft.storyId)
       if (proven.includes(draft.name)) {

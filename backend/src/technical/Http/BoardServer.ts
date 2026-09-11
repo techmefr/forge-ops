@@ -12,6 +12,7 @@ import { createDispatcher } from '../../domain/Dispatch/Dispatcher.js'
 import { createBudgetRepository } from '../../domain/Budget/BudgetRepository.js'
 import { DEFAULT_DISPATCH_RATE } from '../../domain/Dispatch/DispatchRate.js'
 import { censusOfTree } from '../Tamper/TestTreeCensus.js'
+import { createEvidenceFileReader } from '../Evidence/EvidenceFileReader.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { advanceCascade } from '../../domain/Checkpoint/ReviewCascade.js'
 import { createIdentityRepository } from '../../domain/Identity/IdentityRepository.js'
@@ -112,6 +113,7 @@ export function startBoardServer({
   const token = resolveBoardToken(tokenPath)
   const events = createEventBus()
   const stories = createStoryRepository(db)
+  const readEvidence = createEvidenceFileReader({ root: process.cwd() })
   const sessions = createAgentSessionRepository(db)
   const abandoned = sessions.abandonRunningSessions()
   if (abandoned > 0) {
@@ -127,7 +129,7 @@ export function startBoardServer({
   const dispatcher = createDispatcher({
     database: db,
     stories,
-    checkpoints: createCheckpointRepository(db, { takeCensus: () => censusOfTree(testsDir) }),
+    checkpoints: createCheckpointRepository(db, { takeCensus: () => censusOfTree(testsDir), readEvidence }),
     criteria: createCriterionRepository(db),
     sessions,
     budget: createBudgetRepository(db),
@@ -150,13 +152,14 @@ export function startBoardServer({
   })
   const cascadeCheckpoints = createCheckpointRepository(db, {
     takeCensus: () => censusOfTree(testsDir),
+    readEvidence,
   })
   const api = createBoardApi({
     zones: createZoneRepository(db),
     budget: createBudgetRepository(db),
     repository: stories,
     agentSessions: sessions,
-    checkpoints: createCheckpointRepository(db, { takeCensus: () => censusOfTree(testsDir) }),
+    checkpoints: createCheckpointRepository(db, { takeCensus: () => censusOfTree(testsDir), readEvidence }),
     criteria: createCriterionRepository(db),
     events,
     dispatcher,
