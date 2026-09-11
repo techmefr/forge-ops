@@ -38,6 +38,15 @@ export class TestsTamperedError extends CheckpointViolationError {
   }
 }
 
+export class MutationSurvivedError extends CheckpointViolationError {
+  constructor(survivors: readonly string[]) {
+    super(
+      `Des mutations survivent aux tests, ils ne prouvent rien : ${survivors.join(' ; ')}`,
+      'MutationSurvivedError',
+    )
+  }
+}
+
 export class UnresolvedFindingError extends CheckpointViolationError {
   constructor(count: number) {
     super(`${count} finding(s) fort(s) non resolu(s) empechent de clore la review`, 'UnresolvedFindingError')
