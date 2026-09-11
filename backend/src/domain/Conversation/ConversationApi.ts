@@ -77,7 +77,7 @@ export function createConversationApi({
       return context.json({ hungUp: false })
     }
     talker.hangUp(session.claudeSessionId)
-    sessions.updateLifecycle(session.claudeSessionId, 'finished')
+    sessions.closeSession(session.claudeSessionId, { exitCode: null, signal: 'SIGTERM' })
     events.publish({
       name: 'session.hung_up',
       payload: {

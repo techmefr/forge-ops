@@ -41,6 +41,7 @@ import { createDiscussionRepository } from '../../domain/Discussion/DiscussionRe
 import type { SdkUserTurn } from '../ClaudeCode/TurnDelivery.js'
 import { createConversationApi } from '../../domain/Conversation/ConversationApi.js'
 import { recordUsageFromEvent } from '../ClaudeCode/UsageRecorder.js'
+import { recordLifecycleFromEvent } from '../ClaudeCode/LifecycleRecorder.js'
 import { createTokenGuard } from '../Auth/TokenGuard.js'
 import { deriveHookToken, resolveBoardToken } from '../Auth/BoardToken.js'
 import { boardOrigins } from '../Auth/BoardOrigin.js'
@@ -134,6 +135,7 @@ export function startBoardServer({
       live,
       onEvent: (event) => {
         recordUsageFromEvent(sessions, event)
+        recordLifecycleFromEvent(sessions, event)
         events.publish(event)
       },
     }),
@@ -199,6 +201,7 @@ export function startBoardServer({
         live,
         onEvent: (event) => {
           recordUsageFromEvent(sessions, event)
+          recordLifecycleFromEvent(sessions, event)
           events.publish(event)
         },
       }),
