@@ -8,6 +8,7 @@ import {
 } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { StoryNotFoundError } from '../../../src/domain/Story/StoryViolation.js'
 import { UnknownAgentSessionError } from '../../../src/domain/Agent/AgentViolation.js'
+import { ConfinedPathRefusedError } from '../../../src/domain/File/ConfinedPath.js'
 
 let db: Database.Database
 let repository: AgentSessionRepository
@@ -99,6 +100,20 @@ describe('recordFileTouch', () => {
     repository.recordFileTouch({ claudeSessionId: 'aaaa', path: 'src/domain/Story/StoryRepository.ts' })
 
     expect(repository.listTouchedPaths(storyId)).toEqual(['src/domain/Story/StoryRepository.ts'])
+  })
+
+  it('refuses a touch naming a path outside the checkout', () => {
+    expect(() =>
+      repository.recordFileTouch({ claudeSessionId: 'aaaa', path: '/nonexistent-probe-target/victim.ts' }),
+    ).toThrow(ConfinedPathRefusedError)
+    expect(repository.listTouchedPaths(storyId)).toEqual([])
+  })
+
+  it('refuses a touch climbing above the checkout', () => {
+    expect(() =>
+      repository.recordFileTouch({ claudeSessionId: 'aaaa', path: '../../nonexistent-probe-target/victim.ts' }),
+    ).toThrow(ConfinedPathRefusedError)
+    expect(repository.listTouchedPaths(storyId)).toEqual([])
   })
 
   it('refuses a touch from a session it never registered', () => {
