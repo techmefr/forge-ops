@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import Database from 'better-sqlite3'
+import { markDemoDatabase } from '../../../src/technical/Demo/DemoMark.js'
 import {
+  createDemoRunRoot,
   demoAccessLines,
   demoBoardUrl,
   discardDemoDatabase,
@@ -19,23 +22,87 @@ afterEach(() => {
   rmSync(home, { recursive: true, force: true })
 })
 
+function writeMarkedDatabase(dbPath: string): void {
+  const db = new Database(dbPath)
+  markDemoDatabase(db)
+  db.close()
+}
+
+function writeUnmarkedDatabase(dbPath: string): void {
+  const db = new Database(dbPath)
+  db.exec('CREATE TABLE board_setting (key TEXT PRIMARY KEY, value TEXT NOT NULL)')
+  db.close()
+}
+
 describe('discardDemoDatabase', () => {
-  it('removes a stale database and its write-ahead files', () => {
+  it('refuses to delete a database that carries no demo mark, and leaves it there', () => {
+    const dbPath = join(home, 'real.db')
+    writeUnmarkedDatabase(dbPath)
+    writeFileSync(`${dbPath}-wal`, 'ahead')
+
+    const discard = discardDemoDatabase(dbPath)
+
+    expect(discard.removed).toEqual([])
+    expect(discard.refused).toContain(dbPath)
+    expect(existsSync(dbPath)).toBe(true)
+    expect(existsSync(`${dbPath}-wal`)).toBe(true)
+  })
+
+  it('refuses to delete a file that is not a database at all', () => {
+    const dbPath = join(home, 'notes.db')
+    writeFileSync(dbPath, 'not a database')
+
+    const discard = discardDemoDatabase(dbPath)
+
+    expect(discard.removed).toEqual([])
+    expect(discard.refused).not.toBeNull()
+    expect(existsSync(dbPath)).toBe(true)
+  })
+
+  it('removes a marked database and its write-ahead files', () => {
     const dbPath = join(home, 'forge-demo.db')
-    writeFileSync(dbPath, 'stale')
+    writeMarkedDatabase(dbPath)
     writeFileSync(`${dbPath}-wal`, 'stale')
     writeFileSync(`${dbPath}-shm`, 'stale')
 
-    const removed = discardDemoDatabase(dbPath)
+    const discard = discardDemoDatabase(dbPath)
 
-    expect(removed).toEqual([dbPath, `${dbPath}-wal`, `${dbPath}-shm`])
+    expect(discard.refused).toBeNull()
+    expect(discard.removed).toEqual([dbPath, `${dbPath}-wal`, `${dbPath}-shm`])
     expect(existsSync(dbPath)).toBe(false)
     expect(existsSync(`${dbPath}-wal`)).toBe(false)
     expect(existsSync(`${dbPath}-shm`)).toBe(false)
   })
 
   it('removes nothing when no database is there yet', () => {
-    expect(discardDemoDatabase(join(home, 'absente.db'))).toEqual([])
+    const discard = discardDemoDatabase(join(home, 'absente.db'))
+
+    expect(discard.removed).toEqual([])
+    expect(discard.refused).toBeNull()
+  })
+})
+
+describe('createDemoRunRoot', () => {
+  it('makes a fresh directory of its own for each run', () => {
+    const first = createDemoRunRoot()
+    const second = createDemoRunRoot()
+    try {
+      expect(first).not.toBe(second)
+      expect(existsSync(first)).toBe(true)
+      expect(existsSync(second)).toBe(true)
+    } finally {
+      rmSync(first, { recursive: true, force: true })
+      rmSync(second, { recursive: true, force: true })
+    }
+  })
+
+  it('starts a run with no database in it', () => {
+    const runRoot = createDemoRunRoot()
+    try {
+      expect(existsSync(join(runRoot, 'forge-demo.db'))).toBe(false)
+    } finally {
+      rmSync(runRoot, { recursive: true, force: true })
+    }
   })
 })
 

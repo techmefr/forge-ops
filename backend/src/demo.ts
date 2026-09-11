@@ -1,31 +1,39 @@
 import { mkdirSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { demoEnvironment } from './domain/Demo/DemoEnvironment.js'
 import { openDatabase } from './technical/Database/Connection.js'
+import { markDemoDatabase } from './technical/Demo/DemoMark.js'
 import { seedDemoBoard } from './technical/Seed/DemoSeed.js'
 import { defaultBoardServerInput, startBoardServer } from './technical/Http/BoardServer.js'
 import { closeOnSignals } from './technical/Http/Shutdown.js'
 import { resolveBoardToken } from './technical/Auth/BoardToken.js'
 import {
   buildWebBundle,
+  createDemoRunRoot,
   demoAccessLines,
   discardDemoDatabase,
   inspectDemoBundle,
 } from './technical/Demo/DemoRuntime.js'
 
 const defaults = defaultBoardServerInput()
-const dbPath = process.env.FORGE_DB_PATH ?? 'forge-demo.db'
-const worktreeRoot = process.env.FORGE_WORKTREE_ROOT ?? join(tmpdir(), 'forge-demo-worktrees')
-const shotDir = process.env.FORGE_SHOT_DIR ?? join(tmpdir(), 'forge-demo-shots')
+const runRoot = createDemoRunRoot()
+const environment = demoEnvironment(runRoot)
+const { dbPath, worktreeRoot, shotDir } = environment
 
-const removed = discardDemoDatabase(dbPath)
+console.log(`Mode ${environment.mode} declare, tout tient dans ${runRoot}`)
+
+const discard = discardDemoDatabase(dbPath)
+if (discard.refused !== null) {
+  console.error(discard.refused)
+  process.exit(1)
+}
 console.log(
-  removed.length === 0
+  discard.removed.length === 0
     ? `Aucune base de demonstration a remplacer, ${dbPath} est neuve`
-    : `Base de demonstration precedente effacee : ${removed.join(', ')}`,
+    : `Base de demonstration precedente effacee : ${discard.removed.join(', ')}`,
 )
 
 const db = openDatabase(dbPath)
+markDemoDatabase(db)
 const board = seedDemoBoard(db)
 db.close()
 console.log(
