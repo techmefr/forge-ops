@@ -1,195 +1,195 @@
-# Starfleet — board story-driven pour sessions d'agents
+# forge-ops — story-driven board for agent sessions
 
-Branche `forge`. Réécriture complète : l'unité de travail n'est plus la tâche, c'est la **story**, toujours accompagnée de sa **story de test jumelle**. Le board orchestre des sessions Claude Code sur ces stories et refuse de laisser une story avancer sans preuve.
+Branch `main`. Complete rewrite: the unit of work is no longer the task, it is the **story**, always accompanied by its **twin test story**. The board orchestrates Claude Code sessions on those stories and refuses to let a story move forward without proof.
 
-## 1. Le problème traité
+## 1. The problem addressed
 
-Un agent qui code seul produit trois classes de friction :
+An agent coding on its own produces three classes of friction:
 
-1. **Le TDD généré peut être mimé.** Un test écrit après le code, ou modifié pour passer, coûte plus cher que pas de test : il rassure.
-2. **L'état affiché n'est pas l'état réel.** Un agent qui crashe au milieu d'une opération multi-fichiers laisse une base cohérente avec elle-même et fausse par rapport au disque.
-3. **Les agents se marchent dessus.** Deux sessions qui touchent le même fichier sans le savoir produisent un conflit découvert au merge.
+1. **Generated TDD can be mimicked.** A test written after the code, or modified to pass, costs more than no test at all: it reassures.
+2. **The displayed state is not the real state.** An agent that crashes in the middle of a multi-file operation leaves a database that is consistent with itself and wrong with respect to the disk.
+3. **Agents step on each other.** Two sessions touching the same file without knowing it produce a conflict discovered at merge time.
 
-## 2. Les décisions retenues
+## 2. The decisions taken
 
-- **Une story, une jumelle de test.** `story.kind` vaut `functional` ou `test`, la jumelle pointe la fonctionnelle par `twin_of_story_id`. Une story fonctionnelle ne quitte pas `drafting` sans sa jumelle, et le board refuse le checkpoint `spec_done` sans elle. Le périmètre se décrit sur deux objets, pas un.
-- **Une étape se prouve par un fichier, jamais par une affirmation.** Chaque checkpoint exige un `evidence_path` (`NOT NULL` en base) pointant un fichier sous `.claude/evidence/<REFERENCE>/`. Pas de preuve, pas de checkpoint.
-- **La séquence est ordonnée et le board l'applique.** Une étape franchie hors ordre, ou deux fois, est refusée en 409. Ce n'est pas une convention documentée, c'est un refus serveur.
-- **Une source de vérité unique.** Une base SQLite en WAL, lue par l'API et par le board. Aucun état dupliqué à synchroniser.
-- **Le garde-fou échoue fermé.** Le hook `PreToolUse` bloque la commande quand il ne peut pas décider — liste de deny illisible, charge utile incompréhensible. La version précédente échouait ouverte : supprimer le script supprimait silencieusement toute la protection.
-- **L'attribution des fichiers vient des hooks, pas d'un watcher.** Claude Code poste chaque `Edit`/`Write` sur l'API ; le board sait quelle story a touché quel fichier et détecte les chemins revendiqués par plusieurs stories.
-- **Déterminisme plutôt qu'allocation.** Port et sous-domaine dérivés d'un hash du nom de branche : la classe de conflit disparaît à la source.
-- **La dernière porte est humaine.** Aucun agent ne passe une story en `done`.
+- **One story, one test twin.** `story.kind` is either `functional` or `test`, and the twin points at the functional one through `twin_of_story_id`. A functional story does not leave `drafting` without its twin, and the board refuses the `spec_done` checkpoint without it. The scope is described across two objects, not one.
+- **A step is proven by a file, never by an assertion.** Every checkpoint requires an `evidence_path` (`NOT NULL` in the database) pointing at a file under `.claude/evidence/<REFERENCE>/`. No proof, no checkpoint.
+- **The sequence is ordered and the board enforces it.** A step crossed out of order, or twice, is refused with a 409. This is not a documented convention, it is a server-side refusal.
+- **A single source of truth.** One SQLite database in WAL mode, read by the API and by the board. No duplicated state to synchronize.
+- **The guardrail fails closed.** The `PreToolUse` hook blocks the command whenever it cannot decide — unreadable deny list, incomprehensible payload. The previous version failed open: deleting the script silently deleted all the protection.
+- **File attribution comes from the hooks, not from a watcher.** Claude Code posts every `Edit`/`Write` to the API; the board knows which story touched which file and detects paths claimed by several stories.
+- **Determinism rather than allocation.** Port and subdomain derived from a hash of the branch name: the conflict class disappears at the source.
+- **The last gate is human.** No agent moves a story to `done`.
 
-## 3. Hiérarchie du travail
+## 3. Work hierarchy
 
-Un directeur écrit **uniquement des épiques** : le besoin métier de haut niveau. Les architectes IA décomposent l'épique en stories fonctionnelles, chacune avec sa jumelle de test. La story va jusqu'au code.
+A director writes **epics only**: the high-level business need. The AI architects decompose the epic into functional stories, each with its test twin. The story goes all the way down to the code.
 
 ```
 project → epic → story (functional) ─── twin_of ──→ story (test)
                    │
                    ├── acceptance_criterion
-                   ├── story_dependency  (bloquée en attente d'une autre)
-                   ├── checkpoint        (6 étapes, chacune avec sa preuve)
+                   ├── story_dependency  (blocked, waiting on another one)
+                   ├── checkpoint        (6 steps, each with its proof)
                    ├── agent_session → file_touch
                    └── review_finding    (quality | security | accessibility)
 ```
 
-Le schéma complet est dans [db/forge.sql](db/forge.sql).
+The full schema is in [db/forge.sql](db/forge.sql).
 
-## 4. La séquence
+## 4. The sequence
 
-Huit étapes, six checkpoints. `/PLAN` et `/CODE-SIMPLIFY` n'ont pas de checkpoint propre : le premier est prouvé par `arch_done`, le second est vérifié par la suite de tests déjà verte.
+Eight steps, six checkpoints. `/PLAN` and `/CODE-SIMPLIFY` have no checkpoint of their own: the first is proven by `arch_done`, the second is verified by the test suite already being green.
 
-| Étape | Checkpoint prouvé | Preuve attendue |
+| Step | Checkpoint proven | Expected proof |
 |---|---|---|
-| `/SPEC` | `spec_done` | `evidence/<REF>/spec.md` — périmètre, critères d'acceptation, hors scope, jumelle écrite |
-| `/PLAN` | `arch_done` | `evidence/<REF>/arch.md` — découpage, placement dans les couches, risques |
-| `/TEST` | `tests_written` | `evidence/<REF>/tests.md` — les tests **rouges**, sortie collée |
-| `/BUILD` | `build_done` | `evidence/<REF>/build.md` — les mêmes tests verts, suite complète |
-| `/CODE-SIMPLIFY` | — | comportement inchangé, suite toujours verte |
-| `/VERIFY` | `verified` | `evidence/<REF>/verified.md` — le chemin de la story parcouru pour de vrai |
-| `/REVIEW` | `reviewed` | `evidence/<REF>/reviewed.md` — cascade qualité → sécurité → accessibilité |
-| `/SHIP` | — | validation humaine, puis `done` |
+| `/SPEC` | `spec_done` | `evidence/<REF>/spec.md` — scope, acceptance criteria, out of scope, twin written |
+| `/PLAN` | `arch_done` | `evidence/<REF>/arch.md` — breakdown, placement across the layers, risks |
+| `/TEST` | `tests_written` | `evidence/<REF>/tests.md` — the **red** tests, output pasted in |
+| `/BUILD` | `build_done` | `evidence/<REF>/build.md` — the same tests green, full suite |
+| `/CODE-SIMPLIFY` | — | behavior unchanged, suite still green |
+| `/VERIFY` | `verified` | `evidence/<REF>/verified.md` — the story's path walked for real |
+| `/REVIEW` | `reviewed` | `evidence/<REF>/reviewed.md` — quality → security → accessibility cascade |
+| `/SHIP` | — | human validation, then `done` |
 
-**Règles non contournables :**
+**Rules that cannot be worked around:**
 
-- `spec_done` est refusé si la jumelle de test n'existe pas, et refusé si la story ne déclare **aucun critère d'acceptation** : sans critère il n'y a rien à valider, donc rien à bloquer au merge.
-- `reviewed` est refusé tant qu'un critère d'acceptation n'est pas satisfait, et un critère ne se satisfait que **contre une preuve** — le test qui le couvre. Pas de case à cocher.
-- `tests_written` doit constater un échec **de comportement**, pas une erreur d'import ou de setup. Un test qui passe dès sa première écriture doit être validé par mutation.
-- `reviewed` est refusé tant qu'un finding `strong` n'est pas résolu (409 `UnresolvedFindingError`). Baisser la sévérité pour passer n'est pas une correction.
-- `/SHIP` relit la definition of done complète : une seule étape à `proven: false` et il n'y a pas de livraison.
-- Deux échecs identiques d'affilée pendant `/BUILD` sont un signal d'arrêt, pas une invitation à retenter.
+- `spec_done` is refused if the test twin does not exist, and refused if the story declares **no acceptance criterion**: with no criterion there is nothing to validate, hence nothing to block at merge.
+- `reviewed` is refused as long as an acceptance criterion is unsatisfied, and a criterion is satisfied only **against a proof** — the test that covers it. No checkbox.
+- `tests_written` must record a **behavioral** failure, not an import or setup error. A test that passes on its very first writing must be validated by mutation.
+- `reviewed` is refused as long as a `strong` finding is unresolved (409 `UnresolvedFindingError`). Lowering the severity to get through is not a fix.
+- `/SHIP` rereads the full definition of done: a single step at `proven: false` and there is no delivery.
+- Two identical failures in a row during `/BUILD` are a stop signal, not an invitation to retry.
 
-La doctrine vit dans [.claude/commands/](.claude/commands) et [.claude/skills/](.claude/skills), versionnée avec le code qu'elle gouverne plutôt que dépendante d'un plugin externe.
+The doctrine lives in [.claude/commands/](.claude/commands) and [.claude/skills/](.claude/skills), versioned alongside the code it governs rather than depending on an external plugin.
 
 ## 5. API
 
-Le board expose une API HTTP (Hono). `POST /api/hooks` est aussi la cible des hooks Claude Code.
+The board exposes an HTTP API (Hono). `POST /api/hooks` is also the target of the Claude Code hooks.
 
-| Route | Effet |
+| Route | Effect |
 |---|---|
-| `POST /api/stories` | Crée une story fonctionnelle |
-| `POST /api/stories/:id/twin` | Écrit sa jumelle de test |
-| `POST /api/stories/:id/backlog` | Envoie au backlog (refusé sans jumelle) |
-| `GET /api/stories/backlog` | Liste le backlog |
-| `GET /api/stories/:id/ticket` | Le ticket entier : volet fonctionnel, volet tests, critères, DoD, cascade |
-| `POST /api/stories/:id/criteria` | Déclare un critère d'acceptation |
-| `POST /api/criteria/:id/satisfy` | Satisfait un critère contre sa preuve |
-| `POST /api/stories/:id/checkpoints` | Prouve une étape (`name`, `evidencePath`) |
-| `GET /api/stories/:id/dod` | Definition of done : six étapes, prouvée ou non, avec sa preuve |
-| `POST /api/hooks` | Reçoit les hooks Claude Code, enregistre les fichiers touchés |
-| `POST /api/stories/:id/dispatch` | Lance une session sur une phase (`phase`) |
-| `GET /api/events` | Flux SSE des mutations du board |
-| `GET /api/board/phases` | Le contrat des phases et leurs prérequis |
-| `GET /api/files/conflicts` | Chemins revendiqués par plus d'une story |
-| `GET /api/fleet` | État des sessions d'agents lues chez Claude Code |
-| `POST /api/stories/:id/scope` | Réserve un périmètre (dossier et symboles) pour une story |
-| `DELETE /api/stories/:id/scope` | Rend tout ce que la story tenait |
-| `GET /api/scope/reservations` | Les périmètres tenus, avec la story qui les tient |
-| `GET /api/scope/collisions` | Les recouvrements que le board subit |
-| `GET /api/worktrees` | Les worktrees vivants, leur branche, leur port et leur sous-domaine |
-| `GET`/`POST`/`DELETE /api/stories/:id/worktree` | Ouvre, lit ou ferme le worktree d'une story |
-| `POST /api/stories/:id/pilot` | Lance un parcours navigateur (adresse, allure, pas) |
-| `POST /api/stories/:id/pilot/advance` | Avance d'un pas et enregistre ce qu'il a vu |
-| `POST /api/stories/:id/pilot/pause` | Met le parcours en pause, le navigateur reste ouvert |
-| `POST /api/stories/:id/pilot/resume` | Reprend là où il s'était arrêté |
-| `POST /api/stories/:id/pilot/inspect` | Lit la page en cours sans bouger le curseur |
-| `GET`/`DELETE /api/stories/:id/pilot` | Le parcours vivant et son historique, ou l'abandon |
-| `GET /api/pilots` | Les parcours que le board regarde en ce moment |
-| `GET /api/pilots/shots/:name` | La capture prise à un pas, servie comme preuve |
-| `GET /api/machine` | L'état machine lu chez le collecteur OpenTelemetry, ou le motif de son absence |
-| `GET /api/sessions/history` | L'historique des sessions : durée, coût, classe de sortie |
-| `GET /api/statistics` | Les totaux, les agents les plus sollicités, le temps par étape |
-| `GET /api/incidents` | Les signalements venus du dehors, filtrés par état |
-| `POST /api/origins/:slug/incidents` | Reçoit un signalement d'une source déclarée |
-| `POST /api/incidents/:id/accept` | En fait une story et sa jumelle |
-| `POST /api/incidents/:id/refuse` | Refuse le signalement, motif obligatoire |
-| `GET`/`PUT /api/settings/budget` | Le plafond de coût et la conduite à tenir quand il tombe |
+| `POST /api/stories` | Creates a functional story |
+| `POST /api/stories/:id/twin` | Writes its test twin |
+| `POST /api/stories/:id/backlog` | Sends it to the backlog (refused without a twin) |
+| `GET /api/stories/backlog` | Lists the backlog |
+| `GET /api/stories/:id/ticket` | The whole ticket: functional side, test side, criteria, DoD, cascade |
+| `POST /api/stories/:id/criteria` | Declares an acceptance criterion |
+| `POST /api/criteria/:id/satisfy` | Satisfies a criterion against its proof |
+| `POST /api/stories/:id/checkpoints` | Proves a step (`name`, `evidencePath`) |
+| `GET /api/stories/:id/dod` | Definition of done: six steps, proven or not, with their proof |
+| `POST /api/hooks` | Receives the Claude Code hooks, records the touched files |
+| `POST /api/stories/:id/dispatch` | Starts a session on a phase (`phase`) |
+| `GET /api/events` | SSE stream of the board's mutations |
+| `GET /api/board/phases` | The contract of the phases and their prerequisites |
+| `GET /api/files/conflicts` | Paths claimed by more than one story |
+| `GET /api/fleet` | State of the agent sessions as read from Claude Code |
+| `POST /api/stories/:id/scope` | Reserves a scope (folder and symbols) for a story |
+| `DELETE /api/stories/:id/scope` | Gives back everything the story was holding |
+| `GET /api/scope/reservations` | The scopes held, with the story holding them |
+| `GET /api/scope/collisions` | The overlaps the board is subjected to |
+| `GET /api/worktrees` | The live worktrees, their branch, their port and their subdomain |
+| `GET`/`POST`/`DELETE /api/stories/:id/worktree` | Opens, reads or closes a story's worktree |
+| `POST /api/stories/:id/pilot` | Starts a browser walkthrough (address, pace, steps) |
+| `POST /api/stories/:id/pilot/advance` | Advances one step and records what it saw |
+| `POST /api/stories/:id/pilot/pause` | Pauses the walkthrough, the browser stays open |
+| `POST /api/stories/:id/pilot/resume` | Picks up where it left off |
+| `POST /api/stories/:id/pilot/inspect` | Reads the current page without moving the cursor |
+| `GET`/`DELETE /api/stories/:id/pilot` | The live walkthrough and its history, or dropping it |
+| `GET /api/pilots` | The walkthroughs the board is watching right now |
+| `GET /api/pilots/shots/:name` | The screenshot taken at a step, served as proof |
+| `GET /api/machine` | The machine state read from the OpenTelemetry collector, or the reason for its absence |
+| `GET /api/sessions/history` | The session history: duration, cost, exit class |
+| `GET /api/statistics` | The totals, the most solicited agents, the time per step |
+| `GET /api/incidents` | The reports coming from outside, filtered by state |
+| `POST /api/origins/:slug/incidents` | Receives a report from a declared source |
+| `POST /api/incidents/:id/accept` | Turns it into a story and its twin |
+| `POST /api/incidents/:id/refuse` | Refuses the report, reason mandatory |
+| `GET`/`PUT /api/settings/budget` | The cost cap and the conduct to follow when it is hit |
 
-Codes retour : `404` story inconnue, `409` refus métier (violation de séquence, preuve manquante, dépendance non résolue, finding `strong` ouvert), `500` uniquement pour un vrai imprévu — un refus métier ne se déguise jamais en erreur serveur, et l'inverse non plus.
+Return codes: `404` unknown story, `409` business refusal (sequence violation, missing proof, unresolved dependency, open `strong` finding), `500` only for a genuine unforeseen event — a business refusal never disguises itself as a server error, and neither does the reverse.
 
-## 6. Garde-fou d'exécution
+## 6. Execution guardrail
 
-`.claude-deny.json` liste les commandes jamais exécutées. Le hook `PreToolUse` sur `Bash|PowerShell` sort en code 2 avec sa raison.
+`.claude-deny.json` lists the commands that are never executed. The `PreToolUse` hook on `Bash|PowerShell` exits with code 2 along with its reason.
 
-- Il inspecte la commande entière **et chaque segment** séparé par `&&`, `||`, `;`, `|` ou un retour ligne : `cd x && rm -rf y` ne passe plus.
-- Il **échoue fermé** : payload illisible, commande absente, liste de deny introuvable → refus.
-- `git push --force` et `-f` sont bloqués, `git push --force-with-lease` reste autorisé volontairement.
+- It inspects the whole command **and every segment** separated by `&&`, `||`, `;`, `|` or a newline: `cd x && rm -rf y` no longer gets through.
+- It **fails closed**: unreadable payload, missing command, deny list not found → refusal.
+- `git push --force` and `-f` are blocked, `git push --force-with-lease` deliberately stays allowed.
 
-## 7. Accès à l'API
+## 7. API access
 
-La menace n'est pas le réseau, c'est **le navigateur** : n'importe quelle page ouverte dans un onglet peut envoyer des requêtes sur `127.0.0.1`. Or `POST /api/stories/:id/dispatch` lance une session qui écrit dans le repo et consomme le forfait. Trois défenses, dans cet ordre.
+The threat is not the network, it is **the browser**: any page open in a tab can send requests to `127.0.0.1`. And `POST /api/stories/:id/dispatch` starts a session that writes into the repo and consumes the plan. Three defenses, in this order.
 
-1. **Le board n'écoute que la boucle locale.** `FORGE_HOST` vaut `127.0.0.1`. Ne le passer à `0.0.0.0` qu'une fois une vraie authentification multi-utilisateurs écrite.
-2. **L'origine est vérifiée avant tout le reste.** Une requête portant un en-tête `Origin` inconnu part en `403`, même avec un jeton valide. C'est ce qui arrête une page web, parce qu'un navigateur envoie toujours `Origin` sur une requête d'origine croisée et ne peut pas l'omettre.
-3. **Un jeton par board**, 32 octets aléatoires, écrit dans `.forge-token` (droits `600`, gitignoré) au premier démarrage. Comparé en temps constant.
+1. **The board listens on the loopback only.** `FORGE_HOST` is `127.0.0.1`. Only switch it to `0.0.0.0` once real multi-user authentication has been written.
+2. **The origin is checked before anything else.** A request carrying an unknown `Origin` header leaves with a `403`, even with a valid token. That is what stops a web page, because a browser always sends `Origin` on a cross-origin request and cannot omit it.
+3. **One token per board**, 32 random bytes, written into `.forge-token` (permissions `600`, gitignored) on first startup. Compared in constant time.
 
-**Le jeton du board ne voyage jamais dans une URL.** Une URL finit dans les journaux d'accès, l'historique du shell, les traces d'erreur et l'en-tête `Referer` : c'est le pire endroit pour un secret. Il se présente donc en `Authorization: Bearer`, en `X-Forge-Token`, ou dans le **cookie** `forge_token` — que `EventSource` envoie tout seul, ce qui règle le cas du flux SSE sans mettre quoi que ce soit dans l'adresse. En développement, le proxy vite pose l'en-tête sur chaque appel, flux compris.
+**The board token never travels in a URL.** A URL ends up in access logs, shell history, error traces and the `Referer` header: it is the worst place for a secret. So it is presented in `Authorization: Bearer`, in `X-Forge-Token`, or in the `forge_token` **cookie** — which `EventSource` sends on its own, which settles the SSE stream case without putting anything in the address. In development, the vite proxy sets the header on every call, stream included.
 
-Le board **refuse de démarrer** si `.forge-token` existe mais est vide, tronqué ou illisible : pas de repli silencieux sans jeton.
+The board **refuses to start** if `.forge-token` exists but is empty, truncated or unreadable: no silent fallback without a token.
 
-**Aucune route n'est ouverte sans secret**, l'entrée des hooks comprise. Reste que le hook Claude Code ne sait rien porter d'autre qu'une URL. Plutôt que d'y mettre le jeton du board, `POST /api/hooks` a **son propre secret**, dérivé du jeton par HMAC-SHA256 : il n'ouvre que l'entrée des hooks, il ne permet ni de lire le board ni de lancer une session, et il ne révèle pas le jeton dont il vient. Une fuite dans un journal ne coûte alors qu'un enregistrement de fichier touché.
+**No route is open without a secret**, the hook intake included. That said, the Claude Code hook cannot carry anything other than a URL. Rather than putting the board token in it, `POST /api/hooks` has **its own secret**, derived from the token by HMAC-SHA256: it opens the hook intake only, it allows neither reading the board nor starting a session, and it does not reveal the token it comes from. A leak in a log then costs no more than one touched-file record.
 
-Sa configuration ne peut donc pas être versionnée. Elle vit dans `.claude/settings.local.json`, gitignoré et en droits `600`, généré par :
+Its configuration therefore cannot be versioned. It lives in `.claude/settings.local.json`, gitignored and with permissions `600`, generated by:
 
 ```bash
 npm run hook:install
 ```
 
-`.claude/settings.json`, lui, reste versionné et ne contient plus que le garde-fou `PreToolUse`, qui n'a besoin d'aucun secret. Les hooks étant lus au démarrage de la session, il faut redémarrer Claude Code après l'installation.
+`.claude/settings.json`, for its part, stays versioned and now contains only the `PreToolUse` guardrail, which needs no secret. Since hooks are read at session startup, Claude Code must be restarted after the installation.
 
-Les chemins de preuve sont confinés : `evidencePath` doit vivre sous `.claude/evidence/`, sans `..`, sans chemin absolu, sans antislash, sans octet nul. Un `../../../.ssh/id_rsa` part en `409`.
+Evidence paths are confined: `evidencePath` must live under `.claude/evidence/`, with no `..`, no absolute path, no backslash, no null byte. A `../../../.ssh/id_rsa` leaves with a `409`.
 
-Le hook `PostToolUse` sur `Edit|Write|NotebookEdit` est de type `http` et poste sur `POST /api/hooks`. Les hooks sont lus au démarrage de la session : modifier `.claude/settings.json` n'a d'effet qu'à la session suivante.
+The `PostToolUse` hook on `Edit|Write|NotebookEdit` is of type `http` and posts to `POST /api/hooks`. Hooks are read at session startup: modifying `.claude/settings.json` only takes effect on the next session.
 
-## 8. Installation et usage
+## 8. Installation and usage
 
-### Prérequis
+### Prerequisites
 
 - Node.js 22+
-- Claude Code ≥ 2.1.224 pour la communication inter-sessions
+- Claude Code ≥ 2.1.224 for inter-session communication
 
 ```bash
 npm install
 npm run forge
 ```
 
-### Démo sur une machine neuve
+### Demo on a fresh machine
 
-Une seule commande, depuis un clone frais :
+A single command, from a fresh clone:
 
 ```bash
 npm install
 npm run demo
 ```
 
-Elle fait, dans cet ordre :
+It does, in this order:
 
-1. **efface la base de démonstration précédente** (`forge-demo.db` et ses fichiers `-wal`/`-shm`) — un second lancement ne repart jamais sur un état à moitié avancé ;
-2. **sème la base** avec le board de démonstration (projets, stories, zones, sessions) ;
-3. **vérifie que le bundle web existe** dans `dist/web` — le serveur sert `dist/` — et le compile s'il manque, en le disant ; si la compilation échoue elle s'arrête en erreur plutôt que de servir une page vide ;
-4. **démarre le board** et imprime l'adresse à ouvrir.
+1. **erases the previous demonstration database** (`forge-demo.db` and its `-wal`/`-shm` files) — a second run never restarts from a half-advanced state;
+2. **seeds the database** with the demonstration board (projects, stories, zones, sessions);
+3. **checks that the web bundle exists** in `dist/web` — the server serves `dist/` — and builds it if it is missing, saying so; if the build fails it stops with an error rather than serving an empty page;
+4. **starts the board** and prints the address to open.
 
-Ouvrir l'adresse imprimée suffit : la page pose le cookie `forge_token` et le board s'ouvre. Le jeton est aussi imprimé en clair dans le terminal, sur sa propre ligne, pour interroger l'API à la main en `Authorization: Bearer` — **il ne figure jamais dans une URL**, ni dans celle qui est imprimée.
+Opening the printed address is enough: the page sets the `forge_token` cookie and the board opens. The token is also printed in the clear in the terminal, on its own line, so the API can be queried by hand with `Authorization: Bearer` — **it never appears in a URL**, not even in the one that is printed.
 
-La base de démonstration et `.forge-token` sont gitignorés : rien de tout cela ne part dans git.
+The demonstration database and `.forge-token` are gitignored: none of it goes into git.
 
-Pour choisir un autre port que `8830` (par exemple si un board tourne déjà) :
+To pick a port other than `8830` (for example if a board is already running):
 
 ```bash
 FORGE_PORT=8899 npm run demo
 ```
 
-| Commande | Effet |
+| Command | Effect |
 |---|---|
-| `npm run demo` | Base de démonstration neuve, bundle web garanti, board démarré |
-| `npm run forge` | Démarre le board (schéma appliqué au démarrage) |
-| `npm run hook:install` | Écrit le hook avec son jeton dans `.claude/settings.local.json` |
-| `npm test` | Suite complète (vitest) |
-| `npm run build` | Compile le TypeScript |
+| `npm run demo` | Fresh demonstration database, web bundle guaranteed, board started |
+| `npm run forge` | Starts the board (schema applied at startup) |
+| `npm run hook:install` | Writes the hook with its token into `.claude/settings.local.json` |
+| `npm test` | Full suite (vitest) |
+| `npm run build` | Compiles the TypeScript |
 
-| Variable | Défaut |
+| Variable | Default |
 |---|---|
 | `FORGE_PORT` | `8830` |
 | `FORGE_DB_PATH` | `forge.db` |
@@ -197,92 +197,92 @@ FORGE_PORT=8899 npm run demo
 | `FORGE_SESSION_CAP` | `3` |
 | `FORGE_HOST` | `127.0.0.1` |
 | `FORGE_TOKEN_PATH` | `.forge-token` |
-| `FORGE_MODE` | `local` (`hub` pour exiger une identité) |
+| `FORGE_MODE` | `local` (`hub` to require an identity) |
 | `FORGE_WORKTREE_ROOT` | `../forge-worktrees` |
-| `FORGE_SHOT_DIR` | `../forge-shots` (captures du navigateur piloté) |
-| `FORGE_PILOT_HEADED` | `false` (`true` pour voir le Chromium à l'écran) |
-| `FORGE_OTEL_METRICS_URL` | vide — sans elle, l'écran ressources dit qu'il n'a pas de collecteur |
+| `FORGE_SHOT_DIR` | `../forge-shots` (screenshots of the piloted browser) |
+| `FORGE_PILOT_HEADED` | `false` (`true` to see the Chromium on screen) |
+| `FORGE_OTEL_METRICS_URL` | empty — without it, the resources screen says it has no collector |
 
 ## 9. Structure
 
-Un dossier par côté, OSDD dans chacun : `technical/` ne dépend jamais de `domain/`. Le hub, quand il viendra, sera un mode de `backend/`, pas un troisième dossier.
+One folder per side, OSDD within each: `technical/` never depends on `domain/`. The hub, when it comes, will be a mode of `backend/`, not a third folder.
 
 ```
-db/forge.sql                          schéma SQLite (WAL)
+db/forge.sql                          SQLite schema (WAL)
 
 backend/src/forge.ts                  entrypoint
-backend/src/domain/Story/             story, jumelle, dépendances, backlog
-backend/src/domain/Checkpoint/        les six étapes et leurs preuves
-backend/src/domain/Criterion/         critères d'acceptation, porte de merge
-backend/src/domain/Agent/             sessions d'agents, fichiers touchés, conflits
-backend/src/domain/Zone/              zones de fichiers et rattachement des chemins
-backend/src/domain/Dispatch/          contrat des phases, plafond, lancement
-backend/src/domain/Board/             l'API HTTP du board
-backend/src/domain/Budget/            plafond de coût et conduite à tenir
-backend/src/domain/Foremerge/         réservation de périmètre et collisions
-backend/src/domain/Identity/          comptes, sessions, mode hub
-backend/src/domain/Incident/          sources et signalements du dehors
-backend/src/domain/Statistic/         historique des sessions et totaux
-backend/src/domain/Tamper/            recensement des tests avant la review
-backend/src/technical/Database/       connexion SQLite
-backend/src/technical/Http/           serveur, bus d'événements, flux SSE
-backend/src/technical/Guardrail/      liste de deny, décision, hook PreToolUse
-backend/src/technical/ClaudeCode/     roster, jobs, lanceur de session (Agent SDK)
-backend/src/technical/Network/        port et sous-domaine déterministes
-backend/tests/                        miroir de backend/src/
+backend/src/domain/Story/             story, twin, dependencies, backlog
+backend/src/domain/Checkpoint/        the six steps and their proofs
+backend/src/domain/Criterion/         acceptance criteria, merge gate
+backend/src/domain/Agent/             agent sessions, touched files, conflicts
+backend/src/domain/Zone/              file zones and path attachment
+backend/src/domain/Dispatch/          phase contract, cap, startup
+backend/src/domain/Board/             the board's HTTP API
+backend/src/domain/Budget/            cost cap and conduct to follow
+backend/src/domain/Foremerge/         scope reservation and collisions
+backend/src/domain/Identity/          accounts, sessions, hub mode
+backend/src/domain/Incident/          outside sources and reports
+backend/src/domain/Statistic/         session history and totals
+backend/src/domain/Tamper/            test census before the review
+backend/src/technical/Database/       SQLite connection
+backend/src/technical/Http/           server, event bus, SSE stream
+backend/src/technical/Guardrail/      deny list, decision, PreToolUse hook
+backend/src/technical/ClaudeCode/     roster, jobs, session launcher (Agent SDK)
+backend/src/technical/Network/        deterministic port and subdomain
+backend/tests/                        mirror of backend/src/
 
-frontend/index.html                   hôte de la SPA
-frontend/src/technical/Api/           client du board, flux d'événements
-frontend/src/technical/Router/        les neuf écrans du pipeline
-frontend/src/technical/Theme/         jetons de design, thèmes, contraste
-frontend/src/technical/Ui/            états d'écran partagés
-frontend/src/domain/Shell/            coque, rail de navigation, agents actifs
-frontend/src/domain/<Ecran>/          un dossier par écran
-frontend/tests/                       miroir de frontend/src/
+frontend/index.html                   SPA host
+frontend/src/technical/Api/           board client, event stream
+frontend/src/technical/Router/        the nine pipeline screens
+frontend/src/technical/Theme/         design tokens, themes, contrast
+frontend/src/technical/Ui/            shared screen states
+frontend/src/domain/Shell/            shell, navigation rail, active agents
+frontend/src/domain/<Screen>/         one folder per screen
+frontend/tests/                       mirror of frontend/src/
 
-.claude/commands/                     la séquence /SPEC … /SHIP
-.claude/skills/                       méthodologie embarquée
-.claude-deny.json                     commandes jamais exécutées
+.claude/commands/                     the /SPEC … /SHIP sequence
+.claude/skills/                       embedded methodology
+.claude-deny.json                     commands never executed
 ```
 
 ## 10. Stack
 
-- **Back** : TypeScript sur Node + Hono, `better-sqlite3`, `zod`, vitest
-- **Front** : Vue 3 + TypeScript + Vite, SPA pure — pas de Nuxt, pas de SSR — `vue-router`, Pinia pour l'état seulement, shadcn-vue + Tailwind
-- Un process en production (le serveur sert `dist/`), deux en développement (`vite dev` proxifie `/api`)
+- **Back**: TypeScript on Node + Hono, `better-sqlite3`, `zod`, vitest
+- **Front**: Vue 3 + TypeScript + Vite, pure SPA — no Nuxt, no SSR — `vue-router`, Pinia for state only, shadcn-vue + Tailwind
+- One process in production (the server serves `dist/`), two in development (`vite dev` proxies `/api`)
 
-L'orchestration bas niveau ne se réécrit pas : elle s'appuie sur le premier parti — le daemon `claude agents`, l'isolation par worktree et les hooks — plutôt que sur un pilotage par scraping de terminal.
+Low-level orchestration is not rewritten: it leans on the first party — the `claude agents` daemon, worktree isolation and the hooks — rather than on driving things by scraping the terminal.
 
-## 11. État d'implémentation
+## 11. Implementation state
 
-| Brique | Statut |
+| Building block | Status |
 |---|---|
-| Schéma et connexion SQLite | Fait |
-| Story, jumelle, dépendances, backlog | Fait |
-| Six checkpoints prouvés par fichier | Fait |
-| Critères d'acceptation bloquant le merge, prouvés par fichier | Fait |
-| Ticket en deux volets sur une seule route | Fait |
-| Cascade de review et findings | Fait, côté domaine |
-| Sessions d'agents et conflits de fichiers | Fait |
-| API du board et intake des hooks | Fait |
-| Garde-fou deny (fail closed) | Fait, hook branché |
-| Port et sous-domaine déterministes | Fait |
-| Doctrine `/SPEC … /SHIP` alignée sur l'API | Fait |
-| États kanban, points, rollout, conflit de merge | Fait |
-| Cascade de review par lentille, ordonnée et bloquante | Fait |
-| Zones de fichiers avec résumé automatique et rattachement des chemins | Fait |
-| Jetons de design lisibles (6 thèmes, clair et sombre) | Fait |
-| Dispatch d'une session par story (Agent SDK) | Fait |
-| SSE vers le board | Fait |
-| Réservation de périmètre refusée à l'écriture et au lancement | Fait, plus un `PreToolUse` qui refuse l'écriture hors périmètre |
-| Comptes, sessions et mode hub | Fait |
-| Signalements venus du dehors, tranchés par un humain | Fait |
-| Plafond de coût qui coupe, conduite au choix | Fait |
-| Historique des sessions et statistiques | Fait, lues depuis la base du board |
-| Front : routeur, coque et les neuf écrans du pipeline | Fait |
-| Cycle de vie des worktrees et réservations de port | Fait, contre un vrai git, nettoyé après le merge |
-| Métriques machine fines | Fait, lues chez un collecteur OpenTelemetry (`FORGE_OTEL_METRICS_URL`), jamais collectées ici |
-| Feature flags | À déléguer à OpenFeature, le board ne garde que le pourcentage |
-| Pilotage navigateur de l'étape 6 (ralenti, pause, inspection) | Fait, un vrai Chromium via `playwright-core`, capture à chaque pas |
+| SQLite schema and connection | Done |
+| Story, twin, dependencies, backlog | Done |
+| Six checkpoints proven by file | Done |
+| Acceptance criteria blocking the merge, proven by file | Done |
+| Two-sided ticket on a single route | Done |
+| Review cascade and findings | Done, on the domain side |
+| Agent sessions and file conflicts | Done |
+| Board API and hook intake | Done |
+| Deny guardrail (fail closed) | Done, hook wired in |
+| Deterministic port and subdomain | Done |
+| `/SPEC … /SHIP` doctrine aligned with the API | Done |
+| Kanban states, points, rollout, merge conflict | Done |
+| Review cascade by lens, ordered and blocking | Done |
+| File zones with automatic summary and path attachment | Done |
+| Readable design tokens (6 themes, light and dark) | Done |
+| Dispatch of one session per story (Agent SDK) | Done |
+| SSE to the board | Done |
+| Scope reservation refused at write time and at startup | Done, plus a `PreToolUse` that refuses writing outside the scope |
+| Accounts, sessions and hub mode | Done |
+| Reports coming from outside, settled by a human | Done |
+| Cost cap that cuts off, conduct of your choosing | Done |
+| Session history and statistics | Done, read from the board's database |
+| Front: router, shell and the nine pipeline screens | Done |
+| Worktree lifecycle and port reservations | Done, against a real git, cleaned up after the merge |
+| Fine-grained machine metrics | Done, read from an OpenTelemetry collector (`FORGE_OTEL_METRICS_URL`), never collected here |
+| Feature flags | To be delegated to OpenFeature, the board keeps only the percentage |
+| Browser piloting of step 6 (slow motion, pause, inspection) | Done, a real Chromium through `playwright-core`, screenshot at every step |
 
-Le relevé de l'outillage existant étape par étape est dans [docs/Tooling.md](docs/Tooling.md), et le listing exhaustif du paysage — environ 120 projets, licences et mécanismes — dans [docs/Landscape.md](docs/Landscape.md).
+The step-by-step survey of the existing tooling is in [docs/Tooling.md](docs/Tooling.md), and the exhaustive listing of the landscape — around 120 projects, licenses and mechanisms — in [docs/Landscape.md](docs/Landscape.md).
