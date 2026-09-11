@@ -100,6 +100,7 @@ function newStory(epic: EpicOverview): Promise<void> {
       body: epic.businessIntent,
     })
     written.value = [...written.value, story]
+    await router.push(`/atelier/${story.id}`)
     await dispatch(story.id, 'spec')
   })
 }
@@ -108,6 +109,7 @@ function openWritten(storyId: number): Promise<void> {
   return guard(async () => {
     transcript.clear()
     await open(storyId)
+    await router.push(`/atelier/${storyId}`)
   })
 }
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { judgementLabelOf } from './Judgement'
 import { ref, watch } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
@@ -182,7 +183,9 @@ watch(
           :key="index"
           class="text-xs text-txt-hi"
         >
-          <span class="font-mono text-[10px] text-violet uppercase">{{ judgement.kind }}</span>
+          <span class="font-mono text-[10px] text-violet uppercase">{{
+            judgementLabelOf(judgement.kind)
+          }}</span>
           <span class="ml-2">{{ judgement.statement }}</span>
         </li>
       </ul>

@@ -24,6 +24,11 @@ const busy = ref(false)
 
 async function load(): Promise<void> {
   try {
+    const { mode } = await board.read<{ mode: 'local' | 'hub' }>('/api/board/mode')
+    if (mode === 'local') {
+      absent.value = true
+      return
+    }
     const found = await board.read<Account>('/api/auth/me')
     account.value = found
     displayName.value = found.displayName

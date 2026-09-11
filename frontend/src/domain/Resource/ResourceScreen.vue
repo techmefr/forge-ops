@@ -5,6 +5,8 @@ import { useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import type { BudgetSettings, Fleet, MachineReading, Story } from '@/domain/Board/BoardModel'
 import { MEMORY_PER_SESSION_MB, estimateRun } from './Estimate'
+import { isWorking } from '@/domain/Shell/UseFleet'
+import { countedOf } from '@/domain/Agent/SessionEnd'
 
 const fleet = useResource<Fleet>(() => board.read('/api/fleet'))
 const budget = useResource<BudgetSettings>(() => board.read('/api/settings/budget'))
@@ -21,10 +23,9 @@ const estimate = computed(() =>
 )
 
 const jobs = computed(() => fleet.data.value?.jobs ?? [])
+const alive = computed(() => jobs.value.filter(isWorking))
 
-const tokens = computed(() =>
-  jobs.value.reduce((total, job) => total + (job.tokens ?? 0), 0),
-)
+const tokens = computed(() => alive.value.reduce((total, job) => total + (job.tokens ?? 0), 0))
 
 onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), machine.reload()]))
 </script>
@@ -34,7 +35,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
     <div class="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
       <article class="rounded-2xl border border-line bg-card p-4">
         <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">Sessions vivantes</p>
-        <p class="display-italic mt-1 text-3xl">{{ jobs.length }}</p>
+        <p class="display-italic mt-1 text-3xl">{{ alive.length }}</p>
       </article>
       <article class="rounded-2xl border border-line bg-card p-4">
         <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">Superviseurs</p>
@@ -137,12 +138,15 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
         Ce lot creve le plafond. Le board coupera selon la conduite choisie dans les reglages.
       </p>
       <p class="mt-2 text-[11px] text-txt-low">
-        Compte {{ MEMORY_PER_SESSION_MB }} Mo par session, {{ (backlog.data.value ?? []).length }} stories
-        disponibles au backlog.
+        Compte {{ MEMORY_PER_SESSION_MB }} Mo par session,
+        {{ countedOf((backlog.data.value ?? []).length, 'story', 'stories') }} en reserve.
       </p>
     </section>
 
     <div class="mt-6">
+      <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+        Sessions Claude Code de cette machine, board compris
+      </p>
       <ScreenState
         :pending="fleet.pending.value"
         :failure="fleet.failure.value"
