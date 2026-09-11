@@ -47,7 +47,7 @@ function postToolUse(toolName: string, filePath?: string, sessionId: string = CL
     hook_event_name: 'PostToolUse',
     tool_name: toolName,
     tool_input: filePath === undefined ? {} : { file_path: filePath },
-    cwd: '/home/gaetan/starfleet',
+    cwd: '/home/gaetan/forge-ops',
   })
 }
 
@@ -134,7 +134,7 @@ describe('POST /api/hooks', () => {
     const response = await postHook({
       session_id: CLAUDE_SESSION_ID,
       hook_event_name: 'Stop',
-      cwd: '/home/gaetan/starfleet',
+      cwd: '/home/gaetan/forge-ops',
     })
 
     expect(response.status).toBe(202)
