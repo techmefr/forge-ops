@@ -4,10 +4,26 @@ import { buildHookSettings } from '../../../src/technical/Auth/HookSettings.js'
 const TOKEN = 'f'.repeat(64)
 
 describe('buildHookSettings', () => {
-  it('points the hook at the board with its token in the url', () => {
+  it('points the hook at the board intake', () => {
     const settings = buildHookSettings({ port: 8830, token: TOKEN })
 
-    expect(JSON.stringify(settings)).toContain(`http://127.0.0.1:8830/api/hooks?token=${TOKEN}`)
+    expect(JSON.stringify(settings)).toContain('http://127.0.0.1:8830/api/hooks')
+  })
+
+  it('never writes the token into the url', () => {
+    const settings = buildHookSettings({ port: 8830, token: TOKEN }) as {
+      hooks: { PostToolUse: { hooks: { url: string }[] }[] }
+    }
+
+    expect(settings.hooks.PostToolUse[0]?.hooks[0]?.url).not.toContain(TOKEN)
+  })
+
+  it('hands the token over in a header', () => {
+    const settings = buildHookSettings({ port: 8830, token: TOKEN }) as {
+      hooks: { PostToolUse: { hooks: { headers: Record<string, string> }[] }[] }
+    }
+
+    expect(settings.hooks.PostToolUse[0]?.hooks[0]?.headers).toEqual({ 'x-forge-token': TOKEN })
   })
 
   it('declares the hook on the tools that touch a file', () => {

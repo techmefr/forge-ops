@@ -15,7 +15,8 @@ export function buildHookSettings({ port, token }: HookSettingsInput): Record<st
           hooks: [
             {
               type: 'http',
-              url: `http://127.0.0.1:${port}/api/hooks?token=${token}`,
+              url: `http://127.0.0.1:${port}/api/hooks`,
+              headers: { 'x-forge-token': token },
               timeout: HOOK_TIMEOUT_SECONDS,
             },
           ],
