@@ -105,13 +105,13 @@ describe('PUT /api/settings/budget', () => {
       capUsd: 7,
       conduct: 'reroute',
       downgradeModel: 'claude-haiku-4-5-20251001',
-      rerouteBaseUrl: 'https://routeur.example',
+      rerouteBaseUrl: 'https://api.anthropic.com',
     })
 
     const response = await api.request('/api/settings/budget')
 
     await expect(response.json()).resolves.toMatchObject({
-      policy: { capUsd: 7, conduct: 'reroute', rerouteBaseUrl: 'https://routeur.example' },
+      policy: { capUsd: 7, conduct: 'reroute', rerouteBaseUrl: 'https://api.anthropic.com' },
     })
   })
 })

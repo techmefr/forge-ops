@@ -3,7 +3,7 @@ import type Database from 'better-sqlite3'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { createStoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import { createBudgetRepository, type BudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
-import { DEFAULT_BUDGET_POLICY } from '../../../src/domain/Budget/Budget.js'
+import { BUDGET_POLICY_KEY, DEFAULT_BUDGET_POLICY } from '../../../src/domain/Budget/Budget.js'
 import { BudgetPolicyRefusedError } from '../../../src/domain/Budget/BudgetViolation.js'
 
 let db: Database.Database
@@ -59,6 +59,28 @@ describe('writePolicy', () => {
     expect(() =>
       budget.writePolicy({ ...DEFAULT_BUDGET_POLICY, conduct: 'downgrade', downgradeModel: '' }),
     ).toThrow(BudgetPolicyRefusedError)
+  })
+
+  it('refuses a reroute host absent from the allow-list', () => {
+    expect(() =>
+      budget.writePolicy({
+        ...DEFAULT_BUDGET_POLICY,
+        conduct: 'reroute',
+        rerouteBaseUrl: 'https://probe.invalid',
+      }),
+    ).toThrow(BudgetPolicyRefusedError)
+  })
+
+  it('accepts a reroute host the board declared', () => {
+    const declared = createBudgetRepository(db, { allowedRerouteHosts: ['gateway.probe.invalid'] })
+
+    expect(
+      declared.writePolicy({
+        ...DEFAULT_BUDGET_POLICY,
+        conduct: 'reroute',
+        rerouteBaseUrl: 'https://gateway.probe.invalid',
+      }),
+    ).toMatchObject({ rerouteBaseUrl: 'https://gateway.probe.invalid' })
   })
 
   it('refuses a reroute pointing anywhere but https, so a token never leaves in clear', () => {
@@ -137,13 +159,30 @@ describe('decideConduct', () => {
       capUsd: 5,
       conduct: 'reroute',
       downgradeModel: 'claude-haiku-4-5-20251001',
-      rerouteBaseUrl: 'https://routeur.example',
+      rerouteBaseUrl: 'https://api.anthropic.com',
     })
     spend(6, 'une')
 
     expect(budget.decideConduct()).toMatchObject({
       conduct: 'reroute',
-      baseUrl: 'https://routeur.example',
+      baseUrl: 'https://api.anthropic.com',
     })
+  })
+
+  it('never hands back a reroute whose host was slipped straight into the database', () => {
+    db.prepare('INSERT INTO board_setting (key, value) VALUES (?, ?)').run(
+      BUDGET_POLICY_KEY,
+      JSON.stringify({
+        capUsd: 5,
+        conduct: 'reroute',
+        downgradeModel: 'claude-haiku-4-5-20251001',
+        rerouteBaseUrl: 'https://probe.invalid',
+      }),
+    )
+    spend(6, 'une')
+
+    const decision = budget.decideConduct()
+    expect(decision.conduct).not.toBe('reroute')
+    expect(JSON.stringify(decision)).not.toContain('probe.invalid')
   })
 })

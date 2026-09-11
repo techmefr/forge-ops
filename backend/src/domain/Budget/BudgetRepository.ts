@@ -1,8 +1,13 @@
 import type Database from 'better-sqlite3'
 import { BUDGET_POLICY_KEY, DEFAULT_BUDGET_POLICY, type BudgetDecision, type BudgetPolicy } from './Budget.js'
 import { BudgetPolicyRefusedError } from './BudgetViolation.js'
+import { allowedRerouteHostsOf, assertRerouteBaseUrl, RerouteHostRefusedError } from './RerouteHost.js'
 
 const CONDUCTS = ['stop', 'downgrade', 'reroute'] as const
+
+export type BudgetRepositoryOptions = {
+  allowedRerouteHosts?: readonly string[]
+}
 
 export type BudgetRepository = {
   readPolicy: () => BudgetPolicy
@@ -11,7 +16,7 @@ export type BudgetRepository = {
   decideConduct: () => BudgetDecision
 }
 
-function assertPolicy(policy: BudgetPolicy): BudgetPolicy {
+function assertPolicy(policy: BudgetPolicy, allowedRerouteHosts: readonly string[]): BudgetPolicy {
   if (!Number.isFinite(policy.capUsd) || policy.capUsd <= 0) {
     throw new BudgetPolicyRefusedError('un plafond vaut un montant strictement positif')
   }
@@ -25,14 +30,21 @@ function assertPolicy(policy: BudgetPolicy): BudgetPolicy {
     if (policy.rerouteBaseUrl === null || policy.rerouteBaseUrl.trim() === '') {
       throw new BudgetPolicyRefusedError('un reroutage nomme le routeur vers lequel partir')
     }
-    if (!policy.rerouteBaseUrl.startsWith('https://')) {
-      throw new BudgetPolicyRefusedError('un routeur se joint en https, jamais en clair')
+    try {
+      assertRerouteBaseUrl(policy.rerouteBaseUrl, allowedRerouteHosts)
+    } catch (error) {
+      throw new BudgetPolicyRefusedError(
+        error instanceof RerouteHostRefusedError ? error.message : String(error),
+      )
     }
   }
   return policy
 }
 
-export function createBudgetRepository(db: Database.Database): BudgetRepository {
+export function createBudgetRepository(db: Database.Database, options: BudgetRepositoryOptions = {}): BudgetRepository {
+  const allowedRerouteHosts =
+    options.allowedRerouteHosts ?? allowedRerouteHostsOf(process.env.FORGE_REROUTE_ALLOWED_HOSTS)
+
   const selectSetting = db.prepare<[string], { value: string }>('SELECT value FROM board_setting WHERE key = ?')
   const upsertSetting = db.prepare<[string, string]>(
     `INSERT INTO board_setting (key, value) VALUES (?, ?)
@@ -49,7 +61,7 @@ export function createBudgetRepository(db: Database.Database): BudgetRepository 
       return DEFAULT_BUDGET_POLICY
     }
     try {
-      return assertPolicy({ ...DEFAULT_BUDGET_POLICY, ...(JSON.parse(stored.value) as Partial<BudgetPolicy>) })
+      return assertPolicy({ ...DEFAULT_BUDGET_POLICY, ...(JSON.parse(stored.value) as Partial<BudgetPolicy>) }, allowedRerouteHosts)
     } catch {
       return DEFAULT_BUDGET_POLICY
     }
@@ -64,7 +76,7 @@ export function createBudgetRepository(db: Database.Database): BudgetRepository 
     spentToday,
 
     writePolicy: (policy) => {
-      const checked = assertPolicy(policy)
+      const checked = assertPolicy(policy, allowedRerouteHosts)
       upsertSetting.run(BUDGET_POLICY_KEY, JSON.stringify(checked))
       return checked
     },

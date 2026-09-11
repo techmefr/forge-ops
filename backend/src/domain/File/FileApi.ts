@@ -4,7 +4,7 @@ import { z } from 'zod'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { listDirectory, readTextFile, walkPaths } from '../../technical/Repository/LocalTree.js'
 import { PathOutsideCheckoutError } from '../../technical/Repository/LocalTreeViolation.js'
-import { CheckoutPathRefusedError } from '../Story/CheckoutPath.js'
+import { assertCheckoutPath, CheckoutPathRefusedError } from '../Story/CheckoutPath.js'
 import { describeFile } from './FileDigest.js'
 import { markOfFile, type FileTouch } from './FileMark.js'
 import { clashesOf } from './NameClash.js'
@@ -15,6 +15,7 @@ export type FileApiInput = {
   files: FileRepository
   maxFileBytes?: number
   maxWalkedFiles?: number
+  checkoutRoots?: readonly string[]
 }
 
 const identifierSchema = z.coerce.number().int().positive()
@@ -44,10 +45,15 @@ export function createFileApi({
   files,
   maxFileBytes = DEFAULT_MAX_FILE_BYTES,
   maxWalkedFiles = DEFAULT_MAX_WALKED_FILES,
+  checkoutRoots = [process.cwd()],
 }: FileApiInput): Hono {
   const api = new Hono()
 
-  function holderOf(rawId: string): Holder | 'unknown-project' | 'unknown-checkout' {
+  function outsideRoots(holder: Holder | { refused: string }): holder is { refused: string } {
+    return 'refused' in holder
+  }
+
+  function holderOf(rawId: string): Holder | 'unknown-project' | 'unknown-checkout' | { refused: string } {
     const projectId = identifierSchema.safeParse(rawId)
     if (!projectId.success) {
       return 'unknown-project'
@@ -59,6 +65,11 @@ export function createFileApi({
     if (project.checkoutPath === null || project.checkoutPath === '') {
       return 'unknown-checkout'
     }
+    try {
+      assertCheckoutPath(project.checkoutPath, checkoutRoots)
+    } catch (error) {
+      return { refused: error instanceof CheckoutPathRefusedError ? error.message : saidBy(error) }
+    }
     return { checkoutPath: project.checkoutPath, touches: files.touchesOfProject(projectId.data) }
   }
 
@@ -69,6 +80,9 @@ export function createFileApi({
     }
     if (holder === 'unknown-checkout') {
       return context.json({ available: false, reason: 'CheckoutUnknown', entries: [] })
+    }
+    if (outsideRoots(holder)) {
+      return context.json({ error: 'CheckoutPathRefused', reason: holder.refused }, 422)
     }
 
     const asked = context.req.query('path') ?? ''
@@ -117,6 +131,9 @@ export function createFileApi({
     }
     if (holder === 'unknown-checkout') {
       return context.json({ error: 'CheckoutUnknown' }, 404)
+    }
+    if (outsideRoots(holder)) {
+      return context.json({ error: 'CheckoutPathRefused', reason: holder.refused }, 422)
     }
 
     const asked = context.req.query('path') ?? ''
@@ -167,6 +184,9 @@ export function createFileApi({
     }
     if (holder === 'unknown-checkout') {
       return context.json({ available: false, reason: 'CheckoutUnknown', clashes: [] })
+    }
+    if (outsideRoots(holder)) {
+      return context.json({ error: 'CheckoutPathRefused', reason: holder.refused }, 422)
     }
 
     try {

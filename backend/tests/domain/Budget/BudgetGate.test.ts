@@ -99,13 +99,13 @@ describe('le plafond de cout coupe le dispatch', () => {
       capUsd: 5,
       conduct: 'reroute',
       downgradeModel: 'claude-haiku-4-5-20251001',
-      rerouteBaseUrl: 'https://routeur.example',
+      rerouteBaseUrl: 'https://api.anthropic.com',
     })
     spend(6, 'une')
 
     await dispatcher.dispatch({ storyId, phase: 'spec' })
 
-    expect(launched[0]).toMatchObject({ baseUrl: 'https://routeur.example' })
+    expect(launched[0]).toMatchObject({ baseUrl: 'https://api.anthropic.com' })
   })
 
   it('ne nomme ni modele ni routeur quand le jour reste sous le plafond', async () => {
