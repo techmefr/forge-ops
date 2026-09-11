@@ -16,6 +16,7 @@ import { createDispatcher } from '../../../src/domain/Dispatch/Dispatcher.js'
 import { cleanUpAfterMerge } from '../../../src/domain/Deployment/MergeCleanup.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 import { createEventBus, type BoardEvent } from '../../../src/technical/Http/EventBus.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let api: Hono
 let stories: StoryRepository
@@ -64,6 +65,7 @@ beforeEach(() => {
     root: '/tmp/forge-worktrees',
   })
   const checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
     takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
   })
   api = createBoardApi({

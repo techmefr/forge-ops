@@ -19,6 +19,7 @@ import { createDispatcher } from '../../../src/domain/Dispatch/Dispatcher.js'
 import { createBudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let api: Hono
 let stories: StoryRepository
@@ -42,6 +43,7 @@ beforeEach(() => {
   stories = createStoryRepository(db)
   foremerge = createForemergeRepository(db, { stories })
   checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
     takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
   })
   const criteria = createCriterionRepository(db)
@@ -73,7 +75,8 @@ beforeEach(() => {
   api = createBoardApi({
     repository: stories,
     agentSessions: createAgentSessionRepository(db),
-    checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+    checkpoints: createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
     criteria,
     zones: createZoneRepository(db),
     budget: createBudgetRepository(db),
@@ -81,7 +84,8 @@ beforeEach(() => {
     dispatcher: createDispatcher({
       database: db,
       stories,
-      checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+      checkpoints: createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
       criteria: createCriterionRepository(db),
       sessions: createAgentSessionRepository(db),
       budget: createBudgetRepository(db),

@@ -12,6 +12,7 @@ import {
 } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { SelfReviewRefusedError } from '../../../src/domain/Checkpoint/CheckpointViolation.js'
 import type { AgentPhase } from '../../../src/domain/Agent/AgentSession.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let db: Database.Database
 let stories: StoryRepository
@@ -27,7 +28,8 @@ function session(claudeSessionId: string, phase: AgentPhase, agentName: string):
 beforeEach(() => {
   db = openDatabase(':memory:')
   stories = createStoryRepository(db)
-  checkpoints = createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) })
+  checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) })
   sessions = createAgentSessionRepository(db)
   const project = stories.createProject({
     slug: 'forge',

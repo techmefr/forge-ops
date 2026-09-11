@@ -9,6 +9,7 @@ import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js
 import { createStatisticRepository } from '../../../src/domain/Statistic/StatisticRepository.js'
 import { createForemergeRepository } from '../../../src/domain/Foremerge/ForemergeRepository.js'
 import { KANBAN_COLUMNS } from '../../../src/domain/Story/Story.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 const CENSUS = { tests: 0, skipped: 0, tautologies: 0 }
 
@@ -48,7 +49,8 @@ describe('seedDemoBoard', () => {
   })
 
   it('proves a whole definition of done on at least one story', () => {
-    const checkpoints = createCheckpointRepository(db, { takeCensus: () => CENSUS })
+    const checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => CENSUS })
     const kanban = createStoryRepository(db).listKanban()
     const complete = kanban.filter((story) =>
       checkpoints.definitionOfDone(story.id).every((step) => step.proven),
@@ -58,7 +60,8 @@ describe('seedDemoBoard', () => {
   })
 
   it('leaves a definition of done half proven, so the progress bar is not always full', () => {
-    const checkpoints = createCheckpointRepository(db, { takeCensus: () => CENSUS })
+    const checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => CENSUS })
     const kanban = createStoryRepository(db).listKanban()
     const partial = kanban.filter((story) => {
       const steps = checkpoints.definitionOfDone(story.id)
@@ -69,7 +72,8 @@ describe('seedDemoBoard', () => {
   })
 
   it('shows a review cascade caught mid-flight', () => {
-    const checkpoints = createCheckpointRepository(db, { takeCensus: () => CENSUS })
+    const checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => CENSUS })
     const kanban = createStoryRepository(db).listKanban()
     const running = kanban.filter((story) =>
       checkpoints.reviewCascade(story.id).some((pass) => pass.state === 'running'),
@@ -79,7 +83,8 @@ describe('seedDemoBoard', () => {
   })
 
   it('names the lens agent that is actually reading, not the previous one', () => {
-    const checkpoints = createCheckpointRepository(db, { takeCensus: () => CENSUS })
+    const checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => CENSUS })
     const kanban = createStoryRepository(db).listKanban()
     const running = kanban.flatMap((story) =>
       checkpoints.reviewCascade(story.id).filter((pass) => pass.state === 'running'),
@@ -92,7 +97,8 @@ describe('seedDemoBoard', () => {
   })
 
   it('leaves an unresolved finding to read', () => {
-    const checkpoints = createCheckpointRepository(db, { takeCensus: () => CENSUS })
+    const checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => CENSUS })
     const kanban = createStoryRepository(db).listKanban()
     const flagged = kanban.filter((story) => checkpoints.listUnresolvedFindings(story.id).length > 0)
 

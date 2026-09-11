@@ -11,6 +11,7 @@ import { createCriterionRepository } from '../../../src/domain/Criterion/Criteri
 import { createStoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js'
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 export type TestBoard = {
   api: Hono
@@ -22,6 +23,7 @@ export function buildTestBoard(db: Database.Database): TestBoard {
       repository: createStoryRepository(db),
       agentSessions: createAgentSessionRepository(db),
       checkpoints: createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
         takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
       }),
       criteria: createCriterionRepository(db),

@@ -9,6 +9,7 @@ import {
 import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { RedNotAssertedError } from '../../../src/domain/Checkpoint/CheckpointViolation.js'
 import type { TestReport } from '../../../src/domain/RedProof/RedProof.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 const EVIDENCE = '.claude/evidence/FORGE-1/tests.md'
 const ASSERTION_MESSAGE = 'AssertionError: expected 1 to be 2'
@@ -50,6 +51,7 @@ const GREEN: TestReport = {
 
 function repositoryReporting(report: TestReport): CheckpointRepository {
   return createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
     takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
     surveyRed: () => {
       surveys += 1
@@ -134,6 +136,7 @@ describe('tests_written consults the red verdict', () => {
   it('takes the census only once the red is proven', () => {
     const taken: number[] = []
     const checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
       takeCensus: () => {
         taken.push(1)
         return { tests: 0, skipped: 0, tautologies: 0 }
@@ -159,6 +162,7 @@ describe('tests_written consults the red verdict', () => {
 
   it('lets tests_written through when no red survey is wired', () => {
     const checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
       takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
     })
     proveUpToTests(checkpoints)

@@ -12,6 +12,7 @@ import {
   type ForemergeRepository,
 } from '../../../src/domain/Foremerge/ForemergeRepository.js'
 import { ScopeTakenError } from '../../../src/domain/Foremerge/ForemergeViolation.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 const CORPS_ETOFFE = [
   'En tant que gestionnaire, je veux voir la liste des mails du client',
@@ -44,6 +45,7 @@ function readyStory(title: string): number {
   criteria.declareCriterion({ storyId: story.id, reference: 'CA-1', statement: 'la liste est paginee' })
   criteria.declareCriterion({ storyId: story.id, reference: 'CA-2', statement: 'une page vide est refusee' })
   createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
     takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
   }).proveCheckpoint({
     storyId: story.id,
@@ -73,6 +75,7 @@ beforeEach(() => {
     database: db,
     stories,
     checkpoints: createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
       takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
     }),
     criteria: createCriterionRepository(db),

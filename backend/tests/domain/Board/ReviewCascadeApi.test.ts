@@ -19,6 +19,7 @@ import { advanceCascade } from '../../../src/domain/Checkpoint/ReviewCascade.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 import { createEventBus, type BoardEvent } from '../../../src/technical/Http/EventBus.js'
 import type { LaunchOrder } from '../../../src/domain/Dispatch/Dispatch.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let api: Hono
 let checkpoints: CheckpointRepository
@@ -81,6 +82,7 @@ beforeEach(() => {
   criteria.declareCriterion({ storyId, reference: 'AC-1', statement: 'la liste est paginee' })
   criteria.declareCriterion({ storyId, reference: 'AC-2', statement: 'le cas vide est annonce' })
   checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
     takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
   })
   const dispatcher = createDispatcher({
