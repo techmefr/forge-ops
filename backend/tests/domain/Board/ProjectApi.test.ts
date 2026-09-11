@@ -12,6 +12,7 @@ import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 import { createBudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let api: Hono
 let repository: StoryRepository
@@ -38,7 +39,8 @@ beforeEach(() => {
   api = createBoardApi({
     repository,
     agentSessions: createAgentSessionRepository(db),
-    checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+    checkpoints: createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
     criteria: createCriterionRepository(db),
     zones: createZoneRepository(db),
     budget: createBudgetRepository(db),

@@ -23,6 +23,7 @@ import {
   CriteriaRequiredError,
   CriteriaUnmetError,
 } from '../../../src/domain/Checkpoint/CheckpointViolation.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 const EVIDENCE = '.claude/evidence/FORGE-1/spec.md'
 
@@ -75,7 +76,8 @@ function proveUpTo(last: string): void {
 beforeEach(() => {
   db = openDatabase(':memory:')
   stories = createStoryRepository(db)
-  checkpoints = createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) })
+  checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) })
   const project = stories.createProject({
     slug: 'forge',
     name: 'Forge',

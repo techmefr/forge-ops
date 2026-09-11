@@ -151,6 +151,23 @@ export function startBoardServer({
     }
     events.publish(event)
   }
+  const checkpointGates = {
+    takeCensus: () => censusOfTree(testsDir),
+    readEvidence,
+    surveyRed: () =>
+      runRedReport({
+        command: process.env.FORGE_RED_TEST_COMMAND ?? DEFAULT_RED_TEST_COMMAND,
+        cwd: process.cwd(),
+      }),
+    surveyMutations: (paths: readonly string[]) =>
+      runMutationCheck({
+        paths,
+        runTests: createCommandTestRunner({
+          command: process.env.FORGE_MUTATION_TEST_COMMAND ?? DEFAULT_MUTATION_TEST_COMMAND,
+          cwd: process.cwd(),
+        }),
+      }),
+  }
   const worktrees = createWorktreeRepository(db, {
     stories,
     git: createGitWorktree({ repositoryRoot: process.cwd() }),
@@ -159,7 +176,7 @@ export function startBoardServer({
   const dispatcher = createDispatcher({
     database: db,
     stories,
-    checkpoints: createCheckpointRepository(db, { takeCensus: () => censusOfTree(testsDir), readEvidence }),
+    checkpoints: createCheckpointRepository(db, checkpointGates),
     criteria: createCriterionRepository(db),
     sessions,
     budget,
@@ -172,32 +189,13 @@ export function startBoardServer({
       windowMs: Number(process.env.FORGE_DISPATCH_WINDOW_MS ?? DEFAULT_DISPATCH_RATE.windowMs),
     },
   })
-  const cascadeCheckpoints = createCheckpointRepository(db, {
-    takeCensus: () => censusOfTree(testsDir),
-    readEvidence,
-  })
+  const cascadeCheckpoints = createCheckpointRepository(db, checkpointGates)
   const api = createBoardApi({
     zones: createZoneRepository(db),
     budget,
     repository: stories,
     agentSessions: sessions,
-    checkpoints: createCheckpointRepository(db, {
-      takeCensus: () => censusOfTree(testsDir),
-      readEvidence,
-      surveyRed: () =>
-        runRedReport({
-          command: process.env.FORGE_RED_TEST_COMMAND ?? DEFAULT_RED_TEST_COMMAND,
-          cwd: process.cwd(),
-        }),
-      surveyMutations: (paths) =>
-        runMutationCheck({
-          paths,
-          runTests: createCommandTestRunner({
-            command: process.env.FORGE_MUTATION_TEST_COMMAND ?? DEFAULT_MUTATION_TEST_COMMAND,
-            cwd: process.cwd(),
-          }),
-        }),
-    }),
+    checkpoints: createCheckpointRepository(db, checkpointGates),
     criteria: createCriterionRepository(db),
     events,
     dispatcher,

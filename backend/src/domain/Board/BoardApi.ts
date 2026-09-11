@@ -25,6 +25,7 @@ import { ScopeTakenError, ScopeViolationError } from '../Foremerge/ForemergeViol
 import { PHASE_CONTRACTS } from '../Dispatch/Dispatch.js'
 import { EvidencePathRefusedError } from '../Evidence/EvidencePath.js'
 import { EvidenceShapeRefusedError } from '../Evidence/EvidenceShape.js'
+import { EvidenceUnreadableError } from '../Evidence/EvidenceRead.js'
 import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import { BudgetViolationError } from '../Budget/BudgetViolation.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
@@ -206,7 +207,8 @@ export function createBoardApi({
       error instanceof DispatchViolationError ||
       error instanceof BudgetViolationError ||
       error instanceof EvidencePathRefusedError ||
-      error instanceof EvidenceShapeRefusedError
+      error instanceof EvidenceShapeRefusedError ||
+      error instanceof EvidenceUnreadableError
     ) {
       return context.json({ error: error.name, message: error.message }, 409)
     }

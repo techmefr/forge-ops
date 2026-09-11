@@ -12,6 +12,8 @@ import {
   EvidenceShapeRefusedError,
   MINIMUM_PROSE_WORDS,
 } from '../../../src/domain/Evidence/EvidenceShape.js'
+import { EvidenceUnreadableError } from '../../../src/domain/Evidence/EvidenceRead.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 const EVIDENCE = '.claude/evidence/FORGE-1/spec.md'
 
@@ -23,10 +25,19 @@ let db: Database.Database
 let stories: StoryRepository
 let storyId: number
 
-function repositoryReading(content: string | null): CheckpointRepository {
+function repositoryReading(content: string): CheckpointRepository {
   return createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
     takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
-    readEvidence: () => content,
+    readEvidence: () => ({ kind: 'read', content }),
+  })
+}
+
+function repositoryFailingToRead(reason: string): CheckpointRepository {
+  return createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
+    takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
+    readEvidence: () => ({ kind: 'unreadable', reason }),
   })
 }
 
@@ -77,11 +88,28 @@ describe('proveCheckpoint reads the proof it is handed', () => {
     )
   })
 
-  it('leaves an unreadable proof file to the existence check', () => {
-    const checkpoints = repositoryReading(null)
+  it('refuses a checkpoint whose proof cannot be read', () => {
+    const checkpoints = repositoryFailingToRead('fichier introuvable')
 
-    expect(checkpoints.proveCheckpoint({ storyId, name: 'spec_done', evidencePath: EVIDENCE }).name).toBe(
-      'spec_done',
-    )
+    expect(() =>
+      checkpoints.proveCheckpoint({ storyId, name: 'spec_done', evidencePath: EVIDENCE }),
+    ).toThrow(EvidenceUnreadableError)
+  })
+
+  it('records nothing when the proof cannot be read', () => {
+    const checkpoints = repositoryFailingToRead('fichier introuvable')
+
+    expect(() =>
+      checkpoints.proveCheckpoint({ storyId, name: 'spec_done', evidencePath: EVIDENCE }),
+    ).toThrow(EvidenceUnreadableError)
+    expect(checkpoints.definitionOfDone(storyId).every((step) => !step.proven)).toBe(true)
+  })
+
+  it('says the proof is unreadable rather than malformed', () => {
+    const checkpoints = repositoryFailingToRead('fichier introuvable')
+
+    expect(() =>
+      checkpoints.proveCheckpoint({ storyId, name: 'spec_done', evidencePath: EVIDENCE }),
+    ).toThrow(/illisible.*fichier introuvable/)
   })
 })

@@ -10,6 +10,7 @@ import {
 import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { TestsTamperedError } from '../../../src/domain/Checkpoint/CheckpointViolation.js'
 import type { TestCensus } from '../../../src/domain/Tamper/TestCensus.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let db: Database.Database
 let stories: StoryRepository
@@ -53,7 +54,8 @@ beforeEach(() => {
   db = openDatabase(':memory:')
   stories = createStoryRepository(db)
   census = HONEST
-  checkpoints = createCheckpointRepository(db, { takeCensus: () => census })
+  checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => census })
   const project = stories.createProject({
     slug: 'forge',
     name: 'Forge',

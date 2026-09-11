@@ -16,6 +16,7 @@ import { createBudgetRepository } from '../../../src/domain/Budget/BudgetReposit
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 import { REVIEW_LENS_SEQUENCE, type CheckpointName } from '../../../src/domain/Checkpoint/Checkpoint.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 const CENSUS = { tests: 12, skipped: 0, tautologies: 0 }
 
@@ -69,7 +70,8 @@ function dbOf(): ReturnType<typeof openDatabase> {
 beforeEach(() => {
   database = openDatabase(':memory:')
   stories = createStoryRepository(database)
-  checkpoints = createCheckpointRepository(database, { takeCensus: () => CENSUS })
+  checkpoints = createCheckpointRepository(database, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => CENSUS })
   const criteria = createCriterionRepository(database)
   const project = stories.createProject({
     slug: 'forge',
