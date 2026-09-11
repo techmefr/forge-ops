@@ -74,6 +74,19 @@ describe('POST /api/stories/:id/scope', () => {
     await expect(response.json()).resolves.toMatchObject({ error: 'ScopeTakenError', heldBy: 'FORGE-1' })
   })
 
+  it('says since when the holder has been holding, so a human can decide to wait', async () => {
+    await send(`/api/stories/${first}/scope`, 'POST', { pathPrefix: 'backend/src', symbols: [] })
+
+    const response = await send(`/api/stories/${second}/scope`, 'POST', {
+      pathPrefix: 'backend/src/domain',
+      symbols: [],
+    })
+    const body = (await response.json()) as { heldSince?: string; message?: string }
+
+    expect(body.heldSince ?? '').toMatch(/^\d{4}-\d{2}-\d{2} /)
+    expect(body.message ?? '').toContain(`depuis ${body.heldSince}`)
+  })
+
   it('refuses a blank claim without leaking a database error', async () => {
     const response = await send(`/api/stories/${first}/scope`, 'POST', { pathPrefix: '', symbols: [] })
 
@@ -87,6 +100,23 @@ describe('POST /api/stories/:id/scope', () => {
     })
 
     expect(response.status).toBe(404)
+  })
+})
+
+describe('POST /api/stories/:id/scope/renew', () => {
+  it('renews the lease of a story that is still working', async () => {
+    await send(`/api/stories/${first}/scope`, 'POST', { pathPrefix: 'backend/src', symbols: [] })
+
+    const response = await send(`/api/stories/${first}/scope/renew`, 'POST')
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({ renewed: 1 })
+  })
+
+  it('renews nothing for a story that holds no scope', async () => {
+    const response = await send(`/api/stories/${second}/scope/renew`, 'POST')
+
+    await expect(response.json()).resolves.toEqual({ renewed: 0 })
   })
 })
 

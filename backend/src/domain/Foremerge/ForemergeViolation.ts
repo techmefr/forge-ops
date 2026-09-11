@@ -17,9 +17,12 @@ export class ScopeNotWrittenError extends ScopeViolationError {
 export class ScopeTakenError extends ScopeViolationError {
   readonly heldBy: string
 
-  constructor(pathPrefix: string, heldBy: string, reason: string) {
-    super(`${pathPrefix} est deja reserve par ${heldBy} : ${reason}`)
+  readonly heldSince: string
+
+  constructor(pathPrefix: string, heldBy: string, heldSince: string, reason: string) {
+    super(`${pathPrefix} est deja reserve par ${heldBy} depuis ${heldSince} : ${reason}`)
     this.name = 'ScopeTakenError'
     this.heldBy = heldBy
+    this.heldSince = heldSince
   }
 }

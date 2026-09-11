@@ -1,3 +1,5 @@
+export const LEASE_MINUTES = 90
+
 export type ScopeClaim = {
   storyId: number
   pathPrefix: string

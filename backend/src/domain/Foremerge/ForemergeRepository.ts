@@ -1,7 +1,13 @@
 import type Database from 'better-sqlite3'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { BlankScopeError, ScopeNotWrittenError, ScopeTakenError } from './ForemergeViolation.js'
-import { collisionsBetween, normalisePath, type ScopeClaim, type ScopeCollision } from './Scope.js'
+import {
+  collisionsBetween,
+  LEASE_MINUTES,
+  normalisePath,
+  type ScopeClaim,
+  type ScopeCollision,
+} from './Scope.js'
 
 export type ScopeReservation = ScopeClaim & {
   id: number
@@ -11,6 +17,7 @@ export type ScopeReservation = ScopeClaim & {
 
 export type ForemergeRepository = {
   reserve: (claim: ScopeClaim) => ScopeReservation
+  renew: (storyId: number) => number
   release: (storyId: number) => number
   listReservations: () => readonly ScopeReservation[]
   collisions: () => readonly ScopeCollision[]
@@ -30,6 +37,10 @@ type ReservationRow = {
 }
 
 const SEPARATOR = ','
+
+const LEASE_ELAPSED = `-${LEASE_MINUTES} minutes`
+
+const LEASE_SPAN = `+${LEASE_MINUTES} minutes`
 
 function splitSymbols(stored: string): readonly string[] {
   return stored
@@ -52,11 +63,25 @@ export function createForemergeRepository(
   `)
 
   const insertReservation = db.prepare<[number, string, string]>(
-    'INSERT INTO scope_reservation (story_id, path_prefix, symbols) VALUES (?, ?, ?)',
+    'INSERT INTO scope_reservation (story_id, path_prefix, symbols, renewed_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)',
   )
 
-  const clearRelease = db.prepare<[number, string]>(
-    'UPDATE scope_reservation SET released_at = NULL, reserved_at = CURRENT_TIMESTAMP WHERE story_id = ? AND path_prefix = ?',
+  const clearRelease = db.prepare<[number, string]>(`
+    UPDATE scope_reservation
+    SET reserved_at = CASE WHEN released_at IS NULL THEN reserved_at ELSE CURRENT_TIMESTAMP END,
+        renewed_at = CURRENT_TIMESTAMP,
+        released_at = NULL
+    WHERE story_id = ? AND path_prefix = ?
+  `)
+
+  const expireLapsed = db.prepare<[string, string]>(`
+    UPDATE scope_reservation
+    SET released_at = datetime(COALESCE(renewed_at, reserved_at), ?)
+    WHERE released_at IS NULL AND COALESCE(renewed_at, reserved_at) <= datetime('now', ?)
+  `)
+
+  const renewHeld = db.prepare<[number]>(
+    'UPDATE scope_reservation SET renewed_at = CURRENT_TIMESTAMP WHERE story_id = ? AND released_at IS NULL',
   )
 
   const releaseAll = db.prepare<[number]>(
@@ -83,6 +108,7 @@ export function createForemergeRepository(
   }
 
   function live(): readonly ScopeReservation[] {
+    expireLapsed.run(LEASE_SPAN, LEASE_ELAPSED)
     return selectLive.all().map(toReservation)
   }
 
@@ -97,7 +123,7 @@ export function createForemergeRepository(
       for (const held of live()) {
         const collision = collisionsBetween([held, wanted])[0]
         if (collision !== undefined) {
-          throw new ScopeTakenError(pathPrefix, held.storyReference, collision.reason)
+          throw new ScopeTakenError(pathPrefix, held.storyReference, held.reservedAt, collision.reason)
         }
       }
       if (selectOne.get(claim.storyId, pathPrefix) === undefined) {
@@ -110,6 +136,11 @@ export function createForemergeRepository(
         throw new ScopeNotWrittenError(pathPrefix)
       }
       return { ...toReservation(written), storyReference: story.reference }
+    },
+
+    renew: (storyId) => {
+      expireLapsed.run(LEASE_SPAN, LEASE_ELAPSED)
+      return renewHeld.run(storyId).changes
     },
 
     release: (storyId) => releaseAll.run(storyId).changes,
