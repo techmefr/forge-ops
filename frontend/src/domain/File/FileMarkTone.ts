@@ -8,11 +8,11 @@ export type MarkTone = {
 
 export const MARK_TONES: Readonly<Record<FileMark, MarkTone>> = {
   quiet: { label: '', dot: 'bg-line', text: 'text-txt-low' },
-  planned: { label: 'Va etre modifie', dot: 'bg-orange', text: 'text-orange' },
-  created: { label: 'Sera cree', dot: 'bg-violet', text: 'text-violet' },
-  ready: { label: 'Fini, pas encore merge', dot: 'bg-green', text: 'text-green' },
-  deleted: { label: 'Supprime', dot: 'bg-red', text: 'text-red' },
-  merged: { label: 'Livre', dot: 'bg-acc', text: 'text-txt-mid' },
+  planned: { label: 'Va être modifié', dot: 'bg-orange', text: 'text-orange' },
+  created: { label: 'Sera créé', dot: 'bg-violet', text: 'text-violet' },
+  ready: { label: 'Fini, pas encore mergé', dot: 'bg-green', text: 'text-green' },
+  deleted: { label: 'Supprimé', dot: 'bg-red', text: 'text-red' },
+  merged: { label: 'Livré', dot: 'bg-acc', text: 'text-txt-mid' },
 }
 
 export type Crumb = {

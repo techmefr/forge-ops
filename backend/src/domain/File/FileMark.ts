@@ -79,6 +79,6 @@ export function markOfFile({ onDisk, touches }: FileReading): FileVerdict {
 
   const who = joined(referencesOf(touches))
   return onDisk
-    ? verdictOf('merged', `${who} l a livre`, touches)
-    : verdictOf('deleted', `${who} l a supprime`, touches)
+    ? verdictOf('merged', `${who} l a livré`, touches)
+    : verdictOf('deleted', `${who} l a supprimé`, touches)
 }

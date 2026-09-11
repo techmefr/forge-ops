@@ -86,3 +86,112 @@ body {
   outline: 2px solid var(--forge-acc);
   outline-offset: 2px;
 }
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--forge-txtlow);
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-section,
+.hljs-doctag,
+.hljs-name {
+  color: var(--forge-violet);
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta .hljs-string {
+  color: var(--forge-green);
+}
+
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-meta,
+.hljs-selector-id,
+.hljs-template-variable {
+  color: var(--forge-orange);
+}
+
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.function_,
+.hljs-built_in,
+.hljs-type,
+.hljs-class .hljs-title {
+  color: var(--forge-acc);
+}
+
+.hljs-variable,
+.hljs-params,
+.hljs-attr,
+.hljs-property,
+.hljs-selector-attr,
+.hljs-selector-class {
+  color: var(--forge-info);
+}
+
+.hljs-deletion {
+  color: var(--forge-red);
+}
+
+.ind {
+  display: inline-block;
+  box-shadow: inset 1px 0 0 0 currentColor;
+  white-space: pre;
+}
+
+.ind-0 {
+  color: color-mix(in srgb, var(--forge-acc) 26%, transparent);
+}
+
+.ind-1 {
+  color: color-mix(in srgb, var(--forge-violet) 26%, transparent);
+}
+
+.ind-2 {
+  color: color-mix(in srgb, var(--forge-info) 26%, transparent);
+}
+
+.ind-3 {
+  color: color-mix(in srgb, var(--forge-green) 26%, transparent);
+}
+
+.ind-4 {
+  color: color-mix(in srgb, var(--forge-orange) 26%, transparent);
+}
+
+.brk-0 {
+  color: var(--forge-acc);
+}
+
+.brk-1 {
+  color: var(--forge-violet);
+}
+
+.brk-2 {
+  color: var(--forge-info);
+}
+
+.brk-3 {
+  color: var(--forge-green);
+}
+
+.brk-4 {
+  color: var(--forge-orange);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
+}
