@@ -9,6 +9,7 @@ type AddedColumn = {
 const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'board_user', column: 'email', declaration: 'TEXT' },
   { table: 'epic', column: 'assignee', declaration: 'TEXT' },
+  { table: 'project', column: 'checkout_path', declaration: 'TEXT' },
   { table: 'agent_session', column: 'carried_cost_usd', declaration: 'REAL NOT NULL DEFAULT 0' },
   { table: 'agent_session', column: 'carried_input_tokens', declaration: 'INTEGER NOT NULL DEFAULT 0' },
   { table: 'agent_session', column: 'carried_output_tokens', declaration: 'INTEGER NOT NULL DEFAULT 0' },

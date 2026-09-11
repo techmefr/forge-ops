@@ -47,6 +47,7 @@ export type Project = {
   repositoryUrl: string
   integrationBranch: string
   colour: string
+  checkoutPath: string | null
 }
 
 export type Epic = {
@@ -76,7 +77,7 @@ export type Story = {
   escalationReason: string | null
 }
 
-export type ProjectDraft = Omit<Project, 'id'>
+export type ProjectDraft = Omit<Project, 'id' | 'checkoutPath'> & { checkoutPath?: string | null }
 
 export type EpicDraft = Omit<Epic, 'id'>
 

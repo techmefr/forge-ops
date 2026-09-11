@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS project (
   repository_url TEXT NOT NULL,
   integration_branch TEXT NOT NULL,
   colour TEXT NOT NULL,
+  checkout_path TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -454,6 +454,7 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
       repositoryUrl: `git@github.com:techmefr/${project.slug}.git`,
       integrationBranch: project.slug === 'forge' ? 'forge' : 'main',
       colour: project.colour,
+      checkoutPath: project.slug === 'forge' ? process.cwd() : null,
     })
     projectIds.set(project.slug, written.id)
     const epic = stories.createEpic({
