@@ -1,29 +1,15 @@
 import type { AgentPhase } from '../../domain/Agent/AgentSession.js'
+import { READ_TOOLS, SHELL_TOOLS, WRITE_TOOLS } from '../../domain/Agent/ToolName.js'
 import { UnknownPhaseError } from './GuardrailViolation.js'
 
-const READING_TOOLS: readonly string[] = [
-  'Read',
-  'Grep',
-  'Glob',
-  'LS',
-  'TodoWrite',
-  'WebFetch',
-  'WebSearch',
-  'Task',
-]
-
-const WRITING_TOOLS: readonly string[] = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit']
-
-const SHELL_TOOLS: readonly string[] = ['Bash', 'PowerShell']
-
 export const PHASE_TOOL_POLICY: Readonly<Record<AgentPhase, readonly string[]>> = {
-  spec: READING_TOOLS,
-  architecture: READING_TOOLS,
-  tdd: [...READING_TOOLS, ...WRITING_TOOLS, ...SHELL_TOOLS],
-  code: [...READING_TOOLS, ...WRITING_TOOLS, ...SHELL_TOOLS],
-  gate: [...READING_TOOLS, ...SHELL_TOOLS],
-  review: [...READING_TOOLS, ...SHELL_TOOLS],
-  ship: [...READING_TOOLS, ...SHELL_TOOLS],
+  spec: READ_TOOLS,
+  architecture: READ_TOOLS,
+  tdd: [...READ_TOOLS, ...WRITE_TOOLS, ...SHELL_TOOLS],
+  code: [...READ_TOOLS, ...WRITE_TOOLS, ...SHELL_TOOLS],
+  gate: [...READ_TOOLS, ...SHELL_TOOLS],
+  review: [...READ_TOOLS, ...SHELL_TOOLS],
+  ship: [...READ_TOOLS, ...SHELL_TOOLS],
 }
 
 function declared(phase: string): phase is AgentPhase {

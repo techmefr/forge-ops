@@ -33,13 +33,14 @@ import { assertEvidencePath } from '../Evidence/EvidencePath.js'
 import { assertEvidenceShape } from '../Evidence/EvidenceShape.js'
 import { EvidenceUnreadableError, type EvidenceReader } from '../Evidence/EvidenceRead.js'
 import { compareCensus, type TestCensus } from '../Tamper/TestCensus.js'
+import type { AgentPhase } from '../Agent/AgentSession.js'
 import { UnknownAgentSessionError } from '../Agent/AgentViolation.js'
 import type { MutationOutcome } from '../Mutation/Mutation.js'
 import { describeSurvivor, filesWorthMutating, survivorsOf } from '../Mutation/MutationVerdict.js'
 import type { TestReport } from '../RedProof/RedProof.js'
 import { describeRedVerdict, redVerdictOf } from '../RedProof/RedVerdict.js'
 
-const PRODUCING_PHASES: readonly string[] = ['spec', 'architecture', 'tdd', 'code', 'ship']
+const PRODUCING_PHASES: readonly AgentPhase[] = ['spec', 'architecture', 'tdd', 'code', 'ship']
 
 type CheckpointRow = {
   id: number
@@ -136,7 +137,7 @@ export function createCheckpointRepository(
   const selectSession = db.prepare<[string], { id: number }>(
     'SELECT id FROM agent_session WHERE claude_session_id = ?',
   )
-  const selectSessionWithPhase = db.prepare<[string], { id: number; phase: string }>(
+  const selectSessionWithPhase = db.prepare<[string], { id: number; phase: AgentPhase }>(
     'SELECT id, phase FROM agent_session WHERE claude_session_id = ?',
   )
   const insertFinding = db.prepare<[number, number, ReviewLens, FindingSeverity, string, number | null, string]>(

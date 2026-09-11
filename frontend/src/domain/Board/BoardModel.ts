@@ -1,17 +1,20 @@
 export type StoryKind = 'functional' | 'test'
 
-export type StoryState =
-  | 'drafting'
-  | 'backlog'
-  | 'architecture'
-  | 'plan_review'
-  | 'building'
-  | 'gating'
-  | 'reviewing'
-  | 'shipping'
-  | 'flagged'
-  | 'done'
-  | 'escalated'
+export const STORY_STATE_SEQUENCE = [
+  'drafting',
+  'backlog',
+  'architecture',
+  'plan_review',
+  'building',
+  'gating',
+  'reviewing',
+  'shipping',
+  'flagged',
+  'done',
+  'escalated',
+] as const
+
+export type StoryState = (typeof STORY_STATE_SEQUENCE)[number]
 
 export type KanbanColumn = {
   key: StoryState
@@ -77,13 +80,16 @@ export type Criterion = {
   satisfied: boolean
 }
 
-export type CheckpointName =
-  | 'spec_done'
-  | 'arch_done'
-  | 'tests_written'
-  | 'build_done'
-  | 'verified'
-  | 'reviewed'
+export const CHECKPOINT_SEQUENCE = [
+  'spec_done',
+  'arch_done',
+  'tests_written',
+  'build_done',
+  'verified',
+  'reviewed',
+] as const
+
+export type CheckpointName = (typeof CHECKPOINT_SEQUENCE)[number]
 
 export type DefinitionOfDoneStep = {
   name: CheckpointName
@@ -91,7 +97,9 @@ export type DefinitionOfDoneStep = {
   evidencePath: string | null
 }
 
-export type ReviewLens = 'quality' | 'security' | 'accessibility'
+export const REVIEW_LENS_SEQUENCE = ['quality', 'security', 'accessibility'] as const
+
+export type ReviewLens = (typeof REVIEW_LENS_SEQUENCE)[number]
 
 export type ReviewPass = {
   lens: ReviewLens
@@ -216,7 +224,17 @@ export type Incident = {
   refusalReason: string | null
 }
 
-export type AgentPhase = 'spec' | 'architecture' | 'tdd' | 'code' | 'gate' | 'review' | 'ship'
+export const AGENT_PHASE_SEQUENCE = [
+  'spec',
+  'architecture',
+  'tdd',
+  'code',
+  'gate',
+  'review',
+  'ship',
+] as const
+
+export type AgentPhase = (typeof AGENT_PHASE_SEQUENCE)[number]
 
 export type SessionHistoryEntry = {
   id: number
