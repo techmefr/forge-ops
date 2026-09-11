@@ -123,10 +123,25 @@ export class StepBackOffPipelineError extends StoryViolationError {
 }
 
 export class AgentStepBackRefusedError extends StoryViolationError {
-  constructor(named: string) {
+  constructor(named: string, decision: string) {
+    super(`${decision} est une decision humaine, ${named} ne la prend pas`, 'AgentStepBackRefusedError')
+  }
+}
+
+export class DoneNotEarnedError extends StoryViolationError {
+  constructor(reference: string, missing: readonly string[]) {
     super(
-      `Reculer une story est une decision humaine, ${named} ne la prend pas`,
-      'AgentStepBackRefusedError',
+      `Clore la story ${reference} et effacer son worktree exige une preuve de fin : ${missing.join(' ; ')}`,
+      'DoneNotEarnedError',
+    )
+  }
+}
+
+export class StoryNotYoursError extends StoryViolationError {
+  constructor(reference: string, assignee: string) {
+    super(
+      `L epique de la story ${reference} appartient a ${assignee}, personne d autre ne la clot`,
+      'StoryNotYoursError',
     )
   }
 }
