@@ -89,7 +89,7 @@ const heading = computed(() => {
       v-if="layout === 'rail'"
       class="sticky top-0 hidden h-dvh w-[250px] flex-none flex-col border-r border-line bg-panel lg:flex"
     >
-      <div class="border-b border-line px-5 pt-6 pb-4">
+      <div class="flex h-[92px] flex-none flex-col justify-center border-b border-line px-5">
         <p class="display-italic text-2xl leading-none">Forge<span class="text-acc">.</span>ops</p>
         <p class="mt-2 font-mono text-[10px] font-semibold tracking-[0.22em] text-txt-low uppercase">
           {{ say('orchestration') }}
@@ -212,7 +212,7 @@ const heading = computed(() => {
       </header>
 
       <header
-        class="sticky top-0 z-40 flex flex-wrap items-center gap-4 border-b border-line bg-panel/80 px-8 py-4 backdrop-blur"
+        class="sticky top-0 z-40 flex min-h-[92px] flex-wrap items-center gap-4 border-b border-line bg-panel/80 px-8 py-4 backdrop-blur"
       >
         <div class="min-w-0 flex-[1_1_240px]">
           <div class="flex items-baseline gap-2.5">
