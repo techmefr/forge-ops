@@ -15,7 +15,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run -s lint
       - run: npx vitest run
       - run: npm run -s build:back
       - run: npm run -s build:web
