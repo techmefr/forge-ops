@@ -115,6 +115,19 @@ describe('the scope gate', () => {
     )
   })
 
+  it('refuses a launch whose scope swallows a narrower prefix another story is holding', async () => {
+    foremerge.reserve({ storyId: first, pathPrefix: 'backend/src/domain/Mail', symbols: [] })
+    db.prepare('INSERT INTO scope_reservation (story_id, path_prefix, symbols) VALUES (?, ?, ?)').run(
+      second,
+      'backend/src',
+      '',
+    )
+
+    await expect(dispatcher.dispatch({ storyId: second, phase: 'architecture' })).rejects.toThrow(
+      ScopeTakenError,
+    )
+  })
+
   it('names the story holding the scope, so the human knows who to wait for', async () => {
     foremerge.reserve({ storyId: first, pathPrefix: 'backend/src', symbols: [] })
     db.prepare('INSERT INTO scope_reservation (story_id, path_prefix, symbols) VALUES (?, ?, ?)').run(
