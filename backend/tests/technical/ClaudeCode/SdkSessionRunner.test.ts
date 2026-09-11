@@ -1,9 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const queried = vi.fn()
+const resolved = vi.fn()
+
+const REGISTERED = {
+  effective: {
+    hooks: {
+      PreToolUse: [
+        { hooks: [{ type: 'command', command: 'tsx', args: ['backend/src/technical/Guardrail/DenyHook.ts'] }] },
+        { hooks: [{ type: 'command', command: 'tsx', args: ['backend/src/technical/Guardrail/ScopeHook.ts'] }] },
+      ],
+    },
+  },
+}
 
 vi.mock('@anthropic-ai/claude-agent-sdk', () => ({
   query: (input: unknown) => queried(input),
+  resolveSettings: (input: unknown) => resolved(input),
 }))
 
 const { createSdkSessionRunner } = await import('../../../src/technical/ClaudeCode/SdkSessionRunner.js')
@@ -38,6 +51,38 @@ const SPOKEN = [
 describe('createSdkSessionRunner', () => {
   beforeEach(() => {
     queried.mockReset()
+    resolved.mockReset()
+    resolved.mockResolvedValue(REGISTERED)
+  })
+
+  it('declares the settings sources it relies on instead of inheriting the sdk default', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    const runner = createSdkSessionRunner({
+      cwd: '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: () => undefined,
+    })
+
+    await runner.launch(ORDER)
+
+    expect(queried).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({ settingSources: ['user', 'project', 'local'] }),
+      }),
+    )
+  })
+
+  it('refuses to open a session when the guardrail is not registered', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    resolved.mockResolvedValue({ effective: {} })
+    const runner = createSdkSessionRunner({
+      cwd: '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: () => undefined,
+    })
+
+    await expect(runner.launch(ORDER)).rejects.toThrow('DenyHook.ts')
+    expect(queried).not.toHaveBeenCalled()
   })
 
   it('hands back the session identifier the sdk announced', async () => {
