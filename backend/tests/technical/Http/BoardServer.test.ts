@@ -6,7 +6,7 @@ import {
   defaultBoardServerInput,
   startBoardServer,
   type BoardServer,
-} from '../../../src/technical/Http/BoardServer.js'
+} from '../../../src/composition/BoardServer.js'
 import { deriveHookToken } from '../../../src/technical/Auth/BoardToken.js'
 
 let board: BoardServer | null = null

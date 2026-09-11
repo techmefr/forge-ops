@@ -46,7 +46,7 @@ describe('the base the confinement uses', () => {
 describe('the root the board wires in', () => {
   it('matches the evidence root the domain declares', () => {
     const wired = readFileSync(
-      join(process.cwd(), 'backend/src/technical/Http/BoardServer.ts'),
+      join(process.cwd(), 'backend/src/composition/BoardServer.ts'),
       'utf-8',
     )
 

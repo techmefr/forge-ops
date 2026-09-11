@@ -1,5 +1,5 @@
 import { openDatabase } from './technical/Database/Connection.js'
-import { seedDemoBoard } from './technical/Seed/DemoSeed.js'
+import { seedDemoBoard } from './composition/DemoSeed.js'
 
 const dbPath = process.env.FORGE_DB_PATH ?? 'forge-demo.db'
 const db = openDatabase(dbPath)

@@ -14,10 +14,12 @@
     "build:back": "tsc -p tsconfig.json",
     "build:web": "vue-tsc -p tsconfig.web.json && vite build",
     "build": "npm run build:back && npm run build:web",
-    "lint": "eslint . --max-warnings=0",
+    "lint": "eslint . --max-warnings=0 && node scripts/importDirection.js --check-baseline",
     "lint:fix": "eslint . --max-warnings=0 --fix",
     "gate:scripts": "tsx backend/src/checkScripts.ts",
     "gate:proof": "tsx backend/src/gateProof.ts",
+    "arch:imports": "node scripts/importDirection.js",
+    "arch:imports:baseline": "node scripts/importDirection.js --write-baseline",
     "test": "vitest run",
     "test:watch": "vitest"
   },

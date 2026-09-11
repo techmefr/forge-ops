@@ -1,4 +1,4 @@
-import { defaultBoardServerInput, startBoardServer } from './technical/Http/BoardServer.js'
+import { defaultBoardServerInput, startBoardServer } from './composition/BoardServer.js'
 import { closeOnSignals } from './technical/Http/Shutdown.js'
 
 const input = defaultBoardServerInput()

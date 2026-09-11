@@ -76,7 +76,7 @@ export default tseslint.config(
     files: [
       'backend/src/*.ts',
       'backend/src/technical/Guardrail/*Hook.ts',
-      'backend/src/technical/Http/BoardServer.ts',
+      'backend/src/composition/*.ts',
     ],
     rules: {
       'no-console': 'off',
