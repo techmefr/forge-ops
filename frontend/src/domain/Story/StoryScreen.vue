@@ -13,6 +13,7 @@ import { storiesOfEpic } from './Batch'
 import { requestFor, type TicketPoint } from './TicketRequest'
 import { provisionalTitle } from './Slice'
 import IncidentScreen from '@/domain/Incident/IncidentScreen.vue'
+import { DESKS } from './Desk'
 import type { Incident, KanbanStory } from '@/domain/Board/BoardModel'
 
 const route = useRoute()
@@ -187,21 +188,21 @@ onMounted(async () => {
   <div class="flex h-full min-h-0 flex-col">
   <nav class="flex flex-none gap-0.5 border-b border-line px-6" aria-label="L atelier et ce qui remonte">
     <button
-      v-for="bench in ([
-        { key: 'write', label: 'Ecrire' },
-        { key: 'reports', label: 'Signalements' },
-      ] as const)"
+      v-for="bench in DESKS"
       :key="bench.key"
       type="button"
       :aria-current="bench.key === desk ? 'page' : undefined"
-      class="border-b-[3px] px-3 py-2.5 font-mono text-[10px] font-bold uppercase"
+      class="max-w-[22rem] border-b-[3px] px-3 py-2 text-left"
       :class="
         bench.key === desk ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'
       "
       @click="desk = bench.key"
     >
-      {{ bench.label }}
-      <span v-if="bench.key === 'reports' && reported > 0" class="ml-1 text-acc">{{ reported }}</span>
+      <span class="block font-mono text-[10px] font-bold uppercase">
+        {{ bench.label }}
+        <span v-if="bench.key === 'reports' && reported > 0" class="ml-1 text-acc">{{ reported }}</span>
+      </span>
+      <span class="mt-0.5 block text-[11px] leading-snug text-txt-low normal-case">{{ bench.said }}</span>
     </button>
   </nav>
 
