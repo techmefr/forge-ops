@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
+import { migrate } from '../../../src/technical/Database/Migration.js'
 
 const OLD_BOARD_USER = `CREATE TABLE board_user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -206,6 +207,129 @@ describe('opening a base written before the heartbeat column', () => {
     openDatabase(path).close()
     const db = openDatabase(path)
     expect(columnsOf(db, 'agent_session').filter((name) => name === 'last_heartbeat_at')).toHaveLength(1)
+    db.close()
+  })
+})
+
+const OLD_STORY = `CREATE TABLE story (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  epic_id INTEGER NOT NULL,
+  twin_of_story_id INTEGER,
+  reference TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('functional', 'test')),
+  state TEXT NOT NULL DEFAULT 'drafting' CHECK (state IN (
+    'drafting',
+    'backlog',
+    'building',
+    'done'
+  )),
+  points INTEGER,
+  rollout_percent INTEGER,
+  merge_conflict INTEGER NOT NULL DEFAULT 0,
+  escalation_reason TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+)`
+describe('opening a base whose story states predate the current domain', () => {
+  function writeOldStory(): void {
+    const older = new Database(path)
+    older.exec(OLD_STORY)
+    older
+      .prepare('INSERT INTO story (epic_id, reference, title, body, kind, state) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(1, 'FORGE-1', 'Titre', 'Corps', 'functional', 'backlog')
+    older.close()
+  }
+
+  function enrolEpic(db: Database.Database): void {
+    db.prepare(
+      'INSERT INTO project (slug, name, repository_url, integration_branch, colour) VALUES (?, ?, ?, ?, ?)',
+    ).run('ps', 'Panier', 'git@example.com:ps.git', 'main', '#8B5CFF')
+    db.prepare('INSERT INTO epic (project_id, title, business_intent) VALUES (?, ?, ?)').run(
+      1,
+      'Epique',
+      'Intention',
+    )
+  }
+
+  it('accepts a state the older constraint refused', () => {
+    writeOldStory()
+    const db = openDatabase(path)
+    enrolEpic(db)
+    expect(() =>
+      db
+        .prepare(
+          'INSERT INTO story (epic_id, reference, title, body, kind, state) VALUES (?, ?, ?, ?, ?, ?)',
+        )
+        .run(1, 'FORGE-2', 'Titre', 'Corps', 'functional', 'escalated'),
+    ).not.toThrow()
+    db.close()
+  })
+
+  it('still refuses a state the domain does not declare', () => {
+    writeOldStory()
+    const db = openDatabase(path)
+    enrolEpic(db)
+    expect(() =>
+      db
+        .prepare(
+          'INSERT INTO story (epic_id, reference, title, body, kind, state) VALUES (?, ?, ?, ?, ?, ?)',
+        )
+        .run(1, 'FORGE-3', 'Titre', 'Corps', 'functional', 'inert_state'),
+    ).toThrow()
+    db.close()
+  })
+
+  it('keeps the stories already written', () => {
+    writeOldStory()
+    const db = openDatabase(path)
+    expect(
+      db.prepare<[], { reference: string }>('SELECT reference FROM story').all(),
+    ).toEqual([{ reference: 'FORGE-1' }])
+    db.close()
+  })
+
+  it('records the step so a second opening does not rebuild again', () => {
+    writeOldStory()
+    openDatabase(path).close()
+    const db = openDatabase(path)
+    expect(
+      db.prepare<[], { total: number }>('SELECT COUNT(*) AS total FROM schema_step').get()?.total,
+    ).toBeGreaterThan(0)
+    expect(db.prepare<[], { total: number }>('SELECT COUNT(*) AS total FROM story').get()?.total).toBe(1)
+    db.close()
+  })
+
+  it('leaves a fresh base alone', () => {
+    const db = openDatabase(path)
+    expect(db.prepare<[], { total: number }>('SELECT COUNT(*) AS total FROM story').get()?.total).toBe(0)
+    db.close()
+  })
+})
+
+describe('migrate atomicity', () => {
+  it('rolls a failing step back and puts foreign keys back on', () => {
+    const db = new Database(':memory:')
+    const exploding = [
+      {
+        name: 'step/that-throws',
+        apply: (target: Database.Database) => {
+          target.exec('CREATE TABLE half_built (id INTEGER PRIMARY KEY)')
+          throw new Error('the step blew up')
+        },
+      },
+    ]
+
+    expect(() => migrate(db, '', exploding)).toThrow('the step blew up')
+    expect(
+      db
+        .prepare<[], { name: string }>(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'half_built'",
+        )
+        .get(),
+    ).toBeUndefined()
+    expect(db.pragma('foreign_keys', { simple: true })).toBe(1)
     db.close()
   })
 })
