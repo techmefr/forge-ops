@@ -580,7 +580,11 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
       name: zone.name,
       colour: zone.colour,
     })
-    zones.summariseZone(zone.pathPrefix, describeZone(zones.overviewOfZone(zone.pathPrefix)))
+    zones.summariseZone(
+      owner.id,
+      zone.pathPrefix,
+      describeZone(zones.overviewOfZone(owner.id, zone.pathPrefix)),
+    )
   }
 
   for (const project of PLAN) {

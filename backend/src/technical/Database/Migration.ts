@@ -31,6 +31,44 @@ function columnExists(db: Database.Database, table: string, column: string): boo
     .some((row) => row.name === column)
 }
 
+const ZONE_KEYED_ON_PROJECT = `CREATE TABLE zone_keyed_on_project (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL REFERENCES project(id),
+  path_prefix TEXT NOT NULL,
+  name TEXT NOT NULL,
+  colour TEXT NOT NULL,
+  summary TEXT,
+  summarised_at TEXT,
+  UNIQUE (project_id, path_prefix)
+)`
+
+function zoneIsKeyedOnPrefixAlone(db: Database.Database): boolean {
+  return db
+    .prepare<[string], { name: string }>('SELECT name FROM pragma_index_list(?)')
+    .all('zone')
+    .some((index) => {
+      const columns = db
+        .prepare<[string], { name: string }>('SELECT name FROM pragma_index_info(?)')
+        .all(index.name)
+      return columns.length === 1 && columns[0]?.name === 'path_prefix'
+    })
+}
+
+function rekeyZoneOnProject(db: Database.Database): void {
+  if (!tableExists(db, 'zone') || !zoneIsKeyedOnPrefixAlone(db)) {
+    return
+  }
+  db.pragma('foreign_keys = OFF')
+  db.exec(ZONE_KEYED_ON_PROJECT)
+  db.exec(
+    `INSERT INTO zone_keyed_on_project (id, project_id, path_prefix, name, colour, summary, summarised_at)
+     SELECT id, project_id, path_prefix, name, colour, summary, summarised_at FROM zone`,
+  )
+  db.exec('DROP TABLE zone')
+  db.exec('ALTER TABLE zone_keyed_on_project RENAME TO zone')
+  db.pragma('foreign_keys = ON')
+}
+
 export function addMissingColumns(db: Database.Database): void {
   for (const wanted of ADDED_COLUMNS) {
     if (!tableExists(db, wanted.table) || columnExists(db, wanted.table, wanted.column)) {
@@ -38,4 +76,5 @@ export function addMissingColumns(db: Database.Database): void {
     }
     db.exec(`ALTER TABLE ${wanted.table} ADD COLUMN ${wanted.column} ${wanted.declaration}`)
   }
+  rekeyZoneOnProject(db)
 }

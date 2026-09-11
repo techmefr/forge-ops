@@ -188,11 +188,12 @@ CREATE INDEX IF NOT EXISTS idx_file_touch_path ON file_touch(path);
 CREATE TABLE IF NOT EXISTS zone (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   project_id INTEGER NOT NULL REFERENCES project(id),
-  path_prefix TEXT NOT NULL UNIQUE,
+  path_prefix TEXT NOT NULL,
   name TEXT NOT NULL,
   colour TEXT NOT NULL,
   summary TEXT,
-  summarised_at TEXT
+  summarised_at TEXT,
+  UNIQUE (project_id, path_prefix)
 );
 
 CREATE TABLE IF NOT EXISTS review_pass (
