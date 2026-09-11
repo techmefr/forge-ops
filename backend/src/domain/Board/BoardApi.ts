@@ -20,6 +20,7 @@ import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
 import { CriterionNotFoundError, CriterionViolationError } from '../Criterion/CriterionViolation.js'
 import type { Dispatcher } from '../Dispatch/Dispatcher.js'
 import { DispatchViolationError } from '../Dispatch/DispatchViolation.js'
+import { ScopeTakenError, ScopeViolationError } from '../Foremerge/ForemergeViolation.js'
 import { PHASE_CONTRACTS } from '../Dispatch/Dispatch.js'
 import { EvidencePathRefusedError } from '../Evidence/EvidencePath.js'
 import type { BudgetRepository } from '../Budget/BudgetRepository.js'
@@ -177,7 +178,11 @@ export function createBoardApi({
     if (error instanceof CriterionNotFoundError) {
       return context.json({ error: error.name, message: error.message }, 404)
     }
+    if (error instanceof ScopeTakenError) {
+      return context.json({ error: error.name, message: error.message, heldBy: error.heldBy }, 409)
+    }
     if (
+      error instanceof ScopeViolationError ||
       error instanceof StoryViolationError ||
       error instanceof CheckpointViolationError ||
       error instanceof ZoneViolationError ||
