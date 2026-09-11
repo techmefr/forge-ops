@@ -13,6 +13,7 @@ import { createBudgetRepository } from '../../domain/Budget/BudgetRepository.js'
 import { DEFAULT_DISPATCH_RATE } from '../../domain/Dispatch/DispatchRate.js'
 import { censusOfTree } from '../Tamper/TestTreeCensus.js'
 import { createEvidenceFileReader } from '../Evidence/EvidenceFileReader.js'
+import { createCommandTestRunner, runMutationCheck } from '../Mutation/MutationRun.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { advanceCascade } from '../../domain/Checkpoint/ReviewCascade.js'
 import { createIdentityRepository } from '../../domain/Identity/IdentityRepository.js'
@@ -50,6 +51,8 @@ import { deriveHookToken, resolveBoardToken } from '../Auth/BoardToken.js'
 import { boardOrigins } from '../Auth/BoardOrigin.js'
 
 const DEFAULT_SESSION_CAP = 5
+
+const DEFAULT_MUTATION_TEST_COMMAND = 'npx vitest run'
 
 type ServerType = ReturnType<typeof serve>
 
@@ -159,7 +162,18 @@ export function startBoardServer({
     budget: createBudgetRepository(db),
     repository: stories,
     agentSessions: sessions,
-    checkpoints: createCheckpointRepository(db, { takeCensus: () => censusOfTree(testsDir), readEvidence }),
+    checkpoints: createCheckpointRepository(db, {
+      takeCensus: () => censusOfTree(testsDir),
+      readEvidence,
+      surveyMutations: (paths) =>
+        runMutationCheck({
+          paths,
+          runTests: createCommandTestRunner({
+            command: process.env.FORGE_MUTATION_TEST_COMMAND ?? DEFAULT_MUTATION_TEST_COMMAND,
+            cwd: process.cwd(),
+          }),
+        }),
+    }),
     criteria: createCriterionRepository(db),
     events,
     dispatcher,
