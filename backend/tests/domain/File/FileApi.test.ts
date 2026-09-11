@@ -11,6 +11,7 @@ import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import type { Hono } from 'hono'
 
 let api: Hono
+let db: Database.Database
 let root = ''
 let projectId = 0
 let blindProjectId = 0
@@ -54,11 +55,12 @@ beforeEach(() => {
   mkdirSync(join(root, 'src'), { recursive: true })
   writeFileSync(join(root, 'src', 'UserModal.vue'), '<template />\n')
   writeFileSync(join(root, 'src', 'UserModale.vue'), '<template />\n')
-  const db = openDatabase(':memory:')
+  db = openDatabase(':memory:')
   seed(db)
   api = createFileApi({
     stories: createStoryRepository(db, { checkoutRoots: [tmpdir()] }),
     files: createFileRepository(db),
+    checkoutRoots: [tmpdir()],
   })
 })
 
@@ -154,5 +156,32 @@ describe('PUT /api/projects/:id/checkout', () => {
     const answer = await pointing(blindProjectId, `${root}/nulle-part`)
     expect(answer.status).toBe(422)
     expect(await answer.json()).toEqual({ error: 'CheckoutNotADirectory' })
+  })
+})
+
+describe("a checkout path slipped straight into the database", () => {
+  it("refuses to list a tree under it", async () => {
+    db.prepare("UPDATE project SET checkout_path = ? WHERE id = ?").run("/", projectId)
+    const answer = await api.request("/api/projects/" + projectId + "/tree")
+    expect(answer.status).toBe(422)
+    expect((await answer.json()) as { error: string }).toMatchObject({ error: "CheckoutPathRefused" })
+  })
+
+  it("refuses to read a file under it", async () => {
+    db.prepare("UPDATE project SET checkout_path = ? WHERE id = ?").run("/", projectId)
+    const answer = await api.request("/api/projects/" + projectId + "/file?path=etc/hostname")
+    expect(answer.status).toBe(422)
+  })
+
+  it("refuses to walk it for clashes", async () => {
+    db.prepare("UPDATE project SET checkout_path = ? WHERE id = ?").run("/", projectId)
+    const answer = await api.request("/api/projects/" + projectId + "/clashes")
+    expect(answer.status).toBe(422)
+  })
+
+  it("says why it was refused", async () => {
+    db.prepare("UPDATE project SET checkout_path = ? WHERE id = ?").run("/", projectId)
+    const answer = await api.request("/api/projects/" + projectId + "/tree")
+    expect(((await answer.json()) as { reason: string }).reason).toContain("racines autorisees")
   })
 })
