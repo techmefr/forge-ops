@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { countedOf } from '@/domain/Agent/SessionEnd'
 import { onMounted, ref, watch } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
@@ -237,7 +238,7 @@ onMounted(async () => {
       <ul class="mt-2 flex flex-col gap-1">
         <li v-for="conflict in conflicts.data.value ?? []" :key="conflict.path" class="text-xs text-txt-hi">
           <span class="font-mono text-[11px]">{{ conflict.path }}</span>
-          <span class="ml-2 text-txt-low">{{ conflict.storyIds.length }} stories y touchent</span>
+          <span class="ml-2 text-txt-low">{{ countedOf(conflict.storyIds.length, 'story', 'stories') }} y touchent</span>
         </li>
       </ul>
     </section>
@@ -264,7 +265,7 @@ onMounted(async () => {
               />
               <h2 class="display-italic text-base">{{ overview.zone.name }}</h2>
               <span class="ml-auto font-mono text-[10px] text-txt-low"
-                >{{ overview.storyCount }} stories</span
+                >{{ countedOf(overview.storyCount, 'story', 'stories') }}</span
               >
             </div>
             <p class="mt-1 font-mono text-[11px] text-txt-low">{{ overview.zone.pathPrefix }}</p>

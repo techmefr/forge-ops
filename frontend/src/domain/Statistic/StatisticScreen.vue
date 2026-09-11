@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { countedOf, sessionEndOf } from '@/domain/Agent/SessionEnd'
 import { computed, onMounted } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { useResource } from '@/technical/Api/UseResource'
@@ -62,7 +63,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
             <div class="flex items-center gap-2">
               <span class="font-mono text-[11px] text-txt-hi">{{ agent.agentName }}</span>
               <span class="ml-auto font-mono text-[10px] text-txt-low"
-                >{{ agent.sessions }} sessions · {{ agent.totalCostUsd.toFixed(2) }} $</span
+                >{{ countedOf(agent.sessions, 'session') }} · {{ agent.totalCostUsd.toFixed(2) }} $</span
               >
             </div>
             <div class="mt-1 h-1.5 rounded bg-elev">
@@ -87,7 +88,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
           >
             <span class="font-mono text-[11px] text-txt-hi">{{ phase.phase }}</span>
             <span class="ml-auto font-mono text-[10px] text-txt-low"
-              >{{ phase.sessions }} sessions · {{ humanDuration(phase.totalSeconds) }}</span
+              >{{ countedOf(phase.sessions, 'session') }} · {{ humanDuration(phase.totalSeconds) }}</span
             >
           </li>
         </ul>
@@ -102,7 +103,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
             class="flex items-center gap-2 text-xs"
           >
             <span class="font-mono text-[11px]" :class="colourOf(outcome.outcome)">{{
-              outcome.outcome
+              sessionEndOf(outcome.outcome, 'finished')
             }}</span>
             <span class="ml-auto font-mono text-[10px] text-txt-low">{{ outcome.sessions }}</span>
           </li>
@@ -135,7 +136,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
               <tbody>
                 <tr v-for="entry in history.data.value ?? []" :key="entry.id" class="border-b border-line/60">
                   <td class="py-2">
-                    <RouterLink :to="`/story/${entry.storyId}`" class="font-mono text-[11px] text-acc">{{
+                    <RouterLink :to="`/atelier/${entry.storyId}`" class="font-mono text-[11px] text-acc">{{
                       entry.storyReference
                     }}</RouterLink>
                   </td>
@@ -146,7 +147,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
                     {{ entry.costUsd === null ? '—' : `${entry.costUsd.toFixed(2)} $` }}
                   </td>
                   <td class="py-2 font-mono text-[11px]" :class="colourOf(entry.outcome)">
-                    {{ entry.outcome ?? entry.lifecycle }}
+                    {{ sessionEndOf(entry.outcome, entry.lifecycle) }}
                   </td>
                 </tr>
               </tbody>

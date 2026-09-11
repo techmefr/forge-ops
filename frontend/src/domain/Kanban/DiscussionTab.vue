@@ -4,6 +4,7 @@ import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import type { Discussion, KanbanStory } from '@/domain/Board/BoardModel'
+import { saidWhen } from './Moment'
 
 const props = defineProps<{ story: KanbanStory }>()
 const emit = defineEmits<{ freed: [] }>()
@@ -81,15 +82,25 @@ watch(() => props.story.id, () => void discussion.reload(), { immediate: true })
           class="rounded-xl border p-3"
           :class="remark.voice === 'human' ? 'ml-6 border-acc bg-acc-soft/10' : 'mr-6 border-line bg-card'"
         >
-          <p class="font-mono text-[10px] text-txt-low uppercase">{{ remark.author }}</p>
-          <p class="mt-1 text-sm whitespace-pre-wrap text-txt-hi">{{ remark.body }}</p>
+          <p class="flex items-center gap-2 font-mono text-[10px] uppercase">
+            <span
+              class="rounded px-1.5 py-0.5 text-[9px] font-bold"
+              :class="remark.voice === 'human' ? 'bg-acc-soft/25 text-acc' : 'bg-elev text-txt-mid'"
+              >{{ remark.voice === 'human' ? 'humain' : 'agent' }}</span
+            >
+            <span class="text-txt-low">{{ remark.author }}</span>
+            <time class="ml-auto text-txt-low" :datetime="remark.writtenAt">{{
+              saidWhen(remark.writtenAt, new Date())
+            }}</time>
+          </p>
+          <p class="mt-1.5 text-sm whitespace-pre-wrap text-txt-hi">{{ remark.body }}</p>
         </article>
       </div>
     </ScreenState>
 
     <form class="flex flex-col gap-2" @submit.prevent="answer">
       <label class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase" for="reply">
-        Repondre
+        Ce que tu reponds
       </label>
       <textarea
         id="reply"
@@ -112,7 +123,7 @@ watch(() => props.story.id, () => void discussion.reload(), { immediate: true })
       @submit.prevent="hold"
     >
       <label class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase" for="reason">
-        Bloquer en attendant un arbitrage
+        Ce qui doit etre tranche
       </label>
       <input
         id="reason"
@@ -125,7 +136,7 @@ watch(() => props.story.id, () => void discussion.reload(), { immediate: true })
         :disabled="busy || reason.trim() === ''"
         class="rounded-lg border border-orange bg-card px-4 py-2 text-xs font-bold text-orange uppercase disabled:opacity-40"
       >
-        Bloquer
+        Bloquer en attendant un arbitrage
       </button>
     </form>
   </div>

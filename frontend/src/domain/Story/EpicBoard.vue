@@ -171,10 +171,11 @@ onMounted(async () => {
               projectOf(epic.projectId)?.name ?? 'Projet inconnu'
             }}</span>
             <label
-              class="ml-auto flex cursor-pointer items-center gap-1.5 px-2 py-1 text-[10px] text-txt-low uppercase"
+              class="ml-auto flex min-h-[32px] cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[10px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
             >
               <input
                 type="checkbox"
+                class="h-[18px] w-[18px] accent-acc"
                 :checked="picked.includes(epic.id)"
                 :aria-label="`Choisir ${epic.title}`"
                 @change="toggle(epic.id)"

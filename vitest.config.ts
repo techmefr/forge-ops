@@ -13,5 +13,6 @@ export default defineConfig({
     root: '.',
     include: ['backend/tests/**/*.test.ts', 'frontend/tests/**/*.test.ts'],
     environmentMatchGlobs: [['frontend/tests/**', 'jsdom']],
+    env: { TZ: 'Europe/Paris' },
   },
 })

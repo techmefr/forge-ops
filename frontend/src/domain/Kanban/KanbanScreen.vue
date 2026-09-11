@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { board } from '@/technical/Api/Board'
-import { reasonOf, useResource } from '@/technical/Api/UseResource'
+import { useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import type { KanbanColumn, KanbanStory, StoryHold } from '@/domain/Board/BoardModel'
 import CardDrawer from './CardDrawer.vue'
@@ -12,10 +12,6 @@ const stories = useResource<readonly KanbanStory[]>(() => board.read('/api/board
 const holds = useResource<readonly StoryHold[]>(() => board.read('/api/board/holds'))
 
 const heldStory = computed(() => (storyId: number) => holdOf(holds.data.value ?? [], storyId))
-const refusal = ref<string | null>(null)
-const blockedStoryId = ref<number | null>(null)
-const blockingStoryId = ref<number | null>(null)
-const busy = ref(false)
 const drawerId = ref<number | null>(null)
 
 const openStory = computed(
@@ -30,27 +26,6 @@ const byColumn = computed(() => {
   return grouped
 })
 
-async function declareDependency(): Promise<void> {
-  const blocked = blockedStoryId.value
-  const blocking = blockingStoryId.value
-  if (blocked === null || blocking === null) {
-    refusal.value = 'Choisis la story bloquee et celle qui la bloque'
-    return
-  }
-  busy.value = true
-  refusal.value = null
-  try {
-    await board.send(`/api/stories/${blocked}/dependencies`, 'POST', { blockingStoryId: blocking })
-    blockedStoryId.value = null
-    blockingStoryId.value = null
-    await stories.reload()
-  } catch (error) {
-    refusal.value = reasonOf(error)
-  } finally {
-    busy.value = false
-  }
-}
-
 function reloadBoard(): Promise<unknown> {
   return Promise.all([stories.reload(), holds.reload()])
 }
@@ -61,48 +36,7 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
 <template>
   <div class="flex h-full min-w-0">
   <div class="flex min-w-0 flex-1 flex-col p-6">
-    <form class="flex flex-wrap items-end gap-3" @submit.prevent="declareDependency">
-      <label class="flex flex-col gap-1">
-        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">Story bloquee</span>
-        <select
-          v-model="blockedStoryId"
-          class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
-        >
-          <option :value="null">A choisir</option>
-          <option v-for="story in stories.data.value ?? []" :key="story.id" :value="story.id">
-            {{ story.reference }} · {{ story.title }}
-          </option>
-        </select>
-      </label>
-      <label class="flex flex-col gap-1">
-        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">Bloquee par</span>
-        <select
-          v-model="blockingStoryId"
-          class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
-        >
-          <option :value="null">A choisir</option>
-          <option v-for="story in stories.data.value ?? []" :key="story.id" :value="story.id">
-            {{ story.reference }} · {{ story.title }}
-          </option>
-        </select>
-      </label>
-      <button
-        type="submit"
-        :disabled="busy"
-        class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
-      >
-        Lier
-      </button>
-      <RouterLink
-        to="/story"
-        class="ml-auto rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase"
-        >Ajouter une story</RouterLink
-      >
-    </form>
-
-    <p v-if="refusal !== null" class="mt-3 text-xs text-red" role="alert">{{ refusal }}</p>
-
-    <div class="mt-6 min-h-0 flex-1">
+    <div class="min-h-0 flex-1">
       <ScreenState
         :pending="stories.pending.value"
         :failure="stories.failure.value"
@@ -128,11 +62,14 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
               }}</span>
             </header>
             <div class="flex flex-col gap-2 overflow-auto p-3">
-              <article
+              <button
                 v-for="story in byColumn.get(column.key) ?? []"
                 :key="story.id"
-                class="rounded-xl border bg-card p-3"
+                type="button"
+                :aria-label="`${story.reference} ${story.title}`"
+                class="w-full rounded-xl border bg-card p-3 text-left hover:border-acc"
                 :class="story.mergeConflict ? 'border-red' : 'border-line'"
+                @click="drawerId = story.id"
               >
                 <div class="flex items-center gap-2">
                   <span class="font-mono text-[10px] font-semibold text-acc">{{ story.reference }}</span>
@@ -140,13 +77,7 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
                     >{{ story.points }} pts</span
                   >
                 </div>
-                <button
-                  type="button"
-                  class="mt-1.5 block w-full text-left text-sm text-txt-hi hover:text-acc"
-                  @click="drawerId = story.id"
-                >
-                  {{ story.title }}
-                </button>
+                <span class="mt-1.5 block text-sm text-txt-hi">{{ story.title }}</span>
                 <p v-if="story.mergeConflict" class="mt-2 font-mono text-[10px] text-red uppercase">
                   Conflit de merge
                 </p>
@@ -167,7 +98,7 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
                   {{ story.usage.costUsd.toFixed(2) }} $ ·
                   {{ story.usage.inputTokens + story.usage.outputTokens }} jetons
                 </p>
-              </article>
+              </button>
             </div>
           </section>
         </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { countedOf } from '@/domain/Agent/SessionEnd'
 import { computed, onMounted, ref } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
@@ -64,7 +65,7 @@ onMounted(async () => {
   <div class="p-8">
     <div class="flex flex-wrap items-center gap-3">
       <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
-        {{ (stories.data.value ?? []).length }} stories · {{ chosen.size }} selectionnees
+        {{ countedOf((stories.data.value ?? []).length, 'story', 'stories') }} · {{ chosen.size }} {{ chosen.size > 1 ? 'selectionnees' : 'selectionnee' }}
       </p>
       <button
         type="button"
@@ -102,23 +103,29 @@ onMounted(async () => {
                 aria-hidden="true"
               />
               <span class="font-mono text-[11px] font-semibold text-acc">{{ story.reference }}</span>
-              <label class="ml-auto flex items-center gap-1.5 text-[10px] text-txt-low uppercase">
+              <label
+                class="ml-auto flex min-h-[32px] cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[10px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
+              >
                 <input
                   type="checkbox"
+                  class="h-[18px] w-[18px] accent-acc"
                   :checked="chosen.has(story.id)"
+                  :aria-label="`Prendre ${story.reference}`"
                   @change="toggle(story.id)"
                 />
                 Prendre
               </label>
             </div>
-            <h2 class="display-italic mt-2 text-base">{{ story.title }}</h2>
-            <p class="mt-2 line-clamp-3 text-xs text-txt-mid">{{ story.body }}</p>
+            <button type="button" class="mt-2 block w-full text-left" @click="toggle(story.id)">
+              <h2 class="display-italic text-base">{{ story.title }}</h2>
+              <p class="mt-2 line-clamp-3 text-xs text-txt-mid">{{ story.body }}</p>
+            </button>
             <div class="mt-3 flex items-center gap-3">
               <span class="font-mono text-[10px] text-txt-low">{{
                 epics.get(story.epicId)?.title ?? 'epique inconnue'
               }}</span>
               <RouterLink
-                :to="`/story/${story.id}`"
+                :to="`/atelier/${story.id}`"
                 class="ml-auto font-mono text-[10px] text-acc uppercase hover:underline"
                 >Ouvrir</RouterLink
               >
