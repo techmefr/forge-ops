@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { STATE_LABELS } from '@/domain/Story/Checkpoint'
 import { computed, onMounted, ref } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
@@ -70,7 +71,7 @@ onMounted(() => stories.reload())
           >
             <span class="font-mono text-[10px] text-acc">{{ story.reference }}</span>
             <span class="mt-1 block text-sm text-txt-hi">{{ story.title }}</span>
-            <span class="mt-1 block font-mono text-[10px] text-txt-low uppercase">{{ story.state }}</span>
+            <span class="mt-1 block font-mono text-[10px] text-txt-low uppercase">{{ STATE_LABELS[story.state] }}</span>
           </button>
         </div>
       </ScreenState>

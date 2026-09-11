@@ -45,7 +45,7 @@ function colourOf(percent: number | null): string {
 </script>
 
 <template>
-  <div class="flex items-center gap-3" role="group" aria-label="Etat de la machine">
+  <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5" role="group" aria-label="Etat de la machine">
     <p v-if="gauges.length === 0" class="font-mono text-[10px] text-txt-low uppercase">machine muette</p>
     <div v-for="gauge in gauges" :key="gauge.name" class="flex items-center gap-1.5">
       <span class="font-mono text-[9.5px] tracking-[0.14em] text-txt-low uppercase">{{ gauge.name }}</span>

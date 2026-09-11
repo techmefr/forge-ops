@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Ticket } from '@/domain/Board/BoardModel'
-import { CHECKPOINT_LABELS } from './Checkpoint'
+import { CHECKPOINT_LABELS, STATE_LABELS } from './Checkpoint'
 import { PART_LABELS, partOf, type StoryPart } from './StoryPart'
 import type { TicketPoint } from './TicketRequest'
 
@@ -39,7 +39,7 @@ const scoreColour = computed(() => {
       <div class="flex items-baseline gap-2">
         <span class="font-mono text-[11px] font-semibold text-acc">{{ shown.reference }}</span>
         <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">{{
-          shown.state
+          STATE_LABELS[shown.state]
         }}</span>
       </div>
 

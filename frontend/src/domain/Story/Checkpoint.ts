@@ -17,7 +17,7 @@ export const LENS_LABELS: Record<ReviewLens, string> = {
 
 export const STATE_LABELS: Record<StoryState, string> = {
   drafting: 'En ecriture',
-  backlog: 'Backlog',
+  backlog: 'Reserve',
   architecture: 'Architecture',
   plan_review: 'Plan a valider',
   building: 'Dev',

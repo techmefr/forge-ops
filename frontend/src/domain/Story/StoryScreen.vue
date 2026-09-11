@@ -13,7 +13,7 @@ import { storiesOfEpic } from './Batch'
 import { requestFor, type TicketPoint } from './TicketRequest'
 import { provisionalTitle } from './Slice'
 import IncidentScreen from '@/domain/Incident/IncidentScreen.vue'
-import type { Incident } from '@/domain/Board/BoardModel'
+import type { Incident, KanbanStory } from '@/domain/Board/BoardModel'
 
 const route = useRoute()
 const router = useRouter()
@@ -37,6 +37,11 @@ const refusal = ref<string | null>(null)
 const busy = ref(false)
 
 const desk = ref<'write' | 'reports'>('write')
+const running = useResource<readonly KanbanStory[]>(() => board.read('/api/board/kanban'))
+const blockingStoryId = ref<number | null>(null)
+const others = computed(() =>
+  (running.data.value ?? []).filter((story) => story.id !== openId.value),
+)
 const pending = useResource<readonly Incident[]>(() => board.read('/api/incidents?state=pending'))
 const reported = computed(() => (pending.data.value ?? []).length)
 
@@ -117,6 +122,19 @@ function sendTurn(): Promise<void> {
   })
 }
 
+function linkBlocker(): Promise<void> {
+  const storyId = openId.value
+  const blocking = blockingStoryId.value
+  if (storyId === null || blocking === null) {
+    return Promise.resolve()
+  }
+  return guard(async () => {
+    await board.send(`/api/stories/${storyId}/dependencies`, 'POST', { blockingStoryId: blocking })
+    blockingStoryId.value = null
+    await Promise.all([open(storyId), running.reload()])
+  })
+}
+
 function askClaude(point: TicketPoint): void {
   turn.value = requestFor(point)
 }
@@ -154,7 +172,7 @@ watch(
 
 
 onMounted(async () => {
-  await Promise.all([projects.reload(), pending.reload()])
+  await Promise.all([projects.reload(), pending.reload(), running.reload()])
 
   const id = route.params.id
   if (typeof id === 'string' && id !== '') {
@@ -191,9 +209,9 @@ onMounted(async () => {
 
   <div
     v-else
-    class="grid h-full min-h-0 grid-cols-[260px_minmax(0,1fr)_minmax(0,420px)] overflow-hidden"
+    class="grid min-h-0 flex-1 grid-cols-1 overflow-auto lg:h-full lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,400px)] lg:overflow-hidden"
   >
-    <section class="min-h-0 overflow-auto border-r border-line p-5">
+    <section class="min-h-0 border-b border-line p-5 lg:overflow-auto lg:border-r lg:border-b-0">
       <button
         type="button"
         class="rounded-lg border border-line bg-card px-3 py-2 font-mono text-[10px] font-bold text-txt-mid uppercase hover:border-acc"
@@ -243,7 +261,7 @@ onMounted(async () => {
       </template>
     </section>
 
-    <section class="flex min-h-0 min-w-0 flex-col border-r border-line p-6">
+    <section class="flex min-h-0 min-w-0 flex-col border-b border-line p-6 lg:border-r lg:border-b-0">
       <h2 class="display-italic text-lg">Ecrire avec Claude</h2>
       <p class="mt-1 text-xs text-txt-low">
         Claude part de l epique et ecrit la carte. Reponds-lui, elle se reecrit.
@@ -346,6 +364,36 @@ onMounted(async () => {
 
       <div class="mt-5 min-h-0 flex-1 overflow-auto">
         <StoryTicket :ticket="ticket.data.value" :part="part" @pick="askClaude" />
+
+        <form
+          v-if="part === 'functional' && ticket.data.value !== null"
+          class="mt-6 flex flex-col gap-2 rounded-2xl border border-line bg-card p-4"
+          @submit.prevent="linkBlocker"
+        >
+          <label
+            class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase"
+            for="blocker"
+          >
+            Cette story attend une autre
+          </label>
+          <select
+            id="blocker"
+            v-model="blockingStoryId"
+            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          >
+            <option :value="null">Rien ne la bloque</option>
+            <option v-for="story in others" :key="story.id" :value="story.id">
+              {{ story.reference }} · {{ story.title }}
+            </option>
+          </select>
+          <button
+            type="submit"
+            :disabled="busy || blockingStoryId === null"
+            class="self-start rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
+          >
+            Lier
+          </button>
+        </form>
 
         <form
           v-if="part === 'tests' && ticket.data.value?.tests === null"

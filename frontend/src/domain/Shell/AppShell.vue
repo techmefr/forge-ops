@@ -83,10 +83,10 @@ const heading = computed(() => {
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-deep text-txt-hi">
+  <div class="flex h-dvh overflow-hidden bg-deep text-txt-hi">
     <aside
       v-if="layout === 'rail'"
-      class="sticky top-0 flex h-screen w-[250px] flex-none flex-col border-r border-line bg-panel"
+      class="sticky top-0 hidden h-dvh w-[250px] flex-none flex-col border-r border-line bg-panel lg:flex"
     >
       <div class="border-b border-line px-5 pt-6 pb-4">
         <p class="display-italic text-2xl leading-none">Forge<span class="text-acc">.</span>ops</p>
@@ -143,8 +143,8 @@ const heading = computed(() => {
 
     <div class="flex min-w-0 min-h-0 flex-1 flex-col">
       <header
-        v-if="layout === 'tabs'"
-        class="flex flex-none items-stretch gap-6 overflow-x-auto border-b border-line bg-panel px-6"
+        class="flex-none items-stretch gap-6 overflow-x-auto border-b border-line bg-panel px-6"
+        :class="layout === 'tabs' ? 'flex' : 'flex lg:hidden'"
       >
         <div class="flex flex-none items-center gap-3 py-4">
           <p class="display-italic text-[22px] leading-none">Forge<span class="text-acc">.</span>ops</p>
