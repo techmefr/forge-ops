@@ -3,35 +3,35 @@ name: code-review-discipline
 description: Use during /REVIEW, when reading the full diff of a story through the quality, security and accessibility lenses, and when addressing review comments received afterwards.
 ---
 
-# Discipline de revue
+# Review discipline
 
-La review d'un agent ne remplace pas la validation humaine finale. Elle sert a arriver a cette validation avec le moins de bruit possible, et surtout sans defaut de correction restant.
+An agent's review does not replace the final human validation. It exists to reach that validation with as little noise as possible, and above all with no correctness defect left.
 
-## Trois lentilles, dans cet ordre
+## Three lenses, in this order
 
-La review se lit en cascade : qualite, puis securite, puis accessibilite. Chaque passe relit le diff entier avec sa propre lentille, sans reprendre les conclusions de la precedente — une passe qui se contente de dire "deja couvert plus haut" n'a pas eu lieu.
+The review is read as a cascade: quality, then security, then accessibility. Each pass rereads the whole diff with its own lens, without reusing the conclusions of the previous one — a pass that merely says "already covered above" did not happen.
 
-1. **Qualite** : correction d'abord. Le diff construit exactement ce que la story actait, ni plus ni moins. Puis reutilisation de ce qui existe deja, simplification, placement dans la bonne couche (`technical/` n'importe jamais `domain/`). Pas de valeur magique, pas de code mort, pas de commentaire.
-2. **Securite** : autorisation manquante, surface d'injection, secret expose, charge utile non validee a une frontiere.
-3. **Accessibilite** : semantique, navigation clavier, focus visible, contraste, libelle des controles icone. Sans interface touchee, la passe se conclut en une ligne — pas en silence.
+1. **Quality**: correctness first. The diff builds exactly what the story settled, no more, no less. Then reuse of what already exists, simplification, placement in the right layer (`technical/` never imports `domain/`). No magic value, no dead code, no comment.
+2. **Security**: missing authorization, injection surface, exposed secret, payload not validated at a boundary.
+3. **Accessibility**: semantics, keyboard navigation, visible focus, contrast, labels of icon controls. With no interface touched, the pass concludes in one line — not in silence.
 
-## Severite
+## Severity
 
-Un finding est `strong` ou `weak`, et ce choix n'est pas negociable apres coup.
+A finding is `strong` or `weak`, and that choice is not negotiable afterwards.
 
-- `strong` : la story ne peut pas partir en l'etat. Tout defaut de correction est `strong`.
-- `weak` : a savoir, ne bloque pas.
+- `strong`: the story cannot ship as it is. Any correctness defect is `strong`.
+- `weak`: worth knowing, does not block.
 
-Ne baisse jamais une severite pour debloquer une story. Le board refuse de prouver `reviewed` tant qu'un finding `strong` n'est pas resolu, et c'est le comportement voulu.
+Never lower a severity to unblock a story. The board refuses to prove `reviewed` as long as a `strong` finding is unresolved, and that is the intended behavior.
 
 ## Tests
 
-Une suite verte obtenue en desactivant, en affaiblissant ou en supprimant un test n'est pas une suite verte. Si un test a bouge pendant `/BUILD`, la review le regarde en premier.
+A green suite obtained by disabling, weakening or deleting a test is not a green suite. If a test moved during `/BUILD`, the review looks at it first.
 
-## Recevoir une revue humaine
+## Receiving a human review
 
-Un commentaire de revue merite une verification technique avant d'etre applique, pas un accord automatique. Si le commentaire semble incorrect ou repose sur une hypothese fausse, le dire explicitement plutot que d'appliquer un changement qu'on ne comprend pas.
+A review comment deserves a technical check before being applied, not an automatic agreement. If the comment looks incorrect or rests on a false assumption, say so explicitly rather than applying a change you do not understand.
 
-## Lien avec la sequence forge
+## Link with the forge-ops sequence
 
-`/REVIEW` vient apres `/VERIFY` et avant `/SHIP`. La synthese des trois passes s'ecrit dans `.claude/evidence/<REFERENCE>/reviewed.md` : findings par lentille, ce qui a ete corrige, ce qui reste en `weak` et pourquoi. C'est ce fichier que lit l'humain a la derniere porte.
+`/REVIEW` comes after `/VERIFY` and before `/SHIP`. The synthesis of the three passes is written in `.claude/evidence/<REFERENCE>/reviewed.md`: findings per lens, what was fixed, what stays `weak` and why. That file is what the human reads at the last gate.

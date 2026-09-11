@@ -1,113 +1,113 @@
-# Le ticket en deux volets et la plateforme distante
+# The two-panel ticket and the remote platform
 
-Conception du 2026-09-09. Seule la route du ticket est écrite à ce jour ; le reste de ce document fixe le découpage avant le code.
+Design of 2026-09-09. Only the ticket route is written to date; the rest of this document settles the breakdown before the code.
 
-## 1. Le ticket en deux volets
+## 1. The two-panel ticket
 
-Aujourd'hui la story fonctionnelle et sa jumelle de test sont deux lignes de la table `story`. C'est correct en base et faux à l'écran : ce sont **deux volets d'un même ticket**, pas deux cartes.
+Today the functional story and its test twin are two rows of the `story` table. That is correct in the database and wrong on screen: they are **two panels of a single ticket**, not two cards.
 
-- Le kanban n'affiche que les stories `functional`. La jumelle n'a jamais de carte propre — elle est déjà filtrée côté backlog.
-- Le ticket ouvert porte deux onglets : **Fonctionnel** et **Tests**. Même référence, `PS-1` et `PS-1-T`, un seul objet à l'écran.
-- Une seule route sert l'écran : `GET /api/stories/:id/ticket`, qui rend le volet fonctionnel, le volet test, la definition of done et la cascade de review. Les critères d'acceptation y manquent encore : la table existe, aucun dépôt ne l'écrit.
-- La route répond à l'identifiant de l'un ou de l'autre volet : demander le ticket par la référence de la jumelle rend le même objet. Le front n'a pas à savoir lequel des deux il tient.
+- The kanban displays only `functional` stories. The twin never has a card of its own — it is already filtered out on the backlog side.
+- The opened ticket carries two tabs: **Functional** and **Tests**. Same reference, `PS-1` and `PS-1-T`, a single object on screen.
+- A single route serves the screen: `GET /api/stories/:id/ticket`, which returns the functional panel, the test panel, the definition of done and the review cascade. Acceptance criteria are still missing from it: the table exists, no repository writes it.
+- The route answers to the identifier of either panel: asking for the ticket by the twin's reference returns the same object. The front end does not have to know which of the two it holds.
 
-## 2. L'écriture en deux temps
+## 2. Writing in two stages
 
-L'ordre est imposé et il est déjà la moitié du garde-fou : **on ne peut pas penser les tests avant que le périmètre soit écrit**.
+The order is imposed and it is already half the guardrail: **the tests cannot be thought through before the perimeter is written**.
 
-1. Le volet fonctionnel s'écrit d'abord. Tant qu'il n'est pas enregistré, l'onglet Tests est fermé.
-2. Le volet test s'écrit ensuite : ce qu'on veut valider, pas comment. C'est la réponse à « qu'est-ce qui prouve que c'est fait ».
-3. `spec_done` n'est prouvable qu'une fois les deux volets écrits. C'est la règle serveur existante (`TwinRequiredError`), elle prend ici son sens d'interface.
+1. The functional panel is written first. As long as it is not saved, the Tests tab is closed.
+2. The test panel is written next: what we want to validate, not how. It is the answer to "what proves this is done".
+3. `spec_done` is only provable once both panels are written. That is the existing server rule (`TwinRequiredError`); here it takes on its interface meaning.
 
-La suite ne change pas : architecture, plan à valider, TDD rouge, dev vert, QA, review en cascade, merge, flag, prod.
+The rest does not change: architecture, plan to validate, TDD red, dev green, QA, cascading review, merge, flag, production.
 
-## 3. L'intention est distante, l'exécution est locale
+## 3. The intent is remote, the execution is local
 
-Deux déploiements, deux responsabilités qui ne se recouvrent pas.
+Two deployments, two responsibilities that do not overlap.
 
-**Le hub, distant.** Le directeur y écrit les projets et les épiques, et les assigne. Il porte les comptes, les assignations et la boîte d'entrée des bugs. Il ne sait rien des sessions, des preuves ni des fichiers touchés.
+**The hub, remote.** The director writes the projects and epics there, and assigns them. It carries the accounts, the assignments and the bug inbox. It knows nothing of sessions, evidence or touched files.
 
-**Le board, local, un par poste.** Il tire ce qui lui est assigné, alimente son backlog, lance les sessions, écrit les checkpoints et garde les preuves sur le disque. Il ne rend au hub que l'avancement. Le Claude Code qui travaille est celui du poste : le hub ne lance jamais de session et n'a besoin d'aucune clé d'API.
+**The board, local, one per workstation.** It pulls what is assigned to it, feeds its backlog, launches the sessions, writes the checkpoints and keeps the evidence on disk. It reports back to the hub nothing but progress. The Claude Code doing the work is the workstation's own: the hub never launches a session and needs no API key.
 
-Ce que le hub sert au directeur, en lecture : où en est chaque ticket, et qui en est responsable. Rien d'autre — pas de code, pas de preuve, pas de session.
+What the hub serves the director, read-only: where each ticket stands, and who is responsible for it. Nothing else — no code, no evidence, no session.
 
-**Deux façons d'obtenir du travail, au choix.** Le directeur peut assigner une épique à quelqu'un ; à l'inverse une épique non assignée est prenable par qui veut. Même règle pour les incidents. Dans les deux cas la prise est enregistrée côté hub et exclusive : assigné ou pris, c'est le même verrou, seule l'initiative change.
+**Two ways to get work, either one.** The director can assign an epic to somebody; conversely an unassigned epic can be taken by whoever wants it. Same rule for incidents. In both cases the take is recorded on the hub side and is exclusive: assigned or taken, it is the same lock, only the initiative changes.
 
-| Objet | Vérité | Sens du flux |
+| Object | Truth | Direction of flow |
 |---|---|---|
-| Compte, projet, épique, assignation | Hub | hub → local |
-| Incident (bug, retour utilisateur) | Hub | hub → local |
-| Story, jumelle, critères | Local | local → hub (résumé) |
-| Checkpoint, preuve, fichier touché, session | Local uniquement | jamais remonté |
-| État de la story, pourcentage de rollout | Local | local → hub |
+| Account, project, epic, assignment | Hub | hub → local |
+| Incident (bug, user feedback) | Hub | hub → local |
+| Story, twin, criteria | Local | local → hub (summary) |
+| Checkpoint, evidence, touched file, session | Local only | never reported up |
+| Story state, rollout percentage | Local | local → hub |
 
-Conséquences à tenir :
+Consequences to hold to:
 
-- **Prise de portée exclusive.** Assignée ou prise, une épique a un responsable et un seul. Le hub enregistre qui et à quelle heure ; une épique déjà prise revient en lecture seule chez les autres. C'est la même classe de problème que les collisions de fichiers, résolue au même endroit : par un refus, pas par une alerte.
-- **Idempotence.** Chaque objet tiré porte son `origin` et son `origin_id`. Re-tirer ne duplique rien.
-- **Le hub ne voit pas les preuves.** Les fichiers `.claude/evidence/` restent locaux. Le hub apprend qu'une étape est prouvée, jamais son contenu — sinon la plateforme devient un dépôt de code par la petite porte.
-- **Le local fonctionne hors ligne.** Le hub tombe, les sessions continuent ; la remontée rattrape au retour.
+- **Exclusive scope taking.** Assigned or taken, an epic has one owner and only one. The hub records who and at what time; an epic already taken comes back read-only for the others. It is the same class of problem as file collisions, solved in the same place: by a refusal, not by an alert.
+- **Idempotence.** Every pulled object carries its `origin` and its `origin_id`. Pulling again duplicates nothing.
+- **The hub does not see the evidence.** The `.claude/evidence/` files stay local. The hub learns that a step is proven, never its content — otherwise the platform becomes a code repository through the back door.
+- **The local side works offline.** The hub goes down, the sessions carry on; the reporting catches up on return.
 
-## 4. Les bugs, en dehors du backlog
+## 4. Bugs, outside the backlog
 
-Un bug n'est pas une story, c'est une **entrée à trier**. Le hub porte une boîte d'entrée, et la source est interchangeable : Sentry, GlitchTip, un autre collecteur d'erreurs, un formulaire de retour utilisateur, la saisie manuelle. Chaque source se réduit à trois champs — une empreinte, un titre, une charge utile — et le tri ne connaît que ça. Sentry est la première branchée, pas la seule prévue.
+A bug is not a story, it is an **entry to triage**. The hub carries an inbox, and the source is interchangeable: Sentry, GlitchTip, another error collector, a user feedback form, manual entry. Every source reduces to three fields — a fingerprint, a title, a payload — and the triage knows nothing else. Sentry is the first one wired in, not the only one planned.
 
-Le cycle :
+The cycle:
 
-1. La source poste sur le hub. L'entrée arrive à l'état `nouveau`, groupée par empreinte pour ne pas créer cent tickets d'une même exception.
-2. Un humain **accepte ou refuse**. Rien ne devient une story sans cette validation — automatiser jusqu'à la story reviendrait à laisser Sentry remplir le backlog.
-3. Une entrée acceptée devient une story fonctionnelle dans le projet visé, prête à être tirée.
-4. Le volet Tests de cette story est le **test de non-régression** : le bug reproduit d'abord, rouge. C'est exactement le cycle TDD, l'entrée Sentry fournit le rouge.
-5. La story suit la séquence complète. Rien n'est raccourci parce que c'est un bug.
-6. Le merge met en prod **derrière un feature flag**, montée progressive. Le collecteur surveille la même empreinte : plus d'occurrence sur le périmètre activé, on monte ; ça réapparaît, on redescend à zéro sans redéployer.
+1. The source posts to the hub. The entry arrives in the `new` state, grouped by fingerprint so as not to create a hundred tickets from a single exception.
+2. A human **accepts or refuses**. Nothing becomes a story without that validation — automating all the way to the story would amount to letting Sentry fill the backlog.
+3. An accepted entry becomes a functional story in the target project, ready to be pulled.
+4. The Tests panel of that story is the **non-regression test**: the bug reproduced first, red. That is exactly the TDD cycle; the Sentry entry supplies the red.
+5. The story follows the full sequence. Nothing is cut short because it is a bug.
+6. The merge ships to production **behind a feature flag**, with a progressive ramp-up. The collector watches the same fingerprint: no more occurrences on the enabled perimeter, we ramp up; it reappears, we drop back to zero without redeploying.
 
-La boucle se ferme : l'erreur en prod devient un ticket, le ticket devient une session, la session revient en prod derrière un flag surveillé par la source qui a signalé l'erreur.
+The loop closes: the production error becomes a ticket, the ticket becomes a session, the session comes back to production behind a flag watched by the source that reported the error.
 
-## 5. Les sessions concurrentes
+## 5. Concurrent sessions
 
-Le point de départ de tout : **pendant que Claude travaille sur une story, on en prépare une autre**. Ce qui suppose trois choses que le board doit tenir.
+The starting point of everything: **while Claude works on one story, another is being prepared**. Which presupposes three things the board must hold.
 
-- **Une session par story**, lancée depuis la carte, pas depuis un terminal. L'Agent SDK la pilote, le board garde l'identifiant.
-- **Un nombre de sessions simultanées plafonné**, et le plafond n'est pas décoratif : au-delà, le lancement est refusé. Le critère est la ressource machine, pas l'envie.
-- **Aucune session ne bloque l'interface.** L'écriture d'une story pendant qu'une autre construit est le cas normal, pas l'exception.
+- **One session per story**, launched from the card, not from a terminal. The Agent SDK drives it, the board keeps the identifier.
+- **A capped number of simultaneous sessions**, and the cap is not decorative: beyond it, the launch is refused. The criterion is machine resources, not desire.
+- **No session blocks the interface.** Writing one story while another is building is the normal case, not the exception.
 
-Et un plafond de coût par story, qui **agit** au lieu d'avertir. Ce qu'il fait à la limite n'est pas décidé par le board : c'est un réglage de la personne, parmi trois conduites.
+And a cost ceiling per story, which **acts** instead of warning. What it does at the limit is not decided by the board: it is a person's setting, among three behaviors.
 
-| Conduite | Effet à la limite |
+| Behavior | Effect at the limit |
 |---|---|
-| `stop` | La session est tuée, la story passe en `escalated` avec sa raison |
-| `downgrade` | La session repart sur un modèle Claude moins cher et continue |
-| `reroute` | La session repart chez un autre fournisseur, par un routeur, et continue |
+| `stop` | The session is killed, the story moves to `escalated` with its reason |
+| `downgrade` | The session restarts on a cheaper Claude model and carries on |
+| `reroute` | The session restarts at another provider, through a router, and carries on |
 
-Aucune n'est le bon défaut pour tout le monde : `stop` protège une facture à l'usage, `downgrade` protège une fenêtre de forfait, `reroute` ne protège rien mais ne s'arrête jamais. Le choix vit dans les réglages du poste, et une story peut le surcharger — un correctif de production ne s'arrête pas parce qu'un plafond générique a été atteint.
+None is the right default for everyone: `stop` protects a pay-as-you-go bill, `downgrade` protects a plan window, `reroute` protects nothing but never stops. The choice lives in the workstation settings, and a story can override it — a production fix does not stop because a generic ceiling was reached.
 
-Ce qui n'est pas au choix : la limite s'applique. Les trois conduites font quelque chose ; aucune n'est « prévenir et continuer ».
+What is not a matter of choice: the limit applies. All three behaviors do something; none of them is "warn and carry on".
 
-## 6. Deux stacks, parce que la frontière est nette
+## 6. Two stacks, because the boundary is sharp
 
-Le board local reste **TypeScript sur Node + Hono + `better-sqlite3`**. Ce n'est pas négociable : c'est lui qui pilote les sessions, et l'Agent SDK n'existe qu'en TypeScript et en Python.
+The local board stays **TypeScript on Node + Hono + `better-sqlite3`**. That is not negotiable: it is the one driving the sessions, and the Agent SDK exists only in TypeScript and in Python.
 
-Le hub part sur **Laravel + `lomkit/laravel-rest-api`**. Il ne lance aucune session, n'a besoin d'aucune clé d'API, et n'est que du CRUD multi-utilisateurs avec authentification, permissions, assignations et webhooks — soit exactement ce que Laravel fait sans qu'on écrive quoi que ce soit. Socialite branche Entra ID sans écrire de couche OIDC, lomkit sert les projets, épiques et incidents avec leurs filtres sans endpoint sur mesure, et mentis sait relire du Laravel : le hub est dogfoodable, ce qu'un hub en TypeScript ne serait pas davantage.
+The hub goes with **Laravel + `lomkit/laravel-rest-api`**. It launches no session, needs no API key, and is nothing but multi-user CRUD with authentication, permissions, assignments and webhooks — that is, exactly what Laravel does without our writing anything at all. Socialite wires in Entra ID without writing an OIDC layer, lomkit serves the projects, epics and incidents with their filters with no bespoke endpoint, and mentis knows how to review Laravel: the hub is dogfoodable, which a hub in TypeScript would be no more than.
 
-Le prix à payer, assumé : deux chaînes d'outillage, deux déploiements, et un contrat HTTP à garder synchrone entre les deux. Ça tient parce que la frontière — l'intention contre l'exécution — ne bougera pas.
+The price to pay, accepted: two toolchains, two deployments, and an HTTP contract to keep in sync between the two. It holds because the boundary — intent against execution — will not move.
 
-OSDD des deux côtés, `technical/` et `domain/`, `technical/` n'important jamais `domain/`.
+OSDD on both sides, `technical/` and `domain/`, `technical/` never importing `domain/`.
 
-## 7. Ce que ça ajoute en base
+## 7. What this adds in the database
 
-Côté local, quatre changements :
+On the local side, four changes:
 
-- `epic` et `story` gagnent `origin` et `origin_id`.
-- `epic` gagne l'assignation tirée du hub, en lecture seule.
-- une table `incident` locale, miroir de ce qui a été tiré, pour tracer story → incident d'origine.
-- rien à `checkpoint`, `review_pass` ni `file_touch` : ils restent hors du hub.
+- `epic` and `story` gain `origin` and `origin_id`.
+- `epic` gains the assignment pulled from the hub, read-only.
+- a local `incident` table, mirroring what has been pulled, to trace story → originating incident.
+- nothing for `checkpoint`, `review_pass` or `file_touch`: they stay outside the hub.
 
-Côté hub, un schéma neuf et beaucoup plus petit : comptes, projets, épiques, assignations, incidents, prises de portée. Pas de checkpoints, pas de sessions, pas de preuves.
+On the hub side, a brand-new and much smaller schema: accounts, projects, epics, assignments, incidents, scope takes. No checkpoints, no sessions, no evidence.
 
-## 8. Tranché, et ce qui reste ouvert
+## 8. Settled, and what remains open
 
-- **Le transport.** Tirer par appel HTTP à la demande, ou abonnement SSE depuis le hub. L'appel à la demande suffit au départ et évite d'exposer le poste local.
-- **L'authentification.** Identifiant et mot de passe pour démarrer, puis SSO — Microsoft Entra ID en premier. Ce qui veut dire : l'identité est une table à part dès le premier jour, jamais une colonne sur le compte, et le mot de passe est un fournisseur d'identité parmi d'autres. Un jeton par poste pour le board local, émis par le hub et révocable, indépendamment du mode de connexion de l'humain.
-- **Le stockage du hub.** SQLite tant qu'il y a un directeur et une équipe ; Postgres dès qu'il y a plusieurs organisations.
-- **Le nom.** `starfleet` reste, `forge` est un nom de branche. Deux projets publics s'appellent déjà Forge.
-- **La licence.** MIT pour démarrer : elle nous laisse vendre. Elle laisse aussi un concurrent reprendre le produit tel quel — à rouvrir seulement si ça devient un enjeu.
+- **The transport.** Pulling by HTTP call on demand, or an SSE subscription from the hub. The on-demand call is enough to start with and avoids exposing the local workstation.
+- **Authentication.** Username and password to start, then SSO — Microsoft Entra ID first. Which means: identity is a separate table from day one, never a column on the account, and the password is one identity provider among others. One token per workstation for the local board, issued by the hub and revocable, independently of the human's sign-in mode.
+- **The hub's storage.** SQLite as long as there is one director and one team; Postgres as soon as there are several organizations.
+- **The name.** `forge-ops` stays, `main` is a branch name. Two public projects are already called Forge.
+- **The license.** MIT to start with: it leaves us free to sell. It also leaves a competitor free to take the product as it is — to be reopened only if that becomes an issue.

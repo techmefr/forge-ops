@@ -3,24 +3,24 @@ name: verification-before-shipping
 description: Use during /VERIFY and before /SHIP, or whenever about to claim work is complete, fixed, or passing — before committing or opening a merge request.
 ---
 
-# Verification avant livraison
+# Verification before shipping
 
-Ne jamais affirmer "ca marche" ou "les tests passent" sans avoir reellement fait tourner la commande et lu sa sortie. Une affirmation sans preuve est le point de depart des regressions silencieuses.
+Never claim "it works" or "the tests pass" without having actually run the command and read its output. A claim without proof is the starting point of silent regressions.
 
-## Ce qu'il faut avant d'affirmer
+## What is required before claiming
 
-1. La suite de tests complete a ete executee dans cette session, pas seulement supposee verte parce qu'elle l'etait avant les derniers changements.
-2. La sortie de la commande a ete lue en entier — un exit code non verifie n'est pas une preuve.
-3. Si un test a ete modifie ou supprime pour faire passer la suite, c'est signale explicitement, pas passe sous silence.
+1. The complete test suite was run in this session, not merely assumed green because it was green before the last changes.
+2. The output of the command was read in full — an unchecked exit code is not a proof.
+3. If a test was modified or deleted to make the suite pass, that is flagged explicitly, not passed over in silence.
 
-## Une suite verte ne prouve pas la story
+## A green suite does not prove the story
 
-Le vert prouve que le code fait ce que le test dit. Il ne prouve pas que la story marche. C'est pour ca que `/VERIFY` existe entre `/BUILD` et `/REVIEW` : parcourir le chemin decrit par la story pour de vrai, dans le navigateur pilote quand elle est visible, par un aller-retour reel sur l'API quand elle ne l'est pas. Les cas de refus se parcourent autant que le cas nominal.
+Green proves that the code does what the test says. It does not prove that the story works. That is why `/VERIFY` exists between `/BUILD` and `/REVIEW`: walking the path described by the story for real, in the driven browser when it is visible, through a real round trip on the API when it is not. The refusal cases are walked as much as the nominal case.
 
-## Regle d'or de forge
+## Golden rule of forge-ops
 
-**Une etape se prouve par un fichier, jamais par une affirmation.** Chaque checkpoint exige un `evidencePath` non vide, et le board refuse une etape hors sequence. Si tu n'as pas pu executer ce que tu devais observer, dis-le et arrete-toi — ne prouve pas une etape que tu n'as pas franchie.
+**A step is proven by a file, never by a claim.** Every checkpoint demands a non-empty `evidencePath`, and the board refuses a step out of sequence. If you could not run what you were supposed to observe, say so and stop — do not prove a step you did not cross.
 
-## Lien avec la sequence forge
+## Link with the forge-ops sequence
 
-`/VERIFY` ecrit `.claude/evidence/<REFERENCE>/verified.md` : ce qui a ete parcouru, ce qui a ete observe, les captures ou les reponses brutes collees. `/SHIP` relit ensuite la definition of done complete via `GET /api/stories/:id/dod` : si une seule des six etapes est a `proven: false`, il n'y a pas de livraison. La derniere porte reste humaine — la story attend en `shipping`, elle ne passe pas en `done` toute seule.
+`/VERIFY` writes `.claude/evidence/<REFERENCE>/verified.md`: what was walked through, what was observed, the captures or the raw responses pasted in. `/SHIP` then rereads the full definition of done through `GET /api/stories/:id/dod`: if a single one of the six steps is at `proven: false`, there is no shipping. The last gate stays human — the story waits in `shipping`, it does not move to `done` on its own.

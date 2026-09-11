@@ -1,49 +1,49 @@
-# Ce qui existe déjà, étape par étape
+# What already exists, step by step
 
-> Première passe. Le relevé exhaustif — environ 120 projets lus, licences vérifiées, mécanismes comparés — est dans [Landscape.md](Landscape.md), qui corrige et précise plusieurs conclusions ci-dessous.
+> First pass. The exhaustive survey — around 120 projects read, licenses checked, mechanisms compared — is in [Landscape.md](Landscape.md), which corrects and sharpens several of the conclusions below.
 
-Relevé du 2026-09-09. Question posée : pour chaque étape du pipeline, est-ce qu'un outil existant couvre le besoin mieux que du code écrit ici ?
+Survey of 2026-09-09. Question asked: for each step of the pipeline, does an existing tool cover the need better than code written here?
 
-Le paysage a explosé : la liste de référence `awesome-agent-orchestrators` recense plus de cent projets, répartis en agents parallèles (TUI et desktop), essaims multi-agents, boucles autonomes, runners déclenchés par ticket, et primitives d'infrastructure. La conséquence utile : **presque tout ce qui est plomberie est commoditisé, et presque rien ne couvre la story jumelée prouvée par fichier.**
+The landscape has exploded: the reference list `awesome-agent-orchestrators` counts more than a hundred projects, spread across parallel agents (TUI and desktop), multi-agent swarms, autonomous loops, ticket-triggered runners, and infrastructure primitives. The useful consequence: **almost everything that is plumbing is commoditized, and almost nothing covers the twinned story proven per file.**
 
-## Verdict par étape
+## Verdict per step
 
-| Étape | Ce qui existe | Décision |
+| Step | What exists | Decision |
 |---|---|---|
-| 1. Écriture de la story | Rien. Les projets proches (`cyrus`, `Contrabass`, `Open Session`, `sortie`) **consomment** un ticket depuis Linear/GitHub/Slack, aucun ne l'écrit, et aucun ne connaît la jumelle de test | **Construire.** C'est le différenciateur |
-| 2. Backlog et envoi groupé | Tous les boards le font, aucun ne porte la jumelle ni les dépendances | **Construire** (peu de code) |
-| 3. Architecture à valider | Le motif est validé ailleurs : `Dex` (planification sous porte humaine, review multi-relecteurs), `Fusion` (portes plan → review → exécution), `AGX` (checkpoints avec porte humaine entre cycles), `Ivy-Tendril` (cycle de vie par plan avec portes de vérification) | **Construire**, garder `arch_done`. Ivy-Tendril est en **FSL-1.1** : à lire, pas à dépendre |
-| 4. Kanban, worktrees, dépendances | Le segment le plus saturé : `Vibe Kanban` (Apache-2.0, 26,4k étoiles, **projet arrêté en avril 2026**, repris par la communauté), `claude-code-kanban`, `Kanban Code`, `nimbalyst`, `Ghostex`, `kandev`, `Ouijit`. Un worktree par tâche est un problème résolu | **Ne pas réécrire la plomberie worktree** : le daemon `claude agents` isole déjà sous `.claude/worktrees/`. Les **dépendances bloquantes entre cartes** ne sont couvertes par personne → construire |
-| 5. Vue fichiers et collisions | La vraie trouvaille. `Concord MCP` (**MIT**) fait des baux de réservation, la détection de collision d'édition et le passage de preuves de review avant la PR. `foremerge` fait de la coordination git avec déclaration d'intention et de portée. `Fletch` et `Tempest` partagent un index de symboles. `Zaivern` fait de la propriété ligne à ligne | **Fait** : la collision reste constatée après coup via `PostToolUse`, et un `PreToolUse` **refuse** désormais l'écriture hors du préfixe réservé par la story (`ScopeHook`), contre `scope_reservation`. La table `path_claim`, que personne n'écrivait, a été retirée du schéma |
-| 6. Test et review | Pilotage navigateur : Playwright MCP, le Browser pane, Claude in Chrome. Review en cascade : `loki-mode` (**BUSL-1.1**, review à trois relecteurs aveugles), `kodo` (vérificateur indépendant), `no_human` (**MIT**, review par un second modèle puis merge humain) | **Ne rien construire.** Piloter le navigateur avec l'outillage existant, et brancher les relecteurs mentis (qualité, sécurité, accessibilité) plutôt que d'écrire des relecteurs |
-| 7. Déploiement | File de merge : **GitHub merge queue** en natif, ou `gastown` (file façon Bors). Feature flags : **OpenFeature** + Unleash ou Flagsmith. Conflits : `agent-orchestrator` répare CI et conflits, `Aperant` a une boucle QA auto-validante | **Adopter.** Ne jamais écrire de moteur de feature flags ni de file de merge. Le board garde seulement l'alerte sur la carte |
-| 8. Ressources | Claude Code **émet déjà** coût et jetons par session en OpenTelemetry ; `~/.claude/jobs/<id>/state.json` porte `tokens`. `agent-squid` affiche une jauge de quota, `Claudexor` fait de la rotation selon le quota | **Consommer, pas collecter.** Nettoyage des conteneurs : `docker prune` derrière un hook de merge |
-| 9. Statistiques | Entièrement couvert : Claude Code → OTLP → Prometheus/Grafana, ou CloudWatch Coding Agent Insights. `aGiTrack` inscrit le coût en jetons dans le message de commit, `codecast` enregistre les sessions avec attribution | **Ne pas construire de base de stats.** Le board interroge la source existante |
+| 1. Story writing | Nothing. The closest projects (`cyrus`, `Contrabass`, `Open Session`, `sortie`) **consume** a ticket from Linear/GitHub/Slack, none writes one, and none knows about the test twin | **Build.** That is the differentiator |
+| 2. Backlog and batch dispatch | Every board does it, none carries the twin or the dependencies | **Build** (little code) |
+| 3. Architecture to validate | The pattern is validated elsewhere: `Dex` (planning under a human gate, multi-reviewer review), `Fusion` (plan → review → execution gates), `AGX` (checkpoints with a human gate between cycles), `Ivy-Tendril` (per-plan lifecycle with verification gates) | **Build**, keep `arch_done`. Ivy-Tendril is **FSL-1.1**: to read, not to depend on |
+| 4. Kanban, worktrees, dependencies | The most saturated segment: `Vibe Kanban` (Apache-2.0, 26.4k stars, **project stopped in April 2026**, taken over by the community), `claude-code-kanban`, `Kanban Code`, `nimbalyst`, `Ghostex`, `kandev`, `Ouijit`. One worktree per task is a solved problem | **Do not rewrite the worktree plumbing**: the `claude agents` daemon already isolates under `.claude/worktrees/`. **Blocking dependencies between cards** are covered by nobody → build |
+| 5. File view and collisions | The real find. `Concord MCP` (**MIT**) does reservation leases, edit collision detection and the passing of review evidence before the PR. `foremerge` does git coordination with declaration of intent and scope. `Fletch` and `Tempest` share a symbol index. `Zaivern` does line-by-line ownership | **Done**: the collision is still observed after the fact via `PostToolUse`, and a `PreToolUse` now **refuses** any write outside the prefix reserved by the story (`ScopeHook`), against `scope_reservation`. The `path_claim` table, which nobody was writing, has been removed from the schema |
+| 6. Test and review | Browser driving: Playwright MCP, the Browser pane, Claude in Chrome. Cascading review: `loki-mode` (**BUSL-1.1**, review by three blind reviewers), `kodo` (independent verifier), `no_human` (**MIT**, review by a second model then human merge) | **Build nothing.** Drive the browser with the existing tooling, and wire in the mentis reviewers (quality, security, accessibility) rather than writing reviewers |
+| 7. Deployment | Merge queue: **GitHub merge queue** natively, or `gastown` (a Bors-style queue). Feature flags: **OpenFeature** + Unleash or Flagsmith. Conflicts: `agent-orchestrator` repairs CI and conflicts, `Aperant` has a self-validating QA loop | **Adopt.** Never write a feature flag engine or a merge queue. The board keeps only the alert on the card |
+| 8. Resources | Claude Code **already emits** cost and tokens per session in OpenTelemetry; `~/.claude/jobs/<id>/state.json` carries `tokens`. `agent-squid` displays a quota gauge, `Claudexor` does rotation according to quota | **Consume, do not collect.** Container cleanup: `docker prune` behind a merge hook |
+| 9. Statistics | Entirely covered: Claude Code → OTLP → Prometheus/Grafana, or CloudWatch Coding Agent Insights. `aGiTrack` writes the token cost into the commit message, `codecast` records the sessions with attribution | **Do not build a stats database.** The board queries the existing source |
 
-## Pièges de licence
+## License traps
 
-Trois projets tentants interdisent le produit concurrent, ce qui les disqualifie comme dépendance si starfleet est vendu un jour :
+Three tempting projects forbid the competing product, which disqualifies them as a dependency if forge-ops is ever sold:
 
-- `amux` — MIT **+ Commons Clause** (revente commerciale interdite), et pilote les agents en grattant tmux
-- `Ivy-Tendril` — **FSL-1.1**, source-available, bascule en Apache-2.0 après deux ans
+- `amux` — MIT **+ Commons Clause** (commercial resale forbidden), and drives the agents by scraping tmux
+- `Ivy-Tendril` — **FSL-1.1**, source-available, switches to Apache-2.0 after two years
 - `loki-mode` — **BUSL-1.1**
 
-Sans risque : `Concord MCP` (MIT), `Vibe Kanban` (Apache-2.0), `no_human` (MIT), `intentic` (MIT).
+Risk-free: `Concord MCP` (MIT), `Vibe Kanban` (Apache-2.0), `no_human` (MIT), `intentic` (MIT).
 
-## Ce que ce relevé change
+## What this survey changes
 
-**Quatre choses à construire**, parce que personne ne les couvre : l'écriture de la story avec sa jumelle, la definition of done prouvée par fichier, le kanban qui connaît les dépendances bloquantes, et la vue fichiers par zones.
+**Four things to build**, because nobody covers them: writing the story with its twin, the definition of done proven per file, the kanban that knows blocking dependencies, and the file view by zones.
 
-**Quatre choses à ne plus prévoir de construire** : la plomberie worktree (le daemon la fait), le pilotage navigateur (Playwright et le Browser pane le font), les feature flags (OpenFeature), et la télémétrie coût/durée/jetons (OTel en natif).
+**Four things no longer to plan on building**: the worktree plumbing (the daemon does it), the browser driving (Playwright and the Browser pane do it), the feature flags (OpenFeature), and the cost/duration/token telemetry (OTel natively).
 
-**Une amélioration nette** : passer de la détection de collision à la réservation de portée refusée à l'écriture.
+**One clear improvement**: moving from collision detection to scope reservation refused at write time.
 
 ## Sources
 
 - [awesome-agent-orchestrators](https://github.com/andyrewlee/awesome-agent-orchestrators)
 - [Vibe Kanban](https://vibekanban.com/)
-- [Concord AI](https://getconcord.ai/) et [concord-mcp](https://github.com/Get-Concord-AI/concord-mcp)
+- [Concord AI](https://getconcord.ai/) and [concord-mcp](https://github.com/Get-Concord-AI/concord-mcp)
 - [Ivy-Tendril](https://github.com/Ivy-Interactive/Ivy-Tendril)
-- [Claude Code + OpenTelemetry, coût et jetons par session](https://bindplane.com/blog/claude-code-opentelemetry-per-session-cost-and-token-tracking)
+- [Claude Code + OpenTelemetry, per-session cost and token tracking](https://bindplane.com/blog/claude-code-opentelemetry-per-session-cost-and-token-tracking)
 - [Analyzing Claude Code usage with CloudWatch and OpenTelemetry](https://aws.amazon.com/blogs/mt/analyzing-claude-code-usage-with-cloudwatch-and-opentelemetry/)
 - [9 Open-Source Agent Orchestrators for AI Coding](https://www.augmentcode.com/tools/open-source-agent-orchestrators)

@@ -1,13 +1,13 @@
 ---
-description: Ecrire les tests de la story jumelle, et les voir echouer pour la bonne raison
+description: Write the tests of the twin story, and watch them fail for the right reason
 ---
 
-Etape 3 de la sequence forge. Prerequis : `arch_done` prouve (`GET /api/stories/:id/dod`). Si absent, arrete-toi et demande `/PLAN`. Skill locale associee : `test-driven-development`.
+Step 3 of the forge-ops sequence. Prerequisite: `arch_done` proven (`GET /api/stories/:id/dod`). If it is missing, stop and ask for `/PLAN`. Related local skill: `test-driven-development`.
 
-1. Lis la story de test jumelle. Elle enonce les cas ; c'est ici qu'ils deviennent du code.
-2. Ecris les tests avant toute implementation. Un test qui passe des sa premiere ecriture ne teste rien.
-3. Lance-les et **lis l'echec**. Un echec d'import ou de typage n'est pas un rouge valide : le rouge attendu est un comportement absent. Si le module n'existe pas encore, pose sa surface avec des signatures qui refusent, puis relance.
-4. Si les tests passent du premier coup, verifie la suite par mutation : casse volontairement la regle testee, verifie que le test tombe, puis reviens en arriere.
-5. Ecris dans `.claude/evidence/<REFERENCE>/tests.md` la liste des cas couverts et la sortie du run rouge, sous les sections `## Cas couverts` et `## Sortie du run` : la preuve est refusee si une section manque ou si le fichier ne porte pas de vraie prose.
-6. Prouve l'etape : `POST /api/stories/:id/checkpoints` avec `{"name":"tests_written","evidencePath":".claude/evidence/<REFERENCE>/tests.md"}`.
-7. Rappelle que l'etape suivante est `/BUILD`.
+1. Read the twin test story. It states the cases; this is where they become code.
+2. Write the tests before any implementation. A test that passes the moment it is written tests nothing.
+3. Run them and **read the failure**. An import or typing failure is not a valid red: the expected red is a missing behavior. If the module does not exist yet, lay down its surface with signatures that refuse, then run again.
+4. If the tests pass on the first try, check the suite by mutation: deliberately break the rule under test, check that the test falls, then revert.
+5. Write in `.claude/evidence/<REFERENCE>/tests.md` the list of cases covered and the output of the red run, under the sections `## Cases covered` and `## Run output`: the proof is refused if a section is missing or if the file carries no real prose.
+6. Prove the step: `POST /api/stories/:id/checkpoints` with `{"name":"tests_written","evidencePath":".claude/evidence/<REFERENCE>/tests.md"}`.
+7. State that the next step is `/BUILD`.

@@ -1,16 +1,16 @@
 ---
-description: Passer la story en cascade qualite, securite, accessibilite
+description: Put the story through the quality, security, accessibility cascade
 ---
 
-Etape 7 de la sequence forge. Prerequis : `verified` prouve (`GET /api/stories/:id/dod`). Si absent, arrete-toi et demande `/VERIFY`. Skill locale associee : `code-review-discipline`.
+Step 7 of the forge-ops sequence. Prerequisite: `verified` proven (`GET /api/stories/:id/dod`). If it is missing, stop and ask for `/VERIFY`. Related local skill: `code-review-discipline`.
 
-La review se fait en **cascade, dans cet ordre** : qualite, puis securite, puis accessibilite. Chaque passe lit le diff entier de la story, avec sa propre lentille, sans reprendre les conclusions de la precedente.
+The review runs as a **cascade, in this order**: quality, then security, then accessibility. Each pass reads the whole diff of the story, with its own lens, without reusing the conclusions of the previous one.
 
-1. Passe qualite (`lens: "quality"`) : correction d'abord, puis reutilisation, simplification, placement. Un defaut de correction est toujours `strong`.
-2. Passe securite (`lens: "security"`) : autorisation manquante, surface d'injection, secret expose, charge utile non validee a une frontiere.
-3. Passe accessibilite (`lens: "accessibility"`) : semantique, clavier, focus visible, contraste, libelles des controles icone. Sans interface touchee, la passe se conclut en une ligne.
-4. Enregistre chaque finding avec sa severite. `strong` = la story ne peut pas partir en l'etat. `weak` = a savoir, ne bloque pas.
-5. Un finding `strong` non resolu **empeche** de prouver `reviewed` : le board repond 409 `UnresolvedFindingError`. Corrige, puis marque le finding resolu — ne baisse pas sa severite pour passer.
-6. Ecris la synthese dans `.claude/evidence/<REFERENCE>/reviewed.md` : findings par lentille, ce qui a ete corrige, ce qui reste en `weak` et pourquoi, sous une section `## Findings` : la preuve est refusee si une section manque ou si le fichier ne porte pas de vraie prose.
-7. Prouve l'etape : `POST /api/stories/:id/checkpoints` avec `{"name":"reviewed","evidencePath":".claude/evidence/<REFERENCE>/reviewed.md"}`.
-8. Rappelle que l'etape suivante est `/SHIP`.
+1. Quality pass (`lens: "quality"`): correctness first, then reuse, simplification, placement. A correctness defect is always `strong`.
+2. Security pass (`lens: "security"`): missing authorization, injection surface, exposed secret, payload not validated at a boundary.
+3. Accessibility pass (`lens: "accessibility"`): semantics, keyboard, visible focus, contrast, labels of icon controls. With no interface touched, the pass concludes in one line.
+4. Record each finding with its severity. `strong` = the story cannot ship as it is. `weak` = worth knowing, does not block.
+5. An unresolved `strong` finding **prevents** proving `reviewed`: the board answers 409 `UnresolvedFindingError`. Fix it, then mark the finding resolved — do not lower its severity to get through.
+6. Write the synthesis in `.claude/evidence/<REFERENCE>/reviewed.md`: findings per lens, what was fixed, what stays `weak` and why, under a `## Findings` section: the proof is refused if a section is missing or if the file carries no real prose.
+7. Prove the step: `POST /api/stories/:id/checkpoints` with `{"name":"reviewed","evidencePath":".claude/evidence/<REFERENCE>/reviewed.md"}`.
+8. State that the next step is `/SHIP`.

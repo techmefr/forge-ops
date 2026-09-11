@@ -3,20 +3,20 @@ name: spec-clarification
 description: Use before or during /SPEC, or whenever scope, acceptance criteria, or what-is-out-of-scope is unclear before any code is written.
 ---
 
-# Clarification de specification
+# Specification clarification
 
-Avant toute ligne de code, le perimetre doit etre verrouille. Ne jamais sauter directement a l'implementation parce que la demande "semble simple".
+Before any line of code, the scope must be locked down. Never jump straight to the implementation because the request "looks simple".
 
-## Demarche
+## Method
 
-1. Reformule ce que tu comprends devoir construire, en une phrase.
-2. Identifie ce qui est ambigu : formats de donnees, cas limites, comportement attendu en cas d'erreur, ce qui doit rester hors scope.
-3. Pose des questions ciblees plutot que de deviner. Une question courte maintenant coute moins cher qu'un `/BUILD` refait a zero.
-4. Distingue explicitement ce qui est demande de ce qui pourrait etre ajoute "tant qu'on y est" — ce dernier point est hors scope sauf demande explicite.
-5. Une fois le perimetre clair, resume-le : ce qui sera construit, criteres d'acceptation, ce qui est exclu.
+1. Restate what you understand you must build, in one sentence.
+2. Identify what is ambiguous: data formats, edge cases, expected behavior on error, what must stay out of scope.
+3. Ask targeted questions instead of guessing. A short question now costs less than a `/BUILD` redone from scratch.
+4. Explicitly separate what is asked from what could be added "while we are at it" — that last part is out of scope unless explicitly requested.
+5. Once the scope is clear, summarize it: what will be built, acceptance criteria, what is excluded.
 
-## Lien avec la sequence forge
+## Link with the forge-ops sequence
 
-Ce resume devient `.claude/evidence/<REFERENCE>/spec.md`, la preuve du checkpoint `spec_done`. Le `/PLAN` qui suit doit rester strictement dans ce perimetre — toute derive constatee a `/PLAN` doit renvoyer a cette etape plutot que d'etre absorbee silencieusement.
+That summary becomes `.claude/evidence/<REFERENCE>/spec.md`, the proof of the `spec_done` checkpoint. The `/PLAN` that follows must stay strictly inside that scope — any drift noticed at `/PLAN` must send you back to this step rather than be absorbed silently.
 
-Le perimetre se decrit sur deux objets, pas un : la story fonctionnelle et sa story de test jumelle. Tant que la jumelle n'est pas ecrite, le board refuse `spec_done`.
+The scope is described on two objects, not one: the functional story and its twin test story. As long as the twin is not written, the board refuses `spec_done`.
