@@ -79,7 +79,7 @@ beforeEach(() => {
   const project = stories.createProject({
     slug: 'forge',
     name: 'Forge',
-    repositoryUrl: 'git@github.com:techmefr/starfleet.git',
+    repositoryUrl: 'git@github.com:techmefr/forge-ops.git',
     integrationBranch: 'forge',
     colour: '#ff3b00',
   })

@@ -94,7 +94,7 @@ beforeEach(() => {
       }),
     advanceReviewCascade: () =>
       Promise.resolve({ dispatched: null, reason: 'pas de cascade dans ce test' }),
-    claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
+    claudeHome: mkdtempSync(join(tmpdir(), 'forge-claude-home-')),
   })
 })
 

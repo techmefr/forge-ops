@@ -451,8 +451,8 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
     const written = stories.createProject({
       slug: project.slug,
       name: project.name,
-      repositoryUrl: `git@github.com:techmefr/${project.slug}.git`,
-      integrationBranch: project.slug === 'forge' ? 'forge' : 'main',
+      repositoryUrl: `git@github.com:techmefr/${project.slug === 'forge' ? 'forge-ops' : project.slug}.git`,
+      integrationBranch: 'main',
       colour: project.colour,
       checkoutPath: project.slug === 'forge' ? process.cwd() : null,
     })

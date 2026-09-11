@@ -34,7 +34,7 @@ beforeEach(() => {
   const project = stories.createProject({
     slug: 'forge',
     name: 'Forge',
-    repositoryUrl: 'git@github.com:techmefr/starfleet.git',
+    repositoryUrl: 'git@github.com:techmefr/forge-ops.git',
     integrationBranch: 'forge',
     colour: '#ff3b00',
   })
@@ -74,7 +74,7 @@ beforeEach(() => {
       concurrencyCap: 2,
       claudeCodeVersion: '2.1.224',
     }),
-    claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
+    claudeHome: mkdtempSync(join(tmpdir(), 'forge-claude-home-')),
     cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
     advanceReviewCascade: () =>
       Promise.resolve({ dispatched: null, reason: 'pas de cascade dans ce test' }),

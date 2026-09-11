@@ -37,7 +37,7 @@ beforeEach(() => {
       dispatch: () => Promise.reject(new Error('aucun lanceur dans ce test')),
       countRunning: () => 0,
     },
-    claudeHome: mkdtempSync(join(tmpdir(), 'starfleet-claude-home-')),
+    claudeHome: mkdtempSync(join(tmpdir(), 'forge-claude-home-')),
     cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
     advanceReviewCascade: () =>
       Promise.resolve({ dispatched: null, reason: 'pas de cascade dans ce test' }),
