@@ -110,13 +110,7 @@ describe("l'entree des hooks, avec son propre secret", () => {
     expect(response.status).toBe(401)
   })
 
-  it('accepts the hook token in the url, the only place the hook can carry it', async () => {
-    const response = await api.request(`/api/hooks?token=${HOOK_TOKEN}`, { method: 'POST' })
-
-    expect(response.status).toBe(202)
-  })
-
-  it('accepts the hook token in a header too', async () => {
+  it('accepts the hook token in a header', async () => {
     const response = await api.request('/api/hooks', {
       method: 'POST',
       headers: { 'x-forge-token': HOOK_TOKEN },
@@ -125,16 +119,34 @@ describe("l'entree des hooks, avec son propre secret", () => {
     expect(response.status).toBe(202)
   })
 
+  it('accepts the hook token as a bearer', async () => {
+    const response = await api.request('/api/hooks', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${HOOK_TOKEN}` },
+    })
+
+    expect(response.status).toBe(202)
+  })
+
+  it('refuses the right hook token when it comes in the url', async () => {
+    const response = await api.request(`/api/hooks?token=${HOOK_TOKEN}`, { method: 'POST' })
+
+    expect(response.status).toBe(401)
+  })
+
   it('refuses a wrong hook token', async () => {
-    const response = await api.request(`/api/hooks?token=${OTHER}`, { method: 'POST' })
+    const response = await api.request('/api/hooks', {
+      method: 'POST',
+      headers: { 'x-forge-token': OTHER },
+    })
 
     expect(response.status).toBe(401)
   })
 
   it('still refuses the hook intake when a browser page tries it', async () => {
-    const response = await api.request(`/api/hooks?token=${HOOK_TOKEN}`, {
+    const response = await api.request('/api/hooks', {
       method: 'POST',
-      headers: { origin: 'https://site-malveillant.example' },
+      headers: { 'x-forge-token': HOOK_TOKEN, origin: 'https://site-malveillant.example' },
     })
 
     expect(response.status).toBe(403)

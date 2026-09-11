@@ -61,8 +61,7 @@ export function createTokenGuard({
     const fromHeader = headerSecret(context.req.header('authorization'), context.req.header('x-forge-token'))
 
     if (context.req.path === HOOK_INTAKE_PATH) {
-      const offered = fromHeader ?? context.req.query('token') ?? null
-      if (offered === null || !sameSecret(offered, hookToken)) {
+      if (fromHeader === null || !sameSecret(fromHeader, hookToken)) {
         return context.json({ error: 'UnauthorizedHookIntake' }, 401)
       }
       await next()
