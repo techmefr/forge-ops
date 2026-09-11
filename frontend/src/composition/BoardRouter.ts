@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw, type Router, type RouterHistory } from 'vue-router'
-import { HOME_PATH } from './Screen.js'
+import { HOME_PATH } from '@/technical/Router/Screen.js'
 
 export const ROUTES: readonly RouteRecordRaw[] = [
   { path: '/', redirect: HOME_PATH },

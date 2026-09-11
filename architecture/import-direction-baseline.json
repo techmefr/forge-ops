@@ -19,15 +19,5 @@
   "backend/src/technical/Mutation/MutationRun.ts -> backend/src/domain/Mutation/Mutation.ts",
   "backend/src/technical/Mutation/MutationRun.ts -> backend/src/domain/Mutation/MutationOperator.ts",
   "backend/src/technical/RedProof/RedProofRun.ts -> backend/src/domain/RedProof/RedProof.ts",
-  "backend/src/technical/Tamper/TestTreeCensus.ts -> backend/src/domain/Tamper/TestCensus.ts",
-  "frontend/src/technical/Router/Router.ts -> frontend/src/domain/Access/LoginScreen.vue",
-  "frontend/src/technical/Router/Router.ts -> frontend/src/domain/Backlog/BacklogScreen.vue",
-  "frontend/src/technical/Router/Router.ts -> frontend/src/domain/Deployment/DeploymentScreen.vue",
-  "frontend/src/technical/Router/Router.ts -> frontend/src/domain/File/FileScreen.vue",
-  "frontend/src/technical/Router/Router.ts -> frontend/src/domain/Kanban/KanbanScreen.vue",
-  "frontend/src/technical/Router/Router.ts -> frontend/src/domain/Resource/ResourceScreen.vue",
-  "frontend/src/technical/Router/Router.ts -> frontend/src/domain/Setting/SettingScreen.vue",
-  "frontend/src/technical/Router/Router.ts -> frontend/src/domain/Statistic/StatisticScreen.vue",
-  "frontend/src/technical/Router/Router.ts -> frontend/src/domain/Story/StoryScreen.vue",
-  "frontend/src/technical/Router/Router.ts -> frontend/src/domain/View/ViewScreen.vue"
+  "backend/src/technical/Tamper/TestTreeCensus.ts -> backend/src/domain/Tamper/TestCensus.ts"
 ]
