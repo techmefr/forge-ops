@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
-import type { KanbanStory, MergeCleanup, Worktree } from '@/domain/Board/BoardModel'
+import type { KanbanStory, MergeCleanupReport, Worktree } from '@/domain/Board/BoardModel'
 import { STATE_LABELS } from '@/domain/Story/Checkpoint'
 
 const SHIPPING_STATES = ['building', 'gating', 'reviewing', 'shipping', 'flagged', 'done']
@@ -13,7 +13,7 @@ const worktrees = useResource<readonly Worktree[]>(() => board.read('/api/worktr
 const percents = ref<Map<number, number>>(new Map())
 const baseRef = ref('forge')
 const refusal = ref<string | null>(null)
-const lastCleanUp = ref<{ reference: string; cleanUp: MergeCleanup } | null>(null)
+const lastCleanUp = ref<{ reference: string; cleanUp: MergeCleanupReport } | null>(null)
 const busy = ref(false)
 
 const shipping = computed(() =>
@@ -57,7 +57,7 @@ function rollOut(story: KanbanStory): Promise<void> {
 
 function markDone(story: KanbanStory): Promise<void> {
   return guard(async () => {
-    const answer = await board.send<{ cleanUp: MergeCleanup }>(
+    const answer = await board.send<{ cleanUp: MergeCleanupReport }>(
       `/api/stories/${story.id}/done`,
       'POST',
     )

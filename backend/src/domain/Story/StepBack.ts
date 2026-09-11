@@ -8,17 +8,11 @@ import {
   StepBackReasonRequiredError,
 } from './StoryViolation.js'
 
-export const STEP_BACK_TARGETS = [
-  'backlog',
-  'architecture',
-  'plan_review',
-  'building',
-  'gating',
-  'reviewing',
-  'shipping',
-] as const
+export { STEP_BACK_TARGETS } from '../../../../contract/StoryContract.js'
+export type { StepBackRecord, StepBackTarget } from '../../../../contract/StoryContract.js'
 
-export type StepBackTarget = (typeof STEP_BACK_TARGETS)[number]
+import { STEP_BACK_TARGETS } from '../../../../contract/StoryContract.js'
+import type { StepBackTarget } from '../../../../contract/StoryContract.js'
 
 const PIPELINE: readonly StoryState[] = [...STEP_BACK_TARGETS, 'done']
 
@@ -44,16 +38,6 @@ export type StepBackDraft = {
   revokedCheckpoints: readonly CheckpointName[]
 }
 
-export type StepBackRecord = {
-  id: number
-  storyId: number
-  fromState: StoryState
-  toState: StoryState
-  reason: string
-  askedBy: string
-  revokedCheckpoints: readonly CheckpointName[]
-  steppedBackAt: string
-}
 
 export function assertHumanHand(hand: StepBackHand, decision: string): void {
   const named = hand.claudeSessionId ?? hand.agentName ?? null

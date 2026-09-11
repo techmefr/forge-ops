@@ -1,31 +1,16 @@
-export type StoryKind = 'functional' | 'test'
-
-export const STORY_STATE_SEQUENCE = [
-  'drafting',
-  'backlog',
-  'architecture',
-  'plan_review',
-  'building',
-  'gating',
-  'reviewing',
-  'shipping',
-  'flagged',
-  'done',
-  'escalated',
-] as const
-
-export type StoryState = (typeof STORY_STATE_SEQUENCE)[number]
-
-export type KanbanColumnKey = Extract<
+export { STORY_STATE_SEQUENCE } from '../../../../contract/StoryContract.js'
+export type {
+  Epic,
+  EpicOverview,
+  Project,
+  Story,
+  StoryKind,
   StoryState,
-  'architecture' | 'plan_review' | 'building' | 'gating' | 'reviewing' | 'shipping' | 'flagged' | 'done'
->
+} from '../../../../contract/StoryContract.js'
+export type { KanbanColumn, KanbanColumnKey } from '../../../../contract/BoardContract.js'
 
-export type KanbanColumn = {
-  key: KanbanColumnKey
-  label: string
-  colour: string
-}
+import type { Epic, Project, StoryState } from '../../../../contract/StoryContract.js'
+import type { KanbanColumn, KanbanColumnKey } from '../../../../contract/BoardContract.js'
 
 export const KANBAN_COLUMNS: readonly KanbanColumn[] = [
   { key: 'architecture', label: 'Plan', colour: 'info' },
@@ -41,43 +26,6 @@ export const KANBAN_COLUMNS: readonly KanbanColumn[] = [
 export function columnOfState(state: StoryState): KanbanColumnKey | null {
   const column = KANBAN_COLUMNS.find((candidate) => candidate.key === state)
   return column === undefined ? null : column.key
-}
-
-export type Project = {
-  id: number
-  slug: string
-  name: string
-  repositoryUrl: string
-  integrationBranch: string
-  colour: string
-  checkoutPath: string | null
-}
-
-export type Epic = {
-  id: number
-  projectId: number
-  title: string
-  businessIntent: string
-}
-
-export type EpicOverview = Epic & {
-  storyCount: number
-  assignee: string | null
-}
-
-export type Story = {
-  id: number
-  epicId: number
-  twinOfStoryId: number | null
-  reference: string
-  title: string
-  body: string
-  kind: StoryKind
-  state: StoryState
-  points: number | null
-  rolloutPercent: number | null
-  mergeConflict: boolean
-  escalationReason: string | null
 }
 
 export type ProjectDraft = Omit<Project, 'id' | 'checkoutPath'> & { checkoutPath?: string | null }

@@ -16,7 +16,7 @@ An agent coding on its own produces three classes of friction:
 - **A step is proven by a file, never by an assertion.** Every checkpoint requires an `evidence_path` (`NOT NULL` in the database) pointing at a file under `.claude/evidence/<REFERENCE>/`. No proof, no checkpoint.
 - **The sequence is ordered and the board enforces it.** A step crossed out of order, or twice, is refused with a 409. This is not a documented convention, it is a server-side refusal.
 - **A single source of truth.** One SQLite database in WAL mode, read by the API and by the board. No duplicated state to synchronize.
-- **The guardrail fails closed.** The `PreToolUse` hook blocks the command whenever it cannot decide — unreadable deny list, incomprehensible payload. The previous version failed open: deleting the script silently deleted all the protection.
+- **The guardrail fails closed.** One `PreToolUse` hook carries two refusals — the deny list on `Bash|PowerShell`, the scope guard on `Edit|Write` — and blocks whenever it cannot decide: unreadable deny list, incomprehensible payload. The previous version failed open: deleting the script silently deleted all the protection.
 - **File attribution comes from the hooks, not from a watcher.** Claude Code posts every `Edit`/`Write` to the API; the board knows which story touched which file and detects paths claimed by several stories.
 - **Determinism rather than allocation.** Port and subdomain derived from a hash of the branch name: the conflict class disappears at the source.
 - **The last gate is human.** No agent moves a story to `done`.
@@ -56,7 +56,8 @@ Eight steps, six checkpoints. `/PLAN` and `/CODE-SIMPLIFY` have no checkpoint of
 
 - `spec_done` is refused if the test twin does not exist, and refused if the story declares **no acceptance criterion**: with no criterion there is nothing to validate, hence nothing to block at merge.
 - `reviewed` is refused as long as an acceptance criterion is unsatisfied, and a criterion is satisfied only **against a proof** — the test that covers it. No checkbox.
-- `tests_written` must record a **behavioral** failure, not an import or setup error. A test that passes on its very first writing must be validated by mutation.
+- `tests_written` must record a **behavioral** failure, not an import or setup error.
+- `build_done` is refused as long as a mutation survives the suite (409 `MutationSurvivedError`): the board mutates the files the story touched and demands that the tests fall. A test that passes on its very first writing is validated there, not at `tests_written`.
 - `reviewed` is refused as long as a `strong` finding is unresolved (409 `UnresolvedFindingError`). Lowering the severity to get through is not a fix.
 - `/SHIP` rereads the full definition of done: a single step at `proven: false` and there is no delivery.
 - Two identical failures in a row during `/BUILD` are a stop signal, not an invitation to retry.
@@ -111,7 +112,7 @@ Return codes: `404` unknown story, `409` business refusal (sequence violation, m
 
 ## 6. Execution guardrail
 
-`.claude-deny.json` lists the commands that are never executed. The `PreToolUse` hook on `Bash|PowerShell` exits with code 2 along with its reason.
+`.claude-deny.json` lists the commands that are never executed. The `PreToolUse` hook exits with code 2 along with its reason. It carries two responsibilities from the same entry point: the deny list on `Bash|PowerShell`, and the scope guard that refuses a write outside the scope reserved by the story on `Edit|Write`.
 
 - It inspects the whole command **and every segment** separated by `&&`, `||`, `;`, `|` or a newline: `cd x && rm -rf y` no longer gets through.
 - It **fails closed**: unreadable payload, missing command, deny list not found → refusal.
@@ -205,10 +206,12 @@ FORGE_PORT=8899 npm run demo
 
 ## 9. Structure
 
-One folder per side, OSDD within each: `technical/` never depends on `domain/`. The hub, when it comes, will be a mode of `backend/`, not a third folder.
+One folder per side, OSDD within each: `technical/` never depends on `domain/`. The hub, when it comes, will be a mode of `backend/`, not a third folder. `contract/` sits beside them and depends on neither: it holds the shapes the API sends and the board reads, so the two sides cannot state the contract differently.
 
 ```
 db/forge.sql                          SQLite schema (WAL)
+
+contract/                             the wire contract, imported by both sides
 
 backend/src/forge.ts                  entrypoint
 backend/src/domain/Story/             story, twin, dependencies, backlog
@@ -216,7 +219,7 @@ backend/src/domain/Checkpoint/        the six steps and their proofs
 backend/src/domain/Criterion/         acceptance criteria, merge gate
 backend/src/domain/Agent/             agent sessions, touched files, conflicts
 backend/src/domain/Zone/              file zones and path attachment
-backend/src/domain/Dispatch/          phase contract, cap, startup
+backend/src/domain/Dispatch/          phase contract, command file, cap, startup
 backend/src/domain/Board/             the board's HTTP API
 backend/src/domain/Budget/            cost cap and conduct to follow
 backend/src/domain/Foremerge/         scope reservation and collisions

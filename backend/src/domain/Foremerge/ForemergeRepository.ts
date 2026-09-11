@@ -9,11 +9,9 @@ import {
   type ScopeCollision,
 } from './Scope.js'
 
-export type ScopeReservation = ScopeClaim & {
-  id: number
-  storyReference: string
-  reservedAt: string
-}
+export type { ScopeReservation } from '../../../../contract/WorkspaceContract.js'
+
+import type { ScopeReservation } from '../../../../contract/WorkspaceContract.js'
 
 export type ForemergeRepository = {
   reserve: (claim: ScopeClaim) => ScopeReservation

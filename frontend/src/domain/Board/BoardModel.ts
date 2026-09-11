@@ -1,380 +1,97 @@
-export type StoryKind = 'functional' | 'test'
+export {
+  AGENT_LIFECYCLE_SEQUENCE,
+  AGENT_PHASE_SEQUENCE,
+  OUTCOME_CLASSES,
+} from '@contract/AgentContract'
+export type {
+  AgentLifecycle,
+  AgentPhase,
+  OutcomeClass,
+} from '@contract/AgentContract'
 
-export const STORY_STATE_SEQUENCE = [
-  'drafting',
-  'backlog',
-  'architecture',
-  'plan_review',
-  'building',
-  'gating',
-  'reviewing',
-  'shipping',
-  'flagged',
-  'done',
-  'escalated',
-] as const
+export { CHECKPOINT_SEQUENCE, REVIEW_LENS_SEQUENCE } from '@contract/CheckpointContract'
+export type {
+  CheckpointName,
+  DefinitionOfDoneStep,
+  FindingSeverity,
+  ReviewFinding,
+  ReviewLens,
+  ReviewPass,
+  ReviewPassState,
+} from '@contract/CheckpointContract'
 
-export type StoryState = (typeof STORY_STATE_SEQUENCE)[number]
+export {
+  COMPLETENESS_FLOOR,
+  STEP_BACK_TARGETS,
+  STORY_STATE_SEQUENCE,
+} from '@contract/StoryContract'
+export type {
+  CompletenessVerdict,
+  Criterion,
+  Epic,
+  EpicOverview,
+  Project,
+  StepBackRecord,
+  StepBackTarget,
+  Story,
+  StoryKind,
+  StoryState,
+} from '@contract/StoryContract'
 
-export type KanbanColumn = {
-  key: StoryState
-  label: string
-  colour: string
-}
+export type {
+  Discussion,
+  KanbanColumn,
+  KanbanColumnKey,
+  KanbanStory,
+  RemarkVoice,
+  ReportFact,
+  ReportJudgement,
+  SessionUsage,
+  StoryHold,
+  StoryRemark,
+  StoryReport,
+  Ticket,
+} from '@contract/BoardContract'
 
-export type Project = {
-  id: number
-  slug: string
-  name: string
-  repositoryUrl: string
-  integrationBranch: string
-  colour: string
-}
+export type {
+  MergeCleanupReport,
+  PathConflict,
+  ScopeClaim,
+  ScopeCollision,
+  ScopeReservation,
+  Worktree,
+  Zone,
+  ZoneFile,
+  ZoneOverview,
+} from '@contract/WorkspaceContract'
 
-export type Epic = {
-  id: number
-  projectId: number
-  title: string
-  businessIntent: string
-}
+export type {
+  AgentTally,
+  BoardStatistics,
+  BudgetPolicy,
+  BudgetSettings,
+  CostCapConduct,
+  Fleet,
+  FleetJob,
+  Incident,
+  IncidentOrigin,
+  IncidentState,
+  MachineReading,
+  MachineSnapshot,
+  OriginKind,
+  OutcomeTally,
+  PhaseTally,
+  SessionHistoryEntry,
+} from '@contract/OperationContract'
 
-export type EpicOverview = Epic & {
-  assignee: string | null
-  storyCount: number
-}
-
-export type Story = {
-  id: number
-  epicId: number
-  twinOfStoryId: number | null
-  reference: string
-  title: string
-  body: string
-  kind: StoryKind
-  state: StoryState
-  points: number | null
-  rolloutPercent: number | null
-  mergeConflict: boolean
-  escalationReason: string | null
-}
-
-export type SessionUsage = {
-  costUsd: number
-  inputTokens: number
-  outputTokens: number
-}
-
-export type KanbanStory = Story & {
-  usage: SessionUsage
-  blockers: readonly string[]
-}
-
-export type Criterion = {
-  id: number
-  storyId: number
-  reference: string
-  statement: string
-  persona: string | null
-  expectsRefusal: boolean
-  evidencePath: string | null
-  satisfied: boolean
-}
-
-export const CHECKPOINT_SEQUENCE = [
-  'spec_done',
-  'arch_done',
-  'tests_written',
-  'build_done',
-  'verified',
-  'reviewed',
-] as const
-
-export type CheckpointName = (typeof CHECKPOINT_SEQUENCE)[number]
-
-export type DefinitionOfDoneStep = {
-  name: CheckpointName
-  proven: boolean
-  evidencePath: string | null
-}
-
-export const REVIEW_LENS_SEQUENCE = ['quality', 'security', 'accessibility'] as const
-
-export type ReviewLens = (typeof REVIEW_LENS_SEQUENCE)[number]
-
-export type ReviewPass = {
-  lens: ReviewLens
-  state: 'pending' | 'running' | 'passed'
-  agentName: string | null
-}
-
-export type ReviewFinding = {
-  id: number
-  storyId: number
-  lens: ReviewLens
-  severity: 'strong' | 'weak'
-  path: string
-  statement: string
-}
-
-export type Completeness = {
-  score: number
-  launchable: boolean
-  gaps: readonly string[]
-}
-
-export type Ticket = {
-  functional: Story
-  tests: Story | null
-  criteria: readonly Criterion[]
-  dod: readonly DefinitionOfDoneStep[]
-  cascade: readonly ReviewPass[]
-  blockers: readonly string[]
-  completeness: Completeness
-}
-
-export type Zone = {
-  id: number
-  projectId: number
-  pathPrefix: string
-  name: string
-  colour: string
-  summary: string | null
-}
-
-export type ZoneFile = {
-  path: string
-  storyReference: string
-  agentName: string | null
-}
-
-export type ZoneOverview = {
-  zone: Zone
-  files: readonly ZoneFile[]
-  storyCount: number
-}
-
-export type PathConflict = {
-  path: string
-  storyIds: readonly number[]
-}
-
-export type Worktree = {
-  id: number
-  storyId: number
-  storyReference: string
-  path: string
-  branch: string
-  baseRef: string
-  baseSha: string
-  port: number
-  subdomain: string
-  createdAt: string
-}
-
-export type MergeCleanup = {
-  scopesReleased: number
-  worktreeClosed: boolean
-  worktreeRefusal: string | null
-}
-
-export type ScopeReservation = {
-  id: number
-  storyId: number
-  storyReference: string
-  pathPrefix: string
-  symbols: readonly string[]
-  reservedAt: string
-}
-
-export type ScopeCollision = {
-  storyIds: readonly number[]
-  reason: string
-}
-
-export type CostCapConduct = 'stop' | 'downgrade' | 'reroute'
-
-export type BudgetPolicy = {
-  capUsd: number
-  conduct: CostCapConduct
-  downgradeModel: string
-  rerouteBaseUrl: string | null
-}
-
-export type BudgetSettings = {
-  policy: BudgetPolicy
-  spentUsd: number
-}
-
-export type IncidentOrigin = {
-  id: number
-  slug: string
-  name: string
-  kind: 'sentry' | 'user_report' | 'idea' | 'manual'
-}
-
-export type Incident = {
-  id: number
-  originId: number
-  fingerprint: string
-  title: string
-  detail: string
-  occurrences: number
-  state: 'pending' | 'accepted' | 'refused'
-  storyId: number | null
-  refusalReason: string | null
-}
-
-export const AGENT_PHASE_SEQUENCE = [
-  'spec',
-  'architecture',
-  'tdd',
-  'code',
-  'gate',
-  'review',
-  'ship',
-] as const
-
-export type AgentPhase = (typeof AGENT_PHASE_SEQUENCE)[number]
-
-export type SessionHistoryEntry = {
-  id: number
-  storyId: number
-  storyReference: string
-  phase: AgentPhase
-  agentName: string
-  lifecycle: string
-  outcome: string | null
-  costUsd: number | null
-  inputTokens: number | null
-  outputTokens: number | null
-  startedAt: string
-  endedAt: string | null
-  seconds: number | null
-}
-
-export type BoardStatistics = {
-  sessions: number
-  totalCostUsd: number
-  totalSeconds: number
-  agents: readonly { agentName: string; sessions: number; totalSeconds: number; totalCostUsd: number }[]
-  phases: readonly { phase: AgentPhase; sessions: number; totalSeconds: number }[]
-  outcomes: readonly { outcome: string; sessions: number }[]
-}
-
-export type FleetJob = {
-  id: string
-  state: string
-  cwd: string | null
-  sessionId: string | null
-  name: string | null
-  intent: string | null
-  tokens: number | null
-  cliVersion: string | null
-  updatedAt: string | null
-}
-
-export type Fleet = {
-  roster: { supervisorPid: number | null; updatedAt: number | null; workerCount: number } | null
-  jobs: readonly FleetJob[]
-}
-
-export type ReportFact =
-  | { kind: 'checkpoint'; statement: string; evidencePath: string }
-  | { kind: 'criterion'; statement: string; evidencePath: string }
-  | { kind: 'cost'; statement: string; costUsd: number; inputTokens: number; outputTokens: number }
-
-export type ReportJudgement =
-  | { kind: 'finding'; statement: string; lens: string; severity: string; path: string }
-  | { kind: 'criterion_unmet'; statement: string; reference: string }
-  | { kind: 'blocker'; statement: string; reference: string }
-
-export type StoryReport = {
-  facts: readonly ReportFact[]
-  judgements: readonly ReportJudgement[]
-}
-
-export type PilotPace = 'live' | 'slow' | 'step'
-
-export type PilotStepKind = 'goto' | 'click' | 'fill' | 'expectText' | 'screenshot'
-
-export type PilotStep = {
-  kind: PilotStepKind
-  target?: string
-  value?: string
-}
-
-export type PilotAct = {
-  id: number
-  position: number
-  kind: PilotStepKind
-  target: string | null
-  value: string | null
-  outcome: 'passed' | 'failed'
-  detail: string
-  screenshotPath: string | null
-  actedAt: string
-}
-
-export type PilotRun = {
-  id: number
-  storyId: number
-  storyReference: string
-  url: string
-  pace: PilotPace
-  state: 'running' | 'paused' | 'passed' | 'failed' | 'abandoned'
-  position: number
-  script: readonly PilotStep[]
-  acts: readonly PilotAct[]
-  startedAt: string
-  endedAt: string | null
-}
-
-export type PilotSight = {
-  detail: string
-  screenshotPath: string | null
-  consoleErrors: readonly string[]
-}
-
-export type MachineSnapshot = {
-  cpuPercent: number | null
-  memoryUsedMb: number | null
-  memoryFreeMb: number | null
-  diskPercent: number | null
-  loadAverage: number | null
-}
-
-export type MachineReading = {
-  available: boolean
-  reason: string | null
-  snapshot: MachineSnapshot | null
-}
-
-export type ParcoursSuggestion = {
-  url: string
-  script: readonly PilotStep[]
-  reason: string
-}
-
-export type RemarkVoice = 'human' | 'agent'
-
-export type StoryRemark = {
-  id: number
-  storyId: number
-  author: string
-  voice: RemarkVoice
-  body: string
-  writtenAt: string
-}
-
-export type StoryHold = {
-  id: number
-  storyId: number
-  reason: string
-  askedBy: string
-  raisedAt: string
-}
-
-export type Discussion = {
-  remarks: readonly StoryRemark[]
-  hold: StoryHold | null
-}
+export type {
+  ParcoursSuggestion,
+  PilotAct,
+  PilotObservation,
+  PilotOutcome,
+  PilotPace,
+  PilotRun,
+  PilotRunState,
+  PilotStep,
+  PilotStepKind,
+} from '@contract/PilotContract'
