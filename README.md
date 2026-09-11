@@ -167,10 +167,11 @@ npm run demo
 
 It does, in this order:
 
-1. **erases the previous demonstration database** (`forge-demo.db` and its `-wal`/`-shm` files) — a second run never restarts from a half-advanced state;
-2. **seeds the database** with the demonstration board (projects, stories, zones, sessions);
-3. **checks that the web bundle exists** in `dist/web` — the server serves `dist/` — and builds it if it is missing, saying so; if the build fails it stops with an error rather than serving an empty page;
-4. **starts the board** and prints the address to open.
+1. **creates a directory of its own for the run** and declares itself in demo mode — database, worktrees and screenshots all live inside that directory, and `FORGE_DB_PATH`, `FORGE_WORKTREE_ROOT` and `FORGE_SHOT_DIR` are never read, so a real board's variables cannot point the demo at a real database;
+2. **erases the previous demonstration database** (`forge-demo.db` and its `-wal`/`-shm` files) — a second run never restarts from a half-advanced state. The erasure only ever touches a database carrying the demo mark (`board_setting.demo_database`, written when the run opens its database); on anything else it refuses, says so, and deletes nothing;
+3. **seeds the database** with the demonstration board (projects, stories, zones, sessions);
+4. **checks that the web bundle exists** in `dist/web` — the server serves `dist/` — and builds it if it is missing, saying so; if the build fails it stops with an error rather than serving an empty page;
+5. **starts the board** and prints the address to open.
 
 Opening the printed address is enough: the page sets the `forge_token` cookie and the board opens. The token is also printed in the clear in the terminal, on its own line, so the API can be queried by hand with `Authorization: Bearer` — **it never appears in a URL**, not even in the one that is printed.
 
