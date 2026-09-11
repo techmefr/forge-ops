@@ -10,6 +10,7 @@ import { useTheme } from '@/technical/Theme/UseTheme'
 import { useNavigation } from '@/technical/Shell/UseNavigation'
 import { useFleet } from './UseFleet'
 import MachineBadge from '@/domain/Resource/MachineBadge.vue'
+import Glyph from '@/technical/Ui/Glyph.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -110,21 +111,35 @@ const heading = computed(() => {
           "
         >
           <span
-            class="min-w-[18px] font-mono text-[10px] font-semibold"
+            class="min-w-[12px] font-mono text-[10px] font-semibold"
             :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
             >{{ screen.digit }}</span
           >
+          <Glyph :name="screen.key" :size="15" />
           <span class="display-italic text-[14.5px]">{{ titleOf(screen) }}</span>
+        </RouterLink>
+
+        <RouterLink
+          to="/settings"
+          class="mt-1.5 flex items-center gap-3 rounded-[10px] px-3 py-[11px] transition-colors"
+          :class="
+            route.path === '/settings'
+              ? 'bg-acc-soft/15 text-txt-hi'
+              : 'text-txt-mid hover:bg-elev hover:text-txt-hi'
+          "
+        >
+          <span
+            class="min-w-[12px] font-mono text-[10px] font-semibold"
+            :class="route.path === '/settings' ? 'text-acc' : 'text-txt-low'"
+            >~</span
+          >
+          <Glyph name="settings" :size="15" />
+          <span class="display-italic text-[14.5px]">{{ say('settings') }}</span>
         </RouterLink>
       </nav>
 
       <div class="mt-auto flex flex-col gap-3 border-t border-line px-4 py-4">
         <MachineBadge />
-        <RouterLink
-          to="/settings"
-          class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase hover:text-acc"
-          >{{ say('settings') }}</RouterLink
-        >
         <p class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase">
           {{ say('agents') }}
         </p>
@@ -168,7 +183,30 @@ const heading = computed(() => {
               :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
               >{{ screen.digit }}</span
             >
-            <span class="display-italic text-sm whitespace-nowrap uppercase">{{ titleOf(screen) }}</span>
+            <span class="flex items-center gap-1.5 whitespace-nowrap">
+              <Glyph :name="screen.key" :size="14" />
+              <span class="display-italic text-sm uppercase">{{ titleOf(screen) }}</span>
+            </span>
+          </RouterLink>
+
+          <RouterLink
+            to="/settings"
+            class="flex flex-col justify-center gap-[3px] border-b-[3px] px-4 transition-colors"
+            :class="
+              route.path === '/settings'
+                ? 'border-acc text-txt-hi'
+                : 'border-transparent text-txt-mid hover:text-txt-hi'
+            "
+          >
+            <span
+              class="font-mono text-[9.5px]"
+              :class="route.path === '/settings' ? 'text-acc' : 'text-txt-low'"
+              >~</span
+            >
+            <span class="flex items-center gap-1.5 whitespace-nowrap">
+              <Glyph name="settings" :size="14" />
+              <span class="display-italic text-sm uppercase">{{ say('settings') }}</span>
+            </span>
           </RouterLink>
         </nav>
       </header>
@@ -187,11 +225,6 @@ const heading = computed(() => {
         <div class="ml-auto flex flex-wrap items-center gap-2">
           <template v-if="layout === 'tabs'">
             <MachineBadge />
-            <RouterLink
-              to="/settings"
-              class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase hover:text-acc"
-              >{{ say('settings') }}</RouterLink
-            >
             <span class="flex items-center gap-2 font-mono text-[10px] text-txt-low uppercase">
               <span
                 class="h-1.5 w-1.5 flex-none rounded-full"

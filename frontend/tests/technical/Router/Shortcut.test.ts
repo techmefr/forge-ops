@@ -11,6 +11,26 @@ function stroke(key: string, held: Partial<Stroke> = {}): Stroke {
   return { key, altKey: false, shiftKey: false, ctrlKey: false, metaKey: false, ...held }
 }
 
+describe('un clavier azerty, ou le chiffre demande la majuscule', () => {
+  it('accepte la touche physique du 3, meme quand elle ecrit un guillemet', () => {
+    expect(resolveStroke(stroke('"', { code: 'Digit3' }), ARMED)).toEqual({
+      path: '/forge',
+      phase: IDLE,
+    })
+  })
+
+  it('accepte aussi le pave numerique', () => {
+    expect(resolveStroke(stroke('3', { code: 'Numpad3' }), ARMED)).toEqual({
+      path: '/forge',
+      phase: IDLE,
+    })
+  })
+
+  it('ignore une touche qui n est ni chiffre ecrit ni chiffre physique', () => {
+    expect(resolveStroke(stroke('%', { code: 'KeyU' }), ARMED)).toEqual({ path: null, phase: IDLE })
+  })
+})
+
 describe('la touche de tete', () => {
   it('est le z, une lettre qu on ne double jamais en ecrivant', () => {
     expect(LEADER).toBe('z')

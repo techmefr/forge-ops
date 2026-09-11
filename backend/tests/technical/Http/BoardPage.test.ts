@@ -33,6 +33,12 @@ describe('createBoardPage', () => {
     await expect(response.json()).resolves.toEqual({ error: 'RouteNotFound' })
   })
 
+  it('forbids caching the page, so a rebuild is never served from yesterday', async () => {
+    const response = await page.request('/')
+
+    expect(response.headers.get('cache-control')).toBe('no-store')
+  })
+
   it('serves the board page', async () => {
     const response = await page.request('/')
 

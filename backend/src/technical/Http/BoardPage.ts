@@ -83,6 +83,7 @@ export function createBoardPage({ token, distDir }: BoardPageInput): Hono {
       sameSite: 'Strict',
     })
 
+    context.header('cache-control', 'no-store')
     return context.html(document.toString('utf-8'))
   })
 
