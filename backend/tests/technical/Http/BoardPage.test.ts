@@ -26,6 +26,13 @@ afterEach(() => {
 })
 
 describe('createBoardPage', () => {
+  it('refuses an unknown api route rather than handing back the page', async () => {
+    const response = await page.request('/api/nowhere')
+
+    expect(response.status).toBe(404)
+    await expect(response.json()).resolves.toEqual({ error: 'RouteNotFound' })
+  })
+
   it('serves the board page', async () => {
     const response = await page.request('/')
 

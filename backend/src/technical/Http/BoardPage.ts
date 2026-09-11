@@ -54,6 +54,8 @@ export function createBoardPage({ token, distDir }: BoardPageInput): Hono {
   const root = resolve(distDir)
   const page = new Hono()
 
+  page.all('/api/*', (context) => context.json({ error: 'RouteNotFound' }, 404))
+
   page.get('/*', (context) => {
     const requestedPath = context.req.path
     const extension = extname(requestedPath)
