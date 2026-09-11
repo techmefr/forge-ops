@@ -138,7 +138,6 @@ describe('acceptIncident', () => {
     try {
       incidents.acceptIncident(incident.id, epicId)
     } catch {
-      // le refus est le sujet du test precedent
     }
 
     expect(stories.listBacklog()).toHaveLength(0)

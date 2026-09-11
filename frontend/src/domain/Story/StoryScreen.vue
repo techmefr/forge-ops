@@ -8,7 +8,7 @@ import EpicBoard from './EpicBoard.vue'
 import { useTranscript } from '@/domain/Session/UseTranscript'
 import { useTicket } from './UseTicket'
 import StoryTicket from './StoryTicket.vue'
-import { PARTS, PART_LABELS, bothPartsWritten, partOf, type StoryPart } from './StoryPart'
+import { PARTS, PART_LABELS, bothPartsWritten, type StoryPart } from './StoryPart'
 import { storiesOfEpic } from './Batch'
 import { requestFor, type TicketPoint } from './TicketRequest'
 import { provisionalTitle } from './Slice'
@@ -49,7 +49,6 @@ const reported = computed(() => (pending.data.value ?? []).length)
 const listing = computed(() => queue.value.length === 0 && ticket.data.value === null)
 const openId = computed(() => ticket.data.value?.functional.id ?? null)
 const storiesOf = computed(() => (epicId: number) => storiesOfEpic(written.value, epicId))
-const shownPart = computed(() => partOf(ticket.data.value, part.value))
 const complete = computed(() => bothPartsWritten(ticket.data.value))
 
 async function startQueue(chosen: readonly number[]): Promise<void> {

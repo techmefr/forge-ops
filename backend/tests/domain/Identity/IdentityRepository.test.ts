@@ -62,7 +62,6 @@ describe('enrolUser', () => {
     try {
       identities.enrolUser({ login: 'x', displayName: 'X', password: 'court', role: 'architect' })
     } catch {
-      // le refus est le sujet du test precedent
     }
 
     expect(identities.countUsers()).toBe(0)
