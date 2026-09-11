@@ -83,13 +83,13 @@ describe('addDependency', () => {
 describe('listBlockers', () => {
   it('ne compte plus une story bloquante une fois qu elle est terminee', () => {
     link(0, 1)
-    stories.markDone(ids[1] ?? 0)
+    stories.markDoneAndUnblock(ids[1] ?? 0)
 
     expect(stories.listBlockers(ids[0] ?? 0)).toHaveLength(0)
   })
 })
 
-describe('markDone', () => {
+describe('markDoneAndUnblock', () => {
   it('rend debloquees les stories qui n attendaient plus que celle-la', () => {
     link(0, 1)
     link(2, 1)
