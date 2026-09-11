@@ -155,8 +155,35 @@ npm install
 npm run forge
 ```
 
+### Démo sur une machine neuve
+
+Une seule commande, depuis un clone frais :
+
+```bash
+npm install
+npm run demo
+```
+
+Elle fait, dans cet ordre :
+
+1. **efface la base de démonstration précédente** (`forge-demo.db` et ses fichiers `-wal`/`-shm`) — un second lancement ne repart jamais sur un état à moitié avancé ;
+2. **sème la base** avec le board de démonstration (projets, stories, zones, sessions) ;
+3. **vérifie que le bundle web existe** dans `dist/web` — le serveur sert `dist/` — et le compile s'il manque, en le disant ; si la compilation échoue elle s'arrête en erreur plutôt que de servir une page vide ;
+4. **démarre le board** et imprime l'adresse à ouvrir.
+
+Ouvrir l'adresse imprimée suffit : la page pose le cookie `forge_token` et le board s'ouvre. Le jeton est aussi imprimé en clair dans le terminal, sur sa propre ligne, pour interroger l'API à la main en `Authorization: Bearer` — **il ne figure jamais dans une URL**, ni dans celle qui est imprimée.
+
+La base de démonstration et `.forge-token` sont gitignorés : rien de tout cela ne part dans git.
+
+Pour choisir un autre port que `8830` (par exemple si un board tourne déjà) :
+
+```bash
+FORGE_PORT=8899 npm run demo
+```
+
 | Commande | Effet |
 |---|---|
+| `npm run demo` | Base de démonstration neuve, bundle web garanti, board démarré |
 | `npm run forge` | Démarre le board (schéma appliqué au démarrage) |
 | `npm run hook:install` | Écrit le hook avec son jeton dans `.claude/settings.local.json` |
 | `npm test` | Suite complète (vitest) |
