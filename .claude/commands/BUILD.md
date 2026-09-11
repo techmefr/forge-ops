@@ -1,15 +1,15 @@
 ---
-description: Construire par increments jusqu au vert, jamais tout d un coup
+description: Build in increments up to green, never everything at once
 ---
 
-Etape 4 de la sequence forge. Prerequis : `tests_written` prouve (`GET /api/stories/:id/dod`). Si absent, arrete-toi et demande `/TEST`. Skills locales associees : `test-driven-development`, `systematic-debugging`.
+Step 4 of the forge-ops sequence. Prerequisite: `tests_written` proven (`GET /api/stories/:id/dod`). If it is missing, stop and ask for `/TEST`. Related local skills: `test-driven-development`, `systematic-debugging`.
 
-1. Construis par increments atomiques, un element du plan a la fois, en restant dans les chemins annonces a `/PLAN`.
-2. Ecris le minimum de code qui fait passer le test courant. Pas d'anticipation de fonctionnalites non demandees.
-3. Le garde-fou deny (`.claude-deny.json`, applique par le hook `PreToolUse`) refuse les commandes destructrices avant execution. Il echoue ferme : si sa liste devient illisible, il bloque au lieu de laisser passer. Une commande refusee ne se contourne pas, elle se reformule.
-4. Le board recoit les fichiers que tu edites via le hook `PostToolUse` et les attribue a la story. Tu n'as rien a declarer.
-5. Si le meme echec se repete a l'identique, ne relance pas en boucle : diagnostique la cause avec `systematic-debugging`. Deux echecs identiques d'affilee sont un signal d'arret, remonte a l'humain plutot que d'insister.
-6. Termine avec la suite entiere verte et le typage propre, pas seulement les tests du fichier touche.
-7. Ecris dans `.claude/evidence/<REFERENCE>/build.md` ce qui a ete construit et la sortie du run vert, sous les sections `## Ce qui a ete construit` et `## Sortie du run` : la preuve est refusee si une section manque ou si le fichier ne porte pas de vraie prose.
-8. Prouve l'etape : `POST /api/stories/:id/checkpoints` avec `{"name":"build_done","evidencePath":".claude/evidence/<REFERENCE>/build.md"}`.
-9. Rappelle que l'etape suivante est `/CODE-SIMPLIFY`.
+1. Build in atomic increments, one element of the plan at a time, staying inside the paths announced at `/PLAN`.
+2. Write the minimum code that makes the current test pass. No anticipation of features nobody asked for.
+3. The deny guardrail (`.claude-deny.json`, applied by the `PreToolUse` hook) refuses destructive commands before execution. It fails closed: if its list becomes unreadable, it blocks instead of letting things through. A refused command is not worked around, it is rephrased.
+4. The board receives the files you edit through the `PostToolUse` hook and attributes them to the story. You have nothing to declare.
+5. If the same failure repeats identically, do not run in a loop: diagnose the cause with `systematic-debugging`. Two identical failures in a row are a stop signal, escalate to the human instead of insisting.
+6. Finish with the whole suite green and the typing clean, not only the tests of the file you touched.
+7. Write in `.claude/evidence/<REFERENCE>/build.md` what was built and the output of the green run, under the sections `## What was built` and `## Run output`: the proof is refused if a section is missing or if the file carries no real prose.
+8. Prove the step: `POST /api/stories/:id/checkpoints` with `{"name":"build_done","evidencePath":".claude/evidence/<REFERENCE>/build.md"}`.
+9. State that the next step is `/CODE-SIMPLIFY`.

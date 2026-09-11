@@ -1,15 +1,15 @@
 ---
-description: Nettoyer le code de la story sans changer son comportement
+description: Clean up the code of the story without changing its behavior
 ---
 
-Etape 5 de la sequence forge. Prerequis : `build_done` prouve (`GET /api/stories/:id/dod`). Si absent, arrete-toi et demande `/BUILD`.
+Step 5 of the forge-ops sequence. Prerequisite: `build_done` proven (`GET /api/stories/:id/dod`). If it is missing, stop and ask for `/BUILD`.
 
-Les tests verts sont ton filet : ils autorisent le refactor, ils en fixent aussi la limite. Cette etape ne porte aucun checkpoint, elle ne prouve rien de nouveau — elle protege ce qui est deja prouve.
+Green tests are your safety net: they authorize the refactor, they also set its limit. This step carries no checkpoint, it proves nothing new — it protects what is already proven.
 
-1. Relis le diff de la story comme un lecteur qui ne l'a pas ecrit.
-2. Aplatis l'imbrication, renomme ce qui est vague, resserre les types, supprime le code mort et les commentaires de bruit. Pas de commentaires dans le code livre.
-3. Cherche la duplication introduite pendant `/BUILD` et ce qui existait deja ailleurs : reutiliser avant de creer.
-4. Verifie le placement : `technical/` ne depend jamais de `domain/`. Un module metier place dans `technical/` se deplace maintenant, pas apres.
-5. Relance la suite entiere apres chaque simplification. Si un test tombe, la simplification a change le comportement : reviens en arriere.
-6. Si tu decouvres un vrai defaut de correction, ne le corrige pas par un refactor : signale-le et traite-le comme un bug.
-7. Rappelle que l'etape suivante est `/VERIFY`.
+1. Reread the diff of the story like a reader who did not write it.
+2. Flatten the nesting, rename what is vague, tighten the types, delete dead code and noise comments. No comments in the delivered code.
+3. Look for duplication introduced during `/BUILD` and for what already existed elsewhere: reuse before creating.
+4. Check the placement: `technical/` never depends on `domain/`. A business module placed in `technical/` moves now, not later.
+5. Rerun the whole suite after each simplification. If a test falls, the simplification changed the behavior: revert.
+6. If you discover a real correctness defect, do not fix it through a refactor: flag it and handle it as a bug.
+7. State that the next step is `/VERIFY`.
