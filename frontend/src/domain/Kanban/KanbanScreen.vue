@@ -47,7 +47,7 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
         empty-key="kanban.empty"
         @retry="stories.reload()"
       >
-        <div class="flex h-full gap-4 overflow-x-auto pb-4">
+        <div class="flex h-full gap-4 overflow-x-auto pb-4" data-tour="kanban-columns">
           <section
             v-for="column in columns.data.value ?? []"
             :key="column.key"
@@ -70,6 +70,7 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
                 :key="story.id"
                 type="button"
                 :aria-label="`${story.reference} ${story.title}`"
+                data-tour="kanban-card"
                 class="w-full rounded-xl border bg-card p-3 text-left hover:border-acc"
                 :class="story.mergeConflict ? 'border-red' : 'border-line'"
                 @click="drawerId = story.id"

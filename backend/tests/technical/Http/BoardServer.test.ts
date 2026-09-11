@@ -6,6 +6,7 @@ import {
   defaultBoardServerInput,
   startBoardServer,
   type BoardServer,
+  type EnvironmentMode,
 } from '../../../src/composition/BoardServer.js'
 import { deriveHookToken } from '../../../src/technical/Auth/BoardToken.js'
 
@@ -18,7 +19,9 @@ afterEach(async () => {
   rmSync(claudeHome, { recursive: true, force: true })
 })
 
-async function boot(): Promise<{ board: BoardServer; token: string }> {
+async function boot(
+  environmentMode: EnvironmentMode = 'real',
+): Promise<{ board: BoardServer; token: string }> {
   claudeHome = mkdtempSync(join(tmpdir(), 'forge-claude-home-'))
   const tokenPath = join(claudeHome, '.forge-token')
   const distDir = join(claudeHome, 'dist')
@@ -37,6 +40,7 @@ async function boot(): Promise<{ board: BoardServer; token: string }> {
     tokenPath,
     testsDir: join(claudeHome, 'tests'),
     mode: 'local',
+    environmentMode,
     distDir,
   })
   return { board: started, token: readFileSync(tokenPath, 'utf-8').trim() }
@@ -79,6 +83,29 @@ describe('startBoardServer', () => {
     })
 
     expect(response.status).toBe(403)
+  })
+
+  it('tells a demo board apart from a real one on the mode route', async () => {
+    const booted = await boot('demo')
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/board/mode`, {
+      headers: { authorization: `Bearer ${booted.token}` },
+    })
+
+    await expect(response.json()).resolves.toEqual({ mode: 'local', environment: 'demo' })
+  })
+
+  it('declares a real environment unless the demo runner says otherwise', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/board/mode`, {
+      headers: { authorization: `Bearer ${booted.token}` },
+    })
+
+    await expect(response.json()).resolves.toEqual({ mode: 'local', environment: 'real' })
+    expect(defaultBoardServerInput().environmentMode).toBe('real')
   })
 
   it('binds the loopback interface by default, never every interface', () => {

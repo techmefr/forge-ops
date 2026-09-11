@@ -195,3 +195,29 @@ body {
 .hljs-strong {
   font-weight: 700;
 }
+
+.tour-spot {
+  position: relative;
+  outline: 3px dashed var(--forge-acc);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.tour-spot::after {
+  content: attr(data-tour-spot);
+  position: absolute;
+  top: -12px;
+  left: 8px;
+  z-index: 30;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--forge-acc);
+  background: var(--forge-panel);
+  color: var(--forge-acc);
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
