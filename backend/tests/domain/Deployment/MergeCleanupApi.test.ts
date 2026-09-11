@@ -51,6 +51,7 @@ beforeEach(() => {
   foremerge = createForemergeRepository(db, { stories })
   worktrees = createWorktreeRepository(db, {
     stories,
+    isPortFree: () => true,
     git: {
       headSha: () => 'sha',
       addWorktree: () => undefined,

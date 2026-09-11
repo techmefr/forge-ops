@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { createLiveSessions } from '../../../src/technical/ClaudeCode/LiveSessions.js'
+import {
+  createLiveSessions,
+  SessionAlreadyAdoptedError,
+} from '../../../src/technical/ClaudeCode/LiveSessions.js'
 
 describe('createLiveSessions', () => {
   it('does not expose a session that has no identifier yet', () => {
@@ -60,5 +63,35 @@ describe('createLiveSessions', () => {
     live.closeAll()
 
     expect([first.channel.open, second.channel.open, live.find('sess-1')]).toEqual([false, false, null])
+  })
+})
+
+describe('adoption', () => {
+  it('refuses to steal a channel already adopted under the same identifier', () => {
+    const live = createLiveSessions<string>()
+    live.start().adopt('session-1')
+
+    expect(() => live.start().adopt('session-1')).toThrow(SessionAlreadyAdoptedError)
+  })
+
+  it('lets an identifier be adopted again once its channel is closed', () => {
+    const live = createLiveSessions<string>()
+    const first = live.start()
+    first.adopt('session-1')
+    first.channel.close()
+
+    const second = live.start()
+    second.adopt('session-1')
+
+    expect(live.find('session-1')).toBe(second.channel)
+  })
+
+  it('drops a channel that closed on its own instead of holding it forever', () => {
+    const live = createLiveSessions<string>()
+    const started = live.start()
+    started.adopt('session-1')
+    started.channel.close()
+
+    expect(live.size).toBe(0)
   })
 })

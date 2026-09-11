@@ -66,7 +66,12 @@ beforeEach(() => {
   })
   first = stories.writeStory({ epicId: epic.id, title: 'visualiser les mails', body: 'en tant que' }).id
   second = stories.writeStory({ epicId: epic.id, title: 'supprimer les mails', body: 'en tant que' }).id
-  worktrees = createWorktreeRepository(db, { stories, git: fakeGit(), root: '/tmp/forge-worktrees' })
+  worktrees = createWorktreeRepository(db, {
+    stories,
+    git: fakeGit(),
+    root: '/tmp/forge-worktrees',
+    isPortFree: () => true,
+  })
 })
 
 describe('open', () => {
@@ -273,5 +278,22 @@ describe('findForStory', () => {
     worktrees.close(first)
 
     expect(worktrees.findForStory(first)).toBeNull()
+  })
+})
+
+describe('port reservation', () => {
+  it('skips a port that a third-party process already holds', () => {
+    const taken = new Set<number>()
+    const probing = createWorktreeRepository(db, {
+      stories,
+      git: fakeGit(),
+      root: '/tmp/forge-worktrees',
+      isPortFree: (port) => !taken.has(port),
+    })
+    const wanted = probing.open({ storyId: first, baseRef: 'forge' }).port
+    probing.close(first, { force: true })
+    taken.add(wanted)
+
+    expect(probing.open({ storyId: first, baseRef: 'forge' }).port).not.toBe(wanted)
   })
 })

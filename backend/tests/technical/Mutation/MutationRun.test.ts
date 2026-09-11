@@ -26,7 +26,7 @@ afterEach(() => {
 
 describe('runMutationCheck', () => {
   it('kills a mutation when the tests fail', () => {
-    const outcomes = runMutationCheck({ paths: [target], runTests: () => 'failed' })
+    const outcomes = runMutationCheck({ root, paths: [target], runTests: () => 'failed' })
 
     expect(outcomes).toHaveLength(1)
     expect(outcomes[0]?.killed).toBe(true)
@@ -34,7 +34,7 @@ describe('runMutationCheck', () => {
   })
 
   it('reports a survivor when the tests stay green', () => {
-    const outcomes = runMutationCheck({ paths: [target], runTests: () => 'passed' })
+    const outcomes = runMutationCheck({ root, paths: [target], runTests: () => 'passed' })
 
     expect(outcomes[0]?.killed).toBe(false)
   })
@@ -42,6 +42,7 @@ describe('runMutationCheck', () => {
   it('runs the tests against the mutated source', () => {
     const seen: string[] = []
     runMutationCheck({
+      root,
       paths: [target],
       runTests: () => {
         seen.push(readFileSync(target, 'utf-8'))
@@ -53,7 +54,7 @@ describe('runMutationCheck', () => {
   })
 
   it('restores every mutated source once the run is over', () => {
-    runMutationCheck({ paths: [target], runTests: () => 'failed' })
+    runMutationCheck({ root, paths: [target], runTests: () => 'failed' })
 
     expect(readFileSync(target, 'utf-8')).toBe(SOURCE)
   })
@@ -61,6 +62,7 @@ describe('runMutationCheck', () => {
   it('restores the source when the test run throws', () => {
     expect(() =>
       runMutationCheck({
+        root,
         paths: [target],
         runTests: () => {
           throw new Error('the suite blew up')
@@ -74,6 +76,7 @@ describe('runMutationCheck', () => {
     let mutatedBeforeExit = ''
     let restoredByExitHandler = false
     runMutationCheck({
+      root,
       paths: [target],
       runTests: () => {
         mutatedBeforeExit = readFileSync(target, 'utf-8')
@@ -96,6 +99,7 @@ describe('runMutationCheck', () => {
         `import { spawnSync } from 'node:child_process'`,
         `import { runMutationCheck } from ${JSON.stringify(runModule)}`,
         `runMutationCheck({`,
+        `  root: ${JSON.stringify(root)},`,
         `  paths: [${JSON.stringify(target)}],`,
         `  runTests: () => {`,
         `    console.log('mutated')`,
@@ -131,11 +135,11 @@ describe('runMutationCheck', () => {
   it('stops once the run cap is reached', () => {
     writeFileSync(target, 'const a = true\nconst b = true\nconst c = true\n')
 
-    expect(runMutationCheck({ paths: [target], runTests: () => 'failed', runCap: 2 })).toHaveLength(2)
+    expect(runMutationCheck({ root, paths: [target], runTests: () => 'failed', runCap: 2 })).toHaveLength(2)
   })
 
   it('ignores a path it cannot read', () => {
-    expect(runMutationCheck({ paths: [join(root, 'absent.ts')], runTests: () => 'failed' })).toEqual([])
+    expect(runMutationCheck({ root, paths: [join(root, 'absent.ts')], runTests: () => 'failed' })).toEqual([])
   })
 })
 
@@ -156,5 +160,19 @@ describe('createCommandTestRunner', () => {
     const runTests = createCommandTestRunner({ command: 'sleep 5', cwd: root, timeoutMs: 200 })
 
     expect(runTests()).toBe('failed')
+  })
+})
+
+describe('runMutationCheck confinement', () => {
+  it('never writes a file sitting outside the root it was given', () => {
+    const outside = mkdtempSync(join(tmpdir(), 'forge-outside-'))
+    const stranger = join(outside, 'Stranger.ts')
+    writeFileSync(stranger, SOURCE)
+
+    const outcomes = runMutationCheck({ root, paths: [stranger], runTests: () => 'passed' })
+
+    expect(outcomes).toEqual([])
+    expect(readFileSync(stranger, 'utf-8')).toBe(SOURCE)
+    rmSync(outside, { recursive: true, force: true })
   })
 })

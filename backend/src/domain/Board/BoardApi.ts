@@ -11,7 +11,7 @@ import {
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
 import { reapStaleSessions, STALE_AFTER_SECONDS } from '../Agent/Heartbeat.js'
-import { assertTouchedPath, TouchedPathRefusedError } from '../Agent/TouchedPath.js'
+import { TouchedPathRefusedError } from '../Agent/TouchedPath.js'
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
 import { CHECKPOINT_SEQUENCE, REVIEW_LENS_SEQUENCE } from '../Checkpoint/Checkpoint.js'
 import { CheckpointViolationError } from '../Checkpoint/CheckpointViolation.js'
@@ -522,15 +522,14 @@ export function createBoardApi({
 
     let touched: string
     try {
-      touched = assertTouchedPath(path)
+      touched = agentSessions.recordFileTouch({ claudeSessionId: hook.session_id, path })
     } catch (error) {
       if (error instanceof TouchedPathRefusedError) {
-        return context.json({ error: 'InvalidHookPayload', reason: error.message }, 422)
+        return context.json({ error: 'TouchedPathRefused', reason: error.message }, 422)
       }
       throw error
     }
 
-    agentSessions.recordFileTouch({ claudeSessionId: hook.session_id, path: touched })
     const zone = zones.zoneOfPath(touched)
     if (zone !== null) {
       zones.summariseZone(zone.pathPrefix, describeZone(zones.overviewOfZone(zone.pathPrefix)))

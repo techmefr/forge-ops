@@ -1,3 +1,5 @@
+import { isAbsolute, relative, resolve, sep } from 'node:path'
+
 const MAX_PATH_LENGTH = 4096
 
 const BACKSLASH = String.fromCharCode(92)
@@ -12,7 +14,38 @@ export class TouchedPathRefusedError extends Error {
   }
 }
 
-export function assertTouchedPath(path: string): string {
+function slashed(path: string): string {
+  return path.split(sep).join('/')
+}
+
+function withoutNoise(path: string, asked: string): string {
+  const kept: string[] = []
+  for (const segment of path.split('/')) {
+    if (segment === '' || segment === '.') {
+      continue
+    }
+    if (segment === '..') {
+      if (kept.pop() === undefined) {
+        throw new TouchedPathRefusedError(asked, 'il remonte au-dessus de la racine')
+      }
+      continue
+    }
+    kept.push(segment)
+  }
+  return kept.join('/')
+}
+
+function relativeToARoot(full: string, roots: readonly string[], asked: string): string {
+  for (const root of roots) {
+    const inside = relative(resolve(root), full)
+    if (inside !== '' && !inside.startsWith('..') && !inside.startsWith(`${sep}..`) && !isAbsolute(inside)) {
+      return slashed(inside)
+    }
+  }
+  throw new TouchedPathRefusedError(asked, `il sort des racines autorisees : ${roots.join(', ')}`)
+}
+
+export function assertTouchedPath(path: string, roots: readonly string[]): string {
   const trimmed = path.trim()
 
   if (trimmed === '') {
@@ -25,23 +58,14 @@ export function assertTouchedPath(path: string): string {
     throw new TouchedPathRefusedError(path, `il depasse ${MAX_PATH_LENGTH} caracteres`)
   }
 
-  const slashed = trimmed.split(BACKSLASH).join('/')
-  const kept: string[] = []
-  for (const segment of slashed.split('/')) {
-    if (segment === '' || segment === '.') {
-      continue
-    }
-    if (segment === '..') {
-      if (kept.pop() === undefined) {
-        throw new TouchedPathRefusedError(path, 'il remonte au-dessus de la racine')
-      }
-      continue
-    }
-    kept.push(segment)
-  }
-  if (kept.length === 0) {
+  const unified = trimmed.split(BACKSLASH).join('/')
+  const kept = isAbsolute(trimmed)
+    ? relativeToARoot(resolve(trimmed), roots, path)
+    : withoutNoise(unified, path)
+
+  if (kept === '') {
     throw new TouchedPathRefusedError(path, 'il ne designe aucun fichier')
   }
 
-  return slashed.startsWith('/') ? `/${kept.join('/')}` : kept.join('/')
+  return kept
 }

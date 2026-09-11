@@ -41,6 +41,7 @@ import { createEventBus } from './EventBus.js'
 import { createBoardPage } from './BoardPage.js'
 import { createSdkSessionRunner, createSdkSessionTalker } from '../ClaudeCode/SdkSessionRunner.js'
 import { createLiveSessions } from '../ClaudeCode/LiveSessions.js'
+import { probePortSync } from '../Network/PortProbe.js'
 import { createDiscussionApi } from '../../domain/Discussion/DiscussionApi.js'
 import { createDiscussionRepository } from '../../domain/Discussion/DiscussionRepository.js'
 import type { SdkUserTurn } from '../ClaudeCode/TurnDelivery.js'
@@ -142,7 +143,9 @@ export function startBoardServer({
     checkoutRoots: [...checkoutRoots, resolve(worktreeRoot)],
   })
   const readEvidence = createEvidenceFileReader({ root: process.cwd() })
-  const sessions = createAgentSessionRepository(db)
+  const sessions = createAgentSessionRepository(db, {
+    touchRoots: [process.cwd(), resolve(worktreeRoot)],
+  })
   const abandoned = sessions.abandonRunningSessions()
   if (abandoned > 0) {
     console.log(`${abandoned} session${abandoned > 1 ? 's' : ''} orpheline${abandoned > 1 ? 's' : ''} liberee${abandoned > 1 ? 's' : ''}`)
@@ -181,6 +184,7 @@ export function startBoardServer({
     surveyMutations: (paths: readonly string[]) =>
       runMutationCheck({
         paths,
+        root: process.cwd(),
         runTests: createCommandTestRunner({
           command: process.env.FORGE_MUTATION_TEST_COMMAND ?? DEFAULT_MUTATION_TEST_COMMAND,
           cwd: process.cwd(),
@@ -191,6 +195,7 @@ export function startBoardServer({
     stories,
     git: createGitWorktree({ repositoryRoot: process.cwd() }),
     root: worktreeRoot,
+    isPortFree: probePortSync,
   })
   const dispatcher = createDispatcher({
     database: db,

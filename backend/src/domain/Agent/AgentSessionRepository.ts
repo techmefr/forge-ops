@@ -56,7 +56,7 @@ export type AgentSessionRepository = {
   carryUsage: (claudeSessionId: string) => void
   abandonRunningSessions: () => number
   sumUsage: (storyId: number) => SessionUsage
-  recordFileTouch: (draft: FileTouchDraft) => void
+  recordFileTouch: (draft: FileTouchDraft) => string
   listTouchedPaths: (storyId: number) => readonly string[]
   listConflictingPaths: () => readonly PathConflict[]
 }
@@ -74,7 +74,14 @@ function toAgentSession(row: AgentSessionRow): AgentSession {
   }
 }
 
-export function createAgentSessionRepository(db: Database.Database): AgentSessionRepository {
+export type AgentSessionRepositoryOptions = {
+  touchRoots?: readonly string[]
+}
+
+export function createAgentSessionRepository(
+  db: Database.Database,
+  { touchRoots = [process.cwd()] }: AgentSessionRepositoryOptions = {},
+): AgentSessionRepository {
   const selectStory = db.prepare<[number], { id: number }>('SELECT id FROM story WHERE id = ?')
   const insertSession = db.prepare<[number, string, AgentPhase, string, string]>(
     `INSERT INTO agent_session (story_id, claude_session_id, phase, agent_name, claude_code_version)
@@ -223,7 +230,9 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
 
     recordFileTouch: (draft) => {
       const session = requireSession(draft.claudeSessionId)
-      insertFileTouch.run(session.storyId, session.id, assertTouchedPath(draft.path))
+      const touched = assertTouchedPath(draft.path, touchRoots)
+      insertFileTouch.run(session.storyId, session.id, touched)
+      return touched
     },
 
     listTouchedPaths: (storyId) => selectTouchedPaths.all(storyId).map((row) => row.path),
