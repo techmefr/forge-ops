@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type Database from 'better-sqlite3'
-import type { Hono } from 'hono'
+import { Hono } from 'hono'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { createStoryRepository } from '../../../src/domain/Story/StoryRepository.js'
@@ -11,6 +11,8 @@ import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 let db: Database.Database
 let api: Hono
 let storyId: number
+let epicId: number
+let stories: ReturnType<typeof createStoryRepository>
 let said: SpokenTurn[]
 let hungUp: string[]
 let living: boolean
@@ -26,7 +28,7 @@ function talk(id: number, body: unknown): Promise<Response> {
 
 beforeEach(() => {
   db = openDatabase(':memory:')
-  const stories = createStoryRepository(db)
+  stories = createStoryRepository(db)
   const sessions = createAgentSessionRepository(db)
   const events = createEventBus()
   said = []
@@ -48,6 +50,7 @@ beforeEach(() => {
     title: 'CRUD Mail',
     businessIntent: 'Gerer les mails',
   })
+  epicId = epic.id
   storyId = stories.writeStory({ epicId: epic.id, title: 'un titre', body: 'un corps' }).id
   api = createConversationApi({
     stories,
@@ -257,5 +260,62 @@ describe('talking to a conversation that is over', () => {
     const response = await talk(storyId, { message: 'tu es la ?' })
 
     await expect(response.json()).resolves.toMatchObject({ reference: 'FORGE-1' })
+  })
+})
+
+describe('whose hand may talk', () => {
+  function signedAs(login: string): void {
+    const signed = new Hono()
+    signed.use('*', async (context, next) => {
+      context.set('login', login)
+      await next()
+    })
+    signed.route('/', api)
+    api = signed
+  }
+
+  it('refuses a turn from an operator the epic does not belong to', async () => {
+    openSession()
+    stories.claimEpic(epicId, 'frodo')
+    signedAs('gollum')
+
+    const response = await talk(storyId, { message: 'parle du filtre' })
+
+    expect(response.status).toBe(409)
+    await expect(response.json()).resolves.toMatchObject({ error: 'StoryNotYoursError' })
+    expect(said).toEqual([])
+  })
+
+  it('lets the operator the epic belongs to talk', async () => {
+    openSession()
+    stories.claimEpic(epicId, 'frodo')
+    signedAs('frodo')
+
+    const response = await talk(storyId, { message: 'parle du filtre' })
+
+    expect(response.status).toBe(202)
+    expect(said).toHaveLength(1)
+  })
+
+  it('leaves an unclaimed epic open to whoever holds the board', async () => {
+    openSession()
+
+    const response = await talk(storyId, { message: 'parle du filtre' })
+
+    expect(response.status).toBe(202)
+  })
+
+  it('refuses a hang up from an operator the epic does not belong to', async () => {
+    openSession()
+    stories.claimEpic(epicId, 'frodo')
+    signedAs('gollum')
+
+    const response = (await api.request(`/api/stories/${storyId}/talk`, {
+      method: 'DELETE',
+    })) as Response
+
+    expect(response.status).toBe(409)
+    await expect(response.json()).resolves.toMatchObject({ error: 'StoryNotYoursError' })
+    expect(hungUp).toEqual([])
   })
 })

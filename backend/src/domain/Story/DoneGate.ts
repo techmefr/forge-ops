@@ -2,7 +2,7 @@ import type { DefinitionOfDoneStep, ReviewFinding, ReviewPass } from '../Checkpo
 import { nextLensOf } from '../Checkpoint/ReviewCascade.js'
 import { STEP_BACK_TARGETS } from './StepBack.js'
 import type { StoryState } from './Story.js'
-import { DoneNotEarnedError, StoryNotYoursError } from './StoryViolation.js'
+import { DoneNotEarnedError } from './StoryViolation.js'
 
 type LastOf<T extends readonly unknown[]> = T extends readonly [...unknown[], infer Last] ? Last : never
 
@@ -44,8 +44,3 @@ export function assertDoneEarned(reference: string, readiness: DoneReadiness): v
   }
 }
 
-export function assertStoryHand(reference: string, assignee: string | null, operator: string): void {
-  if (assignee !== null && assignee !== operator) {
-    throw new StoryNotYoursError(reference, assignee)
-  }
-}

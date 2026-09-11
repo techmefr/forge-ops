@@ -3,7 +3,9 @@ import { z } from 'zod'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
-import { StoryNotFoundError } from '../Story/StoryViolation.js'
+import { StoryNotFoundError, StoryViolationError } from '../Story/StoryViolation.js'
+import { assertStoryHand } from '../Story/StoryHand.js'
+import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import { framedTurn, type SessionTalker } from './Conversation.js'
 
 const identifierSchema = z.coerce.number().int().positive()
@@ -29,6 +31,9 @@ export function createConversationApi({
     if (error instanceof StoryNotFoundError) {
       return context.json({ error: error.name, message: error.message }, 404)
     }
+    if (error instanceof StoryViolationError) {
+      return context.json({ error: error.name, message: error.message }, 409)
+    }
     return context.json({ error: 'UnexpectedError' }, 500)
   })
 
@@ -42,6 +47,7 @@ export function createConversationApi({
       return context.json({ error: 'EmptyTurn' }, 422)
     }
     const story = stories.findStory(storyId.data)
+    assertStoryHand(story.reference, stories.assigneeOf(story.epicId), operatorOf(context))
     const session = sessions.latestSessionOf(story.id)
     if (session === null) {
       return context.json({ error: 'NoSessionToTalkTo', reference: story.reference }, 409)
@@ -72,6 +78,7 @@ export function createConversationApi({
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
     const story = stories.findStory(storyId.data)
+    assertStoryHand(story.reference, stories.assigneeOf(story.epicId), operatorOf(context))
     const session = sessions.latestSessionOf(story.id)
     if (session === null || session.lifecycle === 'finished') {
       return context.json({ hungUp: false })

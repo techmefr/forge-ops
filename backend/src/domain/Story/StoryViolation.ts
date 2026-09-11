@@ -140,7 +140,7 @@ export class DoneNotEarnedError extends StoryViolationError {
 export class StoryNotYoursError extends StoryViolationError {
   constructor(reference: string, assignee: string) {
     super(
-      `L epique de la story ${reference} appartient a ${assignee}, personne d autre ne la clot`,
+      `L epique de la story ${reference} appartient a ${assignee}, personne d autre n y touche`,
       'StoryNotYoursError',
     )
   }
