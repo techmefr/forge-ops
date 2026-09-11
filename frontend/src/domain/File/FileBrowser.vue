@@ -139,7 +139,7 @@ watch(here, () => void look())
 </script>
 
 <template>
-  <div class="flex min-h-0 flex-col gap-4">
+  <div class="flex h-full min-h-0 flex-col gap-4">
     <form
       v-if="tree !== null && !tree.available && tree.reason === 'CheckoutUnknown'"
       class="rounded-2xl border border-line bg-card p-4"
@@ -172,7 +172,7 @@ watch(here, () => void look())
     >
       <p class="font-mono text-[10px] tracking-[0.18em] text-orange uppercase">Noms trop proches</p>
       <p class="mt-1 text-xs text-txt-low">À dire à la session avant qu elle en crée un deuxième.</p>
-      <ul class="mt-2 flex max-h-[22vh] flex-col gap-1.5 overflow-y-auto">
+      <ul class="mt-2 flex max-h-[16vh] flex-col gap-1.5 overflow-y-auto">
         <li v-for="clash in clashes.clashes" :key="clash.name" class="text-xs text-txt-hi">
           <span class="font-mono text-[11px] text-orange">{{ clash.name }}</span>
           <span class="ml-2 font-mono text-[11px] text-txt-low">{{ clash.paths.join('  ·  ') }}</span>
@@ -183,12 +183,16 @@ watch(here, () => void look())
     <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ refusal }}</p>
 
     <div
-      class="grid min-h-0 items-start gap-4"
+      class="grid min-h-[240px] flex-1 gap-4"
       :class="
         wide === 'split' ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)]' : 'lg:grid-cols-1'
       "
     >
-      <section v-if="wide !== 'code'" class="min-w-0 rounded-2xl border border-line bg-card">
+      <section
+        v-if="wide !== 'code'"
+        class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-card"
+        :class="treeShown ? '' : 'self-start'"
+      >
         <CardHead
           :shown="treeShown"
           :wide="wide === 'tree'"
@@ -215,7 +219,7 @@ watch(here, () => void look())
             {{ tree?.reason === 'CheckoutUnknown' ? 'Aucune copie locale déclarée.' : 'Rien à lire ici.' }}
           </p>
 
-          <ul v-else class="flex max-h-[60vh] flex-col overflow-y-auto">
+          <ul v-else class="flex min-h-0 flex-1 flex-col overflow-y-auto">
             <li v-for="entry in tree.entries" :key="entry.path">
               <button
                 type="button"
@@ -256,7 +260,11 @@ watch(here, () => void look())
         </template>
       </section>
 
-      <section v-if="wide !== 'tree'" class="min-w-0 rounded-2xl border border-line bg-card">
+      <section
+        v-if="wide !== 'tree'"
+        class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-card"
+        :class="codeShown ? '' : 'self-start'"
+      >
         <CardHead
           :shown="codeShown"
           :wide="wide === 'code'"
@@ -279,7 +287,7 @@ watch(here, () => void look())
               {{ opened.said }}
             </p>
             <pre
-              class="max-h-[60vh] overflow-auto px-4 py-3 font-mono text-[11px] leading-relaxed text-txt-mid"
+              class="min-h-0 flex-1 overflow-auto px-4 py-3 font-mono text-[11px] leading-relaxed text-txt-mid"
             ><code v-html="painted" /></pre>
             <p v-if="opened.truncated" class="border-t border-line px-4 py-2 text-[10px] text-txt-low">
               Fichier coupé, {{ opened.bytes }} octets au total.

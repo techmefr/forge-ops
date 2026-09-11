@@ -242,7 +242,7 @@ const heading = computed(() => {
         </div>
       </header>
 
-      <main class="min-h-0 min-w-0 flex-1 overflow-auto">
+      <main class="min-h-0 min-w-0 flex-1 overflow-auto lg:overflow-hidden">
         <RouterView />
       </main>
     </div>

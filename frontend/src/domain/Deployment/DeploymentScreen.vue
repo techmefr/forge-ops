@@ -77,8 +77,8 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
 </script>
 
 <template>
-  <div class="p-8">
-    <div class="flex flex-wrap items-end gap-3">
+  <div class="flex h-full min-h-0 flex-col p-8">
+    <div class="flex flex-none flex-wrap items-end gap-3">
       <label class="flex flex-col gap-1">
         <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase"
           >Branche d integration</span
@@ -126,7 +126,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
       <template v-else>aucun worktree a retirer.</template>
     </p>
 
-    <div class="mt-6">
+    <div class="mt-6 min-h-0 flex-1 overflow-auto pr-1">
       <ScreenState
         :pending="stories.pending.value"
         :failure="stories.failure.value"

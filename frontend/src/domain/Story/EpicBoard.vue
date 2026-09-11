@@ -93,8 +93,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-5 p-8">
-    <div class="flex flex-wrap items-end gap-4">
+  <div class="flex h-full min-h-0 flex-col gap-5 p-8">
+    <div class="flex flex-none flex-wrap items-end gap-4">
       <label class="flex flex-col gap-1">
         <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">Projet</span>
         <select
@@ -147,6 +147,7 @@ onMounted(async () => {
     </p>
     <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ refusal }}</p>
 
+    <div class="min-h-0 flex-1 overflow-auto pr-1">
     <ScreenState
       :pending="projects.pending.value"
       :failure="projects.failure.value"
@@ -220,5 +221,6 @@ onMounted(async () => {
         </article>
       </div>
     </ScreenState>
+    </div>
   </div>
 </template>

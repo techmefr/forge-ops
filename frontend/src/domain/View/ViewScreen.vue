@@ -50,8 +50,8 @@ onMounted(() => stories.reload())
 </script>
 
 <template>
-  <div class="grid h-full min-h-[600px] grid-cols-[280px_minmax(0,1fr)]">
-    <section class="border-r border-line p-5">
+  <div class="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]">
+    <section class="min-h-0 overflow-auto border-b border-line p-5 lg:border-r lg:border-b-0">
       <h2 class="display-italic text-sm text-txt-mid">Sessions a regarder</h2>
       <ScreenState
         :pending="stories.pending.value"
