@@ -28,6 +28,19 @@ import {
   TwinOfTwinError,
   TwinRequiredError,
 } from './StoryViolation.js'
+import type { StepBackDraft, StepBackRecord } from './StepBack.js'
+import type { CheckpointName } from '../Checkpoint/Checkpoint.js'
+
+type StepBackRow = {
+  id: number
+  story_id: number
+  from_state: StoryState
+  to_state: StoryState
+  reason: string
+  asked_by: string
+  revoked_checkpoints: string
+  stepped_back_at: string
+}
 
 type StoryRow = {
   id: number
@@ -62,6 +75,8 @@ export type StoryRepository = {
   markDoneAndUnblock: (storyId: number) => readonly Story[]
   startBuilding: (storyId: number) => Story
   moveToState: (storyId: number, state: StoryState) => Story
+  stepBack: (draft: StepBackDraft) => StepBackRecord
+  listStepBacks: (storyId: number) => readonly StepBackRecord[]
   markDone: (storyId: number) => Story
   listBacklog: () => readonly Story[]
   listKanban: () => readonly Story[]
@@ -70,6 +85,20 @@ export type StoryRepository = {
   rollOut: (storyId: number, percent: number) => Story
   markMergeConflict: (storyId: number) => Story
   clearMergeConflict: (storyId: number) => Story
+}
+
+function toStepBack(row: StepBackRow): StepBackRecord {
+  return {
+    id: row.id,
+    storyId: row.story_id,
+    fromState: row.from_state,
+    toState: row.to_state,
+    reason: row.reason,
+    askedBy: row.asked_by,
+    revokedCheckpoints:
+      row.revoked_checkpoints === '' ? [] : (row.revoked_checkpoints.split(',') as CheckpointName[]),
+    steppedBackAt: row.stepped_back_at,
+  }
 }
 
 function toStory(row: StoryRow): Story {
@@ -187,6 +216,16 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
   )
   const updateRollout = db.prepare<[number, number]>(
     "UPDATE story SET rollout_percent = ?, state = 'flagged', updated_at = datetime('now') WHERE id = ?",
+  )
+  const insertStepBack = db.prepare<[number, StoryState, StoryState, string, string, string]>(
+    `INSERT INTO story_step_back (story_id, from_state, to_state, reason, asked_by, revoked_checkpoints)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+  )
+  const selectStepBack = db.prepare<[number], StepBackRow>(
+    'SELECT * FROM story_step_back WHERE id = ?',
+  )
+  const selectStepBacks = db.prepare<[number], StepBackRow>(
+    'SELECT * FROM story_step_back WHERE story_id = ? ORDER BY id',
   )
   const updateMergeConflict = db.prepare<[number, number]>(
     "UPDATE story SET merge_conflict = ?, updated_at = datetime('now') WHERE id = ?",
@@ -393,6 +432,26 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
     },
 
     moveToState: (storyId, state) => moveTo(findStory(storyId).id, state),
+
+    stepBack: (draft) => {
+      const story = findStory(draft.storyId)
+      const info = insertStepBack.run(
+        story.id,
+        story.state,
+        draft.toState,
+        draft.reason,
+        draft.askedBy,
+        draft.revokedCheckpoints.join(','),
+      )
+      moveTo(story.id, draft.toState)
+      const row = selectStepBack.get(Number(info.lastInsertRowid))
+      if (row === undefined) {
+        throw new StoryNotFoundError(draft.storyId)
+      }
+      return toStepBack(row)
+    },
+
+    listStepBacks: (storyId) => selectStepBacks.all(storyId).map(toStepBack),
 
     markDone: (storyId) => moveTo(storyId, 'done'),
 

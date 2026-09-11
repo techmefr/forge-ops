@@ -61,6 +61,7 @@ type FindingRow = {
 
 export type CheckpointRepository = {
   proveCheckpoint: (draft: CheckpointDraft) => Checkpoint
+  revokeCheckpoints: (storyId: number, names: readonly CheckpointName[]) => readonly CheckpointName[]
   definitionOfDone: (storyId: number) => readonly DefinitionOfDoneStep[]
   recordFinding: (draft: ReviewFindingDraft) => ReviewFinding
   listUnresolvedFindings: (storyId: number) => readonly ReviewFinding[]
@@ -123,6 +124,10 @@ export function createCheckpointRepository(
   const selectCheckpoints = db.prepare<[number], CheckpointRow>(
     'SELECT * FROM checkpoint WHERE story_id = ?',
   )
+  const deleteCheckpoint = db.prepare<[number, CheckpointName]>(
+    'DELETE FROM checkpoint WHERE story_id = ? AND name = ?',
+  )
+  const deletePasses = db.prepare<[number]>('DELETE FROM review_pass WHERE story_id = ?')
   const selectSession = db.prepare<[string], { id: number }>(
     'SELECT id FROM agent_session WHERE claude_session_id = ?',
   )
@@ -273,6 +278,18 @@ export function createCheckpointRepository(
         name: draft.name,
         evidencePath,
       }
+    },
+
+    revokeCheckpoints: (storyId, names) => {
+      const proven = provenNames(storyId)
+      const revoked = names.filter((name) => proven.includes(name))
+      for (const name of revoked) {
+        deleteCheckpoint.run(storyId, name)
+      }
+      if (names.includes('verified')) {
+        deletePasses.run(storyId)
+      }
+      return revoked
     },
 
     definitionOfDone: (storyId) => {

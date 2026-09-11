@@ -91,6 +91,20 @@ CREATE TABLE IF NOT EXISTS checkpoint (
   UNIQUE (story_id, name)
 );
 
+CREATE TABLE IF NOT EXISTS story_step_back (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  from_state TEXT NOT NULL,
+  to_state TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  asked_by TEXT NOT NULL,
+  revoked_checkpoints TEXT NOT NULL DEFAULT '',
+  stepped_back_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CHECK (length(trim(reason)) > 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_story_step_back_story ON story_step_back(story_id, id);
+
 CREATE TABLE IF NOT EXISTS worktree (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   story_id INTEGER NOT NULL UNIQUE REFERENCES story(id),
