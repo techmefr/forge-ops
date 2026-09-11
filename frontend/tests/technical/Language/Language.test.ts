@@ -21,7 +21,7 @@ describe('les langues proposees', () => {
 
 describe('screenTextOf', () => {
   it('rend le libelle francais du kanban', () => {
-    expect(screenTextOf('kanban', 'fr').label).toBe('Kanban')
+    expect(screenTextOf('kanban', 'fr').label).toBe('Forge')
   })
 
   it('traduit le libelle du projet', () => {

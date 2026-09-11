@@ -25,7 +25,7 @@ describe('la touche de tete', () => {
   })
 
   it('mene a l ecran du chiffre qui suit', () => {
-    expect(resolveStroke(stroke('3'), ARMED)).toEqual({ path: '/kanban', phase: IDLE })
+    expect(resolveStroke(stroke('3'), ARMED)).toEqual({ path: '/forge', phase: IDLE })
   })
 
   it('retombe quand une seule frappe est suivie d autre chose', () => {
@@ -46,7 +46,7 @@ describe('la touche de tete', () => {
 
   it('accepte la majuscule, le clavier francais chiffre avec la touche des majuscules', () => {
     expect(resolveStroke(stroke('1', { shiftKey: true }), ARMED)).toEqual({
-      path: '/story',
+      path: '/atelier',
       phase: IDLE,
     })
   })
@@ -63,7 +63,7 @@ describe('la touche de tete', () => {
 describe('le raccourci direct', () => {
   it('mene a l ecran avec alt et majuscule', () => {
     expect(resolveStroke(stroke('3', { altKey: true, shiftKey: true }), IDLE)).toEqual({
-      path: '/kanban',
+      path: '/forge',
       phase: IDLE,
     })
   })

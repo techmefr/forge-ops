@@ -21,25 +21,25 @@ export const SCREENS: readonly Screen[] = [
   {
     key: 'story',
     digit: '1',
-    path: '/story',
-    label: 'Story',
-    tiny: 'sto',
-    sub: 'Partir d une epique du directeur, ecrire la story et sa jumelle de test',
+    path: '/atelier',
+    label: 'Atelier',
+    tiny: 'atl',
+    sub: 'Partir d une epique du directeur, decouper la story et sa jumelle de test',
   },
   {
     key: 'backlog',
     digit: '2',
-    path: '/backlog',
-    label: 'Backlog',
-    tiny: 'bkl',
-    sub: 'Choisir les stories de la session qu on veut lancer',
+    path: '/reserve',
+    label: 'Reserve',
+    tiny: 'rsv',
+    sub: 'Les pieces pretes : grouper les stories de la prochaine fournee',
   },
   {
     key: 'kanban',
     digit: '3',
-    path: '/kanban',
-    label: 'Kanban',
-    tiny: 'kbn',
+    path: '/forge',
+    label: 'Forge',
+    tiny: 'frg',
     sub: 'Le plan, le dev, la review et la livraison de chaque story, colonne par colonne',
   },
   {
@@ -84,7 +84,7 @@ export const SCREENS: readonly Screen[] = [
   },
 ]
 
-export const HOME_PATH = SCREENS[0]?.path ?? '/story'
+export const HOME_PATH = SCREENS[0]?.path ?? '/atelier'
 
 export function screenOfPath(path: string): Screen | null {
   return SCREENS.find((screen) => path === screen.path || path.startsWith(`${screen.path}/`)) ?? null

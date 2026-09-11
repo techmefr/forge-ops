@@ -18,15 +18,15 @@ export type ScreenText = {
 
 const ENGLISH: Readonly<Record<ScreenKey, ScreenText>> = {
   story: {
-    label: 'Story',
-    sub: 'Start from a director epic, write the story and its test twin',
+    label: 'Workshop',
+    sub: 'Start from a director epic, cut the story and its test twin',
   },
   backlog: {
-    label: 'Backlog',
-    sub: 'Pick the stories for the session about to be launched',
+    label: 'Store',
+    sub: 'The pieces that are ready: group the stories of the next batch',
   },
   kanban: {
-    label: 'Kanban',
+    label: 'Forge',
     sub: 'The plan, the build, the review and the delivery of each story, column by column',
   },
   project: {
