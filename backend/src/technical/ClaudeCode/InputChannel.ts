@@ -3,12 +3,14 @@ type Handover<T> = { value: T; done: false } | { value: undefined; done: true }
 export type InputChannel<T> = AsyncIterable<T> & {
   push: (message: T) => boolean
   close: () => void
+  onClose: (listener: () => void) => void
   readonly open: boolean
 }
 
 export function createInputChannel<T>(): InputChannel<T> {
   const buffered: T[] = []
   const waiting: ((handover: Handover<T>) => void)[] = []
+  const closing: (() => void)[] = []
   let closed = false
 
   return {
@@ -37,6 +39,17 @@ export function createInputChannel<T>(): InputChannel<T> {
       while (waiting.length > 0) {
         waiting.shift()?.({ value: undefined, done: true })
       }
+      while (closing.length > 0) {
+        closing.shift()?.()
+      }
+    },
+
+    onClose: (listener) => {
+      if (closed) {
+        listener()
+        return
+      }
+      closing.push(listener)
     },
 
     async *[Symbol.asyncIterator]() {
