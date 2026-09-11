@@ -12,6 +12,8 @@ import { PARTS, PART_LABELS, bothPartsWritten, partOf, type StoryPart } from './
 import { storiesOfEpic } from './Batch'
 import { requestFor, type TicketPoint } from './TicketRequest'
 import { provisionalTitle } from './Slice'
+import IncidentScreen from '@/domain/Incident/IncidentScreen.vue'
+import type { Incident } from '@/domain/Board/BoardModel'
 
 const route = useRoute()
 const router = useRouter()
@@ -33,6 +35,10 @@ const twinTitle = ref('')
 const twinBody = ref('')
 const refusal = ref<string | null>(null)
 const busy = ref(false)
+
+const desk = ref<'write' | 'reports'>('write')
+const pending = useResource<readonly Incident[]>(() => board.read('/api/incidents?state=pending'))
+const reported = computed(() => (pending.data.value ?? []).length)
 
 const listing = computed(() => queue.value.length === 0 && ticket.data.value === null)
 const openId = computed(() => ticket.data.value?.functional.id ?? null)
@@ -148,7 +154,7 @@ watch(
 
 
 onMounted(async () => {
-  await projects.reload()
+  await Promise.all([projects.reload(), pending.reload()])
 
   const id = route.params.id
   if (typeof id === 'string' && id !== '') {
@@ -158,7 +164,30 @@ onMounted(async () => {
 </script>
 
 <template>
-  <EpicBoard v-if="listing" @chosen="startQueue" />
+  <div class="flex h-full min-h-0 flex-col">
+  <nav class="flex flex-none gap-0.5 border-b border-line px-6" aria-label="L atelier et ce qui remonte">
+    <button
+      v-for="bench in ([
+        { key: 'write', label: 'Ecrire' },
+        { key: 'reports', label: 'Signalements' },
+      ] as const)"
+      :key="bench.key"
+      type="button"
+      :aria-current="bench.key === desk ? 'page' : undefined"
+      class="border-b-[3px] px-3 py-2.5 font-mono text-[10px] font-bold uppercase"
+      :class="
+        bench.key === desk ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'
+      "
+      @click="desk = bench.key"
+    >
+      {{ bench.label }}
+      <span v-if="bench.key === 'reports' && reported > 0" class="ml-1 text-acc">{{ reported }}</span>
+    </button>
+  </nav>
+
+  <IncidentScreen v-if="desk === 'reports'" />
+
+  <EpicBoard v-else-if="listing" @chosen="startQueue" />
 
   <div
     v-else
@@ -347,5 +376,6 @@ onMounted(async () => {
 
       </div>
     </section>
+  </div>
   </div>
 </template>

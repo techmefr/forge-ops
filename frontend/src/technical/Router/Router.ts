@@ -20,7 +20,7 @@ export const ROUTES: readonly RouteRecordRaw[] = [
     name: 'statistics',
     component: () => import('@/domain/Statistic/StatisticScreen.vue'),
   },
-  { path: '/incidents', name: 'incidents', component: () => import('@/domain/Incident/IncidentScreen.vue') },
+  { path: '/incidents', name: 'incidents', redirect: '/story' },
   { path: '/settings', name: 'settings', component: () => import('@/domain/Setting/SettingScreen.vue') },
   { path: '/login', name: 'login', component: () => import('@/domain/Access/LoginScreen.vue') },
   { path: '/:rest(.*)', redirect: HOME_PATH },

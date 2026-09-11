@@ -9,6 +9,7 @@ import { useAppearance } from '@/technical/Appearance/UseAppearance'
 import { useTheme } from '@/technical/Theme/UseTheme'
 import { useNavigation } from '@/technical/Shell/UseNavigation'
 import { useFleet } from './UseFleet'
+import MachineBadge from '@/domain/Resource/MachineBadge.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -118,11 +119,7 @@ const heading = computed(() => {
       </nav>
 
       <div class="mt-auto flex flex-col gap-3 border-t border-line px-4 py-4">
-        <RouterLink
-          to="/incidents"
-          class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase hover:text-acc"
-          >{{ say('incidents') }}</RouterLink
-        >
+        <MachineBadge />
         <RouterLink
           to="/settings"
           class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase hover:text-acc"
@@ -189,11 +186,7 @@ const heading = computed(() => {
 
         <div class="ml-auto flex flex-wrap items-center gap-2">
           <template v-if="layout === 'tabs'">
-            <RouterLink
-              to="/incidents"
-              class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase hover:text-acc"
-              >{{ say('incidents') }}</RouterLink
-            >
+            <MachineBadge />
             <RouterLink
               to="/settings"
               class="font-mono text-[10px] font-bold tracking-[0.2em] text-txt-low uppercase hover:text-acc"
