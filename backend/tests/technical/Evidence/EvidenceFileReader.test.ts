@@ -3,6 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { createEvidenceFileReader } from '../../../src/technical/Evidence/EvidenceFileReader.js'
+import { EVIDENCE_ROOT } from '../../../src/domain/Evidence/EvidencePath.js'
 
 const RELATIVE = '.claude/evidence/FORGE-1/spec.md'
 
@@ -18,26 +19,26 @@ function rootWith(content: string | null): string {
 
 describe('createEvidenceFileReader', () => {
   it('reads the content of an evidence file under the root', () => {
-    const read = createEvidenceFileReader({ root: rootWith('## Scope\nprose') })
+    const read = createEvidenceFileReader({ root: rootWith('## Scope\nprose'), evidenceRoot: EVIDENCE_ROOT })
 
     expect(read(RELATIVE)).toEqual({ kind: 'read', content: '## Scope\nprose' })
   })
 
   it('reports the evidence file as unreadable when it is absent', () => {
-    const read = createEvidenceFileReader({ root: rootWith(null) })
+    const read = createEvidenceFileReader({ root: rootWith(null), evidenceRoot: EVIDENCE_ROOT })
 
     expect(read(RELATIVE)).toMatchObject({ kind: 'unreadable' })
   })
 
   it('names the absence in the reason it reports', () => {
-    const read = createEvidenceFileReader({ root: rootWith(null) })
+    const read = createEvidenceFileReader({ root: rootWith(null), evidenceRoot: EVIDENCE_ROOT })
     const outcome = read(RELATIVE)
 
     expect(outcome.kind === 'unreadable' ? outcome.reason : '').toContain('introuvable')
   })
 
   it('reports the evidence path as unreadable when it is a directory', () => {
-    const read = createEvidenceFileReader({ root: rootWith('prose') })
+    const read = createEvidenceFileReader({ root: rootWith('prose'), evidenceRoot: EVIDENCE_ROOT })
     const outcome = read('.claude/evidence/FORGE-1')
 
     expect(outcome.kind === 'unreadable' ? outcome.reason : '').toContain('fichier')

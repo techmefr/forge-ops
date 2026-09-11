@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { spawn } from 'node:child_process'
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
@@ -175,5 +175,21 @@ describe('createCommandTestRunner', () => {
     const runTests = createCommandTestRunner({ command: 'sleep 5', cwd: root, timeoutMs: 200 })
 
     expect(runTests()).toBe('failed')
+  })
+})
+
+describe('runMutationCheck against a symlink', () => {
+  it('never writes through a link that leaves the root', () => {
+    const outside = mkdtempSync(join(tmpdir(), 'forge-outside-'))
+    const victim = join(outside, 'Victim.ts')
+    writeFileSync(victim, SOURCE)
+    const bait = join(root, 'Bait.ts')
+    symlinkSync(victim, bait)
+
+    const outcomes = runMutationCheck({ root, paths: [bait], runTests: () => 'passed' })
+
+    expect(outcomes).toEqual([])
+    expect(readFileSync(victim, 'utf-8')).toBe(SOURCE)
+    rmSync(outside, { recursive: true, force: true })
   })
 })
