@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from 'vitest'
 import type Database from 'better-sqlite3'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
-import { seedDemoBoard } from '../../../src/technical/Seed/DemoSeed.js'
+import { seedDemoBoard } from '../../../src/composition/DemoSeed.js'
 import { createStoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
 import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
