@@ -64,6 +64,7 @@ export type StoryRepository = {
   setCheckoutPath: (projectId: number, checkoutPath: string) => Project
   createEpic: (draft: EpicDraft) => Epic
   listEpics: (projectId: number) => readonly EpicOverview[]
+  assigneeOf: (epicId: number) => string | null
   claimEpic: (epicId: number, login: string) => void
   releaseEpic: (epicId: number, login: string) => void
   writeStory: (draft: StoryDraft) => Story
@@ -350,6 +351,14 @@ export function createStoryRepository(
         assignee: row.assignee,
         storyCount: row.story_count,
       })),
+
+    assigneeOf: (epicId) => {
+      const epic = selectEpicById.get(epicId)
+      if (epic === undefined) {
+        throw new EpicNotFoundError(epicId)
+      }
+      return epic.assignee
+    },
 
     claimEpic: (epicId, login) => {
       const epic = selectEpicById.get(epicId)

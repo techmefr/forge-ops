@@ -13,11 +13,21 @@ import { createBudgetRepository } from '../../../src/domain/Budget/BudgetReposit
 import { createEventBus, type BoardEvent } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
+import { proveStoryReadyToClose } from './ProvenStory.js'
 
 let api: Hono
 let stories: StoryRepository
 let ids: number[]
 let seen: BoardEvent[]
+let checkpoints: ReturnType<typeof createCheckpointRepository>
+let criteria: ReturnType<typeof createCriterionRepository>
+let sessions: ReturnType<typeof createAgentSessionRepository>
+
+function markDone(id: number | undefined): Promise<Response> {
+  const target = Number(id)
+  proveStoryReadyToClose({ stories, checkpoints, criteria, sessions, storyId: target })
+  return post(`/api/stories/${target}/done`)
+}
 
 function post(path: string, body?: unknown): Promise<Response> {
   return api.request(path, {
@@ -44,12 +54,17 @@ beforeEach(() => {
   ids = ['une', 'deux', 'trois'].map(
     (title) => stories.writeStory({ epicId: epic.id, title, body: 'en tant que...' }).id,
   )
+  checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
+    takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
+  })
+  criteria = createCriterionRepository(db)
+  sessions = createAgentSessionRepository(db)
   api = createBoardApi({
     repository: stories,
-    agentSessions: createAgentSessionRepository(db),
-    checkpoints: createCheckpointRepository(db, {
-    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
-    criteria: createCriterionRepository(db),
+    agentSessions: sessions,
+    checkpoints,
+    criteria,
     zones: createZoneRepository(db),
     budget: createBudgetRepository(db),
     events,
@@ -114,7 +129,7 @@ describe('POST /api/stories/:id/done', () => {
   it('closes the story and names what it freed', async () => {
     await post(`/api/stories/${ids[0]}/dependencies`, { blockingStoryId: ids[1] })
 
-    const response = await post(`/api/stories/${ids[1]}/done`)
+    const response = await markDone(ids[1])
 
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toMatchObject({
@@ -126,7 +141,7 @@ describe('POST /api/stories/:id/done', () => {
   it('tells the board about every story it freed', async () => {
     await post(`/api/stories/${ids[0]}/dependencies`, { blockingStoryId: ids[1] })
 
-    await post(`/api/stories/${ids[1]}/done`)
+    await markDone(ids[1])
 
     expect(seen.filter((event) => event.name === 'story.unblocked')).toHaveLength(1)
   })
@@ -135,7 +150,7 @@ describe('POST /api/stories/:id/done', () => {
     await post(`/api/stories/${ids[0]}/dependencies`, { blockingStoryId: ids[1] })
     await post(`/api/stories/${ids[0]}/dependencies`, { blockingStoryId: ids[2] })
 
-    const response = await post(`/api/stories/${ids[1]}/done`)
+    const response = await markDone(ids[1])
 
     await expect(response.json()).resolves.toMatchObject({ unblocked: [] })
   })

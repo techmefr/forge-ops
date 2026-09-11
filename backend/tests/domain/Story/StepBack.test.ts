@@ -45,15 +45,15 @@ describe('assertStepBackReason', () => {
 
 describe('assertHumanHand', () => {
   it('lets a bare human request through', () => {
-    expect(() => assertHumanHand({})).not.toThrow()
+    expect(() => assertHumanHand({}, 'Reculer une story')).not.toThrow()
   })
 
   it('refuses a request carrying an agent session', () => {
-    expect(() => assertHumanHand({ claudeSessionId: 'sess-1' })).toThrow(AgentStepBackRefusedError)
+    expect(() => assertHumanHand({ claudeSessionId: 'sess-1' }, 'Reculer une story')).toThrow(AgentStepBackRefusedError)
   })
 
   it('refuses a request carrying an agent name', () => {
-    expect(() => assertHumanHand({ agentName: 'trinity' })).toThrow(AgentStepBackRefusedError)
+    expect(() => assertHumanHand({ agentName: 'trinity' }, 'Reculer une story')).toThrow(AgentStepBackRefusedError)
   })
 })
 

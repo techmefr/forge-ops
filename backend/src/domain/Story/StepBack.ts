@@ -55,10 +55,10 @@ export type StepBackRecord = {
   steppedBackAt: string
 }
 
-export function assertHumanHand(hand: StepBackHand): void {
+export function assertHumanHand(hand: StepBackHand, decision: string): void {
   const named = hand.claudeSessionId ?? hand.agentName ?? null
   if (named !== null && named !== '') {
-    throw new AgentStepBackRefusedError(named)
+    throw new AgentStepBackRefusedError(named, decision)
   }
 }
 

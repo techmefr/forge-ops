@@ -39,6 +39,7 @@ import {
   assertStepBackReason,
   checkpointsAheadOf,
 } from '../Story/StepBack.js'
+import { assertDoneEarned, assertStoryHand } from '../Story/DoneGate.js'
 import { scoreCompleteness } from '../Story/Completeness.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
 import type { CascadeStep } from '../Checkpoint/ReviewCascade.js'
@@ -105,6 +106,11 @@ const checkpointDraftSchema = z.object({
 const stepBackSchema = z.object({
   state: z.enum(STEP_BACK_TARGETS),
   reason: z.string(),
+  claudeSessionId: z.string().nullish(),
+  agentName: z.string().nullish(),
+})
+
+const doneSchema = z.object({
   claudeSessionId: z.string().nullish(),
   agentName: z.string().nullish(),
 })
@@ -353,12 +359,24 @@ export function createBoardApi({
     return context.json({ blockers: repository.listBlockers(storyId.data) })
   })
 
-  api.post('/api/stories/:id/done', (context) => {
+  api.post('/api/stories/:id/done', async (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    repository.findStory(storyId.data)
+    const hand = doneSchema.safeParse(await context.req.json().catch(() => ({})))
+    if (!hand.success) {
+      return context.json({ error: 'InvalidDoneRequest', issues: hand.error.issues }, 422)
+    }
+    assertHumanHand(hand.data, 'Clore une story et effacer son worktree')
+    const story = repository.findStory(storyId.data)
+    assertStoryHand(story.reference, repository.assigneeOf(story.epicId), operatorOf(context))
+    assertDoneEarned(story.reference, {
+      state: story.state,
+      definitionOfDone: checkpoints.definitionOfDone(story.id),
+      cascade: checkpoints.reviewCascade(story.id),
+      unresolvedFindings: checkpoints.listUnresolvedFindings(story.id),
+    })
     const unblocked = repository.markDoneAndUnblock(storyId.data)
     for (const story of unblocked) {
       events.publish({ name: 'story.unblocked', payload: { ...story } })
@@ -401,7 +419,7 @@ export function createBoardApi({
     if (!body.success) {
       return context.json({ error: 'InvalidStepBack', issues: body.error.issues }, 422)
     }
-    assertHumanHand(body.data)
+    assertHumanHand(body.data, 'Reculer une story')
     const story = repository.findStory(storyId.data)
     const reason = assertStepBackReason(story.reference, body.data.reason)
     assertStepBack(story.reference, story.state, body.data.state)

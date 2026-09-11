@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { Hono } from 'hono'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
-import { createStoryRepository } from '../../../src/domain/Story/StoryRepository.js'
+import { createStoryRepository, type StoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import {
   createAgentSessionRepository,
   type AgentSessionRepository,
@@ -24,6 +24,7 @@ const stubDispatch = {
 
 let api: Hono
 let storyId: number
+let stories: StoryRepository
 let sessions: AgentSessionRepository
 let published: BoardEvent[]
 
@@ -52,7 +53,7 @@ async function walkToReviewing(): Promise<void> {
 
 beforeEach(() => {
   const db = openDatabase(':memory:')
-  const stories = createStoryRepository(db)
+  stories = createStoryRepository(db)
   const project = stories.createProject({
     slug: 'forge',
     name: 'Forge',
@@ -235,7 +236,7 @@ describe('POST /api/stories/:id/step-back', () => {
 
   it('refuses to walk a merged story back', async () => {
     await walkToReviewing()
-    await api.request(`/api/stories/${storyId}/done`, { method: 'POST' })
+    stories.moveToState(storyId, 'done')
 
     const response = await stepBack({ state: 'building', reason: 'le merge etait premature' })
 
