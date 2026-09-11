@@ -174,6 +174,8 @@ export function createStoryApi({
       definitionOfDone: checkpoints.definitionOfDone(story.id),
       cascade: checkpoints.reviewCascade(story.id),
       unresolvedFindings: checkpoints.listUnresolvedFindings(story.id),
+      businessIntent: repository.findEpic(story.epicId).businessIntent,
+      criteria: criteria.listCriteria(story.id),
     })
     const unblocked = repository.markDoneAndUnblock(storyId.data)
     for (const story of unblocked) {

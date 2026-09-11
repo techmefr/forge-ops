@@ -28,6 +28,8 @@ import {
   TwinOfTwinError,
   TwinRequiredError,
 } from './StoryViolation.js'
+import type { HumanGateWait } from './HumanGate.js'
+import { HUMAN_GATE_STATES } from './HumanGate.js'
 import type { StepBackDraft, StepBackRecord } from './StepBack.js'
 import type { CheckpointName } from '../Checkpoint/Checkpoint.js'
 import { assertCheckoutPath } from './CheckoutPath.js'
@@ -65,6 +67,8 @@ export type StoryRepository = {
   createEpic: (draft: EpicDraft) => Epic
   listEpics: (projectId: number) => readonly EpicOverview[]
   assigneeOf: (epicId: number) => string | null
+  findEpic: (epicId: number) => Epic
+  listHumanGateWaits: () => readonly HumanGateWait[]
   projectOfStory: (storyId: number) => number
   claimEpic: (epicId: number, login: string) => void
   releaseEpic: (epicId: number, login: string) => void
@@ -244,6 +248,21 @@ export function createStoryRepository(
   const updateMergeConflict = db.prepare<[number, number]>(
     "UPDATE story SET merge_conflict = ?, updated_at = datetime('now') WHERE id = ?",
   )
+  const selectFullEpic = db.prepare<
+    [number],
+    { id: number; project_id: number; title: string; business_intent: string }
+  >('SELECT id, project_id, title, business_intent FROM epic WHERE id = ?')
+  const selectHumanGateWaits = db.prepare<
+    string[],
+    { id: number; reference: string; state: StoryState; updated_at: string; waiting_seconds: number }
+  >(
+    `SELECT id, reference, state, updated_at,
+            CAST((julianday('now') - julianday(updated_at)) * 86400 AS INTEGER) AS waiting_seconds
+       FROM story
+      WHERE kind = 'functional'
+        AND state IN (${HUMAN_GATE_STATES.map(() => '?').join(', ')})
+      ORDER BY waiting_seconds DESC`,
+  )
 
   function findStory(storyId: number): Story {
     const row = selectStory.get(storyId)
@@ -372,6 +391,28 @@ export function createStoryRepository(
       }
       return epic.assignee
     },
+
+    findEpic: (epicId) => {
+      const row = selectFullEpic.get(epicId)
+      if (row === undefined) {
+        throw new EpicNotFoundError(epicId)
+      }
+      return {
+        id: row.id,
+        projectId: row.project_id,
+        title: row.title,
+        businessIntent: row.business_intent,
+      }
+    },
+
+    listHumanGateWaits: () =>
+      selectHumanGateWaits.all(...HUMAN_GATE_STATES).map((row) => ({
+        storyId: row.id,
+        reference: row.reference,
+        state: row.state,
+        waitingSince: row.updated_at,
+        waitingSeconds: row.waiting_seconds,
+      })),
 
     claimEpic: (epicId, login) => {
       const epic = selectEpicById.get(epicId)
