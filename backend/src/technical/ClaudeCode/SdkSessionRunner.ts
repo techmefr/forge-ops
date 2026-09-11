@@ -36,28 +36,27 @@ export function createSdkSessionRunner({ cwd, onEvent, live }: SdkSessionRunnerI
         },
       })
 
+      const spoken = conversation[Symbol.asyncIterator]()
       let claudeSessionId: string | null = null
-      for await (const message of conversation) {
-        if (claudeSessionId === null && 'session_id' in message && typeof message.session_id === 'string') {
+      while (claudeSessionId === null) {
+        const step = await spoken.next()
+        if (step.done === true) {
+          started.channel.close()
+          throw new SessionIdentifierMissingError(order.reference)
+        }
+        const message = step.value
+        if ('session_id' in message && typeof message.session_id === 'string') {
           claudeSessionId = message.session_id
         }
         onEvent({
           name: `session.${message.type}`,
           payload: { reference: order.reference, phase: order.phase, claudeSessionId },
         })
-        if (claudeSessionId !== null) {
-          break
-        }
-      }
-
-      if (claudeSessionId === null) {
-        started.channel.close()
-        throw new SessionIdentifierMissingError(order.reference)
       }
 
       started.adopt(claudeSessionId)
       const identifier = claudeSessionId
-      void drain(conversation, { ...order, claudeSessionId: identifier }, onEvent).finally(() =>
+      void drain(spoken, { ...order, claudeSessionId: identifier }, onEvent).finally(() =>
         live.close(identifier),
       )
       return { claudeSessionId }
@@ -113,12 +112,12 @@ export function usageOf(message: unknown): Record<string, number> {
 }
 
 async function drain(
-  conversation: AsyncIterable<{ type: string }>,
+  spoken: AsyncIterator<{ type: string }>,
   order: LaunchOrder & { claudeSessionId: string },
   onEvent: SdkSessionRunnerInput['onEvent'],
 ): Promise<void> {
   try {
-    for await (const message of conversation) {
+    for await (const message of { [Symbol.asyncIterator]: () => spoken }) {
       onEvent({
         name: `session.${message.type}`,
         payload: {

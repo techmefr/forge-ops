@@ -165,14 +165,28 @@ describe('DELETE /api/stories/:id/talk', () => {
     expect([response.status, hungUp]).toEqual([200, ['session-abc']])
   })
 
-  it('marks the session finished', async () => {
+  it('records the session as cut short by the human', async () => {
     openSession()
 
     await hangUp(storyId)
 
     expect(createAgentSessionRepository(db).findByClaudeSessionId('session-abc')?.lifecycle).toBe(
-      'finished',
+      'interrupted',
     )
+  })
+
+  it('dates the end so the session stops counting as running', async () => {
+    openSession()
+
+    await hangUp(storyId)
+
+    const ended = db
+      .prepare<[string], { ended_at: string | null }>(
+        'SELECT ended_at FROM agent_session WHERE claude_session_id = ?',
+      )
+      .get('session-abc')
+
+    expect(ended?.ended_at).not.toBeNull()
   })
 
   it('announces the end on the bus', async () => {
