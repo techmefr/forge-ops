@@ -131,7 +131,7 @@ describe('startBuilding', () => {
     const blocking = backloggedStory('creer un mail')
     const blocked = backloggedStory('visualiser les mails')
     repository.addDependency({ blockedStoryId: blocked, blockingStoryId: blocking })
-    repository.markDone(blocking)
+    repository.markDoneAndUnblock(blocking)
 
     expect(repository.startBuilding(blocked).state).toBe('building')
   })

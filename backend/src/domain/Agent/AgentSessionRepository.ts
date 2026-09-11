@@ -22,7 +22,6 @@ type AgentSessionRow = {
   lifecycle: AgentLifecycle
   claude_code_version: string
   cost_usd: number | null
-  carried_cost_usd: number
 }
 
 type StaleSessionRow = AgentSessionRow & {
@@ -53,7 +52,6 @@ export type AgentSessionRepository = {
   listStaleSessions: (staleAfterSeconds?: number) => readonly StaleSession[]
   closeSession: (claudeSessionId: string, exit: SessionExit) => ClosedSession
   recordUsage: (claudeSessionId: string, usage: SessionUsage) => AgentSession & SessionUsage
-  carryUsage: (claudeSessionId: string) => void
   abandonRunningSessions: () => number
   sumUsage: (storyId: number) => SessionUsage
   recordFileTouch: (draft: FileTouchDraft) => void
@@ -70,7 +68,7 @@ function toAgentSession(row: AgentSessionRow): AgentSession {
     agentName: row.agent_name,
     lifecycle: row.lifecycle,
     claudeCodeVersion: row.claude_code_version,
-    costUsd: (row.cost_usd ?? 0) + row.carried_cost_usd,
+    costUsd: row.cost_usd ?? 0,
   }
 }
 
@@ -110,23 +108,13 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
         SET lifecycle = 'interrupted', outcome = 'interrupted', ended_at = datetime('now')
       WHERE lifecycle IN ('starting', 'working', 'awaiting_human')`,
   )
-  const carryRowUsage = db.prepare<[string]>(
-    `UPDATE agent_session
-        SET carried_cost_usd = carried_cost_usd + COALESCE(cost_usd, 0),
-            carried_input_tokens = carried_input_tokens + COALESCE(input_tokens, 0),
-            carried_output_tokens = carried_output_tokens + COALESCE(output_tokens, 0),
-            cost_usd = NULL,
-            input_tokens = NULL,
-            output_tokens = NULL
-      WHERE claude_session_id = ?`,
-  )
   const sumStoryUsage = db.prepare<
     [number],
     { cost_usd: number | null; input_tokens: number | null; output_tokens: number | null }
   >(
-    `SELECT SUM(COALESCE(cost_usd, 0) + carried_cost_usd) AS cost_usd,
-            SUM(COALESCE(input_tokens, 0) + carried_input_tokens) AS input_tokens,
-            SUM(COALESCE(output_tokens, 0) + carried_output_tokens) AS output_tokens
+    `SELECT SUM(COALESCE(cost_usd, 0)) AS cost_usd,
+            SUM(COALESCE(input_tokens, 0)) AS input_tokens,
+            SUM(COALESCE(output_tokens, 0)) AS output_tokens
        FROM agent_session WHERE story_id = ?`,
   )
   const insertFileTouch = db.prepare<[number, number, string]>(
@@ -206,11 +194,6 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
 
     abandonRunningSessions: () =>
       abandonRunning.run().changes,
-
-    carryUsage: (claudeSessionId) => {
-      requireSession(claudeSessionId)
-      carryRowUsage.run(claudeSessionId)
-    },
 
     sumUsage: (storyId) => {
       const row = sumStoryUsage.get(storyId)

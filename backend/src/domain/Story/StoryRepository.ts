@@ -80,7 +80,6 @@ export type StoryRepository = {
   moveToState: (storyId: number, state: StoryState) => Story
   stepBack: (draft: StepBackDraft) => StepBackRecord
   listStepBacks: (storyId: number) => readonly StepBackRecord[]
-  markDone: (storyId: number) => Story
   listBacklog: () => readonly Story[]
   listKanban: () => readonly Story[]
   editStory: (storyId: number, draft: { title: string; body: string }) => Story
@@ -487,8 +486,6 @@ export function createStoryRepository(
     },
 
     listStepBacks: (storyId) => selectStepBacks.all(storyId).map(toStepBack),
-
-    markDone: (storyId) => moveTo(storyId, 'done'),
 
     listBacklog: () => selectBacklog.all().map(toStory),
 

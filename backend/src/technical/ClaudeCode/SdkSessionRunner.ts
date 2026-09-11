@@ -3,6 +3,7 @@ import type { LaunchOrder, SessionRunner } from '../../domain/Dispatch/Dispatch.
 import type { SessionTalker, SpokenTurn } from '../../domain/Conversation/Conversation.js'
 import type { LiveSessions } from './LiveSessions.js'
 import { deliverTurn, userTurn, type SdkUserTurn } from './TurnDelivery.js'
+import { assertGuardrailRegistered, forgeSettingSources } from '../Guardrail/GuardrailRegistration.js'
 
 export type SdkSessionRunnerInput = {
   cwd: string
@@ -20,12 +21,14 @@ export class SessionIdentifierMissingError extends Error {
 export function createSdkSessionRunner({ cwd, onEvent, live }: SdkSessionRunnerInput): SessionRunner {
   return {
     launch: async (order: LaunchOrder) => {
+      await assertGuardrailRegistered(cwd)
       const started = live.start()
       started.channel.push(userTurn(order.prompt))
       const conversation = query({
         prompt: started.channel,
         options: {
           cwd,
+          settingSources: [...forgeSettingSources],
           permissionMode: 'default',
           ...(order.model === undefined ? {} : { model: order.model }),
           env: {
