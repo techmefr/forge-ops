@@ -14,16 +14,34 @@ describe('decideOnHookPayload', () => {
   })
 
   it('blocks a destructive bash command', () => {
-    const decision = decide({ tool_name: 'Bash', tool_input: { command: 'cd /tmp && rm -rf mesdonnees' } })
+    const decision = decide({ tool_name: 'Bash', tool_input: { command: 'cd /nonexistent-probe-target && rm -rf nonexistent-probe-child' } })
 
     expect(decision.allowed).toBe(false)
     expect(decision.allowed === false && decision.reason).toContain('rm -rf*')
   })
 
+  it('blocks a destructive bash command that is not in canonical form', () => {
+    const decision = decide({
+      tool_name: 'Bash',
+      tool_input: { command: 'git push nonexistent-probe-remote nonexistent-probe-branch --force' },
+    })
+
+    expect(decision.allowed).toBe(false)
+  })
+
+  it('keeps letting a leased force push through', () => {
+    expect(
+      decide({
+        tool_name: 'Bash',
+        tool_input: { command: 'git push nonexistent-probe-remote nonexistent-probe-branch --force-with-lease' },
+      }),
+    ).toEqual({ allowed: true })
+  })
+
   it('guards the powershell tool too', () => {
     const decision = decide({
       tool_name: 'PowerShell',
-      tool_input: { command: 'Remove-Item C:\\data -Recurse -Force' },
+      tool_input: { command: 'Remove-Item C:\\nonexistent-probe-target -Recurse -Force' },
     })
 
     expect(decision.allowed).toBe(false)
