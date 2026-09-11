@@ -28,6 +28,8 @@ import { suggestParcours } from '../../domain/Pilot/Parcours.js'
 import { createPlaywrightPilot } from '../Browser/PlaywrightPilot.js'
 import { createPilotShotApi } from './PilotShotApi.js'
 import { createMachineApi } from '../../domain/Resource/MachineApi.js'
+import { createFileApi } from '../../domain/File/FileApi.js'
+import { createFileRepository } from '../../domain/File/FileRepository.js'
 import { createStatisticRepository } from '../../domain/Statistic/StatisticRepository.js'
 import { createStatisticApi } from '../../domain/Statistic/StatisticApi.js'
 import { createIncidentRepository } from '../../domain/Incident/IncidentRepository.js'
@@ -240,6 +242,7 @@ export function startBoardServer({
   )
   guarded.route('/', createPilotShotApi({ shotDir }))
   guarded.route('/', createMachineApi({ metricsUrl }))
+  guarded.route('/', createFileApi({ stories, files: createFileRepository(db) }))
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
   guarded.route('/', createIncidentApi({ incidents: createIncidentRepository(db, { stories }), events }))
   guarded.route('/', api)

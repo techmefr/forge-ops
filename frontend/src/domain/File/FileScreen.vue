@@ -4,6 +4,7 @@ import { onMounted, ref, watch } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
+import FileBrowser from './FileBrowser.vue'
 import type {
   KanbanStory,
   PathConflict,
@@ -127,7 +128,18 @@ onMounted(async () => {
           </option>
         </select>
       </label>
+    </div>
 
+    <div class="mt-6">
+      <FileBrowser :project-id="chosenProject" />
+    </div>
+
+    <details class="mt-8 rounded-2xl border border-line bg-bg/40 p-4">
+      <summary class="cursor-pointer font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+        Zones, perimetres et fichiers disputes
+      </summary>
+
+      <div class="mt-4 flex flex-wrap items-end gap-4">
       <form class="flex flex-wrap items-end gap-2" @submit.prevent="declareZone">
         <input
           v-model="pathPrefix"
@@ -290,6 +302,7 @@ onMounted(async () => {
           </article>
         </div>
       </ScreenState>
-    </div>
+      </div>
+    </details>
   </div>
 </template>

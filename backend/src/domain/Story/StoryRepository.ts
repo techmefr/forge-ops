@@ -47,6 +47,7 @@ type StoryRow = {
 export type StoryRepository = {
   createProject: (draft: ProjectDraft) => Project
   listProjects: () => readonly Project[]
+  setCheckoutPath: (projectId: number, checkoutPath: string) => Project
   createEpic: (draft: EpicDraft) => Epic
   listEpics: (projectId: number) => readonly EpicOverview[]
   claimEpic: (epicId: number, login: string) => void
@@ -89,8 +90,11 @@ function toStory(row: StoryRow): Story {
 }
 
 export function createStoryRepository(db: Database.Database): StoryRepository {
-  const insertProject = db.prepare<[string, string, string, string, string]>(
-    'INSERT INTO project (slug, name, repository_url, integration_branch, colour) VALUES (?, ?, ?, ?, ?)',
+  const insertProject = db.prepare<[string, string, string, string, string, string | null]>(
+    'INSERT INTO project (slug, name, repository_url, integration_branch, colour, checkout_path) VALUES (?, ?, ?, ?, ?, ?)',
+  )
+  const updateCheckoutPath = db.prepare<[string, number]>(
+    'UPDATE project SET checkout_path = ? WHERE id = ?',
   )
   const insertEpic = db.prepare<[number, string, string]>(
     'INSERT INTO epic (project_id, title, business_intent) VALUES (?, ?, ?)',
@@ -107,6 +111,7 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
       repository_url: string
       integration_branch: string
       colour: string
+      checkout_path: string | null
     }
   >('SELECT * FROM project ORDER BY name')
   const selectEpics = db.prepare<
@@ -235,6 +240,18 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
     return findStory(storyId)
   }
 
+  function allProjects(): readonly Project[] {
+    return selectProjects.all().map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      repositoryUrl: row.repository_url,
+      integrationBranch: row.integration_branch,
+      colour: row.colour,
+      checkoutPath: row.checkout_path,
+    }))
+  }
+
   return {
     createProject: (draft) => {
       if (selectProjectBySlug.get(draft.slug) !== undefined) {
@@ -246,19 +263,24 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
         draft.repositoryUrl,
         draft.integrationBranch,
         draft.colour,
+        draft.checkoutPath ?? null,
       )
-      return { id: Number(info.lastInsertRowid), ...draft }
+      return { id: Number(info.lastInsertRowid), ...draft, checkoutPath: draft.checkoutPath ?? null }
     },
 
-    listProjects: () =>
-      selectProjects.all().map((row) => ({
-        id: row.id,
-        slug: row.slug,
-        name: row.name,
-        repositoryUrl: row.repository_url,
-        integrationBranch: row.integration_branch,
-        colour: row.colour,
-      })),
+    listProjects: allProjects,
+
+    setCheckoutPath: (projectId, checkoutPath) => {
+      if (selectProjectById.get(projectId) === undefined) {
+        throw new ProjectNotFoundError(projectId)
+      }
+      updateCheckoutPath.run(checkoutPath, projectId)
+      const found = allProjects().find((project) => project.id === projectId)
+      if (found === undefined) {
+        throw new ProjectNotFoundError(projectId)
+      }
+      return found
+    },
 
     createEpic: (draft) => {
       if (selectProjectById.get(draft.projectId) === undefined) {
