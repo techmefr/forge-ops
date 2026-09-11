@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
 defineProps<{ shown: boolean; wide: boolean }>()
 
 const emit = defineEmits<{ toggleShown: []; toggleWide: [] }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -10,7 +14,7 @@ const emit = defineEmits<{ toggleShown: []; toggleWide: [] }>()
     <button
       type="button"
       class="min-h-[24px] min-w-[24px] rounded border border-line px-1.5 font-mono text-[10px] text-txt-low hover:border-acc hover:text-acc"
-      :aria-label="wide ? 'Rendre la carte plus petite' : 'Agrandir la carte'"
+      :aria-label="wide ? t('browser.shrink') : t('browser.widen')"
       :aria-pressed="wide"
       @click="emit('toggleWide')"
     >
@@ -19,7 +23,7 @@ const emit = defineEmits<{ toggleShown: []; toggleWide: [] }>()
     <button
       type="button"
       class="min-h-[24px] min-w-[24px] rounded border border-line px-1.5 font-mono text-[10px] text-txt-low hover:border-acc hover:text-acc"
-      :aria-label="shown ? 'Réduire la carte' : 'Déplier la carte'"
+      :aria-label="shown ? t('browser.collapse') : t('browser.expand')"
       :aria-expanded="shown"
       @click="emit('toggleShown')"
     >

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { KanbanStory } from '@/domain/Board/BoardModel'
-import { DRAWER_TABS, DRAWER_TAB_LABELS, tabOfState, type DrawerTab } from './DrawerTab'
+import { DRAWER_TABS, tabOfState, type DrawerTab } from './DrawerTab'
 import DeliveryTab from './DeliveryTab.vue'
 import DiscussionTab from './DiscussionTab.vue'
 import PlanTab from './PlanTab.vue'
@@ -11,6 +12,7 @@ import StoryTab from './StoryTab.vue'
 const props = defineProps<{ story: KanbanStory }>()
 const emit = defineEmits<{ close: []; moved: [] }>()
 
+const { t } = useI18n()
 const tab = ref<DrawerTab>('story')
 
 watch(
@@ -25,7 +27,7 @@ watch(
 <template>
   <aside
     class="flex w-[420px] flex-none flex-col border-l border-line bg-panel"
-    aria-label="Fiche de la story"
+    :aria-label="t('kanban.drawerAria')"
   >
     <header class="flex items-start gap-3 border-b border-line px-5 py-4">
       <div class="min-w-0">
@@ -37,11 +39,14 @@ watch(
         class="ml-auto rounded-lg border border-line bg-card px-2.5 py-1.5 font-mono text-[10px] text-txt-mid uppercase hover:border-acc"
         @click="emit('close')"
       >
-        Fermer
+        {{ t('common.close') }}
       </button>
     </header>
 
-    <nav class="flex flex-none gap-0.5 overflow-x-auto border-b border-line px-3" aria-label="Fiche">
+    <nav
+      class="flex flex-none gap-0.5 overflow-x-auto border-b border-line px-3"
+      :aria-label="t('kanban.tabsAria')"
+    >
       <button
         v-for="name in DRAWER_TABS"
         :key="name"
@@ -53,7 +58,7 @@ watch(
         "
         @click="tab = name"
       >
-        {{ DRAWER_TAB_LABELS[name] }}
+        {{ t(`drawerTab.${name}`) }}
       </button>
     </nav>
 

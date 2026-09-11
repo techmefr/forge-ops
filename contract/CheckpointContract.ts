@@ -13,7 +13,9 @@ export const REVIEW_LENS_SEQUENCE = ['quality', 'security', 'accessibility'] as 
 
 export type ReviewLens = (typeof REVIEW_LENS_SEQUENCE)[number]
 
-export type ReviewPassState = 'pending' | 'running' | 'passed'
+export const REVIEW_PASS_STATE_SEQUENCE = ['pending', 'running', 'passed'] as const
+
+export type ReviewPassState = (typeof REVIEW_PASS_STATE_SEQUENCE)[number]
 
 export type ReviewPass = {
   lens: ReviewLens
@@ -21,7 +23,9 @@ export type ReviewPass = {
   agentName: string | null
 }
 
-export type FindingSeverity = 'strong' | 'weak'
+export const FINDING_SEVERITY_SEQUENCE = ['strong', 'weak'] as const
+
+export type FindingSeverity = (typeof FINDING_SEVERITY_SEQUENCE)[number]
 
 export type ReviewFinding = {
   id: number

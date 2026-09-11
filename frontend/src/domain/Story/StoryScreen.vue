@@ -1,23 +1,28 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
+import { usePhrase } from '@/technical/Language/UsePhrase'
+import type { Phrase } from '@/technical/Language/Phrase'
 import type { EpicOverview, Project, Story } from '@/domain/Board/BoardModel'
 import EpicBoard from './EpicBoard.vue'
 import { useTranscript } from '@/domain/Session/UseTranscript'
 import { useTicket } from './UseTicket'
 import StoryTicket from './StoryTicket.vue'
-import { PARTS, PART_LABELS, bothPartsWritten, type StoryPart } from './StoryPart'
+import { PARTS, bothPartsWritten, type StoryPart } from './StoryPart'
 import { storiesOfEpic } from './Batch'
 import { requestFor, type TicketPoint } from './TicketRequest'
 import { provisionalTitle } from './Slice'
 import IncidentScreen from '@/domain/Incident/IncidentScreen.vue'
-import { DESKS } from './Desk'
+import { DESKS, type Desk } from './Desk'
 import type { Incident, KanbanStory } from '@/domain/Board/BoardModel'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
+const say = usePhrase()
 
 const projects = useResource<readonly Project[]>(() => board.read('/api/projects'))
 const queue = ref<readonly number[]>([])
@@ -34,10 +39,10 @@ const turn = ref('')
 const part = ref<StoryPart>('functional')
 const twinTitle = ref('')
 const twinBody = ref('')
-const refusal = ref<string | null>(null)
+const refusal = ref<Phrase | null>(null)
 const busy = ref(false)
 
-const desk = ref<'write' | 'reports'>('write')
+const desk = ref<Desk>('write')
 const running = useResource<readonly KanbanStory[]>(() => board.read('/api/board/kanban'))
 const blockingStoryId = ref<number | null>(null)
 const others = computed(() =>
@@ -96,7 +101,7 @@ function newStory(epic: EpicOverview): Promise<void> {
     transcript.clear()
     const story = await write({
       epicId: epic.id,
-      title: provisionalTitle(storiesOfEpic(written.value, epic.id).length),
+      title: say(provisionalTitle(storiesOfEpic(written.value, epic.id).length)),
       body: epic.businessIntent,
     })
     written.value = [...written.value, story]
@@ -138,7 +143,7 @@ function linkBlocker(): Promise<void> {
 }
 
 function askClaude(point: TicketPoint): void {
-  turn.value = requestFor(point)
+  turn.value = say(requestFor(point))
 }
 
 async function submitTwin(): Promise<void> {
@@ -172,7 +177,6 @@ watch(
   },
 )
 
-
 onMounted(async () => {
   await Promise.all([projects.reload(), pending.reload(), running.reload()])
 
@@ -185,23 +189,25 @@ onMounted(async () => {
 
 <template>
   <div class="flex h-full min-h-0 flex-col">
-  <nav class="flex flex-none gap-0.5 border-b border-line px-6" aria-label="L atelier et ce qui remonte">
+  <nav class="flex flex-none gap-0.5 border-b border-line px-6" :aria-label="t('story.deskNav')">
     <button
       v-for="bench in DESKS"
-      :key="bench.key"
+      :key="bench"
       type="button"
-      :aria-current="bench.key === desk ? 'page' : undefined"
+      :aria-current="bench === desk ? 'page' : undefined"
       class="max-w-[22rem] border-b-[3px] px-3 py-2 text-left"
       :class="
-        bench.key === desk ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'
+        bench === desk ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'
       "
-      @click="desk = bench.key"
+      @click="desk = bench"
     >
       <span class="block font-mono text-[10px] font-bold uppercase">
-        {{ bench.label }}
-        <span v-if="bench.key === 'reports' && reported > 0" class="ml-1 text-acc">{{ reported }}</span>
+        {{ t(`desk.${bench}.label`) }}
+        <span v-if="bench === 'reports' && reported > 0" class="ml-1 text-acc">{{ reported }}</span>
       </span>
-      <span class="mt-0.5 block text-[11px] leading-snug text-txt-low normal-case">{{ bench.said }}</span>
+      <span class="mt-0.5 block text-[11px] leading-snug text-txt-low normal-case">{{
+        t(`desk.${bench}.said`)
+      }}</span>
     </button>
   </nav>
 
@@ -219,14 +225,12 @@ onMounted(async () => {
         class="rounded-lg border border-line bg-card px-3 py-2 font-mono text-[10px] font-bold text-txt-mid uppercase hover:border-acc"
         @click="backToEpics()"
       >
-        Retour aux epiques
+        {{ t('story.backToEpics') }}
       </button>
 
       <template v-if="queue.length > 0">
-        <h2 class="display-italic mt-6 text-sm text-txt-mid">La fournee</h2>
-        <p class="mt-1 text-[11px] text-txt-low">
-          Autant de stories que l epique en demande. Elles partent en reserve une par une.
-        </p>
+        <h2 class="display-italic mt-6 text-sm text-txt-mid">{{ t('story.batch') }}</h2>
+        <p class="mt-1 text-[11px] text-txt-low">{{ t('story.batchHint') }}</p>
 
         <div v-for="epic in queueEpics" :key="epic.id" class="mt-4">
           <p class="font-mono text-[10px] tracking-[0.16em] text-acc uppercase">{{ epic.title }}</p>
@@ -257,25 +261,23 @@ onMounted(async () => {
             class="mt-1.5 w-full rounded-lg border border-dashed border-line px-3 py-2 font-mono text-[10px] text-txt-mid uppercase hover:border-acc disabled:opacity-40"
             @click="newStory(epic)"
           >
-            {{ storiesOf(epic.id).length === 0 ? 'Ecrire la premiere story' : '+ Une story de plus' }}
+            {{ storiesOf(epic.id).length === 0 ? t('story.firstStory') : t('story.oneMoreStory') }}
           </button>
         </div>
       </template>
     </section>
 
     <section class="flex min-h-0 min-w-0 flex-col border-b border-line p-6 lg:border-r lg:border-b-0">
-      <h2 class="display-italic text-lg">Ecrire avec Claude</h2>
-      <p class="mt-1 text-xs text-txt-low">
-        Claude part de l epique et ecrit la carte. Reponds-lui, elle se reecrit.
-      </p>
+      <h2 class="display-italic text-lg">{{ t('story.writeWithClaude') }}</h2>
+      <p class="mt-1 text-xs text-txt-low">{{ t('story.writeWithClaudeHint') }}</p>
 
-      <p v-if="refusal !== null" class="mt-3 text-xs text-red" role="alert">{{ refusal }}</p>
+      <p v-if="refusal !== null" class="mt-3 text-xs text-red" role="alert">{{ say(refusal) }}</p>
 
       <p v-if="transcript.broken.value" class="mt-3 text-xs text-orange">
-        Le flux du board est coupe, recharge la page
+        {{ t('story.streamBroken') }}
       </p>
       <p v-else-if="said.length === 0" class="mt-3 text-xs text-txt-low">
-        La fournee demarre, Claude lit l epique.
+        {{ t('story.batchStarting') }}
       </p>
 
       <div class="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
@@ -290,14 +292,17 @@ onMounted(async () => {
           "
         >
           <p class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">
-            {{ utterance.name === 'session.human' ? 'Toi' : 'Claude' }}
-            <span v-if="utterance.phase !== null"> · {{ utterance.phase }}</span>
+            {{ utterance.name === 'session.human' ? t('story.you') : t('story.claude') }}
+            <span v-if="utterance.phase !== null"> · {{ t(`phase.${utterance.phase}`) }}</span>
           </p>
-          <p v-if="utterance.text !== null" class="mt-1.5 text-sm whitespace-pre-wrap text-txt-hi">
-            {{ utterance.text }}
+          <p
+            v-if="utterance.text !== null || utterance.textKey !== null"
+            class="mt-1.5 text-sm whitespace-pre-wrap text-txt-hi"
+          >
+            {{ utterance.text ?? t(utterance.textKey ?? '') }}
           </p>
           <p v-if="utterance.costUsd !== null" class="mt-1.5 font-mono text-[11px] text-acc">
-            {{ utterance.costUsd.toFixed(4) }} $
+            {{ t('common.money', { amount: utterance.costUsd.toFixed(4) }) }}
           </p>
         </article>
       </div>
@@ -306,7 +311,7 @@ onMounted(async () => {
         <textarea
           v-model="turn"
           rows="2"
-          placeholder="Dis-lui ce qui manque, ce qui change..."
+          :placeholder="t('story.turnPlaceholder')"
           class="min-w-0 flex-1 rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
         ></textarea>
         <button
@@ -314,12 +319,12 @@ onMounted(async () => {
           :disabled="busy || turn.trim() === '' || ticket.data.value === null"
           class="flex-none self-end rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
         >
-          Envoyer
+          {{ t('common.send') }}
         </button>
       </form>
 
       <p v-if="ticket.data.value !== null && !complete" class="mt-3 text-xs text-orange">
-        Les deux parties d abord : une fois la jumelle ecrite, la story part en reserve.
+        {{ t('story.bothPartsFirst') }}
       </p>
 
       <div class="mt-3 flex flex-none flex-wrap gap-2">
@@ -329,7 +334,7 @@ onMounted(async () => {
           class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
           @click="toBacklog()"
         >
-          Envoyer en reserve
+          {{ t('story.sendToStore') }}
         </button>
         <button
           v-if="queue.length > 0"
@@ -338,16 +343,13 @@ onMounted(async () => {
           class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
           @click="backToEpics()"
         >
-          Terminer la fournee
+          {{ t('story.finishBatch') }}
         </button>
       </div>
     </section>
 
     <section class="flex min-h-0 min-w-0 flex-col p-6">
-      <nav
-        class="flex flex-none gap-0.5 border-b border-line"
-        aria-label="Les deux parties de la story"
-      >
+      <nav class="flex flex-none gap-0.5 border-b border-line" :aria-label="t('story.partsNav')">
         <button
           v-for="name in PARTS"
           :key="name"
@@ -359,7 +361,7 @@ onMounted(async () => {
           "
           @click="part = name"
         >
-          {{ PART_LABELS[name] }}
+          {{ t(`storyPart.${name}`) }}
           <span v-if="name === 'tests' && !complete" class="text-orange">·</span>
         </button>
       </nav>
@@ -376,14 +378,14 @@ onMounted(async () => {
             class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase"
             for="blocker"
           >
-            Cette story attend une autre
+            {{ t('story.blockerLabel') }}
           </label>
           <select
             id="blocker"
             v-model="blockingStoryId"
             class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
           >
-            <option :value="null">Rien ne la bloque</option>
+            <option :value="null">{{ t('story.nothingBlocks') }}</option>
             <option v-for="story in others" :key="story.id" :value="story.id">
               {{ story.reference }} · {{ story.title }}
             </option>
@@ -393,7 +395,7 @@ onMounted(async () => {
             :disabled="busy || blockingStoryId === null"
             class="self-start rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
           >
-            Lier
+            {{ t('common.link') }}
           </button>
         </form>
 
@@ -402,17 +404,17 @@ onMounted(async () => {
           class="mt-6 flex flex-col gap-2 rounded-2xl border border-violet bg-card p-4"
           @submit.prevent="submitTwin"
         >
-          <p class="display-italic text-sm text-violet">Story de test jumelle</p>
+          <p class="display-italic text-sm text-violet">{{ t('story.twinTitle') }}</p>
           <input
             v-model="twinTitle"
             type="text"
-            placeholder="Titre de la jumelle"
+            :placeholder="t('story.twinTitlePlaceholder')"
             class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
           />
           <textarea
             v-model="twinBody"
             rows="3"
-            placeholder="Ce que la jumelle doit prouver"
+            :placeholder="t('story.twinBodyPlaceholder')"
             class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
           ></textarea>
           <button
@@ -420,10 +422,9 @@ onMounted(async () => {
             :disabled="busy"
             class="rounded-lg border border-violet bg-violet-soft/20 px-3 py-2 text-xs font-bold text-violet uppercase disabled:opacity-50"
           >
-            Ecrire la jumelle
+            {{ t('story.writeTwin') }}
           </button>
         </form>
-
       </div>
     </section>
   </div>

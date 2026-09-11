@@ -32,10 +32,9 @@ describe('SCREENS', () => {
     }
   })
 
-  it('explique a quoi sert chaque ecran', () => {
-    for (const screen of SCREENS) {
-      expect(screen.sub.length).toBeGreaterThan(20)
-    }
+  it('donne a chaque ecran un raccourci et un sigle propres', () => {
+    expect(new Set(SCREENS.map((screen) => screen.digit)).size).toBe(SCREENS.length)
+    expect(new Set(SCREENS.map((screen) => screen.tiny)).size).toBe(SCREENS.length)
   })
 
   it('ouvre sur la premiere etape', () => {

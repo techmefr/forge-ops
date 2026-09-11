@@ -9,7 +9,12 @@ export type {
   OutcomeClass,
 } from '@contract/AgentContract'
 
-export { CHECKPOINT_SEQUENCE, REVIEW_LENS_SEQUENCE } from '@contract/CheckpointContract'
+export {
+  CHECKPOINT_SEQUENCE,
+  FINDING_SEVERITY_SEQUENCE,
+  REVIEW_LENS_SEQUENCE,
+  REVIEW_PASS_STATE_SEQUENCE,
+} from '@contract/CheckpointContract'
 export type {
   CheckpointName,
   DefinitionOfDoneStep,
@@ -23,6 +28,7 @@ export type {
 export {
   COMPLETENESS_FLOOR,
   STEP_BACK_TARGETS,
+  STORY_KIND_SEQUENCE,
   STORY_STATE_SEQUENCE,
 } from '@contract/StoryContract'
 export type {
@@ -38,8 +44,10 @@ export type {
   StoryState,
 } from '@contract/StoryContract'
 
+export { JUDGEMENT_KIND_SEQUENCE, REMARK_VOICE_SEQUENCE } from '@contract/BoardContract'
 export type {
   Discussion,
+  JudgementKind,
   KanbanColumn,
   KanbanColumnKey,
   KanbanStory,
@@ -65,6 +73,12 @@ export type {
   ZoneOverview,
 } from '@contract/WorkspaceContract'
 
+export {
+  COST_CAP_CONDUCT_SEQUENCE,
+  FLEET_JOB_STATE_SEQUENCE,
+  INCIDENT_STATE_SEQUENCE,
+  ORIGIN_KIND_SEQUENCE,
+} from '@contract/OperationContract'
 export type {
   AgentTally,
   BoardStatistics,
@@ -73,6 +87,7 @@ export type {
   CostCapConduct,
   Fleet,
   FleetJob,
+  FleetJobState,
   Incident,
   IncidentOrigin,
   IncidentState,
@@ -84,6 +99,14 @@ export type {
   SessionHistoryEntry,
 } from '@contract/OperationContract'
 
+export { ACCOUNT_ROLE_SEQUENCE } from '@contract/IdentityContract'
+export type { Account, AccountRole } from '@contract/IdentityContract'
+
+export {
+  PILOT_PACE_SEQUENCE,
+  PILOT_RUN_STATE_SEQUENCE,
+  PILOT_STEP_KIND_SEQUENCE,
+} from '@contract/PilotContract'
 export type {
   ParcoursSuggestion,
   PilotAct,

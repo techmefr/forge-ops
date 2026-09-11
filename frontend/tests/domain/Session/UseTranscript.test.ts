@@ -22,7 +22,8 @@ describe('collectUtterance', () => {
   it('annonce le lancement avec des mots, pas une bulle vide', () => {
     expect(collectUtterance({ name: 'session.dispatched', payload: { phase: 'spec' } })).toMatchObject({
       name: 'session.dispatched',
-      text: 'Session lancee, Claude lit l epique.',
+      text: null,
+      textKey: 'story.dispatched',
     })
   })
 
@@ -45,9 +46,30 @@ describe('collectUtterance', () => {
 
 describe('keepFor', () => {
   const HISTORIQUE: Utterance[] = [
-    { name: 'session.assistant', reference: 'FORGE-1', phase: 'spec', text: 'un', costUsd: null },
-    { name: 'session.assistant', reference: 'FORGE-2', phase: 'spec', text: 'deux', costUsd: null },
-    { name: 'session.dispatched', reference: null, phase: 'spec', text: null, costUsd: null },
+    {
+      name: 'session.assistant',
+      reference: 'FORGE-1',
+      phase: 'spec',
+      text: 'un',
+      textKey: null,
+      costUsd: null,
+    },
+    {
+      name: 'session.assistant',
+      reference: 'FORGE-2',
+      phase: 'spec',
+      text: 'deux',
+      textKey: null,
+      costUsd: null,
+    },
+    {
+      name: 'session.dispatched',
+      reference: null,
+      phase: 'spec',
+      text: null,
+      textKey: 'story.dispatched',
+      costUsd: null,
+    },
   ]
 
   it('garde tout quand aucune story n est ouverte', () => {

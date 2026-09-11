@@ -1,74 +1,58 @@
 import { describe, expect, it } from 'vitest'
 import {
+  FALLBACK_LANGUAGE,
   LANGUAGES,
-  LANGUAGE_LABELS,
-  SHELL_KEYS,
-  screenTextOf,
-  shellTextOf,
-} from '../../../src/technical/Language/Language.js'
-import { SCREENS } from '../../../src/technical/Router/Screen.js'
+  frenchPluralIndex,
+  isLanguage,
+  negotiateLanguage,
+} from '@/technical/Language/Language'
 
 describe('les langues proposees', () => {
-  it('propose le francais et l anglais', () => {
-    expect([...LANGUAGES]).toEqual(['fr', 'en'])
+  it('en propose six', () => {
+    expect([...LANGUAGES]).toEqual(['de', 'en', 'es', 'fr', 'it', 'pt'])
   })
 
-  it('nomme chaque langue dans sa propre langue', () => {
-    expect(LANGUAGE_LABELS.fr).toBe('Français')
-    expect(LANGUAGE_LABELS.en).toBe('English')
-  })
-})
-
-describe('screenTextOf', () => {
-  it('rend le libelle francais du kanban', () => {
-    expect(screenTextOf('kanban', 'fr').label).toBe('Forge')
+  it('reconnait une langue du lot', () => {
+    expect(isLanguage('pt')).toBe(true)
   })
 
-  it('traduit le libelle du projet', () => {
-    expect(screenTextOf('project', 'en').label).toBe('Project')
-  })
-
-  it('traduit aussi la ligne d explication', () => {
-    expect(screenTextOf('project', 'en').sub).not.toBe(screenTextOf('project', 'fr').sub)
-  })
-
-  it('couvre chaque ecran dans chaque langue', () => {
-    for (const screen of SCREENS) {
-      for (const language of LANGUAGES) {
-        expect(screenTextOf(screen.key, language).label.length).toBeGreaterThan(0)
-        expect(screenTextOf(screen.key, language).sub.length).toBeGreaterThan(0)
-      }
-    }
-  })
-
-  it('garde le francais de Screen comme source', () => {
-    for (const screen of SCREENS) {
-      expect(screenTextOf(screen.key, 'fr')).toEqual({ label: screen.label, sub: screen.sub })
-    }
+  it('refuse une langue hors du lot', () => {
+    expect(isLanguage('nl')).toBe(false)
   })
 })
 
-describe('shellTextOf', () => {
-  it('rend le mot francais', () => {
-    expect(shellTextOf('settings', 'fr')).toBe('Réglages')
+describe('negotiateLanguage', () => {
+  it('prend la premiere langue du navigateur que le board parle', () => {
+    expect(negotiateLanguage(['nl-NL', 'de-AT', 'en'])).toBe('de')
   })
 
-  it('traduit le mot', () => {
-    expect(shellTextOf('settings', 'en')).toBe('Settings')
+  it('ignore la region du marqueur', () => {
+    expect(negotiateLanguage(['PT-BR'])).toBe('pt')
   })
 
-  it('couvre chaque mot du cadre dans chaque langue', () => {
-    for (const key of SHELL_KEYS) {
-      for (const language of LANGUAGES) {
-        expect(shellTextOf(key, language).length).toBeGreaterThan(0)
-      }
-    }
+  it('retombe sur l anglais quand rien ne correspond', () => {
+    expect(negotiateLanguage(['nl', 'sv'])).toBe(FALLBACK_LANGUAGE)
   })
 
-  it('ne laisse aucun mot du cadre identique par oubli de traduction', () => {
-    const untranslated = SHELL_KEYS.filter(
-      (key) => shellTextOf(key, 'fr') === shellTextOf(key, 'en'),
-    )
-    expect(untranslated).toEqual([])
+  it('retombe sur l anglais sans aucune preference', () => {
+    expect(negotiateLanguage([])).toBe('en')
+  })
+})
+
+describe('frenchPluralIndex', () => {
+  it('garde le singulier a zero, comme le francais le veut', () => {
+    expect(frenchPluralIndex(0, 2)).toBe(0)
+  })
+
+  it('garde le singulier a un', () => {
+    expect(frenchPluralIndex(1, 2)).toBe(0)
+  })
+
+  it('passe au pluriel a deux', () => {
+    expect(frenchPluralIndex(2, 2)).toBe(1)
+  })
+
+  it('ne sort jamais du nombre de formes offertes', () => {
+    expect(frenchPluralIndex(7, 1)).toBe(0)
   })
 })

@@ -1,23 +1,34 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
 import { reasonOf } from '@/technical/Api/UseResource'
+import { usePhrase } from '@/technical/Language/UsePhrase'
+import type { Phrase } from '@/technical/Language/Phrase'
 import { createLatest } from '@/technical/Api/Latest'
 import Glyph from '@/technical/Ui/Glyph.vue'
 import { decoratedOf } from '@/technical/Ui/CodeDecor'
 import { highlightedOf, languageOfPath } from '@/technical/Ui/CodeHighlight'
 import CardHead from './CardHead.vue'
 import { crumbsOf, toneOf } from './FileMarkTone'
+import { saidOf, type FileVerdictView } from './FileSaid'
 import type { ClashReading, FileReading, TreeEntry, TreeReading } from './FileTree'
 
 const { projectId } = defineProps<{ projectId: number | null }>()
+
+const { t, locale } = useI18n()
+const say = usePhrase()
+
+function spoken(verdict: FileVerdictView): string {
+  return saidOf(verdict, locale.value, (key, values, count) => t(key, values, count))
+}
 
 const here = ref('')
 const tree = ref<TreeReading | null>(null)
 const opened = ref<FileReading | null>(null)
 const clashes = ref<ClashReading | null>(null)
 const checkoutPath = ref('')
-const refusal = ref<string | null>(null)
+const refusal = ref<Phrase | null>(null)
 const busy = ref(false)
 
 const treeShown = ref(true)
@@ -145,15 +156,14 @@ watch(here, () => void look())
       class="rounded-2xl border border-line bg-card p-4"
       @submit.prevent="pointCheckout"
     >
-      <p class="display-italic text-sm text-txt-mid">Ce projet n a pas encore de copie locale</p>
-      <p class="mt-1 text-xs text-txt-low">
-        Donne le dossier où le dépôt est cloné sur cette machine pour voir ses fichiers.
-      </p>
+      <p class="display-italic text-sm text-txt-mid">{{ t('browser.noCheckout') }}</p>
+      <p class="mt-1 text-xs text-txt-low">{{ t('browser.noCheckoutHint') }}</p>
       <div class="mt-3 flex flex-wrap gap-2">
         <input
           v-model="checkoutPath"
           type="text"
-          placeholder="/home/gaetan/mailer"
+          :placeholder="t('browser.checkoutPlaceholder')"
+          :aria-label="t('browser.pointFolder')"
           class="min-w-[280px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 font-mono text-xs text-txt-hi"
         />
         <button
@@ -161,7 +171,7 @@ watch(here, () => void look())
           :disabled="busy || checkoutPath === ''"
           class="rounded-lg bg-acc px-3 py-2 text-[10px] font-bold text-ink uppercase disabled:opacity-40"
         >
-          Pointer le dossier
+          {{ t('browser.pointFolder') }}
         </button>
       </div>
     </form>
@@ -170,8 +180,10 @@ watch(here, () => void look())
       v-if="clashes !== null && clashes.clashes.length > 0"
       class="rounded-2xl border border-orange bg-card p-4"
     >
-      <p class="font-mono text-[10px] tracking-[0.18em] text-orange uppercase">Noms trop proches</p>
-      <p class="mt-1 text-xs text-txt-low">À dire à la session avant qu elle en crée un deuxième.</p>
+      <p class="font-mono text-[10px] tracking-[0.18em] text-orange uppercase">
+        {{ t('browser.closeNames') }}
+      </p>
+      <p class="mt-1 text-xs text-txt-low">{{ t('browser.closeNamesHint') }}</p>
       <ul class="mt-2 flex max-h-[16vh] flex-col gap-1.5 overflow-y-auto">
         <li v-for="clash in clashes.clashes" :key="clash.name" class="text-xs text-txt-hi">
           <span class="font-mono text-[11px] text-orange">{{ clash.name }}</span>
@@ -180,7 +192,7 @@ watch(here, () => void look())
       </ul>
     </section>
 
-    <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ refusal }}</p>
+    <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</p>
 
     <div
       class="grid min-h-[240px] flex-1 gap-4"
@@ -199,7 +211,7 @@ watch(here, () => void look())
           @toggle-shown="treeShown = !treeShown"
           @toggle-wide="widen('tree')"
         >
-          <nav class="flex flex-wrap items-center gap-1" aria-label="Chemin">
+          <nav class="flex flex-wrap items-center gap-1" :aria-label="t('browser.pathNav')">
             <template v-for="(crumb, depth) in crumbs" :key="crumb.path">
               <span v-if="depth > 0" class="font-mono text-[10px] text-txt-low" aria-hidden="true">/</span>
               <button
@@ -208,7 +220,7 @@ watch(here, () => void look())
                 :class="depth === crumbs.length - 1 ? 'text-txt-hi' : 'text-txt-low hover:text-acc'"
                 @click="here = crumb.path"
               >
-                {{ crumb.label }}
+                {{ crumb.root ? t('browser.root') : crumb.label }}
               </button>
             </template>
           </nav>
@@ -216,7 +228,11 @@ watch(here, () => void look())
 
         <template v-if="treeShown">
           <p v-if="tree === null || !tree.available" class="p-4 text-sm text-txt-low">
-            {{ tree?.reason === 'CheckoutUnknown' ? 'Aucune copie locale déclarée.' : 'Rien à lire ici.' }}
+            {{
+              tree?.reason === 'CheckoutUnknown'
+                ? t('browser.noCheckoutDeclared')
+                : t('browser.nothingToRead')
+            }}
           </p>
 
           <ul v-else class="flex min-h-0 flex-1 flex-col overflow-y-auto">
@@ -238,16 +254,16 @@ watch(here, () => void look())
                       entry.name
                     }}</span>
                     <span
-                      v-if="toneOf(entry.mark).label !== ''"
+                      v-if="entry.mark !== 'quiet'"
                       class="h-1.5 w-1.5 flex-none rounded-full"
                       :class="toneOf(entry.mark).dot"
                       aria-hidden="true"
                     />
                     <span
-                      v-if="entry.said !== ''"
+                      v-if="spoken(entry) !== ''"
                       class="truncate text-[10px]"
                       :class="toneOf(entry.mark).text"
-                      >{{ entry.said }}</span
+                      >{{ spoken(entry) }}</span
                     >
                   </span>
                   <span v-if="entry.description !== ''" class="block truncate text-[11px] text-txt-low">{{
@@ -272,7 +288,7 @@ watch(here, () => void look())
           @toggle-wide="widen('code')"
         >
           <p class="truncate font-mono text-[11px] text-txt-hi">
-            {{ opened === null ? 'Aucun fichier ouvert' : opened.path }}
+            {{ opened === null ? t('browser.noFileOpen') : opened.path }}
           </p>
           <p v-if="opened !== null && opened.description !== ''" class="truncate text-[11px] text-txt-low">
             {{ opened.description }}
@@ -280,17 +296,21 @@ watch(here, () => void look())
         </CardHead>
 
         <template v-if="codeShown">
-          <p v-if="opened === null" class="p-4 text-sm text-txt-low">Clique un fichier pour l ouvrir.</p>
+          <p v-if="opened === null" class="p-4 text-sm text-txt-low">{{ t('browser.clickFile') }}</p>
 
           <template v-else>
-            <p v-if="opened.said !== ''" class="border-b border-line px-4 py-2 text-[11px]" :class="toneOf(opened.mark).text">
-              {{ opened.said }}
+            <p
+              v-if="spoken(opened) !== ''"
+              class="border-b border-line px-4 py-2 text-[11px]"
+              :class="toneOf(opened.mark).text"
+            >
+              {{ spoken(opened) }}
             </p>
             <pre
               class="min-h-0 flex-1 overflow-auto px-4 py-3 font-mono text-[11px] leading-relaxed text-txt-mid"
             ><code v-html="painted" /></pre>
             <p v-if="opened.truncated" class="border-t border-line px-4 py-2 text-[10px] text-txt-low">
-              Fichier coupé, {{ opened.bytes }} octets au total.
+              {{ t('browser.truncated', { bytes: opened.bytes }) }}
             </p>
           </template>
         </template>

@@ -1,42 +1,37 @@
 import { describe, expect, it } from 'vitest'
-import { countedOf, sessionEndOf } from '@/domain/Agent/SessionEnd'
+import { sessionEndKey } from '@/domain/Agent/SessionEnd'
+import { AGENT_LIFECYCLE_SEQUENCE, OUTCOME_CLASSES } from '@/domain/Board/BoardModel'
 
-describe('sessionEndOf', () => {
-  it('dit la sortie en francais quand la session est finie', () => {
-    expect(sessionEndOf('succeeded', 'finished')).toBe('Réussie')
+describe('sessionEndKey', () => {
+  it('pointe la sortie quand la session est finie', () => {
+    expect(sessionEndKey('succeeded', 'finished')).toBe('outcome.succeeded')
   })
 
   it('retombe sur le cycle de vie quand aucune sortie n est encore ecrite', () => {
-    expect(sessionEndOf(null, 'working')).toBe('Au travail')
+    expect(sessionEndKey(null, 'working')).toBe('lifecycle.working')
   })
 
   it('dit qu une session attend une reponse humaine', () => {
-    expect(sessionEndOf(null, 'awaiting_human')).toBe('Attend ta réponse')
+    expect(sessionEndKey(null, 'awaiting_human')).toBe('lifecycle.awaiting_human')
   })
 
-  it('avoue un mot inconnu plutot que de rendre du vide', () => {
-    expect(sessionEndOf('bizarre', 'working')).toBe('bizarre')
-  })
-})
-
-describe('countedOf', () => {
-  it('laisse le mot au singulier a un', () => {
-    expect(countedOf(1, 'session')).toBe('1 session')
+  it('renvoie la sortie inconnue plutot qu une cle inventee', () => {
+    expect(sessionEndKey('bizarre', 'working')).toBe('outcome.unknown')
   })
 
-  it('met le mot au pluriel au dela', () => {
-    expect(countedOf(3, 'session')).toBe('3 sessions')
+  it('refuse aussi un cycle de vie inconnu', () => {
+    expect(sessionEndKey(null, 'licorne')).toBe('outcome.unknown')
   })
 
-  it('accepte un pluriel anglais en ies', () => {
-    expect(countedOf(3, 'story', 'stories')).toBe('3 stories')
+  it('donne une cle a chaque sortie du contrat', () => {
+    for (const outcome of OUTCOME_CLASSES) {
+      expect(sessionEndKey(outcome, 'finished')).toBe(`outcome.${outcome}`)
+    }
   })
 
-  it('met le mot au singulier a zero, comme le veut le francais', () => {
-    expect(countedOf(0, 'session')).toBe('0 session')
-  })
-
-  it('accepte un pluriel irregulier', () => {
-    expect(countedOf(2, 'travail', 'travaux')).toBe('2 travaux')
+  it('donne une cle a chaque cycle de vie du contrat', () => {
+    for (const lifecycle of AGENT_LIFECYCLE_SEQUENCE) {
+      expect(sessionEndKey(null, lifecycle)).toBe(`lifecycle.${lifecycle}`)
+    }
   })
 })

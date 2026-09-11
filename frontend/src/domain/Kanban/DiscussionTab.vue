@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
+import { usePhrase } from '@/technical/Language/UsePhrase'
+import type { Phrase } from '@/technical/Language/Phrase'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import type { Discussion, KanbanStory } from '@/domain/Board/BoardModel'
 import { saidWhen } from './Moment'
@@ -9,13 +12,21 @@ import { saidWhen } from './Moment'
 const props = defineProps<{ story: KanbanStory }>()
 const emit = defineEmits<{ freed: [] }>()
 
+const { t, d } = useI18n()
+const say = usePhrase()
+
 const discussion = useResource<Discussion>(() =>
   board.read(`/api/stories/${props.story.id}/discussion`),
 )
 const reply = ref('')
 const reason = ref('')
-const refusal = ref<string | null>(null)
+const refusal = ref<Phrase | null>(null)
 const busy = ref(false)
+
+function spokenWhen(written: string): string {
+  const moment = saidWhen(written, new Date())
+  return moment.said === null ? d(moment.date ?? new Date(), 'dayTime') : say(moment.said)
+}
 
 async function guard(action: () => Promise<void>): Promise<void> {
   busy.value = true
@@ -59,20 +70,20 @@ watch(() => props.story.id, () => void discussion.reload(), { immediate: true })
       class="rounded-2xl border border-orange bg-orange/10 p-4"
       role="alert"
     >
-      <p class="font-mono text-[10px] font-bold text-orange uppercase">Bloquee</p>
+      <p class="font-mono text-[10px] font-bold text-orange uppercase">{{ t('discussion.held') }}</p>
       <p class="mt-1.5 text-sm text-txt-hi">{{ discussion.data.value.hold.reason }}</p>
       <p class="mt-2 font-mono text-[10px] text-txt-low">
-        demande par {{ discussion.data.value.hold.askedBy }} · une reponse humaine la libere
+        {{ t('discussion.askedBy', { author: discussion.data.value.hold.askedBy }) }}
       </p>
     </div>
 
-    <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ refusal }}</p>
+    <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</p>
 
     <ScreenState
       :pending="discussion.pending.value"
       :failure="discussion.failure.value"
       :empty="(discussion.data.value?.remarks ?? []).length === 0"
-      empty-label="Rien n a encore ete dit sur cette story."
+      empty-key="discussion.empty"
       @retry="discussion.reload()"
     >
       <div class="flex flex-col gap-2">
@@ -86,11 +97,11 @@ watch(() => props.story.id, () => void discussion.reload(), { immediate: true })
             <span
               class="rounded px-1.5 py-0.5 text-[9px] font-bold"
               :class="remark.voice === 'human' ? 'bg-acc-soft/25 text-acc' : 'bg-elev text-txt-mid'"
-              >{{ remark.voice === 'human' ? 'humain' : 'agent' }}</span
+              >{{ t(`voice.${remark.voice}`) }}</span
             >
             <span class="text-txt-low">{{ remark.author }}</span>
             <time class="ml-auto text-txt-low" :datetime="remark.writtenAt">{{
-              saidWhen(remark.writtenAt, new Date())
+              spokenWhen(remark.writtenAt)
             }}</time>
           </p>
           <p class="mt-1.5 text-sm whitespace-pre-wrap text-txt-hi">{{ remark.body }}</p>
@@ -100,7 +111,7 @@ watch(() => props.story.id, () => void discussion.reload(), { immediate: true })
 
     <form class="flex flex-col gap-2" @submit.prevent="answer">
       <label class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase" for="reply">
-        Ce que tu reponds
+        {{ t('discussion.yourReply') }}
       </label>
       <textarea
         id="reply"
@@ -113,7 +124,7 @@ watch(() => props.story.id, () => void discussion.reload(), { immediate: true })
         :disabled="busy || reply.trim() === ''"
         class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
       >
-        {{ discussion.data.value?.hold ? 'Repondre et debloquer' : 'Repondre' }}
+        {{ discussion.data.value?.hold ? t('discussion.replyAndUnblock') : t('discussion.reply') }}
       </button>
     </form>
 
@@ -123,7 +134,7 @@ watch(() => props.story.id, () => void discussion.reload(), { immediate: true })
       @submit.prevent="hold"
     >
       <label class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase" for="reason">
-        Ce qui doit etre tranche
+        {{ t('discussion.whatMustBeSettled') }}
       </label>
       <input
         id="reason"
@@ -136,7 +147,7 @@ watch(() => props.story.id, () => void discussion.reload(), { immediate: true })
         :disabled="busy || reason.trim() === ''"
         class="rounded-lg border border-orange bg-card px-4 py-2 text-xs font-bold text-orange uppercase disabled:opacity-40"
       >
-        Bloquer en attendant un arbitrage
+        {{ t('discussion.holdForRuling') }}
       </button>
     </form>
   </div>

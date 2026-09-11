@@ -4,17 +4,17 @@ import { reasonOf, useResource } from '../../../src/technical/Api/UseResource.js
 
 describe('reasonOf', () => {
   it('reprend le message du board, pour que l ecran dise pourquoi', () => {
-    expect(reasonOf(new BoardRequestError(409, 'TwinRequiredError', 'il manque la jumelle'))).toBe(
-      'il manque la jumelle',
-    )
+    expect(
+      reasonOf(new BoardRequestError(409, 'TwinRequiredError', 'il manque la jumelle')).key,
+    ).toBe('il manque la jumelle')
   })
 
   it('reprend le message d une panne quelconque', () => {
-    expect(reasonOf(new Error('reseau coupe'))).toBe('reseau coupe')
+    expect(reasonOf(new Error('reseau coupe')).key).toBe('reseau coupe')
   })
 
   it('reste lisible sur une panne sans message', () => {
-    expect(reasonOf('nawak')).toBe('Le board n a pas repondu')
+    expect(reasonOf('nawak').key).toBe('common.boardSilent')
   })
 })
 
@@ -40,7 +40,7 @@ describe('useResource', () => {
     await resource.reload()
 
     expect(resource.pending.value).toBe(false)
-    expect(resource.failure.value).toBe('coupe')
+    expect(resource.failure.value?.key).toBe('coupe')
   })
 
   it('leve le drapeau d attente pendant le chargement', async () => {

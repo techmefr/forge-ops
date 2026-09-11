@@ -4,12 +4,6 @@ export const OWNERSHIPS = ['all', 'mine', 'free'] as const
 
 export type Ownership = (typeof OWNERSHIPS)[number]
 
-export const OWNERSHIP_LABELS: Readonly<Record<Ownership, string>> = {
-  all: 'Toutes',
-  mine: 'A moi',
-  free: 'Libres',
-}
-
 export type EpicSieve = {
   projectId: number | null
   ownership: Ownership

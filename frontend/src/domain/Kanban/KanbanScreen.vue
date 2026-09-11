@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
 import { useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import type { KanbanColumn, KanbanStory, StoryHold } from '@/domain/Board/BoardModel'
 import CardDrawer from './CardDrawer.vue'
 import { holdOf } from './Hold'
+
+const { t } = useI18n()
 
 const columns = useResource<readonly KanbanColumn[]>(() => board.read('/api/board/columns'))
 const stories = useResource<readonly KanbanStory[]>(() => board.read('/api/board/kanban'))
@@ -41,7 +44,7 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
         :pending="stories.pending.value"
         :failure="stories.failure.value"
         :empty="(stories.data.value ?? []).length === 0"
-        empty-label="Aucune story en cours."
+        empty-key="kanban.empty"
         @retry="stories.reload()"
       >
         <div class="flex h-full gap-4 overflow-x-auto pb-4">
@@ -56,7 +59,7 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
                 :style="{ background: `var(--forge-${column.colour})` }"
                 aria-hidden="true"
               />
-              <h2 class="display-italic text-sm">{{ column.label }}</h2>
+              <h2 class="display-italic text-sm">{{ t(`state.${column.key}`) }}</h2>
               <span class="ml-auto font-mono text-[11px] text-txt-low">{{
                 (byColumn.get(column.key) ?? []).length
               }}</span>
@@ -73,20 +76,20 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
               >
                 <div class="flex items-center gap-2">
                   <span class="font-mono text-[10px] font-semibold text-acc">{{ story.reference }}</span>
-                  <span v-if="story.points !== null" class="ml-auto font-mono text-[10px] text-txt-low"
-                    >{{ story.points }} pts</span
-                  >
+                  <span v-if="story.points !== null" class="ml-auto font-mono text-[10px] text-txt-low">{{
+                    t('kanban.points', { count: story.points }, story.points)
+                  }}</span>
                 </div>
                 <span class="mt-1.5 block text-sm text-txt-hi">{{ story.title }}</span>
                 <p v-if="story.mergeConflict" class="mt-2 font-mono text-[10px] text-red uppercase">
-                  Conflit de merge
+                  {{ t('kanban.mergeConflict') }}
                 </p>
                 <p v-if="heldStory(story.id) !== null" class="mt-2 text-[11px] text-orange">
-                  <span class="font-mono text-[10px] font-bold uppercase">Bloquee</span>
+                  <span class="font-mono text-[10px] font-bold uppercase">{{ t('kanban.held') }}</span>
                   · {{ heldStory(story.id)?.reason }}
                 </p>
                 <p v-if="story.blockers.length > 0" class="mt-2 text-[11px] text-orange">
-                  Bloquee par
+                  {{ t('kanban.blockedBy') }}
                   <span
                     v-for="blocker in story.blockers"
                     :key="blocker"
@@ -95,8 +98,14 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
                   >
                 </p>
                 <p class="mt-2 font-mono text-[10px] text-txt-low">
-                  {{ story.usage.costUsd.toFixed(2) }} $ ·
-                  {{ story.usage.inputTokens + story.usage.outputTokens }} jetons
+                  {{ t('common.money', { amount: story.usage.costUsd.toFixed(2) }) }} ·
+                  {{
+                    t(
+                      'kanban.tokens',
+                      { count: story.usage.inputTokens + story.usage.outputTokens },
+                      story.usage.inputTokens + story.usage.outputTokens,
+                    )
+                  }}
                 </p>
               </button>
             </div>

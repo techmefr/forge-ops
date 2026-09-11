@@ -1,6 +1,10 @@
-export type PilotPace = 'live' | 'slow' | 'step'
+export const PILOT_PACE_SEQUENCE = ['live', 'slow', 'step'] as const
 
-export type PilotStepKind = 'goto' | 'click' | 'fill' | 'expectText' | 'screenshot'
+export type PilotPace = (typeof PILOT_PACE_SEQUENCE)[number]
+
+export const PILOT_STEP_KIND_SEQUENCE = ['goto', 'click', 'fill', 'expectText', 'screenshot'] as const
+
+export type PilotStepKind = (typeof PILOT_STEP_KIND_SEQUENCE)[number]
 
 export type PilotStep = {
   kind: PilotStepKind
@@ -22,7 +26,15 @@ export type PilotAct = {
   actedAt: string
 }
 
-export type PilotRunState = 'running' | 'paused' | 'passed' | 'failed' | 'abandoned'
+export const PILOT_RUN_STATE_SEQUENCE = [
+  'running',
+  'paused',
+  'passed',
+  'failed',
+  'abandoned',
+] as const
+
+export type PilotRunState = (typeof PILOT_RUN_STATE_SEQUENCE)[number]
 
 export type PilotRun = {
   id: number
@@ -44,8 +56,17 @@ export type PilotObservation = {
   consoleErrors: readonly string[]
 }
 
+export const PARCOURS_REASON_SEQUENCE = [
+  'noWorktree',
+  'noCriteria',
+  'onePerCriterion',
+] as const
+
+export type ParcoursReason = (typeof PARCOURS_REASON_SEQUENCE)[number]
+
 export type ParcoursSuggestion = {
   url: string
   script: readonly PilotStep[]
-  reason: string
+  reason: ParcoursReason
+  references: readonly string[]
 }

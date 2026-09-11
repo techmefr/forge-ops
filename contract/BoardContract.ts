@@ -52,6 +52,10 @@ export type ReportFact =
   | { kind: 'criterion'; statement: string; evidencePath: string }
   | { kind: 'cost'; statement: string; costUsd: number; inputTokens: number; outputTokens: number }
 
+export const JUDGEMENT_KIND_SEQUENCE = ['finding', 'criterion_unmet', 'blocker'] as const
+
+export type JudgementKind = (typeof JUDGEMENT_KIND_SEQUENCE)[number]
+
 export type ReportJudgement =
   | { kind: 'finding'; statement: string; lens: string; severity: string; path: string }
   | { kind: 'criterion_unmet'; statement: string; reference: string }
@@ -62,7 +66,9 @@ export type StoryReport = {
   judgements: readonly ReportJudgement[]
 }
 
-export type RemarkVoice = 'human' | 'agent'
+export const REMARK_VOICE_SEQUENCE = ['human', 'agent'] as const
+
+export type RemarkVoice = (typeof REMARK_VOICE_SEQUENCE)[number]
 
 export type StoryRemark = {
   id: number
