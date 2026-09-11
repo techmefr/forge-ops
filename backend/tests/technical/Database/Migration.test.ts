@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
+import { migrate } from '../../../src/technical/Database/Migration.js'
 
 const OLD_BOARD_USER = `CREATE TABLE board_user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -303,6 +304,32 @@ describe('opening a base whose story states predate the current domain', () => {
   it('leaves a fresh base alone', () => {
     const db = openDatabase(path)
     expect(db.prepare<[], { total: number }>('SELECT COUNT(*) AS total FROM story').get()?.total).toBe(0)
+    db.close()
+  })
+})
+
+describe('migrate atomicity', () => {
+  it('rolls a failing step back and puts foreign keys back on', () => {
+    const db = new Database(':memory:')
+    const exploding = [
+      {
+        name: 'step/that-throws',
+        apply: (target: Database.Database) => {
+          target.exec('CREATE TABLE half_built (id INTEGER PRIMARY KEY)')
+          throw new Error('the step blew up')
+        },
+      },
+    ]
+
+    expect(() => migrate(db, '', exploding)).toThrow('the step blew up')
+    expect(
+      db
+        .prepare<[], { name: string }>(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'half_built'",
+        )
+        .get(),
+    ).toBeUndefined()
+    expect(db.pragma('foreign_keys', { simple: true })).toBe(1)
     db.close()
   })
 })

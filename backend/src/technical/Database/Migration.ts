@@ -154,17 +154,26 @@ export function addMissingColumns(db: Database.Database): void {
   }
 }
 
-export function migrate(db: Database.Database, schema: string): void {
+export function migrate(
+  db: Database.Database,
+  schema: string,
+  steps: readonly MigrationStep[] = migrationSteps(schema),
+): void {
   addMissingColumns(db)
   db.exec(STEP_LEDGER)
   const record = db.prepare<[string], unknown>('INSERT INTO schema_step (name) VALUES (?)')
   db.pragma('foreign_keys = OFF')
-  for (const step of migrationSteps(schema)) {
-    if (stepWasApplied(db, step.name)) {
-      continue
+  try {
+    for (const step of steps) {
+      if (stepWasApplied(db, step.name)) {
+        continue
+      }
+      db.transaction(() => {
+        step.apply(db)
+        record.run(step.name)
+      })()
     }
-    step.apply(db)
-    record.run(step.name)
+  } finally {
+    db.pragma('foreign_keys = ON')
   }
-  db.pragma('foreign_keys = ON')
 }
