@@ -1,13 +1,19 @@
-import { relative, isAbsolute } from 'node:path'
+import { relative, isAbsolute, resolve } from 'node:path'
 import type { ScopeReservation } from '../../domain/Foremerge/ForemergeRepository.js'
 import { decideOnWrite, type WriteDecision } from '../../domain/Foremerge/ScopeGuard.js'
+import { decideOnPhasePayload } from './PhaseDecision.js'
 
 export const WRITING_TOOLS: readonly string[] = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit']
 
 export type ScopeQuestion = {
   reference: string | null
   read: () => readonly ScopeReservation[]
+  renew?: (storyId: number) => void
   root: string
+}
+
+export type WriteToolCallQuestion = ScopeQuestion & {
+  phase: string | null
 }
 
 const ALLOWED: WriteDecision = { allowed: true, reason: null }
@@ -32,18 +38,39 @@ function toolOf(payload: unknown): string | null {
   return typeof name === 'string' ? name : null
 }
 
-function inside(root: string, path: string): string {
-  return isAbsolute(path) ? relative(root, path) : path
+function inside(root: string, path: string): string | null {
+  const walked = relative(resolve(root), resolve(root, path))
+  if (walked === '' || walked.startsWith('..') || isAbsolute(walked)) {
+    return null
+  }
+  return walked
 }
 
-export function decideOnScopePayload(raw: string, { reference, read, root }: ScopeQuestion): WriteDecision {
-  if (reference === null) {
-    return ALLOWED
+function renewLease(
+  reservations: readonly ScopeReservation[],
+  reference: string,
+  renew: ((storyId: number) => void) | undefined,
+): void {
+  if (renew === undefined) {
+    return
   }
+  const mine = reservations.find((reservation) => reservation.storyReference === reference)
+  if (mine !== undefined) {
+    renew(mine.storyId)
+  }
+}
+
+export function decideOnScopePayload(
+  raw: string,
+  { reference, read, renew, root }: ScopeQuestion,
+): WriteDecision {
   let payload: unknown
   try {
     payload = JSON.parse(raw)
   } catch {
+    if (reference === null) {
+      return ALLOWED
+    }
     return { allowed: false, reason: 'le hook de perimetre n a pas su lire ce que Claude Code lui a envoye' }
   }
   const tool = toolOf(payload)
@@ -54,14 +81,30 @@ export function decideOnScopePayload(raw: string, { reference, read, root }: Sco
   if (path === null) {
     return { allowed: false, reason: `${tool} sans chemin de fichier ne se verifie pas` }
   }
+  const wanted = inside(root, path)
+  if (wanted === null) {
+    return { allowed: false, reason: `${path} est hors du depot, ce hook ne laisse rien sortir du perimetre` }
+  }
   try {
-    return decideOnWrite({ reservations: read(), reference, path: inside(root, path) })
+    const reservations = read()
+    if (reference !== null) {
+      renewLease(reservations, reference, renew)
+    }
+    return decideOnWrite({ reservations, reference, path: wanted })
   } catch (error) {
     return {
       allowed: false,
-      reason: `le perimetre de ${reference} est illisible : ${
+      reason: `le perimetre reserve est illisible : ${
         error instanceof Error ? error.message : String(error)
       }`,
     }
   }
+}
+
+export function decideOnWriteToolCall(raw: string, { phase, ...question }: WriteToolCallQuestion): WriteDecision {
+  const byPhase = decideOnPhasePayload(raw, phase)
+  if (!byPhase.allowed) {
+    return { allowed: false, reason: byPhase.reason }
+  }
+  return decideOnScopePayload(raw, question)
 }
