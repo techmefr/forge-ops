@@ -4,6 +4,7 @@ import { z } from 'zod'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { listDirectory, readTextFile, walkPaths } from '../../technical/Repository/LocalTree.js'
 import { PathOutsideCheckoutError } from '../../technical/Repository/LocalTreeViolation.js'
+import { CheckoutPathRefusedError } from '../Story/CheckoutPath.js'
 import { describeFile } from './FileDigest.js'
 import { markOfFile, type FileTouch } from './FileMark.js'
 import { clashesOf } from './NameClash.js'
@@ -149,7 +150,14 @@ export function createFileApi({
     if (!(await isDirectory(body.data.checkoutPath))) {
       return context.json({ error: 'CheckoutNotADirectory' }, 422)
     }
-    return context.json(stories.setCheckoutPath(projectId.data, body.data.checkoutPath))
+    try {
+      return context.json(stories.setCheckoutPath(projectId.data, body.data.checkoutPath))
+    } catch (error) {
+      if (error instanceof CheckoutPathRefusedError) {
+        return context.json({ error: 'CheckoutPathRefused', reason: error.message }, 422)
+      }
+      throw error
+    }
   })
 
   api.get('/api/projects/:id/clashes', async (context) => {

@@ -16,7 +16,7 @@ let projectId = 0
 let blindProjectId = 0
 
 function seed(db: Database.Database): void {
-  const stories = createStoryRepository(db)
+  const stories = createStoryRepository(db, { checkoutRoots: [tmpdir()] })
   const sessions = createAgentSessionRepository(db)
   const project = stories.createProject({
     slug: 'forge',
@@ -56,7 +56,10 @@ beforeEach(() => {
   writeFileSync(join(root, 'src', 'UserModale.vue'), '<template />\n')
   const db = openDatabase(':memory:')
   seed(db)
-  api = createFileApi({ stories: createStoryRepository(db), files: createFileRepository(db) })
+  api = createFileApi({
+    stories: createStoryRepository(db, { checkoutRoots: [tmpdir()] }),
+    files: createFileRepository(db),
+  })
 })
 
 describe('GET /api/projects/:id/tree', () => {
