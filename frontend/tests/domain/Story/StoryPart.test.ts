@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PARTS, PART_LABELS, bothPartsWritten, partOf } from '@/domain/Story/StoryPart'
+import { PARTS, bothPartsWritten, partOf } from '@/domain/Story/StoryPart'
 import type { Story, Ticket } from '@/domain/Board/BoardModel'
 
 const STORY = {
@@ -25,10 +25,8 @@ describe('les deux parties de la story', () => {
     expect([...PARTS]).toEqual(['functional', 'tests'])
   })
 
-  it('portent toutes les deux un nom', () => {
-    for (const part of PARTS) {
-      expect(PART_LABELS[part].length).toBeGreaterThan(0)
-    }
+  it('ne repetent jamais la meme part', () => {
+    expect(new Set(PARTS).size).toBe(PARTS.length)
   })
 })
 

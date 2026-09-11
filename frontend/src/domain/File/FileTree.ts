@@ -7,8 +7,8 @@ export type TreeEntry = {
   bytes: number | null
   description: string
   mark: FileMark
-  said: string
   byReferences: readonly string[]
+  agentName: string | null
 }
 
 export type TreeReading = {
@@ -24,8 +24,8 @@ export type FileReading = {
   truncated: boolean
   description: string
   mark: FileMark
-  said: string
   byReferences: readonly string[]
+  agentName: string | null
 }
 
 export type ClashReading = {

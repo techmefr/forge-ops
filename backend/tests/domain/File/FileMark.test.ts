@@ -8,14 +8,18 @@ function touch(state: StoryState, storyReference = 'FORGE-3', agentName: string 
 
 describe('markOfFile', () => {
   it('laisse tranquille un fichier qu aucune story ne touche', () => {
-    expect(markOfFile({ onDisk: true, touches: [] })).toEqual({ mark: 'quiet', said: '', byReferences: [] })
+    expect(markOfFile({ onDisk: true, touches: [] })).toEqual({
+      mark: 'quiet',
+      byReferences: [],
+      agentName: null,
+    })
   })
 
   it('annonce en orange le fichier qu une session est en train de modifier', () => {
     expect(markOfFile({ onDisk: true, touches: [touch('building')] })).toEqual({
       mark: 'planned',
-      said: 'FORGE-3 le modifie, session neo',
       byReferences: ['FORGE-3'],
+      agentName: 'neo',
     })
   })
 
@@ -27,8 +31,8 @@ describe('markOfFile', () => {
   it('passe au vert quand le travail est fait mais pas encore merge', () => {
     expect(markOfFile({ onDisk: true, touches: [touch('shipping')] })).toEqual({
       mark: 'ready',
-      said: 'FORGE-3 l a fini, en attente de merge',
       byReferences: ['FORGE-3'],
+      agentName: 'neo',
     })
   })
 
@@ -42,7 +46,7 @@ describe('markOfFile', () => {
       touches: [touch('building', 'FORGE-3'), touch('reviewing', 'MAILER-2', null)],
     })
     expect(verdict.byReferences).toEqual(['FORGE-3', 'MAILER-2'])
-    expect(verdict.said).toBe('FORGE-3 et MAILER-2 le modifient')
+    expect(verdict.agentName).toBeNull()
   })
 
   it('fait primer le travail en cours sur le travail deja fini', () => {

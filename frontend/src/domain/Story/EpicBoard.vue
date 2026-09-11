@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
+import { usePhrase } from '@/technical/Language/UsePhrase'
+import type { Phrase } from '@/technical/Language/Phrase'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import type { EpicOverview, Project } from '@/domain/Board/BoardModel'
-import {
-  OWNERSHIPS,
-  OWNERSHIP_LABELS,
-  keepEpics,
-  oneProjectOnly,
-  type Ownership,
-} from './EpicFilter'
+import { OWNERSHIPS, keepEpics, oneProjectOnly, type Ownership } from './EpicFilter'
 
 const emit = defineEmits<{ chosen: [readonly number[]] }>()
+
+const { t } = useI18n()
+const say = usePhrase()
 
 const projects = useResource<readonly Project[]>(() => board.read('/api/projects'))
 const self = useResource<{ login: string }>(() => board.read('/api/board/self'))
@@ -20,7 +20,7 @@ const epics = ref<readonly EpicOverview[]>([])
 const chosenProject = ref<number | null>(null)
 const ownership = ref<Ownership>('all')
 const picked = ref<readonly number[]>([])
-const refusal = ref<string | null>(null)
+const refusal = ref<Phrase | null>(null)
 const busy = ref(false)
 
 const shown = computed(() =>
@@ -96,12 +96,14 @@ onMounted(async () => {
   <div class="flex h-full min-h-0 flex-col gap-5 p-8">
     <div class="flex flex-none flex-wrap items-end gap-4">
       <label class="flex flex-col gap-1">
-        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">Projet</span>
+        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">{{
+          t('common.project')
+        }}</span>
         <select
           v-model="chosenProject"
           class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
         >
-          <option :value="null">Tous</option>
+          <option :value="null">{{ t('common.allProjects') }}</option>
           <option v-for="project in projects.data.value ?? []" :key="project.id" :value="project.id">
             {{ project.name }}
           </option>
@@ -109,7 +111,9 @@ onMounted(async () => {
       </label>
 
       <div class="flex flex-col gap-1">
-        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">Attribution</span>
+        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">{{
+          t('epic.ownership')
+        }}</span>
         <div class="flex gap-2">
           <button
             v-for="name in OWNERSHIPS"
@@ -124,13 +128,13 @@ onMounted(async () => {
             "
             @click="ownership = name"
           >
-            {{ OWNERSHIP_LABELS[name] }}
+            {{ t(`ownership.${name}`) }}
           </button>
         </div>
       </div>
 
       <p class="ml-auto font-mono text-[11px] text-txt-low">
-        {{ picked.length }} choisie{{ picked.length > 1 ? 's' : '' }}
+        {{ t('epic.chosenCount', { count: picked.length }, picked.length) }}
       </p>
       <button
         type="button"
@@ -138,21 +142,19 @@ onMounted(async () => {
         class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
         @click="write()"
       >
-        {{ picked.length > 1 ? 'Ecrire les stories' : 'Ecrire la story' }}
+        {{ t('epic.writeStories', picked.length) }}
       </button>
     </div>
 
-    <p v-if="mixed" class="text-xs text-orange" role="alert">
-      Une meme fournee ne peut pas melanger deux projets. Retire une epique.
-    </p>
-    <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ refusal }}</p>
+    <p v-if="mixed" class="text-xs text-orange" role="alert">{{ t('epic.mixedProjects') }}</p>
+    <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</p>
 
     <div class="min-h-0 flex-1 overflow-auto pr-1">
     <ScreenState
       :pending="projects.pending.value"
       :failure="projects.failure.value"
       :empty="shown.length === 0"
-      empty-label="Aucune epique sous ce filtre."
+      empty-key="epic.empty"
       @retry="projects.reload()"
     >
       <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
@@ -169,7 +171,7 @@ onMounted(async () => {
               aria-hidden="true"
             />
             <span class="font-mono text-[11px] font-semibold text-acc">{{
-              projectOf(epic.projectId)?.name ?? 'Projet inconnu'
+              projectOf(epic.projectId)?.name ?? t('epic.unknownProject')
             }}</span>
             <label
               class="ml-auto flex min-h-[32px] cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[10px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
@@ -178,10 +180,10 @@ onMounted(async () => {
                 type="checkbox"
                 class="h-[18px] w-[18px] accent-acc"
                 :checked="picked.includes(epic.id)"
-                :aria-label="`Choisir ${epic.title}`"
+                :aria-label="t('epic.choose', { title: epic.title })"
                 @change="toggle(epic.id)"
               />
-              Prendre
+              {{ t('common.take') }}
             </label>
           </div>
 
@@ -191,13 +193,13 @@ onMounted(async () => {
           </button>
 
           <div class="mt-3 flex items-center gap-3 border-t border-line pt-3">
-            <span class="font-mono text-[10px] text-txt-low"
-              >{{ epic.storyCount }} {{ epic.storyCount > 1 ? 'stories' : 'story' }}</span
-            >
+            <span class="font-mono text-[10px] text-txt-low">{{
+              t('epic.storyCount', { count: epic.storyCount }, epic.storyCount)
+            }}</span>
             <span
               class="font-mono text-[10px] uppercase"
               :class="epic.assignee === null ? 'text-green' : 'text-violet'"
-              >{{ epic.assignee ?? 'Libre' }}</span
+              >{{ epic.assignee ?? t('epic.free') }}</span
             >
             <button
               v-if="epic.assignee === null"
@@ -206,7 +208,7 @@ onMounted(async () => {
               class="ml-auto font-mono text-[10px] text-acc uppercase hover:underline disabled:opacity-40"
               @click="claim(epic.id)"
             >
-              M attribuer
+              {{ t('epic.claim') }}
             </button>
             <button
               v-else-if="epic.assignee === self.data.value?.login"
@@ -215,7 +217,7 @@ onMounted(async () => {
               class="ml-auto font-mono text-[10px] text-txt-low uppercase hover:underline disabled:opacity-40"
               @click="release(epic.id)"
             >
-              Rendre
+              {{ t('common.release') }}
             </button>
           </div>
         </article>

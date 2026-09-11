@@ -1,6 +1,8 @@
 import type { CheckpointName } from './CheckpointContract.js'
 
-export type StoryKind = 'functional' | 'test'
+export const STORY_KIND_SEQUENCE = ['functional', 'test'] as const
+
+export type StoryKind = (typeof STORY_KIND_SEQUENCE)[number]
 
 export const STORY_STATE_SEQUENCE = [
   'drafting',

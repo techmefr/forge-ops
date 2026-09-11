@@ -2,14 +2,6 @@ export const DRAWER_TABS = ['story', 'plan', 'review', 'delivery', 'discussion']
 
 export type DrawerTab = (typeof DRAWER_TABS)[number]
 
-export const DRAWER_TAB_LABELS: Readonly<Record<DrawerTab, string>> = {
-  story: 'Story',
-  plan: 'Plan',
-  review: 'Review',
-  delivery: 'Livraison',
-  discussion: 'Discussion',
-}
-
 const TAB_OF_STATE: Readonly<Record<string, DrawerTab>> = {
   architecture: 'plan',
   plan_review: 'plan',

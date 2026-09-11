@@ -69,14 +69,19 @@ describe('GET /api/projects/:id/tree', () => {
     const answer = await api.request(`/api/projects/${projectId}/tree?path=src`)
     expect(answer.status).toBe(200)
     const body = (await answer.json()) as {
-      entries: readonly { path: string; mark: string; said: string; description: string }[]
+      entries: readonly {
+        path: string
+        mark: string
+        agentName: string | null
+        description: string
+      }[]
     }
     expect(body.entries.map((entry) => [entry.path, entry.mark])).toEqual([
       ['src/Disparu.vue', 'created'],
       ['src/UserModal.vue', 'planned'],
       ['src/UserModale.vue', 'quiet'],
     ])
-    expect(body.entries[1]?.said).toBe('FORGE-1 le modifie, session neo')
+    expect(body.entries[1]?.agentName).toBe('neo')
     expect(body.entries[1]?.description).toBe('Composant UserModal')
   })
 
@@ -109,8 +114,8 @@ describe('GET /api/projects/:id/file', () => {
       truncated: false,
       description: 'Composant UserModal',
       mark: 'planned',
-      said: 'FORGE-1 le modifie, session neo',
       byReferences: ['FORGE-1'],
+      agentName: 'neo',
     })
   })
 

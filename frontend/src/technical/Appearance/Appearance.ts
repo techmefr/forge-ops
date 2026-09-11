@@ -2,13 +2,6 @@ export const FONT_FACES = ['house', 'system', 'serif', 'mono'] as const
 
 export type FontFace = (typeof FONT_FACES)[number]
 
-export const FONT_FACE_LABELS: Readonly<Record<FontFace, string>> = {
-  house: 'Barlow',
-  system: 'Du systeme',
-  serif: 'A empattements',
-  mono: 'JetBrains Mono',
-}
-
 const SYSTEM_STACK =
   'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
 
@@ -22,13 +15,6 @@ const FONT_STACKS: Readonly<Record<FontFace, string>> = {
 export const FONT_SCALES = ['small', 'normal', 'large', 'huge'] as const
 
 export type FontScale = (typeof FONT_SCALES)[number]
-
-export const FONT_SCALE_LABELS: Readonly<Record<FontScale, string>> = {
-  small: 'Serree',
-  normal: 'Normale',
-  large: 'Grande',
-  huge: 'Tres grande',
-}
 
 const ROOT_SIZES: Readonly<Record<FontScale, number>> = {
   small: 14,

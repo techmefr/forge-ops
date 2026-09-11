@@ -1,32 +1,30 @@
+import { phrase, type Phrase } from '@/technical/Language/Phrase'
+
 const MINUTE = 60_000
 const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
 
-function twoDigits(value: number): string {
-  return value.toString().padStart(2, '0')
-}
+export type Moment = { said: Phrase | null; date: Date | null }
 
 function readUtc(said: string): Date {
   const spaced = said.includes('T') ? said : said.replace(' ', 'T')
   return new Date(spaced.endsWith('Z') || spaced.includes('+') ? spaced : `${spaced}Z`)
 }
 
-export function saidWhen(written: string, now: Date): string {
+export function saidWhen(written: string, now: Date): Moment {
   const moment = readUtc(written)
   if (Number.isNaN(moment.getTime())) {
-    return 'date inconnue'
+    return { said: phrase('moment.unknown'), date: null }
   }
   const gone = now.getTime() - moment.getTime()
   if (gone < MINUTE) {
-    return 'a l instant'
+    return { said: phrase('moment.justNow'), date: null }
   }
   if (gone < HOUR) {
-    return `il y a ${Math.floor(gone / MINUTE)} min`
+    return { said: phrase('moment.minutesAgo', { count: Math.floor(gone / MINUTE) }), date: null }
   }
   if (gone < DAY) {
-    return `il y a ${Math.floor(gone / HOUR)} h`
+    return { said: phrase('moment.hoursAgo', { count: Math.floor(gone / HOUR) }), date: null }
   }
-  return `le ${twoDigits(moment.getDate())}/${twoDigits(moment.getMonth() + 1)} a ${twoDigits(
-    moment.getHours(),
-  )}:${twoDigits(moment.getMinutes())}`
+  return { said: null, date: moment }
 }

@@ -1,13 +1,24 @@
 <script setup lang="ts">
-import { judgementLabelOf } from './Judgement'
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
-import type { KanbanStory, ReviewPass, StoryReport, Ticket } from '@/domain/Board/BoardModel'
-import { CHECKPOINT_LABELS, LENS_LABELS } from '@/domain/Story/Checkpoint'
+import { usePhrase } from '@/technical/Language/UsePhrase'
+import type { Phrase } from '@/technical/Language/Phrase'
+import {
+  CHECKPOINT_SEQUENCE,
+  type CheckpointName,
+  type KanbanStory,
+  type ReviewPass,
+  type StoryReport,
+  type Ticket,
+} from '@/domain/Board/BoardModel'
 
 const props = defineProps<{ story: KanbanStory }>()
 const emit = defineEmits<{ moved: [] }>()
+
+const { t } = useI18n()
+const say = usePhrase()
 
 const ticket = useResource<Ticket>(() => board.read(`/api/stories/${props.story.id}/ticket`))
 const cascade = useResource<readonly ReviewPass[]>(() =>
@@ -16,8 +27,8 @@ const cascade = useResource<readonly ReviewPass[]>(() =>
 const report = useResource<StoryReport>(() => board.read(`/api/stories/${props.story.id}/report`))
 
 const evidencePath = ref('')
-const checkpointName = ref('verified')
-const refusal = ref<string | null>(null)
+const checkpointName = ref<CheckpointName>('verified')
+const refusal = ref<Phrase | null>(null)
 const busy = ref(false)
 
 async function guard(action: () => Promise<void>): Promise<void> {
@@ -71,7 +82,7 @@ watch(
   <div class="flex flex-col gap-4">
     <section class="rounded-2xl border border-line bg-card p-4">
       <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
-        Cascade de review, dans cet ordre
+        {{ t('reviewTab.cascadeOrder') }}
       </p>
       <ol class="mt-3 flex flex-col gap-3">
         <li
@@ -80,8 +91,10 @@ watch(
           class="flex flex-col gap-1.5 rounded-xl border p-3"
           :class="pass.state === 'passed' ? 'border-green' : 'border-line'"
         >
-          <span class="display-italic text-sm">{{ LENS_LABELS[pass.lens] }}</span>
-          <span class="font-mono text-[10px] text-txt-low uppercase">{{ pass.state }}</span>
+          <span class="display-italic text-sm">{{ t(`lens.${pass.lens}`) }}</span>
+          <span class="font-mono text-[10px] text-txt-low uppercase">{{
+            t(`reviewPassState.${pass.state}`)
+          }}</span>
           <span v-if="pass.agentName !== null" class="font-mono text-[10px] text-txt-low">{{
             pass.agentName
           }}</span>
@@ -92,27 +105,27 @@ watch(
             class="mt-1 self-start rounded-lg border border-line bg-elev px-2 py-1.5 text-[10px] font-bold text-txt-mid uppercase disabled:opacity-40"
             @click="passLens(pass.lens)"
           >
-            Passer cette lentille
+            {{ t('reviewTab.passLens') }}
           </button>
         </li>
       </ol>
     </section>
 
     <form class="rounded-2xl border border-line bg-card p-4" @submit.prevent="prove">
-      <p class="display-italic text-sm text-txt-mid">Prouver un point de controle</p>
+      <p class="display-italic text-sm text-txt-mid">{{ t('reviewTab.proveCheckpoint') }}</p>
       <div class="mt-3 flex flex-col gap-2">
         <select
           v-model="checkpointName"
           class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
         >
-          <option v-for="(label, name) in CHECKPOINT_LABELS" :key="name" :value="name">
-            {{ label }}
+          <option v-for="name in CHECKPOINT_SEQUENCE" :key="name" :value="name">
+            {{ t(`checkpoint.${name}`) }}
           </option>
         </select>
         <input
           v-model="evidencePath"
           type="text"
-          placeholder="Chemin de la preuve"
+          :placeholder="t('reviewTab.evidencePlaceholder')"
           class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
         />
         <button
@@ -120,17 +133,15 @@ watch(
           :disabled="busy || evidencePath === ''"
           class="self-start rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
         >
-          Deposer la preuve
+          {{ t('reviewTab.dropEvidence') }}
         </button>
       </div>
-      <p class="mt-2 text-[11px] text-txt-low">
-        Une preuve vide est refusee par le board, ce n est pas une case a cocher.
-      </p>
+      <p class="mt-2 text-[11px] text-txt-low">{{ t('reviewTab.emptyEvidenceRefused') }}</p>
     </form>
 
     <section class="rounded-2xl border border-line bg-card p-4">
       <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
-        Criteres, la porte du merge
+        {{ t('reviewTab.criteriaGate') }}
       </p>
       <ul class="mt-2 flex flex-col gap-2">
         <li
@@ -151,16 +162,18 @@ watch(
             class="ml-auto rounded-lg border border-line bg-elev px-2 py-1 text-[10px] font-bold text-txt-mid uppercase disabled:opacity-40"
             @click="satisfy(criterion.id)"
           >
-            Satisfaire
+            {{ t('reviewTab.satisfy') }}
           </button>
         </li>
       </ul>
     </section>
 
     <section class="rounded-2xl border border-green bg-card p-4">
-      <p class="font-mono text-[10px] tracking-[0.18em] text-green uppercase">Faits</p>
+      <p class="font-mono text-[10px] tracking-[0.18em] text-green uppercase">
+        {{ t('reviewTab.facts') }}
+      </p>
       <p v-if="(report.data.value?.facts ?? []).length === 0" class="mt-2 text-xs text-txt-low">
-        Aucun fait prouve pour l instant.
+        {{ t('reviewTab.noFacts') }}
       </p>
       <ul class="mt-2 flex flex-col gap-2">
         <li v-for="(fact, index) in report.data.value?.facts ?? []" :key="index" class="text-xs">
@@ -173,9 +186,11 @@ watch(
     </section>
 
     <section class="rounded-2xl border border-violet bg-card p-4">
-      <p class="font-mono text-[10px] tracking-[0.18em] text-violet uppercase">Jugements de l IA</p>
+      <p class="font-mono text-[10px] tracking-[0.18em] text-violet uppercase">
+        {{ t('reviewTab.judgements') }}
+      </p>
       <p v-if="(report.data.value?.judgements ?? []).length === 0" class="mt-2 text-xs text-txt-low">
-        Aucun jugement en suspens.
+        {{ t('reviewTab.noJudgements') }}
       </p>
       <ul class="mt-2 flex flex-col gap-2">
         <li
@@ -184,13 +199,13 @@ watch(
           class="text-xs text-txt-hi"
         >
           <span class="font-mono text-[10px] text-violet uppercase">{{
-            judgementLabelOf(judgement.kind)
+            t(`judgement.${judgement.kind}`)
           }}</span>
           <span class="ml-2">{{ judgement.statement }}</span>
         </li>
       </ul>
     </section>
 
-    <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ refusal }}</p>
+    <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</p>
   </div>
 </template>

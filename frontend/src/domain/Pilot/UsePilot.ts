@@ -1,6 +1,7 @@
 import { computed, ref, type ComputedRef, type Ref } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf } from '@/technical/Api/UseResource'
+import type { Phrase } from '@/technical/Language/Phrase'
 import type {
   ParcoursSuggestion,
   PilotPace,
@@ -15,7 +16,7 @@ export type PilotDesk = {
   history: Ref<readonly PilotRun[]>
   sight: Ref<PilotObservation | null>
   suggestion: Ref<ParcoursSuggestion | null>
-  refusal: Ref<string | null>
+  refusal: Ref<Phrase | null>
   busy: Ref<boolean>
   pace: Ref<PilotPace>
   url: Ref<string>
@@ -45,7 +46,7 @@ export function usePilot(storyId: Ref<number | null>): PilotDesk {
   const history = ref<readonly PilotRun[]>([])
   const sight = ref<PilotObservation | null>(null)
   const suggestion = ref<ParcoursSuggestion | null>(null)
-  const refusal = ref<string | null>(null)
+  const refusal = ref<Phrase | null>(null)
   const busy = ref(false)
   const pace = ref<PilotPace>('slow')
   const url = ref('')

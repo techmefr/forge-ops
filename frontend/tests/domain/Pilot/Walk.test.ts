@@ -66,27 +66,37 @@ describe('nextStepOf', () => {
 
 describe('describeStep', () => {
   it('dit ou il va', () => {
-    expect(describeStep({ kind: 'goto', target: 'http://x.test/' })).toContain('http://x.test/')
+    expect(describeStep({ kind: 'goto', target: 'http://x.test/' })).toEqual({
+      key: 'pilot.stepGoto',
+      values: { target: 'http://x.test/' },
+      count: null,
+    })
   })
 
   it('dit sur quoi il clique', () => {
-    expect(describeStep({ kind: 'click', target: '#compose' })).toBe('Clique sur #compose')
+    expect(describeStep({ kind: 'click', target: '#compose' })).toEqual({
+      key: 'pilot.stepClick',
+      values: { target: '#compose' },
+      count: null,
+    })
   })
 
   it('dit ce qu il ecrit et ou', () => {
-    expect(describeStep({ kind: 'fill', target: '#objet', value: 'Bonjour' })).toBe(
-      'Ecrit « Bonjour » dans #objet',
-    )
+    expect(describeStep({ kind: 'fill', target: '#objet', value: 'Bonjour' })).toEqual({
+      key: 'pilot.stepFill',
+      values: { target: '#objet', value: 'Bonjour' },
+      count: null,
+    })
   })
 
   it('dit le texte qu il attend', () => {
-    expect(describeStep({ kind: 'expectText', target: 'main', value: 'Nouveau mail' })).toBe(
-      'Verifie que main dit « Nouveau mail »',
+    expect(describeStep({ kind: 'expectText', target: 'main', value: 'Nouveau mail' }).key).toBe(
+      'pilot.stepExpectText',
     )
   })
 
   it('dit qu il regarde', () => {
-    expect(describeStep({ kind: 'screenshot' })).toBe('Capture l ecran')
+    expect(describeStep({ kind: 'screenshot' }).key).toBe('pilot.stepScreenshot')
   })
 })
 

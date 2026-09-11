@@ -1,4 +1,5 @@
 import type { PilotRun, PilotStep } from '@/domain/Board/BoardModel'
+import { phrase, type Phrase } from '@/technical/Language/Phrase'
 
 export type WalkProgress = {
   done: number
@@ -27,20 +28,22 @@ export function nextStepOf(run: PilotRun | null): PilotStep | null {
   return run.script[run.position] ?? null
 }
 
-export function describeStep(step: PilotStep): string {
+export function describeStep(step: PilotStep): Phrase {
+  const target = step.target ?? ''
+  const value = step.value ?? ''
   if (step.kind === 'goto') {
-    return `Ouvre ${step.target ?? ''}`
+    return phrase('pilot.stepGoto', { target })
   }
   if (step.kind === 'click') {
-    return `Clique sur ${step.target ?? ''}`
+    return phrase('pilot.stepClick', { target })
   }
   if (step.kind === 'fill') {
-    return `Ecrit « ${step.value ?? ''} » dans ${step.target ?? ''}`
+    return phrase('pilot.stepFill', { target, value })
   }
   if (step.kind === 'expectText') {
-    return `Verifie que ${step.target ?? ''} dit « ${step.value ?? ''} »`
+    return phrase('pilot.stepExpectText', { target, value })
   }
-  return 'Capture l ecran'
+  return phrase('pilot.stepScreenshot')
 }
 
 export function shotUrlOf(screenshotPath: string): string {

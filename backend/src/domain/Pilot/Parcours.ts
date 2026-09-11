@@ -16,11 +16,7 @@ export type ParcoursQuestion = {
 
 export function suggestParcours({ port, criteria }: ParcoursQuestion): ParcoursSuggestion {
   if (port === null) {
-    return {
-      url: '',
-      script: [],
-      reason: "la story n a pas de worktree ouvert, le board ne sait pas ou regarder",
-    }
+    return { url: '', script: [], reason: 'noWorktree', references: [] }
   }
   const url = `http://localhost:${port}/`
   const looks: readonly PilotStep[] =
@@ -30,9 +26,7 @@ export function suggestParcours({ port, criteria }: ParcoursQuestion): ParcoursS
   return {
     url,
     script: [{ kind: 'goto', target: url }, ...looks],
-    reason:
-      criteria.length === 0
-        ? "aucun critere d acceptation declare, le parcours ne fait qu ouvrir la page"
-        : `un regard par critere : ${criteria.map((criterion) => criterion.reference).join(', ')}`,
+    reason: criteria.length === 0 ? 'noCriteria' : 'onePerCriterion',
+    references: criteria.map((criterion) => criterion.reference),
   }
 }

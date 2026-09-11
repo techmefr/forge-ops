@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, toRef, watch } from 'vue'
-import type { PilotStepKind } from '@/domain/Board/BoardModel'
+import { useI18n } from 'vue-i18n'
+import {
+  PILOT_PACE_SEQUENCE,
+  PILOT_STEP_KIND_SEQUENCE,
+  type ParcoursSuggestion,
+} from '@/domain/Board/BoardModel'
+import { usePhrase } from '@/technical/Language/UsePhrase'
 import { describeStep, shotUrlOf } from './Walk'
 import { usePilot } from './UsePilot'
 
@@ -8,29 +14,26 @@ const props = defineProps<{ storyId: number | null }>()
 
 const emit = defineEmits<{ proven: [{ evidencePath: string }] }>()
 
-const STEP_KINDS: readonly { kind: PilotStepKind; label: string }[] = [
-  { kind: 'goto', label: 'Ouvrir' },
-  { kind: 'click', label: 'Cliquer' },
-  { kind: 'fill', label: 'Ecrire' },
-  { kind: 'expectText', label: 'Verifier' },
-  { kind: 'screenshot', label: 'Capturer' },
-]
-
-const PACES: readonly { pace: 'live' | 'slow' | 'step'; label: string }[] = [
-  { pace: 'live', label: 'Plein regime' },
-  { pace: 'slow', label: 'Ralenti' },
-  { pace: 'step', label: 'Pas a pas' },
-]
+const { t, locale } = useI18n()
+const say = usePhrase()
 
 const storyId = toRef(props, 'storyId')
 const desk = usePilot(storyId)
-const draftKind = ref<PilotStepKind>('goto')
+const draftKind = ref<(typeof PILOT_STEP_KIND_SEQUENCE)[number]>('goto')
 const draftTarget = ref('')
 const draftValue = ref('')
 
 const live = computed(() => desk.run.value !== null && ['running', 'paused'].includes(desk.run.value.state))
 const needsValue = computed(() => ['fill', 'expectText'].includes(draftKind.value))
 const needsTarget = computed(() => draftKind.value !== 'screenshot')
+
+function suggestionReason(suggestion: ParcoursSuggestion): string {
+  return t(`pilot.reason.${suggestion.reason}`, {
+    references: new Intl.ListFormat(locale.value, { style: 'long', type: 'conjunction' }).format([
+      ...suggestion.references,
+    ]),
+  })
+}
 
 watch(storyId, () => desk.load(), { immediate: true })
 
@@ -49,13 +52,18 @@ function addDraft(): void {
   <section class="rounded-2xl border border-line bg-card p-4">
     <div class="flex flex-wrap items-baseline gap-3">
       <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
-        Navigateur pilote, etape 6
+        {{ t('pilot.title') }}
       </p>
       <span v-if="desk.run.value !== null" class="font-mono text-[10px] text-acc uppercase">{{
-        desk.run.value.state
+        t(`pilotRunState.${desk.run.value.state}`)
       }}</span>
       <span v-if="desk.run.value !== null" class="font-mono text-[10px] text-txt-low">
-        {{ desk.progress.value.done }} / {{ desk.progress.value.total }} pas
+        {{
+          t('pilot.progress', {
+            done: desk.progress.value.done,
+            total: desk.progress.value.total,
+          })
+        }}
       </span>
     </div>
 
@@ -64,14 +72,14 @@ function addDraft(): void {
         v-if="desk.suggestion.value !== null"
         class="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-elev p-3"
       >
-        <p class="flex-1 text-xs text-txt-mid">{{ desk.suggestion.value.reason }}</p>
+        <p class="flex-1 text-xs text-txt-mid">{{ suggestionReason(desk.suggestion.value) }}</p>
         <button
           type="button"
           :disabled="desk.suggestion.value.script.length === 0"
           class="rounded-lg border border-acc px-3 py-1.5 text-[10px] font-bold text-acc uppercase disabled:opacity-40"
           @click="desk.takeSuggestion()"
         >
-          Prendre le parcours propose
+          {{ t('pilot.takeSuggestion') }}
         </button>
       </div>
 
@@ -79,15 +87,17 @@ function addDraft(): void {
         <input
           v-model="desk.url.value"
           type="url"
-          placeholder="http://localhost:5049/"
+          :placeholder="t('pilot.urlPlaceholder')"
+          :aria-label="t('pilot.urlPlaceholder')"
           class="min-w-[240px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
         />
         <select
           v-model="desk.pace.value"
           class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          :aria-label="t('pilot.paceLabel')"
         >
-          <option v-for="option in PACES" :key="option.pace" :value="option.pace">
-            {{ option.label }}
+          <option v-for="pace in PILOT_PACE_SEQUENCE" :key="pace" :value="pace">
+            {{ t(`pilotPace.${pace}`) }}
           </option>
         </select>
       </div>
@@ -96,23 +106,26 @@ function addDraft(): void {
         <select
           v-model="draftKind"
           class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          :aria-label="t('pilot.stepKindLabel')"
         >
-          <option v-for="option in STEP_KINDS" :key="option.kind" :value="option.kind">
-            {{ option.label }}
+          <option v-for="kind in PILOT_STEP_KIND_SEQUENCE" :key="kind" :value="kind">
+            {{ t(`pilotStepKind.${kind}`) }}
           </option>
         </select>
         <input
           v-if="needsTarget"
           v-model="draftTarget"
           type="text"
-          placeholder="Selecteur ou adresse"
+          :placeholder="t('pilot.targetPlaceholder')"
+          :aria-label="t('pilot.targetPlaceholder')"
           class="min-w-[200px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
         />
         <input
           v-if="needsValue"
           v-model="draftValue"
           type="text"
-          placeholder="Valeur attendue"
+          :placeholder="t('pilot.valuePlaceholder')"
+          :aria-label="t('pilot.valuePlaceholder')"
           class="min-w-[160px] rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
         />
         <button
@@ -120,7 +133,7 @@ function addDraft(): void {
           class="rounded-lg border border-line bg-elev px-3 py-2 text-[10px] font-bold text-txt-mid uppercase"
           @click="addDraft"
         >
-          Ajouter le pas
+          {{ t('pilot.addStep') }}
         </button>
       </div>
 
@@ -131,13 +144,13 @@ function addDraft(): void {
           class="flex items-center gap-2 text-xs text-txt-hi"
         >
           <span class="font-mono text-[10px] text-txt-low">{{ index + 1 }}</span>
-          <span>{{ describeStep(step) }}</span>
+          <span>{{ say(describeStep(step)) }}</span>
           <button
             type="button"
             class="ml-auto font-mono text-[10px] text-red uppercase"
             @click="desk.dropStep(index)"
           >
-            Retirer
+            {{ t('common.remove') }}
           </button>
         </li>
       </ol>
@@ -148,13 +161,13 @@ function addDraft(): void {
         class="mt-3 rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
         @click="desk.start()"
       >
-        Lancer le parcours
+        {{ t('pilot.startWalk') }}
       </button>
     </template>
 
     <template v-else>
       <p v-if="desk.nextStep.value !== null" class="mt-3 text-sm text-txt-hi">
-        Prochain pas : {{ describeStep(desk.nextStep.value) }}
+        {{ t('pilot.nextStep', { step: say(describeStep(desk.nextStep.value)) }) }}
       </p>
 
       <div class="mt-3 flex flex-wrap gap-2">
@@ -164,7 +177,7 @@ function addDraft(): void {
           class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
           @click="desk.advance()"
         >
-          Avancer d un pas
+          {{ t('pilot.advance') }}
         </button>
         <button
           v-if="desk.run.value?.state === 'running'"
@@ -173,7 +186,7 @@ function addDraft(): void {
           class="rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
           @click="desk.pause()"
         >
-          Mettre en pause
+          {{ t('pilot.pause') }}
         </button>
         <button
           v-else
@@ -182,7 +195,7 @@ function addDraft(): void {
           class="rounded-lg border border-green bg-elev px-3 py-2 text-xs font-bold text-green uppercase disabled:opacity-40"
           @click="desk.resume()"
         >
-          Reprendre
+          {{ t('pilot.resume') }}
         </button>
         <button
           type="button"
@@ -190,7 +203,7 @@ function addDraft(): void {
           class="rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
           @click="desk.inspect()"
         >
-          Inspecter la page
+          {{ t('pilot.inspect') }}
         </button>
         <button
           type="button"
@@ -198,7 +211,7 @@ function addDraft(): void {
           class="rounded-lg border border-red bg-elev px-3 py-2 text-xs font-bold text-red uppercase disabled:opacity-40"
           @click="desk.abandon()"
         >
-          Abandonner
+          {{ t('pilot.abandon') }}
         </button>
       </div>
     </template>
@@ -226,7 +239,7 @@ function addDraft(): void {
           target="_blank"
           rel="noreferrer"
           class="ml-auto font-mono text-[10px] text-acc uppercase"
-          >Voir la capture</a
+          >{{ t('pilot.seeScreenshot') }}</a
         >
         <button
           v-if="act.screenshotPath !== null"
@@ -234,17 +247,17 @@ function addDraft(): void {
           class="font-mono text-[10px] text-green uppercase"
           @click="emit('proven', { evidencePath: act.screenshotPath })"
         >
-          En faire une preuve
+          {{ t('pilot.makeEvidence') }}
         </button>
       </li>
     </ul>
 
     <p v-if="desk.history.value.length > 0" class="mt-3 font-mono text-[10px] text-txt-low uppercase">
-      {{ desk.history.value.length }} parcours dans l historique
+      {{ t('pilot.historyCount', { count: desk.history.value.length }, desk.history.value.length) }}
     </p>
 
     <p v-if="desk.refusal.value !== null" class="mt-3 text-xs text-red" role="alert">
-      {{ desk.refusal.value }}
+      {{ say(desk.refusal.value) }}
     </p>
   </section>
 </template>

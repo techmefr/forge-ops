@@ -1,26 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
-import type { BudgetPolicy, BudgetSettings, CostCapConduct } from '@/domain/Board/BoardModel'
+import { usePhrase } from '@/technical/Language/UsePhrase'
+import type { Phrase } from '@/technical/Language/Phrase'
+import {
+  COST_CAP_CONDUCT_SEQUENCE,
+  type BudgetPolicy,
+  type BudgetSettings,
+} from '@/domain/Board/BoardModel'
 
-const CONDUCTS: readonly { key: CostCapConduct; label: string; explanation: string }[] = [
-  {
-    key: 'stop',
-    label: 'Couper',
-    explanation: 'Plus aucune session ne part une fois le plafond atteint.',
-  },
-  {
-    key: 'downgrade',
-    label: 'Retrograder',
-    explanation: 'Les sessions continuent sur un modele moins cher.',
-  },
-  {
-    key: 'reroute',
-    label: 'Rerouter',
-    explanation: 'Les sessions partent vers une autre passerelle, en https uniquement.',
-  },
-]
+const { t } = useI18n()
+const say = usePhrase()
 
 const settings = useResource<BudgetSettings>(() => board.read('/api/settings/budget'))
 const draft = ref<BudgetPolicy>({
@@ -30,7 +22,7 @@ const draft = ref<BudgetPolicy>({
   rerouteBaseUrl: null,
 })
 const rerouteUrl = ref('')
-const refusal = ref<string | null>(null)
+const refusal = ref<Phrase | null>(null)
 const saved = ref(false)
 const busy = ref(false)
 
@@ -72,11 +64,14 @@ onMounted(() => settings.reload())
 
 <template>
   <section class="flex flex-col gap-6 rounded-2xl border border-line bg-card p-5">
-    <h2 class="display-italic m-0 text-xl">Budget</h2>
+    <h2 class="display-italic m-0 text-xl">{{ t('setting.budget') }}</h2>
     <div class="rounded-2xl border border-line bg-panel p-5">
-      <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">Depense du jour</p>
+      <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+        {{ t('setting.spentToday') }}
+      </p>
       <p class="display-italic mt-1 text-3xl">
-        {{ spent.toFixed(2) }} $ <span class="text-txt-low">/ {{ draft.capUsd.toFixed(2) }} $</span>
+        {{ t('common.money', { amount: spent.toFixed(2) }) }}
+        <span class="text-txt-low">/ {{ t('common.money', { amount: draft.capUsd.toFixed(2) }) }}</span>
       </p>
       <div class="mt-3 h-2 rounded bg-elev">
         <div
@@ -89,9 +84,9 @@ onMounted(() => settings.reload())
 
     <form class="flex flex-col gap-6" @submit.prevent="save">
       <label class="flex flex-col gap-2">
-        <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase"
-          >Plafond quotidien en dollars</span
-        >
+        <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+          t('setting.dailyCap')
+        }}</span>
         <input
           v-model.number="draft.capUsd"
           type="number"
@@ -103,26 +98,28 @@ onMounted(() => settings.reload())
 
       <fieldset class="flex flex-col gap-3 border-0 p-0">
         <legend class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
-          Quand le plafond tombe
+          {{ t('setting.whenCapFalls') }}
         </legend>
         <label
-          v-for="conduct in CONDUCTS"
-          :key="conduct.key"
+          v-for="conduct in COST_CAP_CONDUCT_SEQUENCE"
+          :key="conduct"
           class="flex cursor-pointer gap-3 rounded-xl border p-3"
-          :class="draft.conduct === conduct.key ? 'border-acc bg-acc-soft/10' : 'border-line bg-card'"
+          :class="draft.conduct === conduct ? 'border-acc bg-acc-soft/10' : 'border-line bg-card'"
         >
-          <input v-model="draft.conduct" type="radio" :value="conduct.key" class="mt-1" />
+          <input v-model="draft.conduct" type="radio" :value="conduct" class="mt-1" />
           <span>
-            <span class="display-italic block text-sm">{{ conduct.label }}</span>
-            <span class="mt-1 block text-xs text-txt-mid">{{ conduct.explanation }}</span>
+            <span class="display-italic block text-sm">{{ t(`conduct.${conduct}.label`) }}</span>
+            <span class="mt-1 block text-xs text-txt-mid">{{
+              t(`conduct.${conduct}.explanation`)
+            }}</span>
           </span>
         </label>
       </fieldset>
 
       <label v-if="draft.conduct === 'downgrade'" class="flex flex-col gap-2">
-        <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase"
-          >Modele de repli</span
-        >
+        <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+          t('setting.fallbackModel')
+        }}</span>
         <input
           v-model="draft.downgradeModel"
           type="text"
@@ -131,16 +128,16 @@ onMounted(() => settings.reload())
       </label>
 
       <label v-if="draft.conduct === 'reroute'" class="flex flex-col gap-2">
-        <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase"
-          >Passerelle de repli</span
-        >
+        <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+          t('setting.fallbackGateway')
+        }}</span>
         <input
           v-model="rerouteUrl"
           type="url"
-          placeholder="https://..."
+          :placeholder="t('setting.gatewayPlaceholder')"
           class="rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
         />
-        <span class="text-xs text-txt-low">Le board refuse toute adresse qui n est pas en https.</span>
+        <span class="text-xs text-txt-low">{{ t('setting.httpsOnly') }}</span>
       </label>
 
       <div class="flex items-center gap-3">
@@ -149,12 +146,12 @@ onMounted(() => settings.reload())
           :disabled="busy"
           class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
         >
-          Enregistrer
+          {{ t('common.save') }}
         </button>
-        <span v-if="saved" class="text-xs text-green">Conduite enregistree</span>
+        <span v-if="saved" class="text-xs text-green">{{ t('setting.conductSaved') }}</span>
       </div>
 
-      <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ refusal }}</p>
+      <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</p>
     </form>
   </section>
 </template>

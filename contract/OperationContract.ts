@@ -1,6 +1,8 @@
 import type { AgentLifecycle, AgentPhase, OutcomeClass } from './AgentContract.js'
 
-export type CostCapConduct = 'stop' | 'downgrade' | 'reroute'
+export const COST_CAP_CONDUCT_SEQUENCE = ['stop', 'downgrade', 'reroute'] as const
+
+export type CostCapConduct = (typeof COST_CAP_CONDUCT_SEQUENCE)[number]
 
 export type BudgetPolicy = {
   capUsd: number
@@ -14,9 +16,13 @@ export type BudgetSettings = {
   spentUsd: number
 }
 
-export type OriginKind = 'sentry' | 'user_report' | 'idea' | 'manual'
+export const ORIGIN_KIND_SEQUENCE = ['sentry', 'user_report', 'idea', 'manual'] as const
 
-export type IncidentState = 'pending' | 'accepted' | 'refused'
+export type OriginKind = (typeof ORIGIN_KIND_SEQUENCE)[number]
+
+export const INCIDENT_STATE_SEQUENCE = ['pending', 'accepted', 'refused'] as const
+
+export type IncidentState = (typeof INCIDENT_STATE_SEQUENCE)[number]
 
 export type IncidentOrigin = {
   id: number
@@ -93,6 +99,19 @@ export type MachineReading = {
   reason: string | null
   snapshot: MachineSnapshot | null
 }
+
+export const FLEET_JOB_STATE_SEQUENCE = [
+  'starting',
+  'working',
+  'running',
+  'busy',
+  'idle',
+  'paused',
+  'finished',
+  'failed',
+] as const
+
+export type FleetJobState = (typeof FLEET_JOB_STATE_SEQUENCE)[number]
 
 export type FleetJob = {
   id: string

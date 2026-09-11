@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  OWNERSHIPS,
-  OWNERSHIP_LABELS,
-  keepEpics,
-  oneProjectOnly,
-} from '@/domain/Story/EpicFilter'
+import { OWNERSHIPS, keepEpics, oneProjectOnly } from '@/domain/Story/EpicFilter'
 import type { EpicOverview } from '@/domain/Board/BoardModel'
 
 function epic(id: number, projectId: number, assignee: string | null): EpicOverview {
@@ -30,10 +25,8 @@ describe('les filtres d attribution', () => {
     expect([...OWNERSHIPS]).toEqual(['all', 'mine', 'free'])
   })
 
-  it('nomment chaque filtre', () => {
-    for (const ownership of OWNERSHIPS) {
-      expect(OWNERSHIP_LABELS[ownership].length).toBeGreaterThan(0)
-    }
+  it('ne repetent jamais le meme filtre', () => {
+    expect(new Set(OWNERSHIPS).size).toBe(OWNERSHIPS.length)
   })
 })
 
