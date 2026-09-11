@@ -1,11 +1,10 @@
-export type CostCapConduct = 'stop' | 'downgrade' | 'reroute'
+export type {
+  BudgetPolicy,
+  BudgetSettings,
+  CostCapConduct,
+} from '../../../../contract/OperationContract.js'
 
-export type BudgetPolicy = {
-  capUsd: number
-  conduct: CostCapConduct
-  downgradeModel: string
-  rerouteBaseUrl: string | null
-}
+import type { BudgetPolicy, CostCapConduct } from '../../../../contract/OperationContract.js'
 
 export type BudgetDecision = {
   conduct: 'proceed' | CostCapConduct

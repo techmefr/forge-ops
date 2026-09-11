@@ -5,7 +5,7 @@ import type {
   ParcoursSuggestion,
   PilotPace,
   PilotRun,
-  PilotSight,
+  PilotObservation,
   PilotStep,
 } from '@/domain/Board/BoardModel'
 import { nextStepOf, progressOf, type WalkProgress } from './Walk'
@@ -13,7 +13,7 @@ import { nextStepOf, progressOf, type WalkProgress } from './Walk'
 export type PilotDesk = {
   run: Ref<PilotRun | null>
   history: Ref<readonly PilotRun[]>
-  sight: Ref<PilotSight | null>
+  sight: Ref<PilotObservation | null>
   suggestion: Ref<ParcoursSuggestion | null>
   refusal: Ref<string | null>
   busy: Ref<boolean>
@@ -43,7 +43,7 @@ type Answer = {
 export function usePilot(storyId: Ref<number | null>): PilotDesk {
   const run = ref<PilotRun | null>(null)
   const history = ref<readonly PilotRun[]>([])
-  const sight = ref<PilotSight | null>(null)
+  const sight = ref<PilotObservation | null>(null)
   const suggestion = ref<ParcoursSuggestion | null>(null)
   const refusal = ref<string | null>(null)
   const busy = ref(false)
@@ -136,7 +136,7 @@ export function usePilot(storyId: Ref<number | null>): PilotDesk {
 
     inspect: () =>
       guard(async (target) => {
-        sight.value = await board.send<PilotSight>(`/api/stories/${target}/pilot/inspect`, 'POST')
+        sight.value = await board.send<PilotObservation>(`/api/stories/${target}/pilot/inspect`, 'POST')
       }),
 
     abandon: () =>

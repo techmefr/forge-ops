@@ -7,11 +7,9 @@ export type MergeCleanupInput = {
   closeWorktree: (storyId: number) => void
 }
 
-export type MergeCleanupReport = {
-  scopesReleased: number
-  worktreeClosed: boolean
-  worktreeRefusal: string | null
-}
+export type { MergeCleanupReport } from '../../../../contract/WorkspaceContract.js'
+
+import type { MergeCleanupReport } from '../../../../contract/WorkspaceContract.js'
 
 export function cleanUpAfterMerge({
   storyId,

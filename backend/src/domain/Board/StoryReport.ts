@@ -3,20 +3,17 @@ import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js
 import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 
-export type ReportFact =
-  | { kind: 'checkpoint'; statement: string; evidencePath: string }
-  | { kind: 'criterion'; statement: string; evidencePath: string }
-  | { kind: 'cost'; statement: string; costUsd: number; inputTokens: number; outputTokens: number }
+export type {
+  ReportFact,
+  ReportJudgement,
+  StoryReport,
+} from '../../../../contract/BoardContract.js'
 
-export type ReportJudgement =
-  | { kind: 'finding'; statement: string; lens: string; severity: string; path: string }
-  | { kind: 'criterion_unmet'; statement: string; reference: string }
-  | { kind: 'blocker'; statement: string; reference: string }
-
-export type StoryReport = {
-  facts: readonly ReportFact[]
-  judgements: readonly ReportJudgement[]
-}
+import type {
+  ReportFact,
+  ReportJudgement,
+  StoryReport,
+} from '../../../../contract/BoardContract.js'
 
 export type StoryReportInput = {
   storyId: number

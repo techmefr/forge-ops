@@ -4,27 +4,53 @@ import type { CheckpointName, ReviewLens } from '../Checkpoint/Checkpoint.js'
 export type PhaseContract = {
   phase: AgentPhase
   agentName: string
+  command: string
+  proves: CheckpointName | null
   requires: readonly CheckpointName[]
 }
 
 export const PHASE_CONTRACTS: readonly PhaseContract[] = [
-  { phase: 'spec', agentName: 'architecte', requires: [] },
-  { phase: 'architecture', agentName: 'architecte', requires: ['spec_done'] },
-  { phase: 'tdd', agentName: 'dozer', requires: ['spec_done', 'arch_done'] },
-  { phase: 'code', agentName: 'trinity', requires: ['spec_done', 'arch_done', 'tests_written'] },
+  { phase: 'spec', agentName: 'architecte', command: 'SPEC.md', proves: 'spec_done', requires: [] },
+  {
+    phase: 'architecture',
+    agentName: 'architecte',
+    command: 'PLAN.md',
+    proves: 'arch_done',
+    requires: ['spec_done'],
+  },
+  {
+    phase: 'tdd',
+    agentName: 'dozer',
+    command: 'TEST.md',
+    proves: 'tests_written',
+    requires: ['spec_done', 'arch_done'],
+  },
+  {
+    phase: 'code',
+    agentName: 'trinity',
+    command: 'BUILD.md',
+    proves: 'build_done',
+    requires: ['spec_done', 'arch_done', 'tests_written'],
+  },
   {
     phase: 'gate',
     agentName: 'galadriel',
+    command: 'VERIFY.md',
+    proves: 'verified',
     requires: ['spec_done', 'arch_done', 'tests_written', 'build_done'],
   },
   {
     phase: 'review',
     agentName: 'elrond',
+    command: 'REVIEW.md',
+    proves: 'reviewed',
     requires: ['spec_done', 'arch_done', 'tests_written', 'build_done', 'verified'],
   },
   {
     phase: 'ship',
     agentName: 'gandalf',
+    command: 'SHIP.md',
+    proves: null,
     requires: ['spec_done', 'arch_done', 'tests_written', 'build_done', 'verified', 'reviewed'],
   },
 ]

@@ -1,15 +1,8 @@
+export type { ScopeClaim, ScopeCollision } from '../../../../contract/WorkspaceContract.js'
+
+import type { ScopeClaim, ScopeCollision } from '../../../../contract/WorkspaceContract.js'
+
 export const LEASE_MINUTES = 90
-
-export type ScopeClaim = {
-  storyId: number
-  pathPrefix: string
-  symbols: readonly string[]
-}
-
-export type ScopeCollision = {
-  storyIds: readonly number[]
-  reason: string
-}
 
 export function normalisePath(path: string): string {
   const parts = path.replace(/\\/g, '/').split('/')

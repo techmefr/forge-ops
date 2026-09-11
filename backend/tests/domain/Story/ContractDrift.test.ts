@@ -14,6 +14,18 @@ import {
 } from '../../../src/domain/Checkpoint/Checkpoint.js'
 import { PHASE_CONTRACTS } from '../../../src/domain/Dispatch/Dispatch.js'
 import { EVIDENCE_SHAPE } from '../../../src/domain/Evidence/EvidenceShape.js'
+import {
+  AGENT_LIFECYCLE_SEQUENCE as SHARED_LIFECYCLES,
+  AGENT_PHASE_SEQUENCE as SHARED_PHASES,
+} from '../../../../contract/AgentContract.js'
+import {
+  CHECKPOINT_SEQUENCE as SHARED_CHECKPOINTS,
+  REVIEW_LENS_SEQUENCE as SHARED_LENSES,
+} from '../../../../contract/CheckpointContract.js'
+import {
+  STEP_BACK_TARGETS as SHARED_STEP_BACKS,
+  STORY_STATE_SEQUENCE as SHARED_STATES,
+} from '../../../../contract/StoryContract.js'
 
 const SCHEMA = readFileSync(fileURLToPath(new URL('../../../../db/forge.sql', import.meta.url)), 'utf8')
 
@@ -50,6 +62,17 @@ describe('schema agrees with the domain', () => {
 
   it('checks review lenses against the domain sequence', () => {
     expect(checkedValuesOf('review_pass', 'lens')).toEqual([...REVIEW_LENS_SEQUENCE])
+  })
+})
+
+describe('the domain reads the shared contract', () => {
+  it('holds the very sequences the contract declares', () => {
+    expect(STORY_STATE_SEQUENCE).toBe(SHARED_STATES)
+    expect(CHECKPOINT_SEQUENCE).toBe(SHARED_CHECKPOINTS)
+    expect(REVIEW_LENS_SEQUENCE).toBe(SHARED_LENSES)
+    expect(AGENT_PHASE_SEQUENCE).toBe(SHARED_PHASES)
+    expect(AGENT_LIFECYCLE_SEQUENCE).toBe(SHARED_LIFECYCLES)
+    expect(STEP_BACK_TARGETS).toBe(SHARED_STEP_BACKS)
   })
 })
 

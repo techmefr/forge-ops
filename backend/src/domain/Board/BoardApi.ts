@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { z } from 'zod'
 import type { EventBus } from '../../technical/Http/EventBus.js'
+import type { Ticket } from '../../../../contract/BoardContract.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import {
   EpicNotFoundError,
@@ -449,7 +450,7 @@ export function createBoardApi({
     const asked = repository.findStory(storyId.data)
     const functional =
       asked.twinOfStoryId === null ? asked : repository.findStory(asked.twinOfStoryId)
-    return context.json({
+    const ticket: Ticket = {
       functional,
       tests: repository.findTwin(functional.id),
       criteria: criteria.listCriteria(functional.id),
@@ -463,7 +464,8 @@ export function createBoardApi({
         criteria: criteria.listCriteria(functional.id).map((criterion) => criterion.reference),
         hasTwin: repository.findTwin(functional.id) !== null,
       }),
-    })
+    }
+    return context.json(ticket)
   })
 
   api.post('/api/stories/:id/criteria', async (context) => {

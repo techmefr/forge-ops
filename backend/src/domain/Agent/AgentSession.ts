@@ -1,25 +1,11 @@
-export const AGENT_PHASE_SEQUENCE = [
-  'spec',
-  'architecture',
-  'tdd',
-  'code',
-  'gate',
-  'review',
-  'ship',
-] as const
+export {
+  AGENT_LIFECYCLE_SEQUENCE,
+  AGENT_PHASE_SEQUENCE,
+} from '../../../../contract/AgentContract.js'
+export type { AgentLifecycle, AgentPhase } from '../../../../contract/AgentContract.js'
+export type { PathConflict } from '../../../../contract/WorkspaceContract.js'
 
-export type AgentPhase = (typeof AGENT_PHASE_SEQUENCE)[number]
-
-export const AGENT_LIFECYCLE_SEQUENCE = [
-  'starting',
-  'working',
-  'awaiting_human',
-  'finished',
-  'failed',
-  'interrupted',
-] as const
-
-export type AgentLifecycle = (typeof AGENT_LIFECYCLE_SEQUENCE)[number]
+import type { AgentLifecycle, AgentPhase } from '../../../../contract/AgentContract.js'
 
 export type AgentSession = {
   id: number
@@ -45,7 +31,3 @@ export type FileTouchDraft = {
   path: string
 }
 
-export type PathConflict = {
-  path: string
-  storyIds: readonly number[]
-}

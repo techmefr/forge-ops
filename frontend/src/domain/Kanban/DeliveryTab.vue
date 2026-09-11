@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
-import type { KanbanStory, MergeCleanup, Worktree } from '@/domain/Board/BoardModel'
+import type { KanbanStory, MergeCleanupReport, Worktree } from '@/domain/Board/BoardModel'
 import { STATE_LABELS } from '@/domain/Story/Checkpoint'
 
 const props = defineProps<{ story: KanbanStory }>()
@@ -11,7 +11,7 @@ const emit = defineEmits<{ moved: [] }>()
 const worktrees = useResource<readonly Worktree[]>(() => board.read('/api/worktrees'))
 const baseRef = ref('forge')
 const percent = ref(0)
-const cleanUp = ref<MergeCleanup | null>(null)
+const cleanUp = ref<MergeCleanupReport | null>(null)
 const refusal = ref<string | null>(null)
 const busy = ref(false)
 
@@ -51,7 +51,7 @@ function rollOut(): Promise<void> {
 
 function markDone(): Promise<void> {
   return guard(async () => {
-    const answer = await board.send<{ cleanUp: MergeCleanup }>(
+    const answer = await board.send<{ cleanUp: MergeCleanupReport }>(
       `/api/stories/${props.story.id}/done`,
       'POST',
     )

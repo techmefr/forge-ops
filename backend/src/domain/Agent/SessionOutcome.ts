@@ -1,20 +1,9 @@
 import type { AgentLifecycle } from './AgentSession.js'
 
-export const OUTCOME_CLASSES = [
-  'succeeded',
-  'failed',
-  'interrupted',
-  'killed',
-  'timed_out',
-  'budget_exhausted',
-  'permission_denied',
-  'looping',
-  'awaiting_human',
-  'runner_missing',
-  'unknown',
-] as const
+export { OUTCOME_CLASSES } from '../../../../contract/AgentContract.js'
+export type { OutcomeClass } from '../../../../contract/AgentContract.js'
 
-export type OutcomeClass = (typeof OUTCOME_CLASSES)[number]
+import type { OutcomeClass } from '../../../../contract/AgentContract.js'
 
 export type SessionExit = {
   exitCode: number | null
