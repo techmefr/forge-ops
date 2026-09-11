@@ -20,18 +20,26 @@ describe('createEvidenceFileReader', () => {
   it('reads the content of an evidence file under the root', () => {
     const read = createEvidenceFileReader({ root: rootWith('## Scope\nprose') })
 
-    expect(read(RELATIVE)).toBe('## Scope\nprose')
+    expect(read(RELATIVE)).toEqual({ kind: 'read', content: '## Scope\nprose' })
   })
 
-  it('returns nothing when the evidence file is absent', () => {
+  it('reports the evidence file as unreadable when it is absent', () => {
     const read = createEvidenceFileReader({ root: rootWith(null) })
 
-    expect(read(RELATIVE)).toBeNull()
+    expect(read(RELATIVE)).toMatchObject({ kind: 'unreadable' })
   })
 
-  it('returns nothing when the evidence path is a directory', () => {
-    const read = createEvidenceFileReader({ root: rootWith('prose') })
+  it('names the absence in the reason it reports', () => {
+    const read = createEvidenceFileReader({ root: rootWith(null) })
+    const outcome = read(RELATIVE)
 
-    expect(read('.claude/evidence/FORGE-1')).toBeNull()
+    expect(outcome.kind === 'unreadable' ? outcome.reason : '').toContain('introuvable')
+  })
+
+  it('reports the evidence path as unreadable when it is a directory', () => {
+    const read = createEvidenceFileReader({ root: rootWith('prose') })
+    const outcome = read('.claude/evidence/FORGE-1')
+
+    expect(outcome.kind === 'unreadable' ? outcome.reason : '').toContain('fichier')
   })
 })

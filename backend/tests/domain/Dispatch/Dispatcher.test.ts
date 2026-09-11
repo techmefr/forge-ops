@@ -18,6 +18,7 @@ import {
   SessionAlreadyRunningError,
   StoryBlockedError,
 } from '../../../src/domain/Dispatch/DispatchViolation.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let db: Database.Database
 let stories: StoryRepository
@@ -42,7 +43,8 @@ function buildDispatcher(concurrencyCap = 3): Dispatcher {
   return createDispatcher({
     database: db,
     stories,
-    checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+    checkpoints: createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
     criteria: createCriterionRepository(db),
     sessions,
     budget: createBudgetRepository(db),
@@ -157,7 +159,8 @@ describe('dispatch', () => {
     const failing = createDispatcher({
       database: db,
       stories,
-      checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+      checkpoints: createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
       criteria: createCriterionRepository(db),
       sessions,
       budget: createBudgetRepository(db),

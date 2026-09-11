@@ -9,6 +9,7 @@ import { createCriterionRepository, type CriterionRepository } from '../../../sr
 import { createBudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
 import { createDispatcher, type Dispatcher } from '../../../src/domain/Dispatch/Dispatcher.js'
 import { StoryTooThinError } from '../../../src/domain/Dispatch/DispatchViolation.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let db: Database.Database
 let stories: StoryRepository
@@ -46,7 +47,8 @@ beforeEach(() => {
   dispatcher = createDispatcher({
     database: db,
     stories,
-    checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+    checkpoints: createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
     criteria,
     sessions: createAgentSessionRepository(db),
     budget: createBudgetRepository(db),
@@ -85,6 +87,7 @@ describe('le plancher de completude garde le dispatch', () => {
     criteria.declareCriterion({ storyId, reference: 'AC-1', statement: 'la liste est paginee' })
     criteria.declareCriterion({ storyId, reference: 'AC-2', statement: 'le vide est annonce' })
     const checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
       takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
     })
     checkpoints.proveCheckpoint({ storyId, name: 'spec_done', evidencePath: '.claude/evidence/FORGE-1/spec.md' })

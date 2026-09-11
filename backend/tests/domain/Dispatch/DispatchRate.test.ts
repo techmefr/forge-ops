@@ -10,6 +10,7 @@ import { createDispatcher, type Dispatcher } from '../../../src/domain/Dispatch/
 import { DEFAULT_DISPATCH_RATE } from '../../../src/domain/Dispatch/DispatchRate.js'
 import { DispatchTooFastError } from '../../../src/domain/Dispatch/DispatchViolation.js'
 import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let db: Database.Database
 let stories: StoryRepository
@@ -22,7 +23,8 @@ function build(rate = DEFAULT_DISPATCH_RATE): Dispatcher {
   return createDispatcher({
     database: db,
     stories,
-    checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+    checkpoints: createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
     criteria: createCriterionRepository(db),
     sessions: createAgentSessionRepository(db),
     budget: createBudgetRepository(db),

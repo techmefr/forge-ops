@@ -12,6 +12,7 @@ import { createZoneRepository } from '../../../src/domain/Zone/ZoneRepository.js
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 import { createBudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 const stubDispatch = {
   dispatch: () => Promise.reject(new Error('aucun lanceur dans ce test')),
@@ -19,6 +20,7 @@ const stubDispatch = {
 }
 
 let api: Hono
+let unreadableApi: Hono
 let storyId: number
 
 beforeEach(() => {
@@ -50,7 +52,27 @@ beforeEach(() => {
     agentSessions: createAgentSessionRepository(db),
     checkpoints: createCheckpointRepository(db, {
       takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
-      readEvidence: () => 'spec_done',
+      readEvidence: () => ({ kind: 'read', content: 'spec_done' }),
+      surveyMutations: PERMISSIVE_CHECKPOINT_GATES.surveyMutations,
+      surveyRed: PERMISSIVE_CHECKPOINT_GATES.surveyRed,
+    }),
+    criteria: createCriterionRepository(db),
+    events: createEventBus(),
+    dispatcher: stubDispatch,
+    claudeHome: mkdtempSync(join(tmpdir(), 'forge-claude-home-')),
+    cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
+    advanceReviewCascade: () =>
+      Promise.resolve({ dispatched: null, reason: 'pas de cascade dans ce test' }),
+  })
+  unreadableApi = createBoardApi({
+    zones: createZoneRepository(db),
+    budget: createBudgetRepository(db),
+    repository: stories,
+    agentSessions: createAgentSessionRepository(db),
+    checkpoints: createCheckpointRepository(db, {
+      ...PERMISSIVE_CHECKPOINT_GATES,
+      takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
+      readEvidence: () => ({ kind: 'unreadable', reason: 'fichier introuvable' }),
     }),
     criteria: createCriterionRepository(db),
     events: createEventBus(),
@@ -72,5 +94,18 @@ describe('POST /api/stories/:id/checkpoints with a shapeless proof', () => {
 
     expect(response.status).toBe(409)
     await expect(response.json()).resolves.toMatchObject({ error: 'EvidenceShapeRefusedError' })
+  })
+})
+
+describe('POST /api/stories/:id/checkpoints with an unreadable proof', () => {
+  it('refuses the proof with the same status as a shapeless proof', async () => {
+    const response = (await unreadableApi.request(`/api/stories/${storyId}/checkpoints`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name: 'spec_done', evidencePath: '.claude/evidence/FORGE-1/spec.md' }),
+    })) as Response
+
+    expect(response.status).toBe(409)
+    await expect(response.json()).resolves.toMatchObject({ error: 'EvidenceUnreadableError' })
   })
 })

@@ -18,6 +18,7 @@ import { createCriterionRepository } from '../../../src/domain/Criterion/Criteri
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 import { createBudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 const stubDispatch = {
   dispatch: () => Promise.reject(new Error('aucun lanceur dans ce test')),
@@ -82,7 +83,8 @@ beforeEach(() => {
     budget: createBudgetRepository(db),
     repository: stories,
     agentSessions,
-    checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+    checkpoints: createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
     criteria: createCriterionRepository(db),
     events: createEventBus(),
     dispatcher: stubDispatch,
@@ -184,7 +186,8 @@ describe('GET /api/files/conflicts', () => {
       budget: createBudgetRepository(db),
       repository: stories,
       agentSessions: sessions,
-      checkpoints: createCheckpointRepository(db, { takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
+      checkpoints: createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES, takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }) }),
       criteria: createCriterionRepository(db),
       events: createEventBus(),
       dispatcher: stubDispatch,

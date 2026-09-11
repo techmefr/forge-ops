@@ -12,6 +12,7 @@ import {
 } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
 import { createCriterionRepository, type CriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { buildStoryReport } from '../../../src/domain/Board/StoryReport.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let db: Database.Database
 let stories: StoryRepository
@@ -28,6 +29,7 @@ beforeEach(() => {
   db = openDatabase(':memory:')
   stories = createStoryRepository(db)
   checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
     takeCensus: () => ({ tests: 12, skipped: 0, tautologies: 0 }),
   })
   criteria = createCriterionRepository(db)

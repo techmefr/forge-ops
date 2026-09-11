@@ -14,6 +14,7 @@ import { createDispatcher, type Dispatcher } from '../../../src/domain/Dispatch/
 import type { LaunchOrder, SessionRunner } from '../../../src/domain/Dispatch/Dispatch.js'
 import { LensOutOfOrderError } from '../../../src/domain/Checkpoint/CheckpointViolation.js'
 import { LensOutsideReviewError } from '../../../src/domain/Dispatch/DispatchViolation.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let db: Database.Database
 let stories: StoryRepository
@@ -49,6 +50,7 @@ beforeEach(() => {
   db = openDatabase(':memory:')
   stories = createStoryRepository(db)
   checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
     takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
   })
   launched = []

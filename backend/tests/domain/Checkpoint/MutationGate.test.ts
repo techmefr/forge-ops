@@ -11,6 +11,7 @@ import {
 import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { MutationSurvivedError } from '../../../src/domain/Checkpoint/CheckpointViolation.js'
 import type { MutationOutcome } from '../../../src/domain/Mutation/Mutation.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 const EVIDENCE = '.claude/evidence/FORGE-1/build.md'
 
@@ -38,6 +39,7 @@ function repositoryReporting(outcomes: readonly MutationOutcome[]): CheckpointRe
     return outcomes
   }
   return createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
     takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
     surveyMutations: survey,
   })
@@ -132,6 +134,7 @@ describe('build_done consults the mutation verdict', () => {
 
   it('lets build_done through when no survey is wired', () => {
     const checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
       takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
     })
     touch('backend/src/domain/Thing.ts')

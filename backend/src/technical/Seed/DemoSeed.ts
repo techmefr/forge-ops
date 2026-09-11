@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3'
 import { createStoryRepository } from '../../domain/Story/StoryRepository.js'
 import { createCheckpointRepository } from '../../domain/Checkpoint/CheckpointRepository.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../domain/Checkpoint/PermissiveCheckpointGate.js'
 import { createCriterionRepository } from '../../domain/Criterion/CriterionRepository.js'
 import { createAgentSessionRepository } from '../../domain/Agent/AgentSessionRepository.js'
 import { createZoneRepository } from '../../domain/Zone/ZoneRepository.js'
@@ -411,7 +412,10 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
     }
   }
 
-  const checkpoints = createCheckpointRepository(db, { takeCensus: () => CENSUS })
+  const checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
+    takeCensus: () => CENSUS,
+  })
   const criteria = createCriterionRepository(db)
   const sessions = createAgentSessionRepository(db)
   const foremerge = createForemergeRepository(db, { stories })
