@@ -22,6 +22,7 @@ import {
   LensAlreadyPassedError,
   LensOutOfOrderError,
   MutationSurvivedError,
+  RedNotAssertedError,
   ReviewIncompleteError,
   SelfReviewRefusedError,
   TestsTamperedError,
@@ -34,6 +35,8 @@ import { compareCensus, type TestCensus } from '../Tamper/TestCensus.js'
 import { UnknownAgentSessionError } from '../Agent/AgentViolation.js'
 import type { MutationOutcome } from '../Mutation/Mutation.js'
 import { describeSurvivor, filesWorthMutating, survivorsOf } from '../Mutation/MutationVerdict.js'
+import type { TestReport } from '../RedProof/RedProof.js'
+import { describeRedVerdict, redVerdictOf } from '../RedProof/RedVerdict.js'
 
 const PRODUCING_PHASES: readonly string[] = ['spec', 'architecture', 'tdd', 'code', 'ship']
 
@@ -86,11 +89,12 @@ export type CheckpointRepositoryInput = {
   takeCensus: () => TestCensus
   readEvidence?: (path: string) => string | null
   surveyMutations?: (paths: readonly string[]) => readonly MutationOutcome[]
+  surveyRed?: () => TestReport
 }
 
 export function createCheckpointRepository(
   db: Database.Database,
-  { takeCensus, readEvidence = () => null, surveyMutations }: CheckpointRepositoryInput,
+  { takeCensus, readEvidence = () => null, surveyMutations, surveyRed }: CheckpointRepositoryInput,
 ): CheckpointRepository {
   const upsertCensus = db.prepare<[number, number, number, number]>(
     `INSERT INTO test_census (story_id, tests, skipped, tautologies) VALUES (?, ?, ?, ?)
@@ -227,6 +231,13 @@ export function createCheckpointRepository(
         }
         if ((selectCriteriaCount.get(story.id)?.total ?? 0) === 0) {
           throw new CriteriaRequiredError(story.reference)
+        }
+      }
+
+      if (draft.name === 'tests_written' && surveyRed !== undefined) {
+        const verdict = redVerdictOf(surveyRed())
+        if (verdict.kind !== 'assertion') {
+          throw new RedNotAssertedError(describeRedVerdict(verdict))
         }
       }
 
