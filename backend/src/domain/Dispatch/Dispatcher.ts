@@ -145,7 +145,7 @@ export function createDispatcher({
           for (const other of held) {
             const collision = collisionsBetween([claim, other])[0]
             if (collision !== undefined) {
-              throw new ScopeTakenError(claim.pathPrefix, other.storyReference, collision.reason)
+              throw new ScopeTakenError(claim.pathPrefix, other.storyReference, other.reservedAt, collision.reason)
             }
           }
         }

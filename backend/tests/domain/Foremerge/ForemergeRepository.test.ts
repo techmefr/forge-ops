@@ -7,6 +7,7 @@ import {
   type ForemergeRepository,
 } from '../../../src/domain/Foremerge/ForemergeRepository.js'
 import { ScopeTakenError, ScopeViolationError } from '../../../src/domain/Foremerge/ForemergeViolation.js'
+import { LEASE_MINUTES } from '../../../src/domain/Foremerge/Scope.js'
 
 let db: Database.Database
 let foremerge: ForemergeRepository
@@ -154,5 +155,100 @@ describe('collisions', () => {
     ).run(second, 'backend/src/domain', '')
 
     expect(foremerge.collisions()).toHaveLength(1)
+  })
+})
+
+describe('lease', () => {
+  function backdate(storyId: number, minutes: number): void {
+    db.prepare<[number]>(
+      `UPDATE scope_reservation
+       SET reserved_at = datetime('now', '-${minutes} minutes'),
+           renewed_at = datetime('now', '-${minutes} minutes')
+       WHERE story_id = ?`,
+    ).run(storyId)
+  }
+
+  it('hands a prefix back once the lease of its holder has lapsed', () => {
+    foremerge.reserve({ storyId: first, pathPrefix: 'backend/src', symbols: [] })
+    backdate(first, LEASE_MINUTES + 1)
+
+    expect(() =>
+      foremerge.reserve({ storyId: second, pathPrefix: 'backend/src', symbols: [] }),
+    ).not.toThrow()
+  })
+
+  it('keeps refusing a prefix whose lease is still running', () => {
+    foremerge.reserve({ storyId: first, pathPrefix: 'backend/src', symbols: [] })
+    backdate(first, LEASE_MINUTES - 1)
+
+    expect(() =>
+      foremerge.reserve({ storyId: second, pathPrefix: 'backend/src', symbols: [] }),
+    ).toThrow(ScopeTakenError)
+  })
+
+  it('stops listing a reservation whose lease has lapsed', () => {
+    foremerge.reserve({ storyId: first, pathPrefix: 'backend/src', symbols: [] })
+    backdate(first, LEASE_MINUTES + 1)
+
+    expect(foremerge.listReservations()).toEqual([])
+  })
+
+  it('marks a lapsed reservation released, so the takeback leaves a trace', () => {
+    foremerge.reserve({ storyId: first, pathPrefix: 'backend/src', symbols: [] })
+    backdate(first, LEASE_MINUTES + 1)
+    foremerge.listReservations()
+
+    expect(
+      db
+        .prepare<[number], { released_at: string | null }>(
+          'SELECT released_at FROM scope_reservation WHERE story_id = ?',
+        )
+        .get(first)?.released_at,
+    ).not.toBeNull()
+  })
+
+  function stamps(storyId: number): { reserved_at: string; renewed_at: string | null } {
+    return (
+      db
+        .prepare<[number], { reserved_at: string; renewed_at: string | null }>(
+          'SELECT reserved_at, renewed_at FROM scope_reservation WHERE story_id = ?',
+        )
+        .get(storyId) ?? { reserved_at: '', renewed_at: null }
+    )
+  }
+
+  it('renews the lease of a story that is still working', () => {
+    foremerge.reserve({ storyId: first, pathPrefix: 'backend/src', symbols: [] })
+    backdate(first, LEASE_MINUTES - 1)
+
+    expect(foremerge.renew(first)).toBe(1)
+
+    const held = stamps(first)
+    expect((held.renewed_at ?? '') > held.reserved_at).toBe(true)
+  })
+
+  it('refuses to resurrect a claim whose lease has already lapsed', () => {
+    foremerge.reserve({ storyId: first, pathPrefix: 'backend/src', symbols: [] })
+    backdate(first, LEASE_MINUTES + 1)
+
+    expect(foremerge.renew(first)).toBe(0)
+  })
+
+  it('renews the lease when the story claims a prefix it already holds', () => {
+    foremerge.reserve({ storyId: first, pathPrefix: 'backend/src', symbols: [] })
+    backdate(first, LEASE_MINUTES - 1)
+    foremerge.reserve({ storyId: first, pathPrefix: 'backend/src', symbols: [] })
+
+    const held = stamps(first)
+    expect((held.renewed_at ?? '') > held.reserved_at).toBe(true)
+  })
+
+  it('says since when the prefix is held, so a human knows whether to wait', () => {
+    foremerge.reserve({ storyId: first, pathPrefix: 'backend/src', symbols: [] })
+    const since = foremerge.listReservations()[0]?.reservedAt ?? ''
+
+    expect(() =>
+      foremerge.reserve({ storyId: second, pathPrefix: 'backend/src', symbols: [] }),
+    ).toThrow(`depuis ${since}`)
   })
 })

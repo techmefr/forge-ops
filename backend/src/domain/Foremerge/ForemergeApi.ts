@@ -25,7 +25,15 @@ export function createForemergeApi({ foremerge, events }: ForemergeApiInput): Ho
       return context.json({ error: error.name, message: error.message }, 404)
     }
     if (error instanceof ScopeTakenError) {
-      return context.json({ error: error.name, message: error.message, heldBy: error.heldBy }, 409)
+      return context.json(
+        {
+          error: error.name,
+          message: error.message,
+          heldBy: error.heldBy,
+          heldSince: error.heldSince,
+        },
+        409,
+      )
     }
     if (error instanceof ScopeViolationError) {
       return context.json({ error: error.name, message: error.message }, 422)
@@ -49,6 +57,16 @@ export function createForemergeApi({ foremerge, events }: ForemergeApiInput): Ho
     const reserved = foremerge.reserve({ storyId: storyId.data, ...claim.data })
     events.publish({ name: 'scope.reserved', payload: { ...reserved } })
     return context.json(reserved, 201)
+  })
+
+  api.post('/api/stories/:id/scope/renew', (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const renewed = foremerge.renew(storyId.data)
+    events.publish({ name: 'scope.renewed', payload: { storyId: storyId.data, renewed } })
+    return context.json({ renewed })
   })
 
   api.delete('/api/stories/:id/scope', (context) => {

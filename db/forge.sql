@@ -275,6 +275,7 @@ CREATE TABLE IF NOT EXISTS scope_reservation (
   path_prefix TEXT NOT NULL,
   symbols TEXT NOT NULL DEFAULT '',
   reserved_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  renewed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   released_at TEXT,
   UNIQUE (story_id, path_prefix)
 );
