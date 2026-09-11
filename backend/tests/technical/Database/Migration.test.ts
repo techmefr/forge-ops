@@ -31,6 +31,16 @@ const OLD_AGENT_SESSION = `CREATE TABLE agent_session (
   ended_at TEXT
 )`
 
+const OLD_ZONE = `CREATE TABLE zone (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL,
+  path_prefix TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  colour TEXT NOT NULL,
+  summary TEXT,
+  summarised_at TEXT
+)`
+
 let folder: string
 let path: string
 
@@ -99,6 +109,68 @@ describe('opening a base written before the email column', () => {
   it('gives a fresh base the column straight away', () => {
     const db = openDatabase(path)
     expect(columnsOf(db, 'board_user')).toContain('email')
+    db.close()
+  })
+})
+
+describe('opening a base whose zones were keyed on the prefix alone', () => {
+  function writeOldZone(): void {
+    const older = new Database(path)
+    older.exec(OLD_ZONE)
+    older
+      .prepare('INSERT INTO zone (project_id, path_prefix, name, colour) VALUES (?, ?, ?, ?)')
+      .run(1, 'services/cart', 'Panier', '#8B5CFF')
+    older.close()
+  }
+
+  it('keeps the zones already declared', () => {
+    writeOldZone()
+    const db = openDatabase(path)
+    expect(
+      db
+        .prepare<[], { path_prefix: string; name: string }>('SELECT path_prefix, name FROM zone')
+        .all(),
+    ).toEqual([{ path_prefix: 'services/cart', name: 'Panier' }])
+    db.close()
+  })
+
+  function enrolProjects(db: Database.Database): void {
+    const insert = db.prepare(
+      'INSERT INTO project (slug, name, repository_url, integration_branch, colour) VALUES (?, ?, ?, ?, ?)',
+    )
+    insert.run('ps', 'Panier', 'git@example.com:ps.git', 'main', '#8B5CFF')
+    insert.run('vs', 'Voisin', 'git@example.com:vs.git', 'main', '#00E0FF')
+  }
+
+  it('lets two projects hold the same prefix', () => {
+    writeOldZone()
+    const db = openDatabase(path)
+    enrolProjects(db)
+    expect(() =>
+      db
+        .prepare('INSERT INTO zone (project_id, path_prefix, name, colour) VALUES (?, ?, ?, ?)')
+        .run(2, 'services/cart', 'Panier voisin', '#00E0FF'),
+    ).not.toThrow()
+    db.close()
+  })
+
+  it('refuses the same prefix twice inside one project', () => {
+    writeOldZone()
+    const db = openDatabase(path)
+    enrolProjects(db)
+    expect(() =>
+      db
+        .prepare('INSERT INTO zone (project_id, path_prefix, name, colour) VALUES (?, ?, ?, ?)')
+        .run(1, 'services/cart', 'Panier bis', '#8B5CFF'),
+    ).toThrow()
+    db.close()
+  })
+
+  it('does not rebuild the table again when opened twice', () => {
+    writeOldZone()
+    openDatabase(path).close()
+    const db = openDatabase(path)
+    expect(db.prepare<[], { total: number }>('SELECT COUNT(*) AS total FROM zone').get()?.total).toBe(1)
     db.close()
   })
 })
