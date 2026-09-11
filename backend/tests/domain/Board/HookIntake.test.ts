@@ -227,7 +227,7 @@ describe('the zone digest after a hook', () => {
 
     await postToolUse('Edit', 'src/domain/Story/Story.ts')
 
-    expect(zones.findZone('src/domain/Story').summary).toContain('1 fichier')
+    expect(zones.findZone(projectId, 'src/domain/Story').summary).toContain('1 fichier')
   })
 
   it('names the story working in the zone', async () => {
@@ -235,7 +235,7 @@ describe('the zone digest after a hook', () => {
 
     await postToolUse('Edit', 'src/domain/Story/Story.ts')
 
-    expect(zones.findZone('src/domain/Story').summary).toContain('FORGE-1')
+    expect(zones.findZone(projectId, 'src/domain/Story').summary).toContain('FORGE-1')
   })
 
   it('rewrites the digest as the zone grows', async () => {
@@ -244,7 +244,7 @@ describe('the zone digest after a hook', () => {
     await postToolUse('Edit', 'src/domain/Story/Story.ts')
     await postToolUse('Edit', 'src/domain/Story/StoryApi.ts')
 
-    expect(zones.findZone('src/domain/Story').summary).toContain('2 fichiers')
+    expect(zones.findZone(projectId, 'src/domain/Story').summary).toContain('2 fichiers')
   })
 
   it('leaves a neighbouring zone alone', async () => {
@@ -253,7 +253,7 @@ describe('the zone digest after a hook', () => {
 
     await postToolUse('Edit', 'src/domain/Story/Story.ts')
 
-    expect(zones.findZone('src/domain/Mail').summary).toBeNull()
+    expect(zones.findZone(projectId, 'src/domain/Mail').summary).toBeNull()
   })
 
   it('records a file that belongs to no zone all the same', async () => {

@@ -14,11 +14,38 @@ let db: Database.Database
 let zones: ZoneRepository
 let projectId: number
 let storyId: number
+let stories: ReturnType<typeof createStoryRepository>
+let sessions: ReturnType<typeof createAgentSessionRepository>
+
+function createNeighbourProject(slug: string, touchedPath: string): number {
+  const project = stories.createProject({
+    slug,
+    name: 'Voisin',
+    repositoryUrl: `git@example.com:${slug}.git`,
+    integrationBranch: 'main',
+    colour: '#00E0FF',
+  })
+  const epic = stories.createEpic({
+    projectId: project.id,
+    title: 'Voisin',
+    businessIntent: 'Servir le voisin',
+  })
+  const story = stories.writeStory({ epicId: epic.id, title: 'Voisin', body: 'corps' })
+  sessions.registerSession({
+    storyId: story.id,
+    claudeSessionId: `session-${slug}`,
+    phase: 'code',
+    agentName: `claude-${slug}`,
+    claudeCodeVersion: '2.1.224',
+  })
+  sessions.recordFileTouch({ claudeSessionId: `session-${slug}`, path: touchedPath })
+  return project.id
+}
 
 beforeEach(() => {
   db = openDatabase(':memory:')
-  const stories = createStoryRepository(db)
-  const sessions = createAgentSessionRepository(db)
+  stories = createStoryRepository(db)
+  sessions = createAgentSessionRepository(db)
   zones = createZoneRepository(db)
   const project = stories.createProject({
     slug: 'ps',
@@ -77,13 +104,54 @@ describe('summariseZone', () => {
   it('attaches the generated summary to the zone', () => {
     zones.declareZone({ projectId, pathPrefix: 'services/cart', name: 'Panier', colour: '#8B5CFF' })
 
-    expect(zones.summariseZone('services/cart', 'Detient l etat du panier').summary).toBe(
+    expect(zones.summariseZone(projectId, 'services/cart', 'Detient l etat du panier').summary).toBe(
       'Detient l etat du panier',
     )
   })
 
   it('refuses a zone nobody declared', () => {
-    expect(() => zones.summariseZone('services/ghost', 'rien')).toThrow(ZoneNotFoundError)
+    expect(() => zones.summariseZone(projectId, 'services/ghost', 'rien')).toThrow(ZoneNotFoundError)
+  })
+
+  it('leaves the zone of another project holding the same prefix untouched', () => {
+    const otherProjectId = createNeighbourProject('vs', 'services/cart/OtherService.ts')
+    zones.declareZone({ projectId, pathPrefix: 'services/cart', name: 'Panier', colour: '#8B5CFF' })
+    zones.declareZone({
+      projectId: otherProjectId,
+      pathPrefix: 'services/cart',
+      name: 'Panier voisin',
+      colour: '#00E0FF',
+    })
+
+    zones.summariseZone(projectId, 'services/cart', 'Resume du premier projet')
+
+    expect(zones.findZone(otherProjectId, 'services/cart').summary).toBeNull()
+  })
+})
+
+describe('overviewOfZone', () => {
+  it('ignores the file touches of another project sharing the prefix', () => {
+    const otherProjectId = createNeighbourProject('vs', 'services/cart/OtherService.ts')
+    zones.declareZone({
+      projectId: otherProjectId,
+      pathPrefix: 'services/cart',
+      name: 'Panier voisin',
+      colour: '#00E0FF',
+    })
+    zones.declareZone({ projectId, pathPrefix: 'services/cart', name: 'Panier', colour: '#8B5CFF' })
+
+    const files = zones.overviewOfZone(projectId, 'services/cart').files
+
+    expect(files.map((file) => file.path)).toEqual([
+      'services/cart/CartService.ts',
+      'services/cart/CartTotals.ts',
+    ])
+  })
+
+  it('reads a prefix carrying a wildcard as plain text', () => {
+    zones.declareZone({ projectId, pathPrefix: 'services/%', name: 'Joker', colour: '#8B5CFF' })
+
+    expect(zones.overviewOfZone(projectId, 'services/%').files).toEqual([])
   })
 })
 

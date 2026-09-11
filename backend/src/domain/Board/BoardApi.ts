@@ -125,7 +125,11 @@ const zoneDraftSchema = z.object({
   colour: z.string().min(1),
 })
 
-const zoneSummarySchema = z.object({ pathPrefix: z.string().min(1), summary: z.string().min(1) })
+const zoneSummarySchema = z.object({
+  projectId: z.number().int().positive(),
+  pathPrefix: z.string().min(1),
+  summary: z.string().min(1),
+})
 
 const criterionDraftSchema = z.object({
   reference: z.string().min(1),
@@ -527,7 +531,11 @@ export function createBoardApi({
     agentSessions.recordFileTouch({ claudeSessionId: hook.session_id, path })
     const zone = zones.zoneOfPath(path)
     if (zone !== null) {
-      zones.summariseZone(zone.pathPrefix, describeZone(zones.overviewOfZone(zone.pathPrefix)))
+      zones.summariseZone(
+        zone.projectId,
+        zone.pathPrefix,
+        describeZone(zones.overviewOfZone(zone.projectId, zone.pathPrefix)),
+      )
     }
     return context.json({ recorded: true }, 202)
   })
@@ -684,7 +692,9 @@ export function createBoardApi({
     if (!body.success) {
       return context.json({ error: 'InvalidZoneSummary', issues: body.error.issues }, 422)
     }
-    return context.json(zones.summariseZone(body.data.pathPrefix, body.data.summary))
+    return context.json(
+      zones.summariseZone(body.data.projectId, body.data.pathPrefix, body.data.summary),
+    )
   })
 
   api.get('/api/projects/:id/zones', (context) => {
