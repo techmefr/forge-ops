@@ -17,6 +17,7 @@ import { cleanUpAfterMerge } from '../../../src/domain/Deployment/MergeCleanup.j
 import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 import { createEventBus, type BoardEvent } from '../../../src/technical/Http/EventBus.js'
 import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
+import { proveStoryReadyToClose } from '../Board/ProvenStory.js'
 
 let api: Hono
 let stories: StoryRepository
@@ -26,8 +27,12 @@ let deletedBranches: string[]
 let seen: BoardEvent[]
 let foremerge: ReturnType<typeof createForemergeRepository>
 let worktrees: ReturnType<typeof createWorktreeRepository>
+let checkpoints: ReturnType<typeof createCheckpointRepository>
+let criteria: ReturnType<typeof createCriterionRepository>
+let sessions: ReturnType<typeof createAgentSessionRepository>
 
 function markDone(id: number): Promise<Response> {
+  proveStoryReadyToClose({ stories, checkpoints, criteria, sessions, storyId: id })
   return api.request(`/api/stories/${id}/done`, { method: 'POST' }) as Promise<Response>
 }
 
@@ -64,15 +69,17 @@ beforeEach(() => {
     },
     root: '/tmp/forge-worktrees',
   })
-  const checkpoints = createCheckpointRepository(db, {
+  checkpoints = createCheckpointRepository(db, {
     ...PERMISSIVE_CHECKPOINT_GATES,
     takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
   })
+  criteria = createCriterionRepository(db)
+  sessions = createAgentSessionRepository(db)
   api = createBoardApi({
     repository: stories,
-    agentSessions: createAgentSessionRepository(db),
+    agentSessions: sessions,
     checkpoints,
-    criteria: createCriterionRepository(db),
+    criteria,
     zones: createZoneRepository(db),
     budget: createBudgetRepository(db),
     events,
