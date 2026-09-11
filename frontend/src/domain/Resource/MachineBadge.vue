@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { board } from '@/technical/Api/Board'
 import { gaugesOf, type MachineSnapshot } from './MachineGauge'
+import Glyph from '@/technical/Ui/Glyph.vue'
 
 type MachineReading = {
   available: boolean
@@ -48,7 +49,10 @@ function colourOf(percent: number | null): string {
   <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5" role="group" aria-label="Etat de la machine">
     <p v-if="gauges.length === 0" class="font-mono text-[10px] text-txt-low uppercase">machine muette</p>
     <div v-for="gauge in gauges" :key="gauge.name" class="flex items-center gap-1.5">
-      <span class="font-mono text-[9.5px] tracking-[0.14em] text-txt-low uppercase">{{ gauge.name }}</span>
+      <span class="flex items-center gap-1 font-mono text-[9.5px] tracking-[0.14em] text-txt-low uppercase">
+        <Glyph :name="gauge.glyph" :size="13" />
+        {{ gauge.name }}
+      </span>
       <span class="h-1 w-8 overflow-hidden rounded-full bg-elev">
         <span
           class="block h-full rounded-full"

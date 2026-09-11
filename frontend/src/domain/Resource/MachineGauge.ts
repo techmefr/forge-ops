@@ -8,6 +8,7 @@ export type MachineSnapshot = {
 
 export type MachineGauge = {
   name: string
+  glyph: string
   said: string
   percent: number | null
 }
@@ -15,9 +16,10 @@ export type MachineGauge = {
 const MB_PER_GB = 1024
 const NOTHING = '—'
 
-function percentGauge(name: string, percent: number | null): MachineGauge {
+function percentGauge(name: string, glyph: string, percent: number | null): MachineGauge {
   return {
     name,
+    glyph,
     said: percent === null ? NOTHING : `${Math.round(percent)} %`,
     percent,
   }
@@ -25,11 +27,12 @@ function percentGauge(name: string, percent: number | null): MachineGauge {
 
 function memoryGauge({ memoryUsedMb, memoryFreeMb }: MachineSnapshot): MachineGauge {
   if (memoryUsedMb === null || memoryFreeMb === null) {
-    return { name: 'RAM', said: NOTHING, percent: null }
+    return { name: 'RAM', glyph: 'ram', said: NOTHING, percent: null }
   }
   const total = memoryUsedMb + memoryFreeMb
   return {
     name: 'RAM',
+    glyph: 'ram',
     said: `${Math.round(memoryUsedMb / MB_PER_GB)} / ${Math.round(total / MB_PER_GB)} GO`,
     percent: total === 0 ? null : Number(((memoryUsedMb / total) * 100).toFixed(1)),
   }
@@ -40,8 +43,8 @@ export function gaugesOf(snapshot: MachineSnapshot | null): readonly MachineGaug
     return []
   }
   return [
-    percentGauge('CPU', snapshot.cpuPercent),
+    percentGauge('CPU', 'cpu', snapshot.cpuPercent),
     memoryGauge(snapshot),
-    percentGauge('DISQUE', snapshot.diskPercent),
+    percentGauge('DISQUE', 'disk', snapshot.diskPercent),
   ]
 }
