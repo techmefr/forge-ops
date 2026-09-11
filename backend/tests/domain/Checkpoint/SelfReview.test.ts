@@ -80,7 +80,6 @@ describe('startLens', () => {
     try {
       checkpoints.startLens(storyId, 'quality', author)
     } catch {
-      // le refus est le sujet du test precedent
     }
 
     expect(checkpoints.reviewCascade(storyId).every((pass) => pass.state === 'pending')).toBe(true)
