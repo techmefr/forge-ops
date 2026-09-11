@@ -1,11 +1,11 @@
 import { readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import type { EvidenceRead, EvidenceReader } from '../../domain/Evidence/EvidenceRead.js'
-import { EVIDENCE_ROOT } from '../../domain/Evidence/EvidencePath.js'
 import { PathOutsideRootError, realPathInsideSync } from '../File/ConfinedRealPath.js'
 
 export type EvidenceFileReaderInput = {
   root: string
+  evidenceRoot: string
 }
 
 function reasonOf(error: unknown): string {
@@ -25,12 +25,12 @@ function reasonOf(error: unknown): string {
   return error instanceof Error ? error.message : 'lecture impossible'
 }
 
-export function createEvidenceFileReader({ root }: EvidenceFileReaderInput): EvidenceReader {
-  const evidenceRoot = join(root, EVIDENCE_ROOT)
+export function createEvidenceFileReader({ root, evidenceRoot }: EvidenceFileReaderInput): EvidenceReader {
+  const confinedRoot = join(root, evidenceRoot)
 
   return (path): EvidenceRead => {
     try {
-      const walked = realPathInsideSync(evidenceRoot, join(root, path))
+      const walked = realPathInsideSync(confinedRoot, join(root, path))
       if (!statSync(walked).isFile()) {
         return { kind: 'unreadable', reason: "le chemin n'est pas un fichier" }
       }
