@@ -19,10 +19,17 @@ function covers(pathPrefix: string, path: string): boolean {
 }
 
 export function decideOnWrite({ reservations, reference, path }: WriteQuestion): WriteDecision {
-  if (reference === null) {
-    return ALLOWED
-  }
   const wanted = normalisePath(path.trim())
+  if (reference === null) {
+    const taken = reservations.find((reservation) => covers(reservation.pathPrefix, wanted))
+    if (taken === undefined) {
+      return ALLOWED
+    }
+    return {
+      allowed: false,
+      reason: `${wanted} est dans le perimetre reserve par ${taken.storyReference}, et rien ne dit qui ecrit`,
+    }
+  }
   const mine = reservations.filter((reservation) => reservation.storyReference === reference)
   const theirs = reservations.filter((reservation) => reservation.storyReference !== reference)
 

@@ -121,12 +121,32 @@ describe('a story that reserved a folder', () => {
   })
 })
 
-describe('a write with no story behind it', () => {
-  it('is allowed even inside a reserved folder, a human at the board is not an agent', () => {
+describe('a write whose holder is unknown', () => {
+  it('is refused inside a folder another story reserved', () => {
     const decision = decideOnWrite({
       reservations: [MINE, THEIRS],
       reference: null,
       path: 'frontend/src/domain/Mail/MailList.vue',
+    })
+
+    expect(decision.allowed).toBe(false)
+  })
+
+  it('names the holder of the ground it refused', () => {
+    const decision = decideOnWrite({
+      reservations: [THEIRS],
+      reference: null,
+      path: 'frontend/src/domain/Mail/MailList.vue',
+    })
+
+    expect(decision.reason).toContain('FORGE-2')
+  })
+
+  it('writes freely on ground nobody reserved', () => {
+    const decision = decideOnWrite({
+      reservations: [MINE, THEIRS],
+      reference: null,
+      path: 'backend/tests/domain/Zone/Zone.test.ts',
     })
 
     expect(decision.allowed).toBe(true)
