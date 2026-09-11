@@ -47,6 +47,12 @@ export class MutationSurvivedError extends CheckpointViolationError {
   }
 }
 
+export class RedNotAssertedError extends CheckpointViolationError {
+  constructor(reason: string) {
+    super(`Le rouge des tests n'est pas une assertion : ${reason}`, 'RedNotAssertedError')
+  }
+}
+
 export class UnresolvedFindingError extends CheckpointViolationError {
   constructor(count: number) {
     super(`${count} finding(s) fort(s) non resolu(s) empechent de clore la review`, 'UnresolvedFindingError')
