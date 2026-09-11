@@ -648,4 +648,39 @@ export const PORTUGUESE: Message = {
     createAccount: 'Criar a conta',
     enter: 'Entrar',
   },
+  tour: {
+    label: 'Visita guiada ao quadro de demonstração',
+    progress: 'Passo {current} de {total}',
+    next: 'Seguinte',
+    previous: 'Anterior',
+    finish: 'Terminar',
+    skip: 'Ignorar',
+    reopen: 'Visita guiada',
+    hint: 'As setas passam de um passo ao outro, Escape fecha a visita.',
+    spot: 'Passo da visita',
+    board: {
+      title: 'O quadro, ecrã a ecrã',
+      body: 'Cada ecrã é uma etapa do pipeline: a oficina corta as histórias, a forja constrói-as, o ecrã do projeto guarda os ficheiros e os perímetros reservados. O título diz onde estás.',
+    },
+    column: {
+      title: 'Uma coluna é um estado, não uma pasta',
+      body: 'Uma história só avança se o quadro o permitir: cada coluna reúne as histórias nesse estado, e o contador à direita diz o quanto a etapa está carregada.',
+    },
+    story: {
+      title: 'Uma história e os seus marcos',
+      body: 'Abre um cartão: o separador do plano lista os marcos que a história tem de passar, especificação, testes vermelhos, desenvolvimento, prova. Nenhum se assinala à mão, cada um espera a sua prova.',
+    },
+    review: {
+      title: 'A cascata de revisão',
+      body: 'No separador de revisão as lentes passam uma após a outra, qualidade, depois segurança, depois acessibilidade. Uma lente só arranca quando a anterior passou, por isso uma recusa pára a cascata em vez de se esconder nela.',
+    },
+    evidence: {
+      title: 'Um ficheiro de prova e a porta',
+      body: 'A legenda diz como cada ficheiro foi marcado. A porta lê a prova citada por um marco: um ficheiro ilegível, vazio ou fora do perímetro é recusado, e o marco fica em aberto.',
+    },
+    guardrail: {
+      title: 'A guarda e o perímetro reservado',
+      body: 'Uma história reserva os caminhos em que trabalha. Uma escrita fora dessa reserva é recusada pela guarda, e uma colisão entre duas histórias aparece aqui antes de os agentes arrancarem.',
+    },
+  },
 }

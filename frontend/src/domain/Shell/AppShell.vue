@@ -12,6 +12,7 @@ import { FLEET_JOB_STATE_SEQUENCE } from '@/domain/Board/BoardModel'
 import MachineBadge from '@/domain/Resource/MachineBadge.vue'
 import LanguageSwitch from '@/technical/Language/LanguageSwitch.vue'
 import Glyph from '@/technical/Ui/Glyph.vue'
+import TourGuide from '@/domain/Tour/TourGuide.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -220,7 +221,7 @@ const heading = computed(() => {
       <header
         class="sticky top-0 z-40 flex min-h-[92px] flex-wrap items-center gap-4 border-b border-line bg-panel/80 px-8 py-4 backdrop-blur"
       >
-        <div class="min-w-0 flex-[1_1_240px]">
+        <div class="min-w-0 flex-[1_1_240px]" data-tour="shell-heading">
           <div class="flex items-baseline gap-2.5">
             <span class="font-mono text-[11px] font-semibold text-acc">{{ heading.digit }}</span>
             <h1 class="display-italic m-0 text-[34px] leading-none">{{ heading.label }}</h1>
@@ -253,5 +254,7 @@ const heading = computed(() => {
         <RouterView />
       </main>
     </div>
+
+    <TourGuide />
   </div>
 </template>

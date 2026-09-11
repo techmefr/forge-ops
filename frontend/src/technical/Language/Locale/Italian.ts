@@ -649,4 +649,39 @@ export const ITALIAN: Message = {
     createAccount: 'Creare l’account',
     enter: 'Entrare',
   },
+  tour: {
+    label: 'Visita guidata della board di dimostrazione',
+    progress: 'Passo {current} su {total}',
+    next: 'Avanti',
+    previous: 'Indietro',
+    finish: 'Fine',
+    skip: 'Salta',
+    reopen: 'Visita guidata',
+    hint: 'Le frecce passano da un passo all’altro, Esc chiude la visita.',
+    spot: 'Passo della visita',
+    board: {
+      title: 'La board, schermo per schermo',
+      body: 'Ogni schermo è una tappa della pipeline: l’officina taglia le storie, la forgia le costruisce, lo schermo progetto tiene i file e i perimetri prenotati. Il titolo dice dove ti trovi.',
+    },
+    column: {
+      title: 'Una colonna è uno stato, non una cartella',
+      body: 'Una storia avanza solo se la board lo consente: ogni colonna raccoglie le storie in quello stato, e il contatore a destra dice quanto è carica la tappa.',
+    },
+    story: {
+      title: 'Una storia e i suoi traguardi',
+      body: 'Apri una scheda: la scheda del piano elenca i traguardi che la storia deve superare, specifica, test rossi, sviluppo, prova. Nessuno si spunta a mano, ognuno aspetta la sua prova.',
+    },
+    review: {
+      title: 'La cascata di review',
+      body: 'Nella scheda di review le lenti passano una dopo l’altra, qualità, poi sicurezza, poi accessibilità. Una lente parte solo quando la precedente è passata, così un rifiuto ferma la cascata invece di nascondersi dentro.',
+    },
+    evidence: {
+      title: 'Un file di prova e il varco',
+      body: 'La legenda dice come è stato marcato ogni file. Il varco legge la prova citata da un traguardo: un file illeggibile, vuoto o fuori perimetro viene rifiutato, e il traguardo resta aperto.',
+    },
+    guardrail: {
+      title: 'Il guardrail e il perimetro prenotato',
+      body: 'Una storia prenota i percorsi su cui lavora. Una scrittura fuori da quella prenotazione viene rifiutata dal guardrail, e una collisione fra due storie appare qui prima che gli agenti partano.',
+    },
+  },
 }

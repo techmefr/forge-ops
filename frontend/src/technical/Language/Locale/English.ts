@@ -635,4 +635,39 @@ export const ENGLISH = {
     createAccount: 'Create the account',
     enter: 'Enter',
   },
+  tour: {
+    label: 'Guided tour of the demonstration board',
+    progress: 'Step {current} of {total}',
+    next: 'Next',
+    previous: 'Back',
+    finish: 'Done',
+    skip: 'Skip',
+    reopen: 'Guided tour',
+    hint: 'The arrow keys move from one step to the next, Escape closes the tour.',
+    spot: 'Tour step',
+    board: {
+      title: 'The board, screen by screen',
+      body: 'Every screen is one stage of the pipeline: the workshop cuts the stories, the forge builds them, the project screen keeps the files and the reserved perimeters. The heading says where you stand.',
+    },
+    column: {
+      title: 'A column is a state, not a folder',
+      body: 'A story only moves when the board allows it: each column gathers the stories in that state, and the counter on the right says how loaded the stage is.',
+    },
+    story: {
+      title: 'A story and its checkpoints',
+      body: 'Open a card: the plan tab lists the checkpoints the story has to clear, specification, red tests, build, proof. None of them is ticked by hand, each one waits for its evidence.',
+    },
+    review: {
+      title: 'The review cascade',
+      body: 'In the review tab the lenses pass one after the other, quality then security then accessibility. A lens only starts once the previous one has passed, so a refusal stops the cascade instead of hiding inside it.',
+    },
+    evidence: {
+      title: 'An evidence file and the gate',
+      body: 'The legend says how each file was marked. The gate reads the evidence a checkpoint cites: a file that cannot be read, that is empty or that sits outside the perimeter is refused, and the checkpoint stays open.',
+    },
+    guardrail: {
+      title: 'The guardrail and the reserved perimeter',
+      body: 'A story reserves the paths it works on. A write outside that reservation is refused by the guardrail, and a collision between two stories shows up here before either agent starts.',
+    },
+  },
 }

@@ -137,7 +137,7 @@ onMounted(async () => {
         </select>
       </label>
 
-      <MarkLegend class="pb-2" />
+      <MarkLegend class="pb-2" data-tour="file-legend" />
     </div>
 
     <div class="mt-6 min-h-0 flex-1">
@@ -183,7 +183,7 @@ onMounted(async () => {
 
     <p v-if="refusal !== null" class="mt-3 text-xs text-red" role="alert">{{ say(refusal) }}</p>
 
-    <section class="mt-6 rounded-2xl border border-line bg-card p-4">
+    <section class="mt-6 rounded-2xl border border-line bg-card p-4" data-tour="scope-reservation">
       <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('project.scopeReservation') }}
       </p>

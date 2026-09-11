@@ -61,7 +61,13 @@ mkdirSync(worktreeRoot, { recursive: true })
 mkdirSync(shotDir, { recursive: true })
 
 const token = resolveBoardToken(defaults.tokenPath)
-const running = await startBoardServer({ ...defaults, dbPath, worktreeRoot, shotDir })
+const running = await startBoardServer({
+  ...defaults,
+  dbPath,
+  worktreeRoot,
+  shotDir,
+  environmentMode: environment.mode,
+})
 
 closeOnSignals(running)
 
