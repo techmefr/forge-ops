@@ -3,11 +3,11 @@ import { MARK_TONES, crumbsOf, toneOf } from '@/domain/File/FileMarkTone'
 
 describe('toneOf', () => {
   it('dit en francais ce que chaque marque veut dire', () => {
-    expect(toneOf('planned').label).toBe('Va etre modifie')
-    expect(toneOf('created').label).toBe('Sera cree')
-    expect(toneOf('ready').label).toBe('Fini, pas encore merge')
-    expect(toneOf('deleted').label).toBe('Supprime')
-    expect(toneOf('merged').label).toBe('Livre')
+    expect(toneOf('planned').label).toBe('Va être modifié')
+    expect(toneOf('created').label).toBe('Sera créé')
+    expect(toneOf('ready').label).toBe('Fini, pas encore mergé')
+    expect(toneOf('deleted').label).toBe('Supprimé')
+    expect(toneOf('merged').label).toBe('Livré')
   })
 
   it('reste muet pour un fichier que personne ne touche', () => {

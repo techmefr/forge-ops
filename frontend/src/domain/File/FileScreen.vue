@@ -5,6 +5,7 @@ import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import FileBrowser from './FileBrowser.vue'
+import MarkLegend from './MarkLegend.vue'
 import type {
   KanbanStory,
   PathConflict,
@@ -70,7 +71,7 @@ async function reloadScope(): Promise<void> {
 async function reserveScope(): Promise<void> {
   const storyId = claimStoryId.value
   if (storyId === null) {
-    refusal.value = 'Choisis la story qui reserve ce perimetre'
+    refusal.value = 'Choisis la story qui réserve ce périmètre'
     return
   }
   busy.value = true
@@ -128,6 +129,8 @@ onMounted(async () => {
           </option>
         </select>
       </label>
+
+      <MarkLegend class="pb-2" />
     </div>
 
     <div class="mt-6">
@@ -136,7 +139,7 @@ onMounted(async () => {
 
     <details class="mt-8 rounded-2xl border border-line bg-bg/40 p-4">
       <summary class="cursor-pointer font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
-        Zones, perimetres et fichiers disputes
+        Zones, périmètres et fichiers disputés
       </summary>
 
       <div class="mt-4 flex flex-wrap items-end gap-4">
@@ -164,7 +167,7 @@ onMounted(async () => {
           :disabled="busy"
           class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
         >
-          Declarer la zone
+          Déclarer la zone
         </button>
       </form>
     </div>
@@ -173,7 +176,7 @@ onMounted(async () => {
 
     <section class="mt-6 rounded-2xl border border-line bg-card p-4">
       <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
-        Reservation de perimetre
+        Réservation de périmètre
       </p>
       <p class="mt-1 text-xs text-txt-low">
         Une story qui tient un dossier ou un symbole empeche une autre de partir dessus.
@@ -205,29 +208,29 @@ onMounted(async () => {
           :disabled="busy || claimPath === ''"
           class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
         >
-          Reserver
+          Réserver
         </button>
       </form>
 
       <p v-if="(reservations.data.value ?? []).length === 0" class="mt-3 text-xs text-txt-low">
-        Aucun perimetre reserve.
+        Aucun périmètre réserve.
       </p>
       <ul class="mt-3 flex flex-col gap-1.5">
         <li
-          v-for="reservation in reservations.data.value ?? []"
-          :key="reservation.id"
+          v-for="réservation in reservations.data.value ?? []"
+          :key="réservation.id"
           class="flex flex-wrap items-center gap-2 text-xs"
         >
           <span class="font-mono text-[10px] text-acc">{{ reservation.storyReference }}</span>
           <span class="font-mono text-[11px] text-txt-hi">{{ reservation.pathPrefix }}</span>
-          <span v-if="reservation.symbols.length > 0" class="font-mono text-[10px] text-violet">{{
+          <span v-if="réservation.symbols.length > 0" class="font-mono text-[10px] text-violet">{{
             reservation.symbols.join(', ')
           }}</span>
           <button
             type="button"
             :disabled="busy"
             class="ml-auto rounded-lg border border-line bg-elev px-2 py-1 text-[10px] font-bold text-txt-mid uppercase disabled:opacity-40"
-            @click="releaseScope(reservation.storyId)"
+            @click="releaseScope(réservation.storyId)"
           >
             Rendre
           </button>
@@ -246,7 +249,7 @@ onMounted(async () => {
     </section>
 
     <section v-if="(conflicts.data.value ?? []).length > 0" class="mt-6 rounded-2xl border border-red bg-red-soft/10 p-4">
-      <p class="font-mono text-[10px] tracking-[0.18em] text-red uppercase">Fichiers disputes</p>
+      <p class="font-mono text-[10px] tracking-[0.18em] text-red uppercase">Fichiers disputés</p>
       <ul class="mt-2 flex flex-col gap-1">
         <li v-for="conflict in conflicts.data.value ?? []" :key="conflict.path" class="text-xs text-txt-hi">
           <span class="font-mono text-[11px]">{{ conflict.path }}</span>
@@ -260,7 +263,7 @@ onMounted(async () => {
         :pending="zones.pending.value"
         :failure="zones.failure.value"
         :empty="(zones.data.value ?? []).length === 0"
-        empty-label="Aucune zone declaree sur ce projet."
+        empty-label="Aucune zone déclarée sur ce projet."
         @retry="zones.reload()"
       >
         <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(320px,1fr))]">
@@ -284,9 +287,9 @@ onMounted(async () => {
             <p v-if="overview.zone.summary !== null" class="mt-2 text-xs text-txt-mid">
               {{ overview.zone.summary }}
             </p>
-            <p v-else class="mt-2 text-xs text-txt-low">Aucun resume genere pour cette zone.</p>
+            <p v-else class="mt-2 text-xs text-txt-low">Aucun résumé généré pour cette zone.</p>
 
-            <ul class="mt-3 flex flex-col gap-1">
+            <ul class="mt-3 flex max-h-[30vh] flex-col gap-1 overflow-y-auto">
               <li
                 v-for="file in overview.files"
                 :key="file.path"

@@ -5,6 +5,6 @@ export type Desk = {
 }
 
 export const DESKS: readonly Desk[] = [
-  { key: 'write', label: 'Ecrire', said: 'Decouper une epique en stories et les rediger avec Claude' },
+  { key: 'write', label: 'Écrire', said: 'Découper une épique en stories et les rédiger avec Claude' },
   { key: 'reports', label: 'Signalements', said: 'Ce que les agents bloquent et qui attend un arbitrage humain' },
 ]
