@@ -110,6 +110,21 @@ describe('POST /api/hooks', () => {
     expect(agentSessions.listTouchedPaths(storyId)).toEqual(['src/domain/Board/BoardApi.ts'])
   })
 
+  it('refuses a hook naming a path outside the checkout', async () => {
+    const response = await postToolUse('Edit', '/nonexistent-probe-target/victim.ts')
+
+    expect(response.status).toBe(422)
+    await expect(response.json()).resolves.toMatchObject({ error: 'UnconfinedFilePath' })
+    expect(agentSessions.listTouchedPaths(storyId)).toEqual([])
+  })
+
+  it('refuses a hook climbing above the checkout', async () => {
+    const response = await postToolUse('Edit', '../../nonexistent-probe-target/victim.ts')
+
+    expect(response.status).toBe(422)
+    expect(agentSessions.listTouchedPaths(storyId)).toEqual([])
+  })
+
   it('ignores a tool that does not touch a file', async () => {
     const response = await postToolUse('Bash')
 

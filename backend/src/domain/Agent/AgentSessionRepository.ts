@@ -1,5 +1,6 @@
 import type Database from 'better-sqlite3'
 import { classifyOutcome, lifecycleOfOutcome, type OutcomeClass, type SessionExit } from './SessionOutcome.js'
+import { assertConfinedPath } from '../File/ConfinedPath.js'
 import type {
   AgentLifecycle,
   AgentPhase,
@@ -221,8 +222,9 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
     },
 
     recordFileTouch: (draft) => {
+      const path = assertConfinedPath(draft.path)
       const session = requireSession(draft.claudeSessionId)
-      insertFileTouch.run(session.storyId, session.id, draft.path)
+      insertFileTouch.run(session.storyId, session.id, path)
     },
 
     listTouchedPaths: (storyId) => selectTouchedPaths.all(storyId).map((row) => row.path),
