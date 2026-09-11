@@ -213,24 +213,24 @@ onMounted(async () => {
       </form>
 
       <p v-if="(reservations.data.value ?? []).length === 0" class="mt-3 text-xs text-txt-low">
-        Aucun périmètre réserve.
+        Aucun périmètre réservé.
       </p>
       <ul class="mt-3 flex flex-col gap-1.5">
         <li
-          v-for="réservation in reservations.data.value ?? []"
-          :key="réservation.id"
+          v-for="reservation in reservations.data.value ?? []"
+          :key="reservation.id"
           class="flex flex-wrap items-center gap-2 text-xs"
         >
           <span class="font-mono text-[10px] text-acc">{{ reservation.storyReference }}</span>
           <span class="font-mono text-[11px] text-txt-hi">{{ reservation.pathPrefix }}</span>
-          <span v-if="réservation.symbols.length > 0" class="font-mono text-[10px] text-violet">{{
+          <span v-if="reservation.symbols.length > 0" class="font-mono text-[10px] text-violet">{{
             reservation.symbols.join(', ')
           }}</span>
           <button
             type="button"
             :disabled="busy"
             class="ml-auto rounded-lg border border-line bg-elev px-2 py-1 text-[10px] font-bold text-txt-mid uppercase disabled:opacity-40"
-            @click="releaseScope(réservation.storyId)"
+            @click="releaseScope(reservation.storyId)"
           >
             Rendre
           </button>

@@ -1,30 +1,30 @@
 import type { CheckpointName, ReviewLens, StoryState } from '@/domain/Board/BoardModel'
 
 export const CHECKPOINT_LABELS: Record<CheckpointName, string> = {
-  spec_done: 'Specification ecrite',
-  arch_done: 'Architecture arretee',
-  tests_written: 'Tests ecrits et rouges',
+  spec_done: 'Spécification écrite',
+  arch_done: 'Architecture arrêtée',
+  tests_written: 'Tests écrits et rouges',
   build_done: 'Tests verts',
-  verified: 'Verifie a la main',
-  reviewed: 'Review passee',
+  verified: 'Vérifié à la main',
+  reviewed: 'Review passée',
 }
 
 export const LENS_LABELS: Record<ReviewLens, string> = {
-  quality: 'Qualite',
-  security: 'Securite',
-  accessibility: 'Accessibilite',
+  quality: 'Qualité',
+  security: 'Sécurité',
+  accessibility: 'Accessibilité',
 }
 
 export const STATE_LABELS: Record<StoryState, string> = {
-  drafting: 'En ecriture',
-  backlog: 'Reserve',
+  drafting: 'En écriture',
+  backlog: 'Réserve',
   architecture: 'Architecture',
-  plan_review: 'Plan a valider',
+  plan_review: 'Plan à valider',
   building: 'Dev',
   gating: 'Test',
   reviewing: 'Review',
-  shipping: 'Merge',
+  shipping: 'Mergée',
   flagged: 'Feature flag',
   done: 'Prod',
-  escalated: 'Escaladee',
+  escalated: 'Escaladée',
 }

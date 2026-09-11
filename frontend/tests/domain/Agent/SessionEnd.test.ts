@@ -3,7 +3,7 @@ import { countedOf, sessionEndOf } from '@/domain/Agent/SessionEnd'
 
 describe('sessionEndOf', () => {
   it('dit la sortie en francais quand la session est finie', () => {
-    expect(sessionEndOf('succeeded', 'finished')).toBe('Reussie')
+    expect(sessionEndOf('succeeded', 'finished')).toBe('Réussie')
   })
 
   it('retombe sur le cycle de vie quand aucune sortie n est encore ecrite', () => {
@@ -11,7 +11,7 @@ describe('sessionEndOf', () => {
   })
 
   it('dit qu une session attend une reponse humaine', () => {
-    expect(sessionEndOf(null, 'awaiting_human')).toBe('Attend ta reponse')
+    expect(sessionEndOf(null, 'awaiting_human')).toBe('Attend ta réponse')
   })
 
   it('avoue un mot inconnu plutot que de rendre du vide', () => {

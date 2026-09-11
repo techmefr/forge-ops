@@ -14,7 +14,7 @@ describe('les langues proposees', () => {
   })
 
   it('nomme chaque langue dans sa propre langue', () => {
-    expect(LANGUAGE_LABELS.fr).toBe('Francais')
+    expect(LANGUAGE_LABELS.fr).toBe('Français')
     expect(LANGUAGE_LABELS.en).toBe('English')
   })
 })
@@ -50,7 +50,7 @@ describe('screenTextOf', () => {
 
 describe('shellTextOf', () => {
   it('rend le mot francais', () => {
-    expect(shellTextOf('settings', 'fr')).toBe('Reglages')
+    expect(shellTextOf('settings', 'fr')).toBe('Réglages')
   })
 
   it('traduit le mot', () => {
