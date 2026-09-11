@@ -10,7 +10,14 @@ import type { ForemergeRepository } from '../Foremerge/ForemergeRepository.js'
 import { ScopeTakenError } from '../Foremerge/ForemergeViolation.js'
 import { collisionsBetween } from '../Foremerge/Scope.js'
 import type { Story } from '../Story/Story.js'
-import { contractOfPhase, type Dispatched, type DispatchOrder, type SessionRunner } from './Dispatch.js'
+import {
+  contractOfPhase,
+  type Dispatched,
+  type DispatchOrder,
+  type PhaseContract,
+  type SessionRunner,
+} from './Dispatch.js'
+import { EVIDENCE_SHAPE } from '../Evidence/EvidenceShape.js'
 import { LENS_AGENTS, nextLensOf } from '../Checkpoint/ReviewCascade.js'
 import { createRateBucket, DEFAULT_DISPATCH_RATE, type Clock, type DispatchRate } from './DispatchRate.js'
 import { LensOutOfOrderError } from '../Checkpoint/CheckpointViolation.js'
@@ -46,15 +53,23 @@ export type Dispatcher = {
   countRunning: () => number
 }
 
-function promptFor(story: Story, phase: string, lens: string | undefined): string {
+function promptFor(story: Story, contract: PhaseContract, lens: string | undefined): string {
+  const doctrine = `Suis la doctrine de .claude/commands/${contract.command}.`
+  const sections =
+    contract.proves === null
+      ? []
+      : [
+          `Prouve ${contract.proves} par un fichier sous .claude/evidence/${story.reference}/ dont les titres de section portent : ${EVIDENCE_SHAPE[contract.proves].join(', ')}.`,
+        ]
   return [
     `Story ${story.reference} — ${story.title}`,
     ``,
     story.body,
     ``,
     lens === undefined
-      ? `Phase : ${phase}. Suis la doctrine de .claude/commands et prouve l'etape par un fichier sous .claude/evidence/${story.reference}/.`
-      : `Phase : ${phase}, lentille ${lens}. Ne lis que cette lentille, et prouve-la par un fichier sous .claude/evidence/${story.reference}/.`,
+      ? `Phase : ${contract.phase}. ${doctrine}`
+      : `Phase : ${contract.phase}, lentille ${lens}. ${doctrine} Ne lis que cette lentille.`,
+    ...sections,
   ].join('\n')
 }
 
@@ -165,7 +180,7 @@ export function createDispatcher({
         throw new BudgetExhaustedError(decision.spentUsd, decision.capUsd)
       }
 
-      const prompt = promptFor(story, order.phase, order.lens)
+      const prompt = promptFor(story, contract, order.lens)
       const { claudeSessionId } = await runner.launch({
         storyId: order.storyId,
         reference: story.reference,

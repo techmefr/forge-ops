@@ -1,15 +1,4 @@
-export type Worktree = {
-  id: number
-  storyId: number
-  storyReference: string
-  path: string
-  branch: string
-  baseRef: string
-  baseSha: string
-  port: number
-  subdomain: string
-  createdAt: string
-}
+export type { Worktree } from '../../../../contract/WorkspaceContract.js'
 
 export type WorktreeOrder = {
   storyId: number

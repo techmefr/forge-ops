@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Ticket } from '@/domain/Board/BoardModel'
+import { COMPLETENESS_FLOOR, type Ticket } from '@/domain/Board/BoardModel'
 import { CHECKPOINT_LABELS, STATE_LABELS } from './Checkpoint'
 import { PART_LABELS, partOf, type StoryPart } from './StoryPart'
 import type { TicketPoint } from './TicketRequest'
@@ -61,7 +61,7 @@ const scoreColour = computed(() => {
 
       <p class="mt-3 font-mono text-[11px]" :class="scoreColour">
         Completude {{ ticket.completeness.score }}/100
-        <span v-if="!ticket.completeness.launchable"> · rien ne partira en dessous de 60</span>
+        <span v-if="!ticket.completeness.launchable"> · rien ne partira en dessous de {{ COMPLETENESS_FLOOR }}</span>
       </p>
       <ul v-if="ticket.completeness.gaps.length > 0" class="mt-2 flex flex-col gap-1">
         <li v-for="gap in ticket.completeness.gaps" :key="gap">

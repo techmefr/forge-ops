@@ -5,11 +5,9 @@ export type ParcoursCriterion = {
   statement: string
 }
 
-export type ParcoursSuggestion = {
-  url: string
-  script: readonly PilotStep[]
-  reason: string
-}
+export type { ParcoursSuggestion } from '../../../../contract/PilotContract.js'
+
+import type { ParcoursSuggestion } from '../../../../contract/PilotContract.js'
 
 export type ParcoursQuestion = {
   port: number | null

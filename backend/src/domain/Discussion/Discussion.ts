@@ -1,21 +1,11 @@
-export type RemarkVoice = 'human' | 'agent'
+export type {
+  Discussion,
+  RemarkVoice,
+  StoryHold,
+  StoryRemark,
+} from '../../../../contract/BoardContract.js'
 
-export type StoryRemark = {
-  id: number
-  storyId: number
-  author: string
-  voice: RemarkVoice
-  body: string
-  writtenAt: string
-}
-
-export type StoryHold = {
-  id: number
-  storyId: number
-  reason: string
-  askedBy: string
-  raisedAt: string
-}
+import type { RemarkVoice } from '../../../../contract/BoardContract.js'
 
 export type RemarkDraft = {
   storyId: number

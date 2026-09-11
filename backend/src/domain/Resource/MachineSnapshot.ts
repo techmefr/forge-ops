@@ -1,12 +1,11 @@
 import { sampleOf, sumOf, type MetricSample } from '../../technical/Telemetry/PrometheusText.js'
 
-export type MachineSnapshot = {
-  cpuPercent: number | null
-  memoryUsedMb: number | null
-  memoryFreeMb: number | null
-  diskPercent: number | null
-  loadAverage: number | null
-}
+export type {
+  MachineReading,
+  MachineSnapshot,
+} from '../../../../contract/OperationContract.js'
+
+import type { MachineSnapshot } from '../../../../contract/OperationContract.js'
 
 const BYTES_PER_MB = 1024 * 1024
 

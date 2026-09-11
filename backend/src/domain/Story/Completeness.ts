@@ -1,4 +1,6 @@
-export const COMPLETENESS_FLOOR = 60
+export { COMPLETENESS_FLOOR } from '../../../../contract/StoryContract.js'
+
+import { COMPLETENESS_FLOOR } from '../../../../contract/StoryContract.js'
 
 const TITLE_FLOOR = 20
 const BODY_FLOOR = 120
@@ -12,11 +14,9 @@ export type CompletenessInput = {
   hasTwin: boolean
 }
 
-export type CompletenessVerdict = {
-  score: number
-  launchable: boolean
-  gaps: readonly string[]
-}
+export type { CompletenessVerdict } from '../../../../contract/StoryContract.js'
+
+import type { CompletenessVerdict } from '../../../../contract/StoryContract.js'
 
 type Rule = {
   weight: number
