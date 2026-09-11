@@ -1,7 +1,7 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { homedir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { openDatabase } from '../Database/Connection.js'
 import { createStoryRepository } from '../../domain/Story/StoryRepository.js'
 import { createAgentSessionRepository } from '../../domain/Agent/AgentSessionRepository.js'
@@ -75,6 +75,7 @@ export type BoardServerInput = {
   distDir: string
   testsDir: string
   worktreeRoot: string
+  checkoutRoots: readonly string[]
   shotDir: string
   headedPilot: boolean
   metricsUrl: string | null
@@ -89,6 +90,18 @@ export type BoardServer = {
   close: () => Promise<void>
 }
 
+function readCheckoutRoots(): readonly string[] {
+  const declared = process.env.FORGE_CHECKOUT_ROOTS
+  if (declared === undefined || declared.trim() === '') {
+    return [process.cwd()]
+  }
+  return declared
+    .split(':')
+    .map((root) => root.trim())
+    .filter((root) => root !== '')
+    .map((root) => resolve(root))
+}
+
 export function defaultBoardServerInput(): BoardServerInput {
   return {
     port: Number(process.env.FORGE_PORT ?? 8830),
@@ -99,6 +112,7 @@ export function defaultBoardServerInput(): BoardServerInput {
     distDir: process.env.FORGE_DIST_DIR ?? join('dist', 'web'),
     testsDir: process.env.FORGE_TESTS_DIR ?? 'backend/tests',
     worktreeRoot: process.env.FORGE_WORKTREE_ROOT ?? join('..', 'forge-worktrees'),
+    checkoutRoots: readCheckoutRoots(),
     shotDir: process.env.FORGE_SHOT_DIR ?? join('..', 'forge-shots'),
     headedPilot: process.env.FORGE_PILOT_HEADED === 'true',
     metricsUrl: process.env.FORGE_OTEL_METRICS_URL ?? null,
@@ -115,6 +129,7 @@ export function startBoardServer({
   distDir,
   testsDir,
   worktreeRoot,
+  checkoutRoots,
   shotDir,
   headedPilot,
   metricsUrl,
@@ -123,7 +138,9 @@ export function startBoardServer({
   const db = openDatabase(dbPath)
   const token = resolveBoardToken(tokenPath)
   const events = createEventBus()
-  const stories = createStoryRepository(db)
+  const stories = createStoryRepository(db, {
+    checkoutRoots: [...checkoutRoots, resolve(worktreeRoot)],
+  })
   const readEvidence = createEvidenceFileReader({ root: process.cwd() })
   const sessions = createAgentSessionRepository(db)
   const abandoned = sessions.abandonRunningSessions()
