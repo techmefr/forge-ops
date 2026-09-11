@@ -138,9 +138,8 @@ export function startBoardServer({
   const db = openDatabase(dbPath)
   const token = resolveBoardToken(tokenPath)
   const events = createEventBus()
-  const stories = createStoryRepository(db, {
-    checkoutRoots: [...checkoutRoots, resolve(worktreeRoot)],
-  })
+  const allowedCheckoutRoots = [...checkoutRoots, resolve(worktreeRoot)]
+  const stories = createStoryRepository(db, { checkoutRoots: allowedCheckoutRoots })
   const readEvidence = createEvidenceFileReader({ root: process.cwd() })
   const sessions = createAgentSessionRepository(db)
   const abandoned = sessions.abandonRunningSessions()
@@ -299,7 +298,7 @@ export function startBoardServer({
   )
   guarded.route('/', createPilotShotApi({ shotDir }))
   guarded.route('/', createMachineApi({ metricsUrl }))
-  guarded.route('/', createFileApi({ stories, files: createFileRepository(db) }))
+  guarded.route('/', createFileApi({ stories, files: createFileRepository(db), checkoutRoots: allowedCheckoutRoots }))
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
   guarded.route('/', createIncidentApi({ incidents: createIncidentRepository(db, { stories }), events }))
   guarded.route('/', api)
