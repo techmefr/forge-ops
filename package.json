@@ -1,5 +1,5 @@
 {
-  "name": "starfleet",
+  "name": "forge-ops",
   "version": "0.1.0",
   "description": "Board story-driven et orchestration des sessions d agents pour developpement assiste par IA",
   "type": "module",

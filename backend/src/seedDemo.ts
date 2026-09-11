@@ -1,7 +1,7 @@
 import { openDatabase } from './technical/Database/Connection.js'
 import { seedDemoBoard } from './technical/Seed/DemoSeed.js'
 
-const dbPath = process.env.FORGE_DB_PATH ?? 'starfleet-demo.db'
+const dbPath = process.env.FORGE_DB_PATH ?? 'forge-demo.db'
 const db = openDatabase(dbPath)
 const board = seedDemoBoard(db)
 db.close()

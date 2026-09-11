@@ -13,7 +13,7 @@ function writeJob(id: string, content: string): void {
 }
 
 beforeEach(() => {
-  claudeHome = mkdtempSync(join(tmpdir(), 'starfleet-claude-home-'))
+  claudeHome = mkdtempSync(join(tmpdir(), 'forge-claude-home-'))
 })
 
 afterEach(() => {

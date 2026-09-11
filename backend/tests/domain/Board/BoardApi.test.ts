@@ -48,7 +48,7 @@ beforeEach(() => {
   const project = repository.createProject({
     slug: 'forge',
     name: 'Forge',
-    repositoryUrl: 'git@github.com:techmefr/starfleet.git',
+    repositoryUrl: 'git@github.com:techmefr/forge-ops.git',
     integrationBranch: 'forge',
     colour: '#ff3b00',
   })
@@ -57,7 +57,7 @@ beforeEach(() => {
     title: 'CRUD Mail',
     businessIntent: 'gerer les mails du client',
   }).id
-  claudeHome = mkdtempSync(join(tmpdir(), 'starfleet-claude-home-'))
+  claudeHome = mkdtempSync(join(tmpdir(), 'forge-claude-home-'))
   api = createBoardApi({
     repository,
     agentSessions,

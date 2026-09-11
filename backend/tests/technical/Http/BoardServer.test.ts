@@ -19,7 +19,7 @@ afterEach(async () => {
 })
 
 async function boot(): Promise<{ board: BoardServer; token: string }> {
-  claudeHome = mkdtempSync(join(tmpdir(), 'starfleet-claude-home-'))
+  claudeHome = mkdtempSync(join(tmpdir(), 'forge-claude-home-'))
   const tokenPath = join(claudeHome, '.forge-token')
   const distDir = join(claudeHome, 'dist')
   mkdirSync(distDir)
