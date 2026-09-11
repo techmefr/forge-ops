@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { COMPLETENESS_FLOOR, type Ticket } from '@/domain/Board/BoardModel'
-import { CHECKPOINT_LABELS, STATE_LABELS } from './Checkpoint'
-import { PART_LABELS, partOf, type StoryPart } from './StoryPart'
+import { useI18n } from 'vue-i18n'
+import type { Ticket } from '@/domain/Board/BoardModel'
+import { partOf, type StoryPart } from './StoryPart'
 import type { TicketPoint } from './TicketRequest'
 
 const { ticket, part } = defineProps<{ ticket: Ticket | null; part: StoryPart }>()
 const emit = defineEmits<{ pick: [TicketPoint] }>()
+
+const { t } = useI18n()
 
 const shown = computed(() => partOf(ticket, part))
 
@@ -19,27 +21,25 @@ const scoreColour = computed(() => {
 </script>
 
 <template>
-  <p v-if="ticket === null" class="text-sm text-txt-low">
-    Aucune story ouverte. Le ticket se remplit des que tu ecris la story.
-  </p>
+  <p v-if="ticket === null" class="text-sm text-txt-low">{{ t('ticket.noStory') }}</p>
 
   <article v-else class="flex flex-col gap-5">
     <p class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">
-      Lecture seule · clique un point pour le dire a Claude
+      {{ t('ticket.readOnly') }}
     </p>
 
     <p
       v-if="shown === null"
       class="rounded-2xl border border-violet bg-violet-soft/10 p-4 text-sm text-txt-mid"
     >
-      {{ PART_LABELS[part] }} pas encore ecrite. Elle prouve la fonctionnelle, et la reserve l attend.
+      {{ t('ticket.partNotWritten', { part: t(`storyPart.${part}`) }) }}
     </p>
 
     <header v-else class="rounded-2xl border border-line bg-card p-4">
       <div class="flex items-baseline gap-2">
         <span class="font-mono text-[11px] font-semibold text-acc">{{ shown.reference }}</span>
         <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">{{
-          STATE_LABELS[shown.state]
+          t(`state.${shown.state}`)
         }}</span>
       </div>
 
@@ -60,8 +60,8 @@ const scoreColour = computed(() => {
       </button>
 
       <p class="mt-3 font-mono text-[11px]" :class="scoreColour">
-        Completude {{ ticket.completeness.score }}/100
-        <span v-if="!ticket.completeness.launchable"> · rien ne partira en dessous de {{ COMPLETENESS_FLOOR }}</span>
+        {{ t('ticket.completeness', { score: ticket.completeness.score }) }}
+        <span v-if="!ticket.completeness.launchable"> {{ t('ticket.belowLaunch') }}</span>
       </p>
       <ul v-if="ticket.completeness.gaps.length > 0" class="mt-2 flex flex-col gap-1">
         <li v-for="gap in ticket.completeness.gaps" :key="gap">
@@ -78,10 +78,10 @@ const scoreColour = computed(() => {
 
     <section class="rounded-2xl border border-line bg-card p-4">
       <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
-        Criteres d acceptation
+        {{ t('ticket.criteria') }}
       </p>
       <p v-if="ticket.criteria.length === 0" class="mt-2 text-xs text-orange">
-        Aucun critere. La specification sera refusee.
+        {{ t('ticket.noCriteria') }}
       </p>
       <ul class="mt-2 flex flex-col gap-2">
         <li v-for="criterion in ticket.criteria" :key="criterion.id">
@@ -97,7 +97,9 @@ const scoreColour = computed(() => {
             <span>
               <span class="font-mono text-[10px] text-txt-low">{{ criterion.reference }}</span>
               <span class="ml-1.5 text-txt-hi">{{ criterion.statement }}</span>
-              <span v-if="criterion.expectsRefusal" class="ml-1.5 text-orange">attend un refus</span>
+              <span v-if="criterion.expectsRefusal" class="ml-1.5 text-orange">{{
+                t('ticket.expectsRefusal')
+              }}</span>
               <span v-if="criterion.persona !== null" class="ml-1.5 text-txt-low"
                 >· {{ criterion.persona }}</span
               >
@@ -108,20 +110,22 @@ const scoreColour = computed(() => {
     </section>
 
     <section class="rounded-2xl border border-line bg-card p-4">
-      <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">Definition of done</p>
+      <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+        {{ t('ticket.definitionOfDone') }}
+      </p>
       <ol class="mt-2 flex flex-col gap-1.5">
         <li v-for="step in ticket.dod" :key="step.name">
           <button
             type="button"
             class="flex w-full items-center gap-2 text-left text-xs hover:text-acc"
             :class="step.proven ? 'text-txt-hi' : 'text-txt-low'"
-            @click="emit('pick', { kind: 'step', text: CHECKPOINT_LABELS[step.name] })"
+            @click="emit('pick', { kind: 'step', text: t(`checkpoint.${step.name}`) })"
           >
             <span
               class="h-2 w-2 flex-none rounded-full"
               :class="step.proven ? 'bg-green' : 'bg-line'"
             />
-            {{ CHECKPOINT_LABELS[step.name] }}
+            {{ t(`checkpoint.${step.name}`) }}
             <span v-if="step.evidencePath !== null" class="ml-auto font-mono text-[10px] text-acc">{{
               step.evidencePath
             }}</span>
@@ -131,7 +135,9 @@ const scoreColour = computed(() => {
     </section>
 
     <section v-if="ticket.blockers.length > 0" class="rounded-2xl border border-red bg-red-soft/10 p-4">
-      <p class="font-mono text-[10px] tracking-[0.18em] text-red uppercase">Bloquee par</p>
+      <p class="font-mono text-[10px] tracking-[0.18em] text-red uppercase">
+        {{ t('ticket.blockedBy') }}
+      </p>
       <ul class="mt-2 flex flex-col gap-1">
         <li v-for="blocker in ticket.blockers" :key="blocker" class="font-mono text-[11px] text-txt-hi">
           {{ blocker }}

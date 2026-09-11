@@ -2,11 +2,6 @@ export const NAV_LAYOUTS = ['rail', 'tabs'] as const
 
 export type NavLayout = (typeof NAV_LAYOUTS)[number]
 
-export const NAV_LAYOUT_LABELS: Readonly<Record<NavLayout, string>> = {
-  rail: 'Barre laterale',
-  tabs: 'Onglets',
-}
-
 export const NAV_STORAGE_KEY = 'forge.nav'
 
 export function readLayout(): NavLayout {

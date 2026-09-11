@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DRAWER_TABS, DRAWER_TAB_LABELS, tabOfState } from '@/domain/Kanban/DrawerTab'
+import { DRAWER_TABS, tabOfState } from '@/domain/Kanban/DrawerTab'
 
 const COLUMN_STATES = [
   'architecture',
@@ -17,10 +17,8 @@ describe('les onglets du tiroir', () => {
     expect([...DRAWER_TABS]).toEqual(['story', 'plan', 'review', 'delivery', 'discussion'])
   })
 
-  it('portent tous un nom', () => {
-    for (const tab of DRAWER_TABS) {
-      expect(DRAWER_TAB_LABELS[tab].length).toBeGreaterThan(0)
-    }
+  it('ne repetent jamais le meme onglet', () => {
+    expect(new Set(DRAWER_TABS).size).toBe(DRAWER_TABS.length)
   })
 })
 

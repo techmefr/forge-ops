@@ -6,12 +6,13 @@ export type Utterance = {
   reference: string | null
   phase: string | null
   text: string | null
+  textKey: string | null
   costUsd: number | null
 }
 
 const SESSION_PREFIX = 'session.'
 
-const DISPATCH_WORDS = 'Session lancee, Claude lit l epique.'
+const DISPATCH_KEY = 'story.dispatched'
 
 function stringOr(value: unknown): string | null {
   return typeof value === 'string' && value.trim() !== '' ? value : null
@@ -30,10 +31,8 @@ export function collectUtterance(event: StreamedEvent): Utterance | null {
     name: event.name,
     reference: stringOr(event.payload.reference),
     phase: stringOr(event.payload.phase),
-    text:
-      text ??
-      stringOr(event.payload.message) ??
-      (event.name === 'session.dispatched' ? DISPATCH_WORDS : null),
+    text: text ?? stringOr(event.payload.message),
+    textKey: text === null && event.name === 'session.dispatched' ? DISPATCH_KEY : null,
     costUsd: cost,
   }
 }

@@ -6,7 +6,6 @@ import {
   REVIEW_LENS_SEQUENCE,
   STORY_STATE_SEQUENCE,
 } from '@/domain/Board/BoardModel'
-import { CHECKPOINT_LABELS, LENS_LABELS, STATE_LABELS } from '@/domain/Story/Checkpoint'
 import { AGENT_PHASE_SEQUENCE as PHASES_BACK } from '../../../../backend/src/domain/Agent/AgentSession.js'
 import {
   CHECKPOINT_SEQUENCE as CHECKPOINTS_BACK,
@@ -34,19 +33,5 @@ describe('le front et le back lisent le meme contrat', () => {
 
   it('tient le plancher de completude depuis le module partage', () => {
     expect(COMPLETENESS_FLOOR).toBe(FLOOR_BACK)
-  })
-})
-
-describe('chaque valeur du contrat porte un libelle', () => {
-  it('nomme chaque etat de story', () => {
-    expect(Object.keys(STATE_LABELS)).toEqual([...STORY_STATE_SEQUENCE])
-  })
-
-  it('nomme chaque jalon', () => {
-    expect(Object.keys(CHECKPOINT_LABELS)).toEqual([...CHECKPOINT_SEQUENCE])
-  })
-
-  it('nomme chaque angle de review', () => {
-    expect(Object.keys(LENS_LABELS)).toEqual([...REVIEW_LENS_SEQUENCE])
   })
 })

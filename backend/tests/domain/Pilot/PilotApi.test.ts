@@ -65,7 +65,7 @@ beforeEach(() => {
   api = createPilotApi({
     pilots: createPilotRepository(db, { stories, openDriver: driver }),
     events,
-    suggest: () => ({ url: 'http://localhost:5049/', script: [], reason: 'suggestion de test' }),
+    suggest: () => ({ url: 'http://localhost:5049/', script: [], reason: 'noCriteria' as const, references: [] }),
   })
 })
 
@@ -140,7 +140,7 @@ describe('POST /api/stories/:id/pilot/advance', () => {
     api = createPilotApi({
       pilots: createPilotRepository(db, { stories, openDriver: driver }),
       events: createEventBus(),
-      suggest: () => ({ url: '', script: [], reason: 'suggestion de test' }),
+      suggest: () => ({ url: '', script: [], reason: 'noCriteria' as const, references: [] }),
     })
 
     expect((await send(`/api/stories/${storyId}/pilot/advance`, 'POST')).status).toBe(409)

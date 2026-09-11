@@ -1,19 +1,24 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
+import { usePhrase } from '@/technical/Language/UsePhrase'
+import { phrase, type Phrase } from '@/technical/Language/Phrase'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
-import type { Epic, Incident, IncidentOrigin, Project } from '@/domain/Board/BoardModel'
+import {
+  INCIDENT_STATE_SEQUENCE,
+  type Epic,
+  type Incident,
+  type IncidentOrigin,
+  type IncidentState,
+  type Project,
+} from '@/domain/Board/BoardModel'
 
-const STATES = ['pending', 'accepted', 'refused'] as const
+const { t } = useI18n()
+const say = usePhrase()
 
-const STATE_LABELS: Record<string, string> = {
-  pending: 'A trancher',
-  accepted: 'Acceptes',
-  refused: 'Refuses',
-}
-
-const chosenState = ref<(typeof STATES)[number]>('pending')
+const chosenState = ref<IncidentState>('pending')
 const incidents = useResource<readonly Incident[]>(() =>
   board.read(`/api/incidents?state=${chosenState.value}`),
 )
@@ -22,7 +27,7 @@ const projects = useResource<readonly Project[]>(() => board.read('/api/projects
 const epics = ref<readonly Epic[]>([])
 const chosenEpic = ref<number | null>(null)
 const reasons = ref<Map<number, string>>(new Map())
-const refusal = ref<string | null>(null)
+const refusal = ref<Phrase | null>(null)
 const busy = ref(false)
 
 async function guard(action: () => Promise<void>): Promise<void> {
@@ -41,7 +46,7 @@ async function guard(action: () => Promise<void>): Promise<void> {
 function accept(incident: Incident): Promise<void> {
   const epicId = chosenEpic.value
   if (epicId === null) {
-    refusal.value = 'Choisis l epique qui recevra la story'
+    refusal.value = phrase('incident.chooseEpicFirst')
     return Promise.resolve()
   }
   return guard(() => board.send(`/api/incidents/${incident.id}/accept`, 'POST', { epicId }))
@@ -50,7 +55,7 @@ function accept(incident: Incident): Promise<void> {
 function refuse(incident: Incident): Promise<void> {
   const reason = reasons.value.get(incident.id) ?? ''
   if (reason.trim() === '') {
-    refusal.value = 'Un refus se motive, sinon personne ne sait pourquoi'
+    refusal.value = phrase('incident.refusalNeedsReason')
     return Promise.resolve()
   }
   return guard(() => board.send(`/api/incidents/${incident.id}/refuse`, 'POST', { reason }))
@@ -61,7 +66,10 @@ function setReason(incidentId: number, value: string): void {
 }
 
 function originOf(incident: Incident): string {
-  return (origins.data.value ?? []).find((origin) => origin.id === incident.originId)?.name ?? 'inconnue'
+  return (
+    (origins.data.value ?? []).find((origin) => origin.id === incident.originId)?.name ??
+    t('incident.unknownOrigin')
+  )
 }
 
 async function loadEpics(): Promise<void> {
@@ -85,9 +93,10 @@ onMounted(async () => {
     <div class="flex flex-none flex-wrap items-end gap-3">
       <div class="flex gap-1">
         <button
-          v-for="state in STATES"
+          v-for="state in INCIDENT_STATE_SEQUENCE"
           :key="state"
           type="button"
+          :aria-pressed="state === chosenState"
           class="rounded-lg border px-3 py-2 text-xs font-semibold uppercase"
           :class="
             state === chosenState
@@ -96,32 +105,32 @@ onMounted(async () => {
           "
           @click="chosenState = state"
         >
-          {{ STATE_LABELS[state] }}
+          {{ t(`incidentState.${state}`) }}
         </button>
       </div>
 
       <label class="ml-auto flex flex-col gap-1">
-        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase"
-          >Epique d accueil</span
-        >
+        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">{{
+          t('incident.epicTarget')
+        }}</span>
         <select
           v-model="chosenEpic"
           class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
         >
-          <option :value="null">A choisir</option>
+          <option :value="null">{{ t('incident.toChoose') }}</option>
           <option v-for="epic in epics" :key="epic.id" :value="epic.id">{{ epic.title }}</option>
         </select>
       </label>
     </div>
 
-    <p v-if="refusal !== null" class="mt-3 text-xs text-red" role="alert">{{ refusal }}</p>
+    <p v-if="refusal !== null" class="mt-3 text-xs text-red" role="alert">{{ say(refusal) }}</p>
 
     <div class="mt-6 min-h-0 flex-1 overflow-auto pr-1">
       <ScreenState
         :pending="incidents.pending.value"
         :failure="incidents.failure.value"
         :empty="(incidents.data.value ?? []).length === 0"
-        empty-label="Rien dans cette pile."
+        empty-key="incident.empty"
         @retry="incidents.reload()"
       >
         <div class="flex flex-col gap-4">
@@ -137,7 +146,9 @@ onMounted(async () => {
               <span
                 v-if="incident.occurrences > 1"
                 class="rounded-full bg-orange/20 px-2 py-0.5 font-mono text-[10px] text-orange"
-                >{{ incident.occurrences }} fois</span
+                >{{
+                  t('incident.occurrences', { count: incident.occurrences }, incident.occurrences)
+                }}</span
               >
               <span class="ml-auto font-mono text-[10px] text-txt-low">{{ incident.fingerprint }}</span>
             </div>
@@ -147,10 +158,10 @@ onMounted(async () => {
             </p>
 
             <p v-if="incident.state === 'accepted'" class="mt-3 text-xs text-green">
-              Accepte, story {{ incident.storyId }} ecrite avec sa jumelle.
+              {{ t('incident.accepted', { storyId: incident.storyId ?? '' }) }}
             </p>
             <p v-else-if="incident.state === 'refused'" class="mt-3 text-xs text-txt-mid">
-              Refuse : {{ incident.refusalReason }}
+              {{ t('incident.refused', { reason: incident.refusalReason ?? '' }) }}
             </p>
 
             <div v-else class="mt-4 flex flex-wrap items-center gap-2">
@@ -160,12 +171,12 @@ onMounted(async () => {
                 class="rounded-lg border border-acc bg-acc px-3 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
                 @click="accept(incident)"
               >
-                En faire une story
+                {{ t('incident.makeStory') }}
               </button>
               <input
                 :value="reasons.get(incident.id) ?? ''"
                 type="text"
-                placeholder="Motif du refus"
+                :placeholder="t('incident.refusalPlaceholder')"
                 class="min-w-[220px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
                 @input="setReason(incident.id, ($event.target as HTMLInputElement).value)"
               />
@@ -175,7 +186,7 @@ onMounted(async () => {
                 class="rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
                 @click="refuse(incident)"
               >
-                Refuser
+                {{ t('common.refuse') }}
               </button>
             </div>
           </article>

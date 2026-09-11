@@ -16,7 +16,7 @@ describe('a story with no worktree', () => {
   })
 
   it('says why, so the screen can tell the human to open a worktree', () => {
-    expect(suggestParcours({ port: null, criteria: CRITERIA }).reason).toContain('worktree')
+    expect(suggestParcours({ port: null, criteria: CRITERIA }).reason).toBe('noWorktree')
   })
 })
 
@@ -45,8 +45,8 @@ describe('a story whose worktree is up', () => {
   it('names the criteria it will walk through', () => {
     const suggestion = suggestParcours({ port: 5049, criteria: CRITERIA })
 
-    expect(suggestion.reason).toContain('AC-1')
-    expect(suggestion.reason).toContain('AC-2')
+    expect(suggestion.reason).toBe('onePerCriterion')
+    expect(suggestion.references).toEqual(['AC-1', 'AC-2'])
   })
 })
 
@@ -59,6 +59,6 @@ describe('a story with no criterion', () => {
   })
 
   it('says the criteria are missing rather than pretending', () => {
-    expect(suggestParcours({ port: 5049, criteria: [] }).reason).toContain('aucun critere')
+    expect(suggestParcours({ port: 5049, criteria: [] }).reason).toBe('noCriteria')
   })
 })

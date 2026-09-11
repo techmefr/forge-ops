@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
 import { reasonOf } from '@/technical/Api/UseResource'
+import { usePhrase } from '@/technical/Language/UsePhrase'
+import type { Phrase } from '@/technical/Language/Phrase'
+import type { Account } from '@/domain/Board/BoardModel'
 
-type Account = {
-  login: string
-  displayName: string
-  role: 'director' | 'architect'
-  email: string | null
-}
+const { t } = useI18n()
+const say = usePhrase()
 
 const account = ref<Account | null>(null)
 const absent = ref(false)
@@ -18,8 +18,8 @@ const currentPassword = ref('')
 const nextPassword = ref('')
 const profileSaved = ref(false)
 const passwordSaved = ref(false)
-const profileRefusal = ref<string | null>(null)
-const passwordRefusal = ref<string | null>(null)
+const profileRefusal = ref<Phrase | null>(null)
+const passwordRefusal = ref<Phrase | null>(null)
 const busy = ref(false)
 
 async function load(): Promise<void> {
@@ -81,21 +81,20 @@ onMounted(load)
 
 <template>
   <section class="flex flex-col gap-6 rounded-2xl border border-line bg-card p-5">
-    <h2 class="display-italic m-0 text-xl">Compte</h2>
+    <h2 class="display-italic m-0 text-xl">{{ t('setting.account') }}</h2>
 
-    <p v-if="absent" class="text-xs text-txt-low">
-      Le board tourne en mode local, sans compte : l acces se fait par le jeton de la machine. Les
-      comptes n existent qu en mode hub.
-    </p>
+    <p v-if="absent" class="text-xs text-txt-low">{{ t('setting.localModeNote') }}</p>
 
     <template v-else-if="account !== null">
       <p class="font-mono text-[11px] text-txt-low uppercase">
-        {{ account.login }} · {{ account.role === 'director' ? 'Directeur' : 'Architecte' }}
+        {{ account.login }} · {{ t(`role.${account.role}`) }}
       </p>
 
       <form class="flex flex-col gap-4" @submit.prevent="saveProfile">
         <label class="flex flex-col gap-2">
-          <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">Nom affiche</span>
+          <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+            t('setting.displayName')
+          }}</span>
           <input
             v-model="displayName"
             type="text"
@@ -103,12 +102,14 @@ onMounted(load)
           />
         </label>
         <label class="flex flex-col gap-2">
-          <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">Adresse mail</span>
+          <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+            t('setting.emailAddress')
+          }}</span>
           <input
             v-model="email"
             type="email"
             autocomplete="email"
-            placeholder="personne@exemple.fr"
+            :placeholder="t('setting.emailPlaceholder')"
             class="max-w-sm rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
         </label>
@@ -118,20 +119,20 @@ onMounted(load)
             :disabled="busy"
             class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
           >
-            Enregistrer
+            {{ t('common.save') }}
           </button>
-          <span v-if="profileSaved" class="text-xs text-green">Compte enregistre</span>
+          <span v-if="profileSaved" class="text-xs text-green">{{ t('setting.accountSaved') }}</span>
         </div>
         <p v-if="profileRefusal !== null" class="text-xs text-red" role="alert">
-          {{ profileRefusal }}
+          {{ say(profileRefusal) }}
         </p>
       </form>
 
       <form class="flex flex-col gap-4 border-t border-line pt-5" @submit.prevent="savePassword">
         <label class="flex flex-col gap-2">
-          <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase"
-            >Mot de passe actuel</span
-          >
+          <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+            t('setting.currentPassword')
+          }}</span>
           <input
             v-model="currentPassword"
             type="password"
@@ -140,16 +141,16 @@ onMounted(load)
           />
         </label>
         <label class="flex flex-col gap-2">
-          <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase"
-            >Nouveau mot de passe</span
-          >
+          <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+            t('setting.newPassword')
+          }}</span>
           <input
             v-model="nextPassword"
             type="password"
             autocomplete="new-password"
             class="max-w-sm rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
-          <span class="text-xs text-txt-low">Douze caracteres au moins.</span>
+          <span class="text-xs text-txt-low">{{ t('setting.passwordHint') }}</span>
         </label>
         <div class="flex items-center gap-3">
           <button
@@ -157,14 +158,14 @@ onMounted(load)
             :disabled="busy"
             class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
           >
-            Changer
+            {{ t('setting.changePassword') }}
           </button>
-          <span v-if="passwordSaved" class="text-xs text-green"
-            >Mot de passe change, les autres sessions sont fermees</span
-          >
+          <span v-if="passwordSaved" class="text-xs text-green">{{
+            t('setting.passwordChanged')
+          }}</span>
         </div>
         <p v-if="passwordRefusal !== null" class="text-xs text-red" role="alert">
-          {{ passwordRefusal }}
+          {{ say(passwordRefusal) }}
         </p>
       </form>
     </template>

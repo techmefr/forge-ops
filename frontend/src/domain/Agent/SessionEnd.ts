@@ -1,33 +1,21 @@
-const OUTCOME_LABELS: Record<string, string> = {
-  succeeded: 'Réussie',
-  failed: 'Échouée',
-  interrupted: 'Interrompue',
-  killed: 'Tuée',
-  timed_out: 'Temps dépassé',
-  budget_exhausted: 'Plafond atteint',
-  permission_denied: 'Permission refusée',
-  looping: 'Tournait en boucle',
-  awaiting_human: 'Attend ta réponse',
-  runner_missing: 'Lanceur introuvable',
-  unknown: 'Sortie inconnue',
+import {
+  AGENT_LIFECYCLE_SEQUENCE,
+  OUTCOME_CLASSES,
+  type AgentLifecycle,
+  type OutcomeClass,
+} from '@/domain/Board/BoardModel'
+
+function knownOutcome(outcome: string): outcome is OutcomeClass {
+  return (OUTCOME_CLASSES as readonly string[]).includes(outcome)
 }
 
-const LIFECYCLE_LABELS: Record<string, string> = {
-  starting: 'Démarrée',
-  working: 'Au travail',
-  awaiting_human: 'Attend ta réponse',
-  finished: 'Finie',
-  failed: 'Échouée',
-  interrupted: 'Interrompue',
+function knownLifecycle(lifecycle: string): lifecycle is AgentLifecycle {
+  return (AGENT_LIFECYCLE_SEQUENCE as readonly string[]).includes(lifecycle)
 }
 
-export function sessionEndOf(outcome: string | null, lifecycle: string): string {
+export function sessionEndKey(outcome: string | null, lifecycle: string): string {
   if (outcome !== null) {
-    return OUTCOME_LABELS[outcome] ?? outcome
+    return knownOutcome(outcome) ? `outcome.${outcome}` : 'outcome.unknown'
   }
-  return LIFECYCLE_LABELS[lifecycle] ?? lifecycle
-}
-
-export function countedOf(count: number, singular: string, plural = `${singular}s`): string {
-  return `${count} ${Math.abs(count) > 1 ? plural : singular}`
+  return knownLifecycle(lifecycle) ? `lifecycle.${lifecycle}` : 'outcome.unknown'
 }

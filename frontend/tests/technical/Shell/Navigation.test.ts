@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   NAV_LAYOUTS,
-  NAV_LAYOUT_LABELS,
   NAV_STORAGE_KEY,
   readLayout,
   writeLayout,
@@ -16,10 +15,8 @@ describe('les dispositions de navigation', () => {
     expect([...NAV_LAYOUTS]).toEqual(['rail', 'tabs'])
   })
 
-  it('nomme chaque disposition en francais', () => {
-    for (const layout of NAV_LAYOUTS) {
-      expect(NAV_LAYOUT_LABELS[layout].length).toBeGreaterThan(2)
-    }
+  it('ne repete jamais la meme disposition', () => {
+    expect(new Set(NAV_LAYOUTS).size).toBe(NAV_LAYOUTS.length)
   })
 })
 

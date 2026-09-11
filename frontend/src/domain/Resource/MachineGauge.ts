@@ -1,3 +1,5 @@
+import { phrase, type Phrase } from '@/technical/Language/Phrase'
+
 export type MachineSnapshot = {
   cpuPercent: number | null
   memoryUsedMb: number | null
@@ -7,33 +9,35 @@ export type MachineSnapshot = {
 }
 
 export type MachineGauge = {
-  name: string
+  nameKey: string
   glyph: string
-  said: string
+  said: Phrase
   percent: number | null
 }
 
 const MB_PER_GB = 1024
-const NOTHING = '—'
 
-function percentGauge(name: string, glyph: string, percent: number | null): MachineGauge {
+function percentGauge(nameKey: string, glyph: string, percent: number | null): MachineGauge {
   return {
-    name,
+    nameKey,
     glyph,
-    said: percent === null ? NOTHING : `${Math.round(percent)} %`,
+    said: percent === null ? phrase('common.nothing') : phrase('common.percent', { value: Math.round(percent) }),
     percent,
   }
 }
 
 function memoryGauge({ memoryUsedMb, memoryFreeMb }: MachineSnapshot): MachineGauge {
   if (memoryUsedMb === null || memoryFreeMb === null) {
-    return { name: 'RAM', glyph: 'ram', said: NOTHING, percent: null }
+    return { nameKey: 'machine.ram', glyph: 'ram', said: phrase('common.nothing'), percent: null }
   }
   const total = memoryUsedMb + memoryFreeMb
   return {
-    name: 'RAM',
+    nameKey: 'machine.ram',
     glyph: 'ram',
-    said: `${Math.round(memoryUsedMb / MB_PER_GB)} / ${Math.round(total / MB_PER_GB)} GO`,
+    said: phrase('machine.gigabytes', {
+      used: Math.round(memoryUsedMb / MB_PER_GB),
+      total: Math.round(total / MB_PER_GB),
+    }),
     percent: total === 0 ? null : Number(((memoryUsedMb / total) * 100).toFixed(1)),
   }
 }
@@ -43,8 +47,8 @@ export function gaugesOf(snapshot: MachineSnapshot | null): readonly MachineGaug
     return []
   }
   return [
-    percentGauge('CPU', 'cpu', snapshot.cpuPercent),
+    percentGauge('machine.cpu', 'cpu', snapshot.cpuPercent),
     memoryGauge(snapshot),
-    percentGauge('DISQUE', 'disk', snapshot.diskPercent),
+    percentGauge('machine.disk', 'disk', snapshot.diskPercent),
   ]
 }
