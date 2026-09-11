@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
-import { resolve, sep } from 'node:path'
+import { realPathInsideSync } from '../File/ConfinedRealPath.js'
 import {
   MUTATION_PER_FILE_CAP,
   MUTATION_RUN_CAP,
@@ -56,12 +56,15 @@ function guardOnce(): void {
   }
 }
 
-function isInsideRoot(path: string, root: string): boolean {
-  if (path.includes(String.fromCharCode(0))) {
-    return false
+function confinedTarget(root: string, asked: string): string | null {
+  if (asked.includes(String.fromCharCode(0))) {
+    return null
   }
-  const resolved = resolve(root, path)
-  return resolved !== root && resolved.startsWith(root.endsWith(sep) ? root : root + sep)
+  try {
+    return realPathInsideSync(root, asked)
+  } catch {
+    return null
+  }
 }
 
 function readSource(path: string): string | null {
@@ -81,9 +84,9 @@ export function runMutationCheck({
 }: MutationRunInput): readonly MutationOutcome[] {
   guardOnce()
   const outcomes: MutationOutcome[] = []
-  const confinedRoot = resolve(root)
-  for (const path of paths) {
-    if (!isInsideRoot(path, confinedRoot)) {
+  for (const asked of paths) {
+    const path = confinedTarget(root, asked)
+    if (path === null) {
       continue
     }
     const original = readSource(path)
