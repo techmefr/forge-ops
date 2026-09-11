@@ -69,7 +69,7 @@ function leaveQueue(): void {
 async function backToEpics(): Promise<void> {
   const talking = written.value.map((story) => story.id)
   leaveQueue()
-  await router.push('/story')
+  await router.push('/atelier')
   ticket.data.value = null
   await Promise.all(talking.map((storyId) => hangUp(storyId).catch(() => undefined)))
 }
@@ -205,7 +205,7 @@ onMounted(async () => {
       <template v-if="queue.length > 0">
         <h2 class="display-italic mt-6 text-sm text-txt-mid">La fournee</h2>
         <p class="mt-1 text-[11px] text-txt-low">
-          Autant de stories que l epique en demande. Elles partent au backlog une par une.
+          Autant de stories que l epique en demande. Elles partent en reserve une par une.
         </p>
 
         <div v-for="epic in queueEpics" :key="epic.id" class="mt-4">
@@ -299,7 +299,7 @@ onMounted(async () => {
       </form>
 
       <p v-if="ticket.data.value !== null && !complete" class="mt-3 text-xs text-orange">
-        Les deux parties d abord : une fois la jumelle ecrite, la story part au backlog.
+        Les deux parties d abord : une fois la jumelle ecrite, la story part en reserve.
       </p>
 
       <div class="mt-3 flex flex-none flex-wrap gap-2">
@@ -309,7 +309,7 @@ onMounted(async () => {
           class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
           @click="toBacklog()"
         >
-          Envoyer au backlog
+          Envoyer en reserve
         </button>
         <button
           v-if="queue.length > 0"

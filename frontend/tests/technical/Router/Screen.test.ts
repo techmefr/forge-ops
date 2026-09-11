@@ -39,21 +39,21 @@ describe('SCREENS', () => {
   })
 
   it('ouvre sur la premiere etape', () => {
-    expect(HOME_PATH).toBe('/story')
+    expect(HOME_PATH).toBe('/atelier')
   })
 })
 
 describe('screenOfPath', () => {
   it('reconnait un chemin exact', () => {
-    expect(screenOfPath('/kanban')?.key).toBe('kanban')
+    expect(screenOfPath('/forge')?.key).toBe('kanban')
   })
 
   it('reconnait un chemin enfant, pour que le rail reste allume', () => {
-    expect(screenOfPath('/backlog/12')?.key).toBe('backlog')
+    expect(screenOfPath('/reserve/12')?.key).toBe('backlog')
   })
 
   it('ne confond pas deux chemins de meme prefixe', () => {
-    expect(screenOfPath('/storyboard')).toBeNull()
+    expect(screenOfPath('/atelierage')).toBeNull()
   })
 
   it('rend nul sur un ecran hors du rail', () => {

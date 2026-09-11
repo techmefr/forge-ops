@@ -32,7 +32,7 @@ const scoreColour = computed(() => {
       v-if="shown === null"
       class="rounded-2xl border border-violet bg-violet-soft/10 p-4 text-sm text-txt-mid"
     >
-      {{ PART_LABELS[part] }} pas encore ecrite. Elle prouve la fonctionnelle, et le backlog l attend.
+      {{ PART_LABELS[part] }} pas encore ecrite. Elle prouve la fonctionnelle, et la reserve l attend.
     </p>
 
     <header v-else class="rounded-2xl border border-line bg-card p-4">

@@ -22,7 +22,7 @@ describe('createBoardRouter', () => {
 
     await board.push('/')
 
-    expect(board.currentRoute.value.path).toBe('/story')
+    expect(board.currentRoute.value.path).toBe('/atelier')
   })
 
   it('renvoie un chemin inconnu vers le premier ecran, sans page blanche', async () => {
@@ -30,7 +30,7 @@ describe('createBoardRouter', () => {
 
     await board.push('/nawak')
 
-    expect(board.currentRoute.value.path).toBe('/story')
+    expect(board.currentRoute.value.path).toBe('/atelier')
   })
 
   it('sert les ecrans hors rail', async () => {
@@ -47,13 +47,13 @@ describe('createBoardRouter', () => {
 
     await board.push('/incidents')
 
-    expect(board.currentRoute.value.path).toBe('/story')
+    expect(board.currentRoute.value.path).toBe('/atelier')
   })
 
   it('retient la story ouverte dans l url', async () => {
     const board = router()
 
-    await board.push('/story/12')
+    await board.push('/atelier/12')
 
     expect(board.currentRoute.value.params.id).toBe('12')
   })
