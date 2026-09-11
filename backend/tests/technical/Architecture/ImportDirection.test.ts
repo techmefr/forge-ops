@@ -1,22 +1,24 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-import { edgeKey, reportOfRoot } from '../../../src/technical/Architecture/ImportDirection.js'
-import { BASELINE_PATH, LAYER_ROOTS } from '../../../src/technical/Architecture/ImportRoot.js'
-
-const readBaseline = (): string[] => JSON.parse(readFileSync(BASELINE_PATH, 'utf8')) as string[]
+import {
+  LAYER_ROOTS,
+  edgeKey,
+  isViolation,
+  readBaseline,
+  scanRoot,
+} from '../../../../scripts/importDirection.js'
 
 const currentViolations = (): string[] =>
-  LAYER_ROOTS.flatMap((root) => reportOfRoot(root).violations.map(edgeKey)).sort()
+  LAYER_ROOTS.flatMap((root) => scanRoot(root).filter(isViolation).map(edgeKey)).sort()
 
 describe('import direction', () => {
   it('reads every source file of both layer roots', () => {
     for (const root of LAYER_ROOTS) {
-      expect(reportOfRoot(root).edges.length).toBeGreaterThan(0)
+      expect(scanRoot(root).length).toBeGreaterThan(0)
     }
   })
 
-  it('records a baseline that only holds known violations', () => {
+  it('holds a sorted baseline without duplicates', () => {
     const baseline = readBaseline()
     expect(baseline).toStrictEqual([...baseline].sort())
     expect(new Set(baseline).size).toBe(baseline.length)
@@ -28,7 +30,9 @@ describe('import direction', () => {
     expect(introduced, `new technical -> domain imports:\n${introduced.join('\n')}`).toStrictEqual([])
   })
 
-  it('never lets the violation count rise above the recorded baseline', () => {
-    expect(currentViolations().length).toBeLessThanOrEqual(readBaseline().length)
+  it('holds no baseline entry the code no longer contains', () => {
+    const live = new Set(currentViolations())
+    const stale = readBaseline().filter((entry) => !live.has(entry))
+    expect(stale, `baseline entries that no longer exist:\n${stale.join('\n')}`).toStrictEqual([])
   })
 })

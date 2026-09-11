@@ -3,10 +3,13 @@ import tseslint from 'typescript-eslint'
 import vue from 'eslint-plugin-vue'
 import globals from 'globals'
 
+import { importDirectionRule } from './scripts/importDirection.js'
+
 const DIRECTIVE = /^\s*(eslint-|@ts-|prettier-|v8 ignore|c8 ignore|#|\/ <reference)/
 
 const house = {
   rules: {
+    'import-direction': importDirectionRule,
     'no-comments': {
       meta: {
         type: 'problem',
@@ -56,6 +59,7 @@ export default tseslint.config(
     plugins: { house },
     rules: {
       'house/no-comments': 'error',
+      'house/import-direction': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
