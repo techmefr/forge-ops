@@ -31,6 +31,7 @@ export function createSdkSessionRunner({ cwd, onEvent, live }: SdkSessionRunnerI
           env: {
             ...process.env,
             FORGE_STORY_REFERENCE: order.reference,
+            FORGE_PHASE: order.phase,
             ...(order.baseUrl === undefined ? {} : { ANTHROPIC_BASE_URL: order.baseUrl }),
           },
         },
