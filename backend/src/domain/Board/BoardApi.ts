@@ -10,6 +10,7 @@ import {
 } from '../Story/StoryViolation.js'
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
+import { reapStaleSessions, STALE_AFTER_SECONDS } from '../Agent/Heartbeat.js'
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
 import { CHECKPOINT_SEQUENCE, REVIEW_LENS_SEQUENCE } from '../Checkpoint/Checkpoint.js'
 import { CheckpointViolationError } from '../Checkpoint/CheckpointViolation.js'
@@ -497,6 +498,9 @@ export function createBoardApi({
     }
 
     const hook = payload.data
+    if (agentSessions.findByClaudeSessionId(hook.session_id) !== null) {
+      agentSessions.recordHeartbeat(hook.session_id)
+    }
     const path = hook.tool_input?.file_path
     const touchesAFile =
       hook.hook_event_name === 'PostToolUse' &&
@@ -638,15 +642,23 @@ export function createBoardApi({
     )
   })
 
-  api.get('/api/board/kanban', (context) =>
-    context.json(
+  api.get('/api/sessions/stale', (context) =>
+    context.json({
+      staleAfterSeconds: STALE_AFTER_SECONDS,
+      sessions: agentSessions.listStaleSessions(),
+    }),
+  )
+
+  api.get('/api/board/kanban', (context) => {
+    reapStaleSessions({ sessions: agentSessions, stories: repository })
+    return context.json(
       repository.listKanban().map((story) => ({
         ...story,
         usage: agentSessions.sumUsage(story.id),
         blockers: repository.listBlockers(story.id),
       })),
-    ),
-  )
+    )
+  })
 
   api.get('/api/board/columns', (context) => context.json(KANBAN_COLUMNS))
 
