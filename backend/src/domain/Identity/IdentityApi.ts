@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { z } from 'zod'
 import type { IdentityRepository } from './IdentityRepository.js'
+import type { OpenedSession } from './Identity.js'
 import {
   IdentityViolationError,
   LoginRefusedError,
@@ -9,6 +10,12 @@ import {
 } from './IdentityViolation.js'
 
 import { IDENTITY_COOKIE } from '../../technical/Auth/TokenGuard.js'
+import {
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+  PasswordUnhashableError,
+} from '../../technical/Auth/PasswordHash.js'
+import { createLoginRateLimit, type LoginRateLimit } from '../../technical/Auth/LoginRateLimit.js'
 
 export { IDENTITY_COOKIE }
 
@@ -24,7 +31,7 @@ const enrolmentSchema = z.object({
     .max(120)
     .regex(/^[a-z0-9][a-z0-9._-]*$/),
   displayName: z.string().min(1).max(120),
-  password: z.string().min(1).max(256),
+  password: z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH),
   role: z.enum(['director', 'architect']),
 })
 
@@ -43,9 +50,14 @@ const passwordChangeSchema = z.object({
 export type IdentityApiInput = {
   identities: IdentityRepository
   allowEnrolment: () => boolean
+  loginLimit?: LoginRateLimit
 }
 
-export function createIdentityApi({ identities, allowEnrolment }: IdentityApiInput): Hono {
+export function createIdentityApi({
+  identities,
+  allowEnrolment,
+  loginLimit = createLoginRateLimit(),
+}: IdentityApiInput): Hono {
   const api = new Hono()
 
   function caller(sessionToken: string | undefined) {
@@ -58,6 +70,9 @@ export function createIdentityApi({ identities, allowEnrolment }: IdentityApiInp
     if (error instanceof LoginRefusedError) {
       return context.json({ error: error.name, message: error.message }, 401)
     }
+    if (error instanceof PasswordUnhashableError || error instanceof PasswordRefusedError) {
+      return context.json({ error: error.name, message: error.message }, 422)
+    }
     if (error instanceof IdentityViolationError) {
       return context.json({ error: error.name, message: error.message }, 409)
     }
@@ -69,7 +84,19 @@ export function createIdentityApi({ identities, allowEnrolment }: IdentityApiInp
     if (!credentials.success) {
       return context.json({ error: 'InvalidCredentials' }, 422)
     }
-    const opened = identities.openSession(credentials.data.login, credentials.data.password)
+    const { login, password } = credentials.data
+    if (loginLimit.refuses(login)) {
+      context.header('retry-after', String(Math.ceil(loginLimit.retryAfterMs(login) / 1000)))
+      return context.json({ error: 'TooManyLoginAttempts' }, 429)
+    }
+    let opened: OpenedSession
+    try {
+      opened = identities.openSession(login, password)
+    } catch (error) {
+      loginLimit.recordFailure(login)
+      throw error
+    }
+    loginLimit.forget(login)
     setCookie(context, IDENTITY_COOKIE, opened.token, {
       path: '/',
       httpOnly: true,
@@ -80,8 +107,8 @@ export function createIdentityApi({ identities, allowEnrolment }: IdentityApiInp
   })
 
   api.post('/api/auth/logout', (context) => {
-    const token = context.req.header('x-forge-identity')
-    if (token !== undefined) {
+    const token = context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE)
+    if (token !== undefined && token !== '') {
       identities.closeSession(token)
     }
     deleteCookie(context, IDENTITY_COOKIE, { path: '/' })

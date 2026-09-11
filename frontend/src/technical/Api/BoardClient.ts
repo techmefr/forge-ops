@@ -18,6 +18,7 @@ export type BoardClient = {
 export type BoardClientInput = {
   baseUrl?: string
   fetcher?: typeof fetch
+  onUnauthorized?: () => void
 }
 
 function messageOf(payload: unknown, status: number): { code: string; message: string } {
@@ -31,7 +32,11 @@ function messageOf(payload: unknown, status: number): { code: string; message: s
   return { code: `Http${status}`, message: `La requete a echoue en ${status}` }
 }
 
-export function createBoardClient({ baseUrl = '', fetcher = fetch }: BoardClientInput = {}): BoardClient {
+export function createBoardClient({
+  baseUrl = '',
+  fetcher = fetch,
+  onUnauthorized,
+}: BoardClientInput = {}): BoardClient {
   async function call<T>(path: string, init: RequestInit): Promise<T> {
     const response = await fetcher(`${baseUrl}${path}`, {
       credentials: 'same-origin',
@@ -40,6 +45,9 @@ export function createBoardClient({ baseUrl = '', fetcher = fetch }: BoardClient
     const raw = await response.text()
     const payload: unknown = raw === '' ? null : (JSON.parse(raw) as unknown)
     if (!response.ok) {
+      if (response.status === 401) {
+        onUnauthorized?.()
+      }
       const { code, message } = messageOf(payload, response.status)
       throw new BoardRequestError(response.status, code, message)
     }

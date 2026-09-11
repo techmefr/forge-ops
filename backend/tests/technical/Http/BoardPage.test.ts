@@ -18,7 +18,7 @@ beforeEach(() => {
   mkdirSync(join(distDir, 'assets'), { recursive: true })
   writeFileSync(join(distDir, 'index.html'), '<div id="board"></div>')
   writeFileSync(join(distDir, 'assets', 'board.js'), 'export const board = 1')
-  page = createBoardPage({ token: TOKEN, distDir })
+  page = createBoardPage({ distDir })
 })
 
 afterEach(() => {
@@ -46,14 +46,10 @@ describe('createBoardPage', () => {
     await expect(response.text()).resolves.toContain('id="board"')
   })
 
-  it('hands the browser the board token as a cookie it cannot read', async () => {
+  it('hands an anonymous caller no session at all', async () => {
     const response = await page.request('/')
 
-    const cookie = response.headers.get('set-cookie') ?? ''
-    expect(cookie).toContain(`forge_token=${TOKEN}`)
-    expect(cookie).toContain('HttpOnly')
-    expect(cookie).toContain('SameSite=Strict')
-    expect(cookie).toContain('Path=/')
+    expect(response.headers.get('set-cookie')).toBe(null)
   })
 
   it('never lets the token reach the page body, where a script could read it', async () => {

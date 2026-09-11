@@ -5,6 +5,7 @@ import { createTokenGuard } from '../../../src/technical/Auth/TokenGuard.js'
 const TOKEN = 'a'.repeat(64)
 const OTHER = 'b'.repeat(64)
 const HOOK_TOKEN = 'c'.repeat(64)
+const BROWSER_SESSION = 'd'.repeat(64)
 
 let api: Hono
 
@@ -16,6 +17,7 @@ beforeEach(() => {
       token: TOKEN,
       hookToken: HOOK_TOKEN,
       allowedOrigins: ['http://localhost:8832'],
+      readBrowserSession: (sessionToken) => sessionToken === BROWSER_SESSION,
     }),
   )
   api.post('/api/hooks', (context) => context.json({ recorded: true }, 202))
@@ -189,17 +191,17 @@ describe('le jeton du board ne voyage jamais dans une url', () => {
     expect(response.status).toBe(401)
   })
 
-  it('takes it from a cookie, which EventSource sends on its own', async () => {
+  it('takes a browser session from a cookie, which EventSource sends on its own', async () => {
     const response = await api.request('/api/events', {
-      headers: { cookie: `forge_token=${TOKEN}` },
+      headers: { cookie: `forge_token=${BROWSER_SESSION}` },
     })
 
     expect(response.status).toBe(200)
   })
 
-  it('takes the cookie on the other routes too', async () => {
+  it('takes the browser session cookie on the other routes too', async () => {
     const response = await api.request('/api/things', {
-      headers: { cookie: `forge_token=${TOKEN}` },
+      headers: { cookie: `forge_token=${BROWSER_SESSION}` },
     })
 
     expect(response.status).toBe(200)
@@ -209,6 +211,56 @@ describe('le jeton du board ne voyage jamais dans une url', () => {
     const response = await api.request('/api/things', {
       headers: { cookie: `forge_token=${OTHER}` },
     })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('refuses the master token offered as a cookie, a browser holds sessions only', async () => {
+    const response = await api.request('/api/things', {
+      headers: { cookie: `forge_token=${TOKEN}` },
+    })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('keeps the session exchange shut when the board does not offer it', async () => {
+    const response = await api.request('/api/auth/session', { method: 'POST' })
+
+    expect(response.status).toBe(401)
+  })
+})
+
+describe('l echange de session', () => {
+  beforeEach(() => {
+    api = new Hono()
+    api.use(
+      '/api/*',
+      createTokenGuard({
+        token: TOKEN,
+        hookToken: HOOK_TOKEN,
+        allowedOrigins: ['http://localhost:8832'],
+        allowSessionExchange: true,
+      }),
+    )
+    api.post('/api/auth/session', (context) => context.json({ opened: true }, 201))
+    api.get('/api/board/mode', (context) => context.json({ mode: 'local' }))
+    api.get('/api/things', (context) => context.json({ ok: true }))
+  })
+
+  it('lets an anonymous caller reach the exchange, which checks the token itself', async () => {
+    const response = await api.request('/api/auth/session', { method: 'POST' })
+
+    expect(response.status).toBe(201)
+  })
+
+  it('lets an anonymous caller read the mode, so the page knows which way in to show', async () => {
+    const response = await api.request('/api/board/mode')
+
+    expect(response.status).toBe(200)
+  })
+
+  it('keeps every other route shut all the same', async () => {
+    const response = await api.request('/api/things')
 
     expect(response.status).toBe(401)
   })

@@ -1,8 +1,6 @@
 import { Hono } from 'hono'
-import { setCookie } from 'hono/cookie'
 import { readFileSync, statSync } from 'node:fs'
 import { extname, join, resolve, sep } from 'node:path'
-import { BOARD_COOKIE } from '../Auth/TokenGuard.js'
 
 const NUL = String.fromCharCode(0)
 
@@ -19,7 +17,6 @@ const CONTENT_TYPES: Record<string, string> = {
 }
 
 export type BoardPageInput = {
-  token: string
   distDir: string
 }
 
@@ -50,7 +47,7 @@ export function readWithin(root: string, requestedPath: string): Buffer | null {
   }
 }
 
-export function createBoardPage({ token, distDir }: BoardPageInput): Hono {
+export function createBoardPage({ distDir }: BoardPageInput): Hono {
   const root = resolve(distDir)
   const page = new Hono()
 
@@ -76,12 +73,6 @@ export function createBoardPage({ token, distDir }: BoardPageInput): Hono {
     } catch {
       return context.json({ error: 'FrontNotBuilt' }, 503)
     }
-
-    setCookie(context, BOARD_COOKIE, token, {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'Strict',
-    })
 
     context.header('cache-control', 'no-store')
     return context.html(document.toString('utf-8'))
