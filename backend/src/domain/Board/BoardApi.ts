@@ -542,12 +542,13 @@ export function createBoardApi({
       return context.json({ error: 'UnconfinedFilePath', recorded: false }, 422)
     }
 
-    if (agentSessions.findByClaudeSessionId(hook.session_id) === null) {
+    const session = agentSessions.findByClaudeSessionId(hook.session_id)
+    if (session === null) {
       return context.json({ recorded: false }, 202)
     }
 
     agentSessions.recordFileTouch({ claudeSessionId: hook.session_id, path })
-    const zone = zones.zoneOfPath(path)
+    const zone = zones.zoneOfPath(repository.projectOfStory(session.storyId), path)
     if (zone !== null) {
       zones.summariseZone(
         zone.projectId,
