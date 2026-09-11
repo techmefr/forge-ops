@@ -3,7 +3,7 @@ import { demoEnvironment } from './domain/Demo/DemoEnvironment.js'
 import { openDatabase } from './technical/Database/Connection.js'
 import { markDemoDatabase } from './technical/Demo/DemoMark.js'
 import { seedDemoBoard } from './technical/Seed/DemoSeed.js'
-import { defaultBoardServerInput, startBoardServer } from './technical/Http/BoardServer.js'
+import { defaultBoardServerInput, startBoardServer } from './composition/BoardServer.js'
 import { closeOnSignals } from './technical/Http/Shutdown.js'
 import { resolveBoardToken } from './technical/Auth/BoardToken.js'
 import {
