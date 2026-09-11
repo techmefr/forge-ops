@@ -22,6 +22,7 @@ import type { LaunchOrder } from '../../../src/domain/Dispatch/Dispatch.js'
 
 let api: Hono
 let checkpoints: CheckpointRepository
+let criteria: ReturnType<typeof createCriterionRepository>
 let sessions: ReturnType<typeof createAgentSessionRepository>
 let launched: LaunchOrder[]
 let seen: BoardEvent[]
@@ -76,7 +77,7 @@ beforeEach(() => {
   const story = stories.writeStory({ epicId: epic.id, title: 'visualiser les mails du client', body: BODY })
   storyId = story.id
   stories.writeTwin({ storyId, title: 'tests visualiser les mails', body: 'cas nominal et cas vide' })
-  const criteria = createCriterionRepository(db)
+  criteria = createCriterionRepository(db)
   criteria.declareCriterion({ storyId, reference: 'AC-1', statement: 'la liste est paginee' })
   criteria.declareCriterion({ storyId, reference: 'AC-2', statement: 'le cas vide est annonce' })
   checkpoints = createCheckpointRepository(db, {
@@ -191,6 +192,103 @@ describe('passing a lens', () => {
     await expect(response.json()).resolves.toMatchObject({
       cascade: { dispatched: null, reason: 'la cascade est passee en entier' },
     })
+  })
+})
+
+describe('the severity of an accessibility finding', () => {
+  function recordAccessibilityFinding(severity: 'strong' | 'weak'): void {
+    checkpoints.recordFinding({
+      storyId,
+      claudeSessionId: `fake-session-${launched.length}`,
+      lens: 'accessibility',
+      severity,
+      path: 'frontend/src/Story/StoryCard.vue',
+      statement: 'le bouton icone seul n a pas de nom accessible',
+    })
+  }
+
+  function satisfyCriteria(): void {
+    for (const criterion of criteria.listUnmetCriteria(storyId)) {
+      criteria.satisfyCriterion(criterion.id, '.claude/evidence/criteria.md')
+    }
+  }
+
+  async function reachAccessibility(severity: 'strong' | 'weak'): Promise<void> {
+    await proveUpToVerified()
+    closeLastSession()
+    await send(`/api/stories/${storyId}/review/quality/pass`)
+    closeLastSession()
+    await send(`/api/stories/${storyId}/review/security/pass`)
+    recordAccessibilityFinding(severity)
+    closeLastSession()
+  }
+
+  it('refuses the accessibility lens while a strong finding is unresolved', async () => {
+    await reachAccessibility('strong')
+
+    const response = await send(`/api/stories/${storyId}/review/accessibility/pass`)
+
+    expect(response.status).toBe(409)
+    await expect(response.json()).resolves.toMatchObject({ error: 'UnresolvedFindingError' })
+  })
+
+  it('leaves the accessibility pass running when a strong finding blocks it', async () => {
+    await reachAccessibility('strong')
+    await send(`/api/stories/${storyId}/review/accessibility/pass`)
+
+    expect(checkpoints.reviewCascade(storyId)).toMatchObject([
+      { lens: 'quality', state: 'passed' },
+      { lens: 'security', state: 'passed' },
+      { lens: 'accessibility', state: 'running' },
+    ])
+  })
+
+  it('keeps reviewed closed while a strong accessibility finding stands', async () => {
+    await reachAccessibility('strong')
+    await send(`/api/stories/${storyId}/review/accessibility/pass`)
+    satisfyCriteria()
+
+    const response = await prove('reviewed')
+
+    expect(response.status).toBe(409)
+    await expect(response.json()).resolves.toMatchObject({ error: 'UnresolvedFindingError' })
+  })
+
+  it('passes the accessibility lens despite a weak finding', async () => {
+    await reachAccessibility('weak')
+
+    const response = await send(`/api/stories/${storyId}/review/accessibility/pass`)
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toMatchObject({
+      lens: 'accessibility',
+      state: 'passed',
+      cascade: { dispatched: null, reason: 'la cascade est passee en entier' },
+    })
+  })
+
+  it('opens reviewed once a weak finding is the only one left', async () => {
+    await reachAccessibility('weak')
+    await send(`/api/stories/${storyId}/review/accessibility/pass`)
+    satisfyCriteria()
+
+    const response = await prove('reviewed')
+
+    expect(response.status).toBe(201)
+    await expect(response.json()).resolves.toMatchObject({ name: 'reviewed' })
+  })
+
+  it('opens reviewed once the strong accessibility finding is resolved', async () => {
+    await reachAccessibility('strong')
+    const [finding] = checkpoints.listUnresolvedFindings(storyId)
+    checkpoints.resolveFinding(finding?.id ?? 0)
+    await send(`/api/stories/${storyId}/review/accessibility/pass`)
+    satisfyCriteria()
+
+    const response = await prove('reviewed')
+
+    expect(response.status).toBe(201)
+    await expect(response.json()).resolves.toMatchObject({ name: 'reviewed' })
   })
 })
 
