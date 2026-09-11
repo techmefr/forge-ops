@@ -24,7 +24,7 @@ export type ZoneRepository = {
   listZones: (projectId: number) => readonly Zone[]
   overview: (projectId: number) => readonly ZoneOverview[]
   overviewOfZone: (projectId: number, pathPrefix: string) => ZoneOverview
-  zoneOfPath: (path: string) => Zone | null
+  zoneOfPath: (projectId: number, path: string) => Zone | null
 }
 
 function escapeLikePattern(value: string): string {
@@ -76,9 +76,10 @@ export function createZoneRepository(db: Database.Database): ZoneRepository {
         AND file_touch.path LIKE ? ESCAPE '\\'
       ORDER BY file_touch.path`,
   )
-  const selectLongestPrefix = db.prepare<[string], ZoneRow>(
+  const selectLongestPrefix = db.prepare<[number, string], ZoneRow>(
     `SELECT * FROM zone
-      WHERE ? LIKE path_prefix || '%'
+      WHERE project_id = ?
+        AND SUBSTR(?, 1, LENGTH(path_prefix)) = path_prefix
       ORDER BY LENGTH(path_prefix) DESC
       LIMIT 1`,
   )
@@ -126,8 +127,8 @@ export function createZoneRepository(db: Database.Database): ZoneRepository {
 
     overviewOfZone,
 
-    zoneOfPath: (path) => {
-      const row = selectLongestPrefix.get(path)
+    zoneOfPath: (projectId, path) => {
+      const row = selectLongestPrefix.get(projectId, path)
       return row === undefined ? null : toZone(row)
     },
   }

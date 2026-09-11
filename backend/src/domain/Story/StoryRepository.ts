@@ -65,6 +65,7 @@ export type StoryRepository = {
   createEpic: (draft: EpicDraft) => Epic
   listEpics: (projectId: number) => readonly EpicOverview[]
   assigneeOf: (epicId: number) => string | null
+  projectOfStory: (storyId: number) => number
   claimEpic: (epicId: number, login: string) => void
   releaseEpic: (epicId: number, login: string) => void
   writeStory: (draft: StoryDraft) => Story
@@ -181,6 +182,11 @@ export function createStoryRepository(
   const selectProjectBySlug = db.prepare<[string], { id: number }>('SELECT id FROM project WHERE slug = ?')
   const selectStory = db.prepare<[number], StoryRow>('SELECT * FROM story WHERE id = ?')
   const selectTwin = db.prepare<[number], StoryRow>('SELECT * FROM story WHERE twin_of_story_id = ?')
+  const selectProjectOfStory = db.prepare<[number], { project_id: number }>(
+    `SELECT epic.project_id AS project_id FROM story
+       JOIN epic ON epic.id = story.epic_id
+      WHERE story.id = ?`,
+  )
   const selectProjectSlug = db.prepare<[number], { slug: string }>(
     'SELECT project.slug AS slug FROM epic JOIN project ON project.id = epic.project_id WHERE epic.id = ?',
   )
@@ -351,6 +357,14 @@ export function createStoryRepository(
         assignee: row.assignee,
         storyCount: row.story_count,
       })),
+
+    projectOfStory: (storyId) => {
+      const row = selectProjectOfStory.get(storyId)
+      if (row === undefined) {
+        throw new StoryNotFoundError(storyId)
+      }
+      return row.project_id
+    },
 
     assigneeOf: (epicId) => {
       const epic = selectEpicById.get(epicId)

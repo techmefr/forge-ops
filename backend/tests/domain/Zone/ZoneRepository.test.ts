@@ -186,10 +186,32 @@ describe('zoneOfPath', () => {
     zones.declareZone({ projectId, pathPrefix: 'services', name: 'Services', colour: '#22E67A' })
     zones.declareZone({ projectId, pathPrefix: 'services/cart', name: 'Panier', colour: '#8B5CFF' })
 
-    expect(zones.zoneOfPath('services/cart/CartTotals.ts')?.pathPrefix).toBe('services/cart')
+    expect(zones.zoneOfPath(projectId, 'services/cart/CartTotals.ts')?.pathPrefix).toBe('services/cart')
   })
 
   it('answers nothing for a path no zone covers', () => {
-    expect(zones.zoneOfPath('scripts/seed.ts')).toBeNull()
+    expect(zones.zoneOfPath(projectId, 'scripts/seed.ts')).toBeNull()
+  })
+})
+
+describe('zoneOfPath across projects', () => {
+  it('never answers with a zone belonging to another project', () => {
+    const neighbourId = createNeighbourProject('vs', 'services/cart/OtherService.ts')
+    zones.declareZone({
+      projectId: neighbourId,
+      pathPrefix: 'services/cart',
+      name: 'Panier voisin',
+      colour: '#8B5CFF',
+    })
+
+    expect(zones.zoneOfPath(projectId, 'services/cart/CartTotals.ts')).toBeNull()
+    expect(zones.zoneOfPath(neighbourId, 'services/cart/CartTotals.ts')?.projectId).toBe(neighbourId)
+  })
+
+  it('treats a stored prefix carrying a wildcard as plain text', () => {
+    zones.declareZone({ projectId, pathPrefix: 'services/%', name: 'Joker', colour: '#22E67A' })
+
+    expect(zones.zoneOfPath(projectId, 'services/cart/CartTotals.ts')).toBeNull()
+    expect(zones.zoneOfPath(projectId, 'services/%/CartTotals.ts')?.pathPrefix).toBe('services/%')
   })
 })
