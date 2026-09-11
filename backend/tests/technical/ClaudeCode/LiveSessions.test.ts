@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { createLiveSessions } from '../../../src/technical/ClaudeCode/LiveSessions.js'
+import {
+  createLiveSessions,
+  LiveSessionCapReachedError,
+  SessionAlreadyLiveError,
+} from '../../../src/technical/ClaudeCode/LiveSessions.js'
 
 describe('createLiveSessions', () => {
   it('does not expose a session that has no identifier yet', () => {
@@ -60,5 +64,55 @@ describe('createLiveSessions', () => {
     live.closeAll()
 
     expect([first.channel.open, second.channel.open, live.find('sess-1')]).toEqual([false, false, null])
+  })
+
+  it('forgets a channel that died on its own, without waiting for a lookup', () => {
+    const live = createLiveSessions<string>()
+    const started = live.start()
+    started.adopt('sess-1')
+
+    started.channel.close()
+
+    expect(live.count()).toBe(0)
+  })
+
+  it('forgets a channel closed through the map itself', () => {
+    const live = createLiveSessions<string>()
+    const started = live.start()
+    started.adopt('sess-1')
+
+    live.close('sess-1')
+
+    expect(live.count()).toBe(0)
+  })
+
+  it('refuses to adopt an identifier another channel already answers for', () => {
+    const live = createLiveSessions<string>()
+    const held = live.start()
+    const intruder = live.start()
+    held.adopt('sess-1')
+
+    expect(() => intruder.adopt('sess-1')).toThrow(SessionAlreadyLiveError)
+    expect(live.find('sess-1')).toBe(held.channel)
+  })
+
+  it('lets an identifier be adopted again once its channel is gone', () => {
+    const live = createLiveSessions<string>()
+    const held = live.start()
+    const next = live.start()
+    held.adopt('sess-1')
+    held.channel.close()
+
+    next.adopt('sess-1')
+
+    expect(live.find('sess-1')).toBe(next.channel)
+  })
+
+  it('refuses to hold more sessions than its cap', () => {
+    const live = createLiveSessions<string>({ cap: 2 })
+    live.start().adopt('sess-1')
+    live.start().adopt('sess-2')
+
+    expect(() => live.start().adopt('sess-3')).toThrow(LiveSessionCapReachedError)
   })
 })

@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3'
 import { join } from 'node:path'
 import { allocatePort, DEFAULT_BASE_PORT, DEFAULT_PORT_RANGE } from '../../technical/Network/PortAllocator.js'
+import { isPortBindable } from '../../technical/Network/PortProbe.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { branchNameFor, worktreeFolderFor } from './Branch.js'
 import type { GitWorktreeRunner, Worktree, WorktreeOrder } from './Worktree.js'
@@ -21,6 +22,7 @@ export type WorktreeRepositoryInput = {
   stories: StoryRepository
   git: GitWorktreeRunner
   root: string
+  isPortFree?: (port: number) => boolean
 }
 
 type WorktreeRow = {
@@ -48,7 +50,7 @@ const LIVE_SELECTION = `
 
 export function createWorktreeRepository(
   db: Database.Database,
-  { stories, git, root }: WorktreeRepositoryInput,
+  { stories, git, root, isPortFree = isPortBindable }: WorktreeRepositoryInput,
 ): WorktreeRepository {
   const selectLive = db.prepare<[], WorktreeRow>(`${LIVE_SELECTION} ORDER BY worktree.id ASC`)
 
@@ -107,13 +109,13 @@ export function createWorktreeRepository(
 
   function freePortFor(branch: string, worktreeId: number): number {
     const held = previousPort.get(worktreeId)
-    if (held !== undefined && takenPort.get(held.port) === undefined) {
+    if (held !== undefined && takenPort.get(held.port) === undefined && isPortFree(held.port)) {
       return held.port
     }
     const wanted = allocatePort(branch)
     for (let step = 0; step < DEFAULT_PORT_RANGE; step += 1) {
       const candidate = ((wanted - DEFAULT_BASE_PORT + step) % DEFAULT_PORT_RANGE) + DEFAULT_BASE_PORT
-      if (takenPort.get(candidate) === undefined) {
+      if (takenPort.get(candidate) === undefined && isPortFree(candidate)) {
         return candidate
       }
     }

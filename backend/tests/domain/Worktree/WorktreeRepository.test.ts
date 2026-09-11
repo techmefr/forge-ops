@@ -26,6 +26,7 @@ let added: Added[]
 let removed: string[]
 let dirty: Set<string>
 let deletedBranches: string[]
+let refusedPorts: Set<number>
 let first: number
 let second: number
 
@@ -66,7 +67,13 @@ beforeEach(() => {
   })
   first = stories.writeStory({ epicId: epic.id, title: 'visualiser les mails', body: 'en tant que' }).id
   second = stories.writeStory({ epicId: epic.id, title: 'supprimer les mails', body: 'en tant que' }).id
-  worktrees = createWorktreeRepository(db, { stories, git: fakeGit(), root: '/tmp/forge-worktrees' })
+  refusedPorts = new Set<number>()
+  worktrees = createWorktreeRepository(db, {
+    stories,
+    git: fakeGit(),
+    root: '/tmp/forge-worktrees',
+    isPortFree: (port: number) => !refusedPorts.has(port),
+  })
 })
 
 describe('open', () => {
@@ -131,6 +138,31 @@ describe('open', () => {
     worktrees.close(second)
 
     expect(worktrees.open({ storyId: first, baseRef: 'forge' }).port).toBe(displaced)
+  })
+
+  it('steps aside when a process outside the board already holds the port', () => {
+    const wanted = allocatePort('story/forge-1-visualiser-les-mails')
+    refusedPorts.add(wanted)
+
+    const opened = worktrees.open({ storyId: first, baseRef: 'forge' })
+
+    expect(opened.port).not.toBe(wanted)
+  })
+
+  it('gives up its remembered port once a process outside the board holds it', () => {
+    const opened = worktrees.open({ storyId: first, baseRef: 'forge' })
+    worktrees.close(first)
+    refusedPorts.add(opened.port)
+
+    expect(worktrees.open({ storyId: first, baseRef: 'forge' }).port).not.toBe(opened.port)
+  })
+
+  it('refuses to open when no port in the range can be bound', () => {
+    for (let port = DEFAULT_BASE_PORT; port < DEFAULT_BASE_PORT + DEFAULT_PORT_RANGE; port += 1) {
+      refusedPorts.add(port)
+    }
+
+    expect(() => worktrees.open({ storyId: first, baseRef: 'forge' })).toThrow(WorktreeNotRemovableError)
   })
 
   it('never gives two live worktrees the same port', () => {

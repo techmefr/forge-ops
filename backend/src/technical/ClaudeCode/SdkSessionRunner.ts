@@ -55,7 +55,12 @@ export function createSdkSessionRunner({ cwd, onEvent, live }: SdkSessionRunnerI
         })
       }
 
-      started.adopt(claudeSessionId)
+      try {
+        started.adopt(claudeSessionId)
+      } catch (error) {
+        started.channel.close()
+        throw error
+      }
       const identifier = claudeSessionId
       void drain(spoken, { ...order, claudeSessionId: identifier }, onEvent).finally(() =>
         live.close(identifier),
