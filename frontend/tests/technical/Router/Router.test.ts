@@ -36,10 +36,18 @@ describe('createBoardRouter', () => {
   it('sert les ecrans hors rail', async () => {
     const board = router()
 
-    for (const path of ['/incidents', '/settings', '/login']) {
+    for (const path of ['/settings', '/login']) {
       await board.push(path)
       expect(board.currentRoute.value.path, path).toBe(path)
     }
+  })
+
+  it('renvoie les signalements dans l atelier, ils y sont un onglet', async () => {
+    const board = router()
+
+    await board.push('/incidents')
+
+    expect(board.currentRoute.value.path).toBe('/story')
   })
 
   it('retient la story ouverte dans l url', async () => {
