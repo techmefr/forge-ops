@@ -202,6 +202,57 @@ describe('POST /api/stories/:id/done', () => {
     expect(cleanUps).toEqual([])
   })
 
+  it('refuses a delivery that never answered a criterion the epic asked for', async () => {
+    await walkToShipping()
+    criteria.declareCriterion({
+      storyId,
+      reference: 'AC-3',
+      statement: 'le gestionnaire retrouve un echange par expediteur',
+    })
+
+    const response = await send(`/api/stories/${storyId}/done`)
+
+    expect(response.status).toBe(409)
+    const refusal = (await response.json()) as { error: string; message: string }
+    expect(refusal.error).toBe('DoneNotEarnedError')
+    expect(refusal.message).toContain('AC-3')
+    expect(cleanUps).toEqual([])
+  })
+
+  it('refuses a story carrying no criterion at all, nothing ties it to the epic', async () => {
+    const bare = stories.writeStory({ epicId, title: 'un titre', body: BODY }).id
+    stories.writeTwin({ storyId: bare, title: 'tests', body: 'cas nominal' })
+    for (const name of ['spec_done', 'arch_done', 'tests_written', 'build_done', 'verified']) {
+      await send(`/api/stories/${bare}/checkpoints`, {
+        name,
+        evidencePath: `.claude/evidence/${name}.md`,
+      })
+    }
+    for (const lens of ['quality', 'security', 'accessibility']) {
+      const claudeSessionId = `bare-${lens}`
+      sessions.registerSession({
+        storyId: bare,
+        claudeSessionId,
+        phase: 'review',
+        agentName: 'reader',
+        claudeCodeVersion: '2.1.224',
+      })
+      checkpoints.startLens(bare, lens as 'quality', claudeSessionId)
+      sessions.closeSession(claudeSessionId, { exitCode: 0 })
+      await send(`/api/stories/${bare}/review/${lens}/pass`)
+    }
+    await send(`/api/stories/${bare}/checkpoints`, {
+      name: 'reviewed',
+      evidencePath: '.claude/evidence/reviewed.md',
+    })
+
+    const response = await send(`/api/stories/${bare}/done`)
+
+    expect(response.status).toBe(409)
+    const refusal = (await response.json()) as { message: string }
+    expect(refusal.message).toContain('aucun critere')
+  })
+
   it('refuses an agent hand, closing a story is a human decision', async () => {
     await walkToShipping()
 

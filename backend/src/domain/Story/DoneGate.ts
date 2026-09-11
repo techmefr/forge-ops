@@ -1,4 +1,6 @@
 import type { DefinitionOfDoneStep, ReviewFinding, ReviewPass } from '../Checkpoint/Checkpoint.js'
+import type { Criterion } from '../Criterion/Criterion.js'
+import { whatTheEpicDidNotGet } from '../Criterion/EpicAnswer.js'
 import { nextLensOf } from '../Checkpoint/ReviewCascade.js'
 import { STEP_BACK_TARGETS } from './StepBack.js'
 import type { StoryState } from './Story.js'
@@ -15,6 +17,8 @@ export type DoneReadiness = {
   definitionOfDone: readonly DefinitionOfDoneStep[]
   cascade: readonly ReviewPass[]
   unresolvedFindings: readonly ReviewFinding[]
+  businessIntent: string
+  criteria: readonly Criterion[]
 }
 
 export function whatIsMissingForDone(readiness: DoneReadiness): readonly string[] {
@@ -34,6 +38,12 @@ export function whatIsMissingForDone(readiness: DoneReadiness): readonly string[
   if (strong.length > 0) {
     missing.push(`constats forts non resolus : ${strong.map((finding) => finding.path).join(', ')}`)
   }
+  missing.push(
+    ...whatTheEpicDidNotGet({
+      businessIntent: readiness.businessIntent,
+      criteria: readiness.criteria,
+    }),
+  )
   return missing
 }
 

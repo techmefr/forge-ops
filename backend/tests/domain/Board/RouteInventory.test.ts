@@ -7,6 +7,7 @@ const EXPECTED_ROUTES = [
   'DELETE /api/epics/:id/claim',
   'DELETE /api/stories/:id/merge-conflict',
   'GET /api/board/columns',
+  'GET /api/board/human-gates',
   'GET /api/board/kanban',
   'GET /api/board/phases',
   'GET /api/board/self',

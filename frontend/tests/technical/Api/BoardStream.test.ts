@@ -101,6 +101,14 @@ describe('openBoardStream', () => {
     expect(seen[0]?.payload.text).toBe('je propose trois stories')
   })
 
+  it('remonte une porte humaine restee ouverte trop longtemps', () => {
+    const { source, seen } = open()
+
+    source.emit('story.gate_overdue', '{"reference":"FORGE-3","waitingHours":30}')
+
+    expect(seen[0]?.payload.reference).toBe('FORGE-3')
+  })
+
   it('n ecoute pas un evenement qui ne le concerne pas', () => {
     const { source, seen } = open()
 

@@ -35,6 +35,7 @@ const WATCHED_EVENTS = [
   'worktree.opened',
   'worktree.closed',
   'story.merged',
+  'story.gate_overdue',
   'review.cascade',
   'pilot.started',
   'pilot.advanced',
