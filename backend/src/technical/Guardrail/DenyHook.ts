@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { decideOnHookPayload } from './DenyDecision.js'
+import { decideOnToolCall } from './PhaseDecision.js'
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url))
 const DENY_PATH = process.env.FORGE_DENY_PATH ?? join(MODULE_DIR, '..', '..', '..', '.claude-deny.json')
@@ -16,7 +16,10 @@ function readStdin(): Promise<string> {
   })
 }
 
-const decision = decideOnHookPayload(await readStdin(), DENY_PATH)
+const decision = decideOnToolCall(await readStdin(), {
+  denyPath: DENY_PATH,
+  phase: process.env.FORGE_PHASE ?? null,
+})
 
 if (!decision.allowed) {
   console.error(decision.reason)
