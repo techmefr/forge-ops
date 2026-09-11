@@ -24,15 +24,15 @@ export const SCREENS: readonly Screen[] = [
     path: '/atelier',
     label: 'Atelier',
     tiny: 'atl',
-    sub: 'Partir d une epique du directeur, decouper la story et sa jumelle de test',
+    sub: 'Partir d une épique du directeur, découper la story et sa jumelle de test',
   },
   {
     key: 'backlog',
     digit: '2',
     path: '/reserve',
-    label: 'Reserve',
+    label: 'Réserve',
     tiny: 'rsv',
-    sub: 'Les pieces pretes : grouper les stories de la prochaine fournee',
+    sub: 'Les pièces prêtes : grouper les stories de la prochaine fournée',
   },
   {
     key: 'kanban',
@@ -48,7 +48,7 @@ export const SCREENS: readonly Screen[] = [
     path: '/project',
     label: 'Projet',
     tiny: 'prj',
-    sub: 'Naviguer dans les fichiers, savoir a quoi ils servent et qui les edite',
+    sub: 'Naviguer dans les fichiers, savoir à quoi ils servent et qui les édite',
   },
   {
     key: 'view',
@@ -62,9 +62,9 @@ export const SCREENS: readonly Screen[] = [
     key: 'deployment',
     digit: '6',
     path: '/deployment',
-    label: 'Deploiement',
+    label: 'Déploiement',
     tiny: 'dep',
-    sub: 'Ou en est la livraison, branches, conflits et etapes de CI/CD',
+    sub: 'Où en est la livraison, branches, conflits et étapes de CI/CD',
   },
   {
     key: 'resources',
@@ -80,7 +80,7 @@ export const SCREENS: readonly Screen[] = [
     path: '/statistics',
     label: 'Statistiques',
     tiny: 'sta',
-    sub: 'Ce que donne le travail lance, session par session',
+    sub: 'Ce que donne le travail lancé, session par session',
   },
 ]
 

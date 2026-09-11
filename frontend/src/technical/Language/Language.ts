@@ -5,7 +5,7 @@ export const LANGUAGES = ['fr', 'en'] as const
 export type Language = (typeof LANGUAGES)[number]
 
 export const LANGUAGE_LABELS: Readonly<Record<Language, string>> = {
-  fr: 'Francais',
+  fr: 'Français',
   en: 'English',
 }
 
@@ -81,13 +81,13 @@ export type ShellKey = (typeof SHELL_KEYS)[number]
 
 const SHELL_TEXT: Readonly<Record<Language, Readonly<Record<ShellKey, string>>>> = {
   fr: {
-    pipeline: 'Etapes du pipeline',
+    pipeline: 'Étapes du pipeline',
     orchestration: 'Orchestration d agents',
     incidents: 'Signalements',
-    settings: 'Reglages',
-    settingsSub: 'Le compte, l apparence, la langue et le plafond de cout',
-    incidentsSub: 'Ce qui remonte du dehors, a trancher un par un',
-    access: 'Acces',
+    settings: 'Réglages',
+    settingsSub: 'Le compte, l apparence, la langue et le plafond de coût',
+    incidentsSub: 'Ce qui remonte du dehors, à trancher un par un',
+    access: 'Accès',
     accessSub: 'Ouvrir une session sur le board',
     agents: 'Agents actifs',
     noSession: 'Aucune session en cours',
