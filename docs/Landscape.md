@@ -1,173 +1,173 @@
-# Listing du paysage — fonctionnalités, pas code
+# Landscape survey — features, not code
 
-Relevé du 2026-09-09. Six passes de lecture parallèles sur les catégories de [awesome-agent-orchestrators](https://github.com/andyrewlee/awesome-agent-orchestrators), plus les concurrents directs hors liste. Environ 120 projets lus par leur README, page produit et fichier `LICENSE` — jamais par leur code. La catégorie « Personal Assistants » est écartée : elle ne touche aucune des neuf étapes.
+Survey of 2026-09-09. Six parallel reading passes over the categories of [awesome-agent-orchestrators](https://github.com/andyrewlee/awesome-agent-orchestrators), plus the direct competitors outside that list. Around 120 projects read through their README, product page and `LICENSE` file — never through their code. The "Personal Assistants" category is set aside: it touches none of the nine steps.
 
-Les neuf étapes servent de grille : **1** écriture story + jumelle · **2** backlog et envoi groupé · **3** plan d'architecture validé par un humain · **4** kanban avec dépendances bloquantes · **5** vue fichiers par zones et collisions · **6** test navigateur piloté + review en cascade · **7** branche par story, file de merge, feature flags · **8** ressources et coût · **9** statistiques de sessions.
+The nine steps serve as the grid: **1** story writing + twin · **2** backlog and batch dispatch · **3** architecture plan validated by a human · **4** kanban with blocking dependencies · **5** file view by zones and collisions · **6** driven browser test + cascading review · **7** one branch per story, merge queue, feature flags · **8** resources and cost · **9** session statistics.
 
 ---
 
-## 1. Licences — à trancher avant toute dépendance
+## 1. Licenses — to settle before any dependency
 
-Un tiers du paysage porte une licence qui interdit le produit concurrent. Ces projets restent lisibles pour leurs idées ; leur **code** est hors de portée si starfleet est vendu un jour.
+A third of the landscape carries a license that forbids the competing product. These projects remain readable for their ideas; their **code** is out of reach if forge-ops is ever sold.
 
-| Projet | Licence | Effet |
+| Project | License | Effect |
 |---|---|---|
-| `amux` | MIT + **Commons Clause** | revente commerciale interdite |
-| `AgentsMesh` | **BSL-1.1** → GPL-2.0+ le 2030-02-28 | usage commercial en prod payant avant cette date |
-| `loki-mode` | **BSL-1.1** → Apache-2.0 le 2030-03-19 | idem |
-| `Ivy-Tendril`, `collaborator`, `supacode` | **FSL-1.1-ALv2** | usage concurrent interdit 2 ans |
-| `GraphCode` | **FSL-1.1-MIT** | idem |
-| `agent-kanban`, `NXTG-Forge Orchestrator` | **FSL-1.1** | idem |
-| `superset` | **Elastic License 2.0** | service hébergé interdit |
-| `multica` | **licence maison** (Apache + clauses) | toute instance exposée à des tiers interdite, même gratuite |
-| `Claude Command Center` | **propriétaire** depuis le 2026-07-28 | MIT seulement avant cette date |
-| `Better Agent` | source-available non commercial | autorisation écrite requise |
-| `constellagent`, `orc`, `handoff` | **aucun fichier LICENSE** | tous droits réservés par défaut |
+| `amux` | MIT + **Commons Clause** | commercial resale forbidden |
+| `AgentsMesh` | **BSL-1.1** → GPL-2.0+ on 2030-02-28 | paid commercial production use before that date |
+| `loki-mode` | **BSL-1.1** → Apache-2.0 on 2030-03-19 | same |
+| `Ivy-Tendril`, `collaborator`, `supacode` | **FSL-1.1-ALv2** | competing use forbidden for 2 years |
+| `GraphCode` | **FSL-1.1-MIT** | same |
+| `agent-kanban`, `NXTG-Forge Orchestrator` | **FSL-1.1** | same |
+| `superset` | **Elastic License 2.0** | hosted service forbidden |
+| `multica` | **in-house license** (Apache + clauses) | any instance exposed to third parties forbidden, even free of charge |
+| `Claude Command Center` | **proprietary** since 2026-07-28 | MIT only before that date |
+| `Better Agent` | source-available non-commercial | written authorization required |
+| `constellagent`, `orc`, `handoff` | **no LICENSE file** | all rights reserved by default |
 
-Copyleft fort, à surveiller sans être bloquant tant qu'on n'emprunte pas de code : `claude-squad`, `openkanban`, `Ouijit`, `Proliferate`, `kandev`, `coder/mux`, `Fletch`, `Alethe`, `Aperant`, `Agent Teams`, `claude_codex_bridge`, `tlbx` (AGPL-3.0) ; `cmux`, `aizen`, `Garcon` (GPL-3.0, `cmux` propose explicitement des termes commerciaux séparés) ; `egoist/waku` (GPL-3.0).
+Strong copyleft, to watch without being blocking as long as we borrow no code: `claude-squad`, `openkanban`, `Ouijit`, `Proliferate`, `kandev`, `coder/mux`, `Fletch`, `Alethe`, `Aperant`, `Agent Teams`, `claude_codex_bridge`, `tlbx` (AGPL-3.0); `cmux`, `aizen`, `Garcon` (GPL-3.0, `cmux` explicitly offers separate commercial terms); `egoist/waku` (GPL-3.0).
 
-Sans risque et directement montables : `Concord MCP`, `guild`, `foremerge`, `Open Multi-Agent`, `aGiTrack`, `Archon`, `Crewplane`, `gastown`, `hcom`, `ORCH`, `paperclip`, `no_human`, `NEEDLE`, `sortie`, `symphony`, `Fusion`, `Vibe Kanban`, `claude-code-kanban`, `kanban-code`.
-
----
-
-## 2. Ce que personne ne couvre
-
-Sur ~120 projets lus, **aucun** ne fait :
-
-- **Étape 1** — une story écrite avec sa **jumelle de test** en même temps. Le plus proche est `LoopTroop` (un conseil de LLM interviewe l'humain pour lever les ambiguïtés puis génère un PRD et des unités atomiques) et `Ivy-Tendril` (annotations inline sur un brouillon de plan qui mettent à jour les objectifs de l'agent). Personne ne jumelle fonctionnel et test.
-- **Étape 5, la vue** — partout l'isolation par worktree *tient lieu* de vue fichiers. Aucun projet n'affiche une architecture émergente par zones nommées avec résumé.
-- **Étape 6, la cascade nommée** — personne ne fait qualité → sécurité → **accessibilité**. L'accessibilité n'apparaît nulle part comme lentille de review.
-- **Étape 7, les feature flags** — aucun projet ne gère un rollout progressif. Ni file de merge chez presque tous.
-- **La DoD prouvée par fichier** — des gates de vérification existent partout, des `evidence_path` obligatoires nulle part.
-
-C'est le périmètre à construire, et il est plus étroit et plus net qu'avant ce relevé.
+Risk-free and directly mountable: `Concord MCP`, `guild`, `foremerge`, `Open Multi-Agent`, `aGiTrack`, `Archon`, `Crewplane`, `gastown`, `hcom`, `ORCH`, `paperclip`, `no_human`, `NEEDLE`, `sortie`, `symphony`, `Fusion`, `Vibe Kanban`, `claude-code-kanban`, `kanban-code`.
 
 ---
 
-## 3. Ce que le paysage fait mieux que nous
+## 2. What nobody covers
 
-### Étape 5 — collisions : cinq mécanismes, du plus faible au plus fort
+Across the ~120 projects read, **none** does:
 
-1. `hcom` (MIT) — **notifie** quand deux agents éditent le même fichier dans une fenêtre de 30 secondes. C'est notre niveau actuel : constat après coup.
-2. `ORCH` (MIT) — **détection de chevauchement de scope avant** la collision de fichiers. Préventif.
-3. `Concord MCP` (MIT) — **baux de réservation** avec détection de chevauchement au moment du `start_work`, journal d'ownership append-only, et bundles de preuves de review.
-4. `foremerge` (Apache-2.0) — réservation **sémantique** : la cible n'est pas un chemin mais un `KIND:KEY=OPERATION` sur 12 genres (`symbol`, `api`, `schema`, `config`, `infra`, `test`, `migration`, `env`, `file`, `component`, `contract`, `domain`). Conflits détectés de façon déterministe avec sévérité, jamais par jugement de modèle.
-5. `NXTG-Forge Orchestrator` (FSL, bloqué) — **verrous exclusifs** de fichier entre Claude Code, Codex et Gemini CLI sur un même repo, testés contre 378 scénarios de concurrence.
-6. `Zaivern Code` (Apache-2.0) — **ownership de plages de lignes** appliqué à l'écriture, plus fin que le verrou de fichier.
+- **Step 1** — a story written together with its **test twin** at the same time. The closest are `LoopTroop` (a council of LLMs interviews the human to lift ambiguities, then generates a PRD and atomic units) and `Ivy-Tendril` (inline annotations on a draft plan that update the agent's goals). Nobody twins functional and test.
+- **Step 5, the view** — everywhere, worktree isolation *stands in for* a file view. No project displays an emergent architecture by named zones with a summary.
+- **Step 6, the named cascade** — nobody does quality → security → **accessibility**. Accessibility appears nowhere as a review lens.
+- **Step 7, feature flags** — no project handles a progressive rollout. Nor a merge queue, in almost all of them.
+- **The DoD proven per file** — verification gates exist everywhere, mandatory `evidence_path` nowhere.
 
-**Verdict.** Notre `scope_reservation` par préfixe et symboles se situe au niveau 2-3. `foremerge` est un cran au-dessus et se monte **sous** le board sans lui prendre la source de vérité : son store est un SQLite dans le `git-common-dir`, ses 18 opérations sont exposées en MCP stdio, et l'acceptation d'un changeset crée une ref git sans jamais merger. À laisser sans connecteur cloud.
-
-### Étape 8 — coût et ressources : déjà résolu, plusieurs fois
-
-- Claude Code émet **nativement** coût, jetons et appels d'outils par session en OpenTelemetry.
-- `repomon` (Apache-2.0) — calcule le coût **directement depuis les transcripts locaux**, sans API de facturation. Ledger par modèle et par repo.
-- `aGiTrack` (Apache-2.0) — inscrit prompt, modèle et coût-jetons **dans le message de commit**. Traçabilité sans base à part.
-- `agent-deck` (MIT) — dashboard coût/jetons sur 15+ modèles avec **budgets** et export.
-- `paperclip` (MIT) — **budget dur par agent qui coupe** au dépassement. Pas un affichage : une limite qui agit.
-- `fractal` (Apache-2.0) — plafonds de coût USD à trois granularités (run / itération / étape) avec réserve de 10 %.
-- `Agent Teams` (AGPL) — CPU/RAM **en plus** des jetons, par agent.
-
-**Verdict.** Rien à collecter. On consomme, et on ajoute une seule chose que personne n'a chez nous : un plafond qui coupe.
-
-### Étape 7 — file de merge
-
-- `gastown` (MIT) — file façon **Bors avec bisection** pour isoler la MR fautive dans un lot. Le seul exemple sérieux du paysage.
-- `dmux` (MIT) — **hooks de cycle de vie** création / pré-merge / post-merge, le point d'extension propre pour brancher une file et des flags.
-- `Fusion` (MIT) — merge et actions destructives **toujours** soumis à confirmation humaine, y compris en mode autonome. Plancher non négociable.
-- `symphony` (Apache-2.0, OpenAI) — **« proof of work »** : un paquet unique agrégeant statut CI, retours de review et analyses, présenté à l'humain avant merge.
-
-**Verdict.** GitHub merge queue en natif, hooks pré/post-merge pour le reste, et la « proof of work » de symphony est exactement la forme que doit prendre notre écran de DoD avant `/SHIP`.
-
-### Étape 6 — review
-
-- `loki-mode` (BSL, bloqué) — **8 portes de qualité**, review à l'aveugle par 3 relecteurs indépendants avec sévérité bloquante, un « devil's advocate » anti-complaisance, détection de mocks factices, et des **« Evidence Receipts » qui séparent le fait déterministe du jugement IA**.
-- `no_human` (MIT) — **tamper guard** : compte mécaniquement les tests supprimés, les skips ajoutés et les assertions tautologiques avant la porte de review. Et exige que les tests-preuve **échouent sur la base** et passent sur le nouvel arbre.
-- `agent-kanban` (FSL, bloqué) — interdiction structurelle : **l'assigné ne peut pas approuver sa propre soumission**.
-- `kodo` (MIT) — architecte et testeur doivent tous deux approuver, réassignation en boucle sinon.
-- `ralphex` (MIT) — cascade en deux passes, 5 agents parallèles par axe (qualité, implémentation, tests, simplification, doc).
-- `toryo` (MIT) — **quality ratcheting** : seuls les résultats notés ≥ 6,0 sont commités, le reste est annulé.
-- `Claudexor` (MIT) — Best-of-N avec relecteurs indépendants, un seul patch gagnant appliqué.
-- `cmux` (GPL) — **pane navigateur scriptable** (DOM, formulaires, éval JS) : le plus proche de notre test navigateur piloté.
-- `agent-orchestrator` (Apache-2.0) — navigateur piloté par agent avec **profil isolé par worker**.
-- `CompanyHelm` (MIT) — **vidéo de démo auto-générée attachée à la PR**.
-
-**Verdict.** Trois choses à prendre : le tamper guard de `no_human` (mécanique, pas de jugement), la séparation fait/jugement de `loki-mode` dans le rapport à l'humain, et la règle « l'assigné n'approuve pas son travail ».
-
-### Étape 4 — dépendances
-
-- `guild` (Apache-2.0) — **déblocage en cascade** des tâches dépendantes dès qu'un bloqueur passe à `done`. Aussi chez `ClawTeam` (MIT).
-- `agent-kanban` (FSL) — dépendances avec **rejet des cycles**.
-- `bernstein` (Apache-2.0) — conditions de dépendance **déclaratives** (`condition: status == 'done'`).
-- `ai-maestro` (MIT) — kanban avec suivi de dépendances explicite.
-- `Fusion` (MIT) — kanban **plus graphe** de dépendances, worktree `fusion/{task-id}`.
-- `Contrabass` (Apache-2.0) — gating `BlockedBy` et classification de progression en 5 étapes (Exploration → Editing → Testing → Reviewing → Wrapping) **dérivée de la vélocité des diffs**.
-
-**Verdict.** Nous refusons `startBuilding` sur dépendance non résolue. Il manque le rejet des cycles et le déblocage en cascade — deux ajouts courts.
-
-### Étapes 2 et 9 — intake et traçabilité
-
-- `Claude Command Center` (propriétaire) — **files durables** vidées en parallèle par des workers, avec persistance des apprentissages.
-- `NEEDLE` (MIT) — file SQLite avec **réclamation atomique**, et une machine à états où **chaque** code de sortie (succès, timeout, crash) a un handler explicite.
-- `codecast` (MIT) — **`cast blame`** : remonter d'une ligne de code à la session et à l'agent qui l'a écrite.
-- `Open Multi-Agent` (MIT) — **Run Viewer offline** rejouant timeline, dépendances, jetons et appels d'outils sans backend.
-- `scion` (Apache-2.0, Google Cloud) — **télémétrie OTEL normalisée** entre harnais différents.
-- `MartinLoop` (Apache-2.0) — **reçus d'exécution signés** localement et classification des échecs en 13 classes canoniques.
-- `ralph-claude-code` (MIT) — **scoring de complétude** d'un ticket importé : sous 60/100, un plan est généré avant de lancer quoi que ce soit.
-
-**Verdict.** `cast blame` est déjà chez nous sous une autre forme (`file_touch` → story). Le scoring de complétude est un filtre d'intake qu'on n'a pas, et la classification exhaustive des codes de sortie de `NEEDLE` est le bon modèle pour notre détection de boucle.
-
-### Garde-fous anti-boucle
-
-Peu de projets en ont de sérieux. Les meilleurs : `ralph-claude-code` (coupe après 3 boucles sans progrès ou 5 avec la même erreur, détection de stagnation par déclin du volume de sortie > 70 %), `Dex` (4 itérations sans changement du nombre de tâches restantes), `ralphex` (`--review-patience`), `Contrabass` (`stall_timeout_ms` + backoff plafonné), `Orkas` (4 garde-fous combinés : tours, outils, boucle, inactivité), `Loop Engineering` (**dégradation automatique de confiance** quand l'état persistant a plus de 30 jours), `background-agents` (auto-pause après 3 échecs).
+That is the perimeter to build, and it is narrower and sharper than it was before this survey.
 
 ---
 
-## 4. Concurrents directs
+## 3. What the landscape does better than us
 
-| Projet | Licence | État | Ce qu'il a que nous n'avons pas |
+### Step 5 — collisions: five mechanisms, from weakest to strongest
+
+1. `hcom` (MIT) — **notifies** when two agents edit the same file within a 30-second window. That is our current level: an after-the-fact observation.
+2. `ORCH` (MIT) — **scope overlap detection before** the file collision. Preventive.
+3. `Concord MCP` (MIT) — **reservation leases** with overlap detection at `start_work` time, an append-only ownership log, and review evidence bundles.
+4. `foremerge` (Apache-2.0) — **semantic** reservation: the target is not a path but a `KIND:KEY=OPERATION` over 12 kinds (`symbol`, `api`, `schema`, `config`, `infra`, `test`, `migration`, `env`, `file`, `component`, `contract`, `domain`). Conflicts detected deterministically with severity, never by model judgment.
+5. `NXTG-Forge Orchestrator` (FSL, blocked) — **exclusive file locks** between Claude Code, Codex and Gemini CLI on the same repo, tested against 378 concurrency scenarios.
+6. `Zaivern Code` (Apache-2.0) — **line-range ownership** enforced at write time, finer than the file lock.
+
+**Verdict.** Our `scope_reservation` by prefix and symbols sits at level 2-3. `foremerge` is one notch above and mounts **under** the board without taking the source of truth from it: its store is a SQLite in the `git-common-dir`, its 18 operations are exposed over MCP stdio, and accepting a changeset creates a git ref without ever merging. To be left without a cloud connector.
+
+### Step 8 — cost and resources: already solved, several times over
+
+- Claude Code emits cost, tokens and tool calls per session **natively** in OpenTelemetry.
+- `repomon` (Apache-2.0) — computes cost **directly from the local transcripts**, with no billing API. Ledger per model and per repo.
+- `aGiTrack` (Apache-2.0) — writes prompt, model and token-cost **into the commit message**. Traceability with no separate database.
+- `agent-deck` (MIT) — cost/token dashboard over 15+ models with **budgets** and export.
+- `paperclip` (MIT) — **a hard per-agent budget that cuts off** when exceeded. Not a display: a limit that acts.
+- `fractal` (Apache-2.0) — USD cost ceilings at three granularities (run / iteration / step) with a 10% reserve.
+- `Agent Teams` (AGPL) — CPU/RAM **on top of** tokens, per agent.
+
+**Verdict.** Nothing to collect. We consume, and we add the single thing nobody has at our place: a ceiling that cuts off.
+
+### Step 7 — merge queue
+
+- `gastown` (MIT) — a **Bors-style queue with bisection** to isolate the faulty MR in a batch. The only serious example in the landscape.
+- `dmux` (MIT) — **lifecycle hooks** create / pre-merge / post-merge, the clean extension point for wiring in a queue and flags.
+- `Fusion` (MIT) — merge and destructive actions **always** subject to human confirmation, including in autonomous mode. A non-negotiable floor.
+- `symphony` (Apache-2.0, OpenAI) — **"proof of work"**: a single bundle aggregating CI status, review feedback and analyses, presented to the human before merge.
+
+**Verdict.** GitHub merge queue natively, pre/post-merge hooks for the rest, and symphony's "proof of work" is exactly the form our DoD screen before `/SHIP` should take.
+
+### Step 6 — review
+
+- `loki-mode` (BSL, blocked) — **8 quality gates**, blind review by 3 independent reviewers with blocking severity, a "devil's advocate" against complacency, fake-mock detection, and **"Evidence Receipts" that separate the deterministic fact from the AI judgment**.
+- `no_human` (MIT) — **tamper guard**: mechanically counts deleted tests, added skips and tautological assertions before the review gate. And requires that the evidence tests **fail on the base** and pass on the new tree.
+- `agent-kanban` (FSL, blocked) — a structural prohibition: **the assignee cannot approve their own submission**.
+- `kodo` (MIT) — architect and tester must both approve, reassignment in a loop otherwise.
+- `ralphex` (MIT) — a two-pass cascade, 5 parallel agents per axis (quality, implementation, tests, simplification, doc).
+- `toryo` (MIT) — **quality ratcheting**: only results scored ≥ 6.0 are committed, the rest is rolled back.
+- `Claudexor` (MIT) — Best-of-N with independent reviewers, a single winning patch applied.
+- `cmux` (GPL) — a **scriptable browser pane** (DOM, forms, JS eval): the closest to our driven browser test.
+- `agent-orchestrator` (Apache-2.0) — agent-driven browser with an **isolated profile per worker**.
+- `CompanyHelm` (MIT) — **auto-generated demo video attached to the PR**.
+
+**Verdict.** Three things to take: the tamper guard of `no_human` (mechanical, no judgment), the fact/judgment separation of `loki-mode` in the report to the human, and the rule "the assignee does not approve their own work".
+
+### Step 4 — dependencies
+
+- `guild` (Apache-2.0) — **cascading unblocking** of dependent tasks as soon as a blocker moves to `done`. Also in `ClawTeam` (MIT).
+- `agent-kanban` (FSL) — dependencies with **cycle rejection**.
+- `bernstein` (Apache-2.0) — **declarative** dependency conditions (`condition: status == 'done'`).
+- `ai-maestro` (MIT) — kanban with explicit dependency tracking.
+- `Fusion` (MIT) — kanban **plus a graph** of dependencies, `fusion/{task-id}` worktree.
+- `Contrabass` (Apache-2.0) — `BlockedBy` gating and progress classification in 5 steps (Exploration → Editing → Testing → Reviewing → Wrapping) **derived from diff velocity**.
+
+**Verdict.** We refuse `startBuilding` on an unresolved dependency. Missing are cycle rejection and cascading unblocking — two short additions.
+
+### Steps 2 and 9 — intake and traceability
+
+- `Claude Command Center` (proprietary) — **durable queues** drained in parallel by workers, with persistence of learnings.
+- `NEEDLE` (MIT) — a SQLite queue with **atomic claiming**, and a state machine where **every** exit code (success, timeout, crash) has an explicit handler.
+- `codecast` (MIT) — **`cast blame`**: trace back from a line of code to the session and the agent that wrote it.
+- `Open Multi-Agent` (MIT) — an **offline Run Viewer** replaying timeline, dependencies, tokens and tool calls with no backend.
+- `scion` (Apache-2.0, Google Cloud) — **normalized OTEL telemetry** across different harnesses.
+- `MartinLoop` (Apache-2.0) — **locally signed execution receipts** and failure classification into 13 canonical classes.
+- `ralph-claude-code` (MIT) — **completeness scoring** of an imported ticket: below 60/100, a plan is generated before launching anything.
+
+**Verdict.** `cast blame` is already at our place in another form (`file_touch` → story). Completeness scoring is an intake filter we do not have, and `NEEDLE`'s exhaustive exit-code classification is the right model for our loop detection.
+
+### Anti-loop guardrails
+
+Few projects have serious ones. The best: `ralph-claude-code` (cuts off after 3 loops without progress or 5 with the same error, stagnation detection through a > 70% decline in output volume), `Dex` (4 iterations with no change in the number of remaining tasks), `ralphex` (`--review-patience`), `Contrabass` (`stall_timeout_ms` + capped backoff), `Orkas` (4 combined guardrails: turns, tools, loop, inactivity), `Loop Engineering` (**automatic confidence degradation** when the persistent state is more than 30 days old), `background-agents` (auto-pause after 3 failures).
+
+---
+
+## 4. Direct competitors
+
+| Project | License | State | What it has that we do not |
 |---|---|---|---|
-| [Vibe Kanban](https://github.com/BloopAI/vibe-kanban) | Apache-2.0 | **quasi gelé** — société fermée ~10 avril 2026, dernier push 2026-04-24 malgré la reprise communautaire annoncée | interface de test avec navigateur intégré et émulation d'appareil branchée sur le workspace de l'agent |
-| [claude-code-kanban](https://github.com/NikiforovAll/claude-code-kanban) | MIT | actif | **fenêtre de contexte, jetons et coût affichés sur la carte kanban** |
-| [kanban-code](https://github.com/langwatch/kanban-code) | Apache-2.0 | actif | fork/checkpoint de session, recherche BM25 dans l'historique |
-| [openkanban](https://github.com/TechDufus/openkanban) | AGPL-3.0 | actif, jeune | kanban rendu dans le terminal |
-| [Ouijit](https://github.com/ouijit/ouijit) | AGPL-3.0 | actif | **« Lenses »** : regrouper les changements par instruction nommée plutôt que par fichier |
-| [Fusion](https://github.com/Runfusion/Fusion) | MIT | actif, hebdomadaire | **niveau d'oversight réglable** off / observe / steer / autonomous, avec plancher non négociable sur merge |
-| [Aperant](https://github.com/AndyMik90/Aperant) | AGPL-3.0 | actif | prévention automatique de conflit entre 12 agents parallèles |
-| [Fletch](https://github.com/fwdai/fletch) | AGPL-3.0 | bêta | **workflow déterministe plan→build→review→test avec conditions de complétion vérifiables** |
-| [Paseo](https://paseo.sh/) | Apache-2.0 | actif, jeune, un mainteneur | **clients mobile iOS/Android à parité et relais chiffré bout-en-bout**, plus 30 agents autres que Claude Code |
-| [T3 Code](https://t3.codes/) | MIT | actif, 21k+ étoiles, T3 Tools | **changement de modèle en cours de thread** et **flux PR complet** : création en un bouton avec titre et description générés, revue du diff inline avant push, PR draft / stacked / amended |
+| [Vibe Kanban](https://github.com/BloopAI/vibe-kanban) | Apache-2.0 | **near-frozen** — company shut down ~April 10, 2026, last push 2026-04-24 despite the announced community takeover | test interface with an embedded browser and device emulation wired into the agent's workspace |
+| [claude-code-kanban](https://github.com/NikiforovAll/claude-code-kanban) | MIT | active | **context window, tokens and cost shown on the kanban card** |
+| [kanban-code](https://github.com/langwatch/kanban-code) | Apache-2.0 | active | session fork/checkpoint, BM25 search through history |
+| [openkanban](https://github.com/TechDufus/openkanban) | AGPL-3.0 | active, young | kanban rendered in the terminal |
+| [Ouijit](https://github.com/ouijit/ouijit) | AGPL-3.0 | active | **"Lenses"**: grouping changes by named instruction rather than by file |
+| [Fusion](https://github.com/Runfusion/Fusion) | MIT | active, weekly | **adjustable oversight level** off / observe / steer / autonomous, with a non-negotiable floor on merge |
+| [Aperant](https://github.com/AndyMik90/Aperant) | AGPL-3.0 | active | automatic conflict prevention between 12 parallel agents |
+| [Fletch](https://github.com/fwdai/fletch) | AGPL-3.0 | beta | **deterministic plan→build→review→test workflow with verifiable completion conditions** |
+| [Paseo](https://paseo.sh/) | Apache-2.0 | active, young, one maintainer | **iOS/Android mobile clients at parity and an end-to-end encrypted relay**, plus 30 agents other than Claude Code |
+| [T3 Code](https://t3.codes/) | MIT | active, 21k+ stars, T3 Tools | **model switching mid-thread** and a **complete PR flow**: one-button creation with generated title and description, inline diff review before push, draft / stacked / amended PR |
 
-Le plus gros concurrent en notoriété est à l'arrêt. Les deux plus actifs conceptuellement proches, `claude-code-kanban` et `kanban-code`, sont permissifs et ne couvrent ni la story jumelle, ni la DoD prouvée, ni les dépendances.
+The biggest competitor by name recognition has stopped. The two most active conceptually close ones, `claude-code-kanban` and `kanban-code`, are permissive and cover neither the twin story, nor the proven DoD, nor dependencies.
 
-**Paseo n'est pas un concurrent, c'est une couche basse.** Il fait tourner des sessions d'agents et des worktrees, il n'a aucune représentation du travail : pas de story, pas de jumelle de test, pas de definition of done, pas de zones, pas de cascade de review. Le recouvrement se limite à ce qu'on avait déjà décidé de ne pas réécrire. Deux idées à reprendre plus tard, pas maintenant : les clients mobiles à parité, et le relais chiffré bout-en-bout qui donnerait l'accès distant sans casser le bind loopback.
+**Paseo is not a competitor, it is a lower layer.** It runs agent sessions and worktrees, it has no representation of the work: no story, no test twin, no definition of done, no zones, no review cascade. The overlap is limited to what we had already decided not to rewrite. Two ideas to take up later, not now: mobile clients at parity, and the end-to-end encrypted relay that would give remote access without breaking the loopback bind.
 
-**T3 Code est le seul du paysage qui empiète sur du travail déjà fait.** Comme Paseo il tient la couche basse — sessions, worktrees, mobile — mais il porte en plus le flux PR, donc l'étape 7. Sa notoriété et sa licence MIT en font le candidat le plus crédible pour reprendre un jour cette couche : on peut le forker sans contrainte, ce que les concurrents AGPL du tableau interdisent. Deux réserves : ses *stacked PRs* vont contre la règle « une story, une MR, jamais empilée », et il ne couvre toujours ni la story jumelle, ni la definition of done prouvée, ni les zones, ni la cascade qualité → sécurité → accessibilité. Pas maintenant, pour la même raison que Paseo : on ne règle pas les mêmes choses.
+**T3 Code is the only one in the landscape that encroaches on work already done.** Like Paseo it holds the lower layer — sessions, worktrees, mobile — but it also carries the PR flow, hence step 7. Its name recognition and its MIT license make it the most credible candidate to take over that layer one day: it can be forked without constraint, which the AGPL competitors in the table forbid. Two reservations: its *stacked PRs* go against the rule "one story, one MR, never stacked", and it still covers neither the twin story, nor the proven definition of done, nor the zones, nor the quality → security → accessibility cascade. Not now, for the same reason as Paseo: we are not solving the same things.
 
-**Collision de nom** : `jedarden/forge` s'appelle littéralement « FORGE: Federated Orchestration & Resource Generation Engine », et `nxtg-ai/forge-orchestrator` porte « Forge » aussi. Le nom n'est pas libre.
+**Name collision**: `jedarden/forge` is literally called "FORGE: Federated Orchestration & Resource Generation Engine", and `nxtg-ai/forge-orchestrator` carries "Forge" as well. The name is not free.
 
 ---
 
-## 5. Ce qu'on monte, ce qu'on arrête, ce qu'on ajoute
+## 5. What we mount, what we stop, what we add
 
-**Monter sous le board, sans lui céder la source de vérité :**
+**To mount under the board, without ceding it the source of truth:**
 
-- `foremerge` (Apache-2.0) — moteur de collision sémantique pour l'étape 5. Store SQLite local, 18 opérations MCP, connecteur cloud à laisser désactivé.
-- OpenTelemetry de Claude Code — étapes 8 et 9. Rien à collecter.
-- GitHub merge queue + hooks pré/post-merge façon `dmux` — étape 7.
-- Playwright MCP et le Browser pane — le pilotage navigateur de l'étape 6.
-- OpenFeature + Unleash ou Flagsmith — les feature flags. Le board ne garde que le pourcentage.
+- `foremerge` (Apache-2.0) — semantic collision engine for step 5. Local SQLite store, 18 MCP operations, cloud connector to be left disabled.
+- Claude Code's OpenTelemetry — steps 8 and 9. Nothing to collect.
+- GitHub merge queue + pre/post-merge hooks in the manner of `dmux` — step 7.
+- Playwright MCP and the Browser pane — the browser driving of step 6.
+- OpenFeature + Unleash or Flagsmith — the feature flags. The board keeps only the percentage.
 
-**Pièges à ne pas monter :** `Agentlas OS`, `omnigent`, `openfang`, `NemoClaw` sont des méta-harnais qui veulent posséder toute la boucle — les monter sous le board inverserait le rapport de force. `Concord MCP` a une télémétrie **opt-out**, pas opt-in : à désactiver explicitement si on l'embarque.
+**Traps not to mount:** `Agentlas OS`, `omnigent`, `openfang`, `NemoClaw` are meta-harnesses that want to own the whole loop — mounting them under the board would invert the balance of power. `Concord MCP` has **opt-out** telemetry, not opt-in: to be disabled explicitly if we embed it.
 
-**Ajouts courts, tirés du relevé :**
+**Short additions, drawn from the survey:**
 
-1. Rejet des cycles de dépendance + déblocage en cascade (`guild`, `agent-kanban`).
-2. Tamper guard avant la porte de review : tests supprimés, skips ajoutés, assertions tautologiques (`no_human`).
-3. L'assigné n'approuve pas son propre travail (`agent-kanban`).
-4. Plafond de coût qui coupe, pas qui affiche (`paperclip`, `fractal`).
-5. Classification exhaustive des codes de sortie de session (`NEEDLE`).
-6. Scoring de complétude d'une story avant lancement (`ralph-claude-code`).
-7. Séparation fait déterministe / jugement IA dans le rapport à l'humain (`loki-mode`).
-8. Jetons et coût affichés sur la carte kanban (`claude-code-kanban`).
+1. Dependency cycle rejection + cascading unblocking (`guild`, `agent-kanban`).
+2. Tamper guard before the review gate: deleted tests, added skips, tautological assertions (`no_human`).
+3. The assignee does not approve their own work (`agent-kanban`).
+4. A cost ceiling that cuts off, not one that displays (`paperclip`, `fractal`).
+5. Exhaustive classification of session exit codes (`NEEDLE`).
+6. Completeness scoring of a story before launch (`ralph-claude-code`).
+7. Separation of deterministic fact from AI judgment in the report to the human (`loki-mode`).
+8. Tokens and cost shown on the kanban card (`claude-code-kanban`).
 
-**Ce qui reste à nous, confirmé par ~120 lectures :** la story et sa jumelle écrites ensemble, la definition of done prouvée par fichier, le kanban qui connaît ses dépendances, la vue fichiers par zones, et l'accessibilité comme lentille de review de plein droit.
+**What remains ours, confirmed by ~120 readings:** the story and its twin written together, the definition of done proven per file, the kanban that knows its dependencies, the file view by zones, and accessibility as a review lens in its own right.
