@@ -153,15 +153,83 @@ describe('startBoardServer', () => {
     expect(response.status).toBe(401)
   })
 
-  it('serves the board page and hands it the token it will need', async () => {
+  it('serves the board page to anyone but hands an anonymous caller no token', async () => {
     const booted = await boot()
     board = booted.board
 
     const response = await fetch(`http://127.0.0.1:${board.port}/`)
 
     expect(response.status).toBe(200)
-    expect(response.headers.get('set-cookie')).toContain(`forge_token=${booted.token}`)
-    expect(response.headers.get('set-cookie')).toContain('HttpOnly')
+    expect(response.headers.get('set-cookie')).toBe(null)
+    await expect(response.text()).resolves.not.toContain(booted.token)
+  })
+
+  it('refuses to open a browser session to a caller who cannot show the token', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/auth/session`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token: 'f'.repeat(64) }),
+    })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('opens a browser session to a holder of the token, without echoing it back', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/auth/session`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token: booted.token }),
+    })
+
+    expect(response.status).toBe(201)
+    const cookie = response.headers.get('set-cookie') ?? ''
+    expect(cookie).toContain('forge_token=')
+    expect(cookie).toContain('HttpOnly')
+    expect(cookie).not.toContain(booted.token)
+  })
+
+  it('lets that browser session through the api, the way the served page will', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const opened = await fetch(`http://127.0.0.1:${board.port}/api/auth/session`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token: booted.token }),
+    })
+    const session = /forge_token=([0-9a-f]+)/.exec(opened.headers.get('set-cookie') ?? '')?.[1] ?? ''
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/fleet`, {
+      headers: { cookie: `forge_token=${session}` },
+    })
+
+    expect(response.status).toBe(200)
+  })
+
+  it('shuts that browser session out again once it is closed', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const opened = await fetch(`http://127.0.0.1:${board.port}/api/auth/session`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token: booted.token }),
+    })
+    const session = /forge_token=([0-9a-f]+)/.exec(opened.headers.get('set-cookie') ?? '')?.[1] ?? ''
+    await fetch(`http://127.0.0.1:${board.port}/api/auth/session`, {
+      method: 'DELETE',
+      headers: { cookie: `forge_token=${session}` },
+    })
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/fleet`, {
+      headers: { cookie: `forge_token=${session}` },
+    })
+
+    expect(response.status).toBe(401)
   })
 
   it('keeps the api shut even though the page is open', async () => {
@@ -174,7 +242,7 @@ describe('startBoardServer', () => {
     expect(response.status).toBe(401)
   })
 
-  it('accepts the board token from a cookie, the way the served page will', async () => {
+  it('refuses the master token offered as a cookie, so a stolen cookie is only a session', async () => {
     const booted = await boot()
     board = booted.board
 
@@ -182,6 +250,6 @@ describe('startBoardServer', () => {
       headers: { cookie: `forge_token=${booted.token}` },
     })
 
-    expect(response.status).toBe(200)
+    expect(response.status).toBe(401)
   })
 })

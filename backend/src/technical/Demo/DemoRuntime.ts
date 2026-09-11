@@ -55,7 +55,7 @@ export function demoBoardUrl(port: number): string {
 export function demoAccessLines({ port, token }: DemoAccessInput): readonly string[] {
   return [
     `Board de demonstration : ${demoBoardUrl(port)}`,
-    `Ouvrir cette adresse depose le cookie ${BOARD_COOKIE} et le board s ouvre.`,
+    `Ouvrir cette adresse mene a l ecran d entree : y coller le jeton ouvre une session ${BOARD_COOKIE} de douze heures.`,
     'Pour parler a l API a la main, presenter le jeton en en-tete Authorization: Bearer, jamais dans l adresse.',
     `Jeton du board : ${token}`,
   ]

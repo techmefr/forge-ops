@@ -51,6 +51,8 @@ import { recordHeartbeatFromEvent } from '../ClaudeCode/HeartbeatRecorder.js'
 import { stopRunOverCap } from '../../domain/Budget/CostGuard.js'
 import type { BoardEvent } from './EventBus.js'
 import { createTokenGuard } from '../Auth/TokenGuard.js'
+import { createBrowserSessions } from '../Auth/BrowserSession.js'
+import { createSessionApi } from './SessionApi.js'
 import { deriveHookToken, resolveBoardToken } from '../Auth/BoardToken.js'
 import { boardOrigins } from '../Auth/BoardOrigin.js'
 
@@ -216,6 +218,7 @@ export function startBoardServer({
   })
 
   const identities = createIdentityRepository(db)
+  const browserSessions = createBrowserSessions()
   const guarded = new Hono()
   guarded.use(
     '/api/*',
@@ -225,8 +228,13 @@ export function startBoardServer({
       hookToken: deriveHookToken(token),
       requireIdentity: mode === 'hub',
       readIdentity: (sessionToken) => identities.readSession(sessionToken),
+      readBrowserSession: (sessionToken) => browserSessions.isOpen(sessionToken),
+      allowSessionExchange: mode === 'local',
     }),
   )
+  if (mode === 'local') {
+    guarded.route('/', createSessionApi({ token, sessions: browserSessions }))
+  }
   guarded.route(
     '/',
     createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
@@ -278,7 +286,7 @@ export function startBoardServer({
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
   guarded.route('/', createIncidentApi({ incidents: createIncidentRepository(db, { stories }), events }))
   guarded.route('/', api)
-  guarded.route('/', createBoardPage({ token, distDir }))
+  guarded.route('/', createBoardPage({ distDir }))
 
   return new Promise((resolve) => {
     const server = serve({ fetch: guarded.fetch, port, hostname: host }, (address) => {
