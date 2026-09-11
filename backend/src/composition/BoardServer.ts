@@ -80,9 +80,12 @@ export type BoardServerInput = {
   headedPilot: boolean
   metricsUrl: string | null
   mode: BoardMode
+  environmentMode: EnvironmentMode
 }
 
 export type BoardMode = 'local' | 'hub'
+
+export type EnvironmentMode = 'demo' | 'real'
 
 export type BoardServer = {
   server: ServerType
@@ -117,6 +120,7 @@ export function defaultBoardServerInput(): BoardServerInput {
     headedPilot: process.env.FORGE_PILOT_HEADED === 'true',
     metricsUrl: process.env.FORGE_OTEL_METRICS_URL ?? null,
     mode: process.env.FORGE_MODE === 'hub' ? 'hub' : 'local',
+    environmentMode: 'real',
   }
 }
 
@@ -134,6 +138,7 @@ export function startBoardServer({
   headedPilot,
   metricsUrl,
   mode,
+  environmentMode,
 }: BoardServerInput): Promise<BoardServer> {
   const db = openDatabase(dbPath)
   const token = resolveBoardToken(tokenPath)
@@ -258,7 +263,9 @@ export function startBoardServer({
     '/',
     createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
   )
-  guarded.get('/api/board/mode', (context) => context.json({ mode }))
+  guarded.get('/api/board/mode', (context) =>
+    context.json({ mode, environment: environmentMode }),
+  )
   guarded.route(
     '/',
     createConversationApi({

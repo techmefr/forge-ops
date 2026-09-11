@@ -649,4 +649,39 @@ export const SPANISH: Message = {
     createAccount: 'Crear la cuenta',
     enter: 'Entrar',
   },
+  tour: {
+    label: 'Visita guiada del tablero de demostración',
+    progress: 'Paso {current} de {total}',
+    next: 'Siguiente',
+    previous: 'Anterior',
+    finish: 'Terminar',
+    skip: 'Saltar',
+    reopen: 'Visita guiada',
+    hint: 'Las flechas pasan de un paso a otro, Escape cierra la visita.',
+    spot: 'Paso de la visita',
+    board: {
+      title: 'El tablero, pantalla por pantalla',
+      body: 'Cada pantalla es una etapa del pipeline: el taller corta las historias, la forja las construye, la pantalla de proyecto guarda los archivos y los perímetros reservados. El título dice dónde estás.',
+    },
+    column: {
+      title: 'Una columna es un estado, no una carpeta',
+      body: 'Una historia solo avanza si el tablero lo permite: cada columna reúne las historias en ese estado, y el contador de la derecha dice cuánto pesa esa etapa.',
+    },
+    story: {
+      title: 'Una historia y sus hitos',
+      body: 'Abre una tarjeta: la pestaña del plan enumera los hitos que la historia debe superar, especificación, pruebas en rojo, desarrollo, prueba. Ninguno se marca a mano, cada uno espera su evidencia.',
+    },
+    review: {
+      title: 'La cascada de revisión',
+      body: 'En la pestaña de revisión las lentes pasan una tras otra, calidad, luego seguridad, luego accesibilidad. Una lente solo arranca cuando la anterior ha pasado, así un rechazo detiene la cascada en lugar de esconderse en ella.',
+    },
+    evidence: {
+      title: 'Un archivo de evidencia y la puerta',
+      body: 'La leyenda dice cómo se marcó cada archivo. La puerta lee la evidencia que cita un hito: un archivo ilegible, vacío o fuera del perímetro es rechazado, y el hito sigue abierto.',
+    },
+    guardrail: {
+      title: 'El guardarraíl y el perímetro reservado',
+      body: 'Una historia reserva las rutas en las que trabaja. Una escritura fuera de esa reserva es rechazada por el guardarraíl, y una colisión entre dos historias aparece aquí antes de que arranquen los agentes.',
+    },
+  },
 }

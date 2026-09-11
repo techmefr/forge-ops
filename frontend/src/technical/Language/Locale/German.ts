@@ -650,4 +650,39 @@ export const GERMAN: Message = {
     createAccount: 'Das Konto anlegen',
     enter: 'Eintreten',
   },
+  tour: {
+    label: 'Geführte Tour durch das Demonstrationsboard',
+    progress: 'Schritt {current} von {total}',
+    next: 'Weiter',
+    previous: 'Zurück',
+    finish: 'Fertig',
+    skip: 'Überspringen',
+    reopen: 'Geführte Tour',
+    hint: 'Die Pfeiltasten wechseln den Schritt, Escape schließt die Tour.',
+    spot: 'Schritt der Tour',
+    board: {
+      title: 'Das Board, Bildschirm für Bildschirm',
+      body: 'Jeder Bildschirm ist eine Stufe der Pipeline: die Werkstatt schneidet die Storys, die Schmiede baut sie, der Projektbildschirm hält die Dateien und die reservierten Geltungsbereiche. Die Überschrift sagt, wo du stehst.',
+    },
+    column: {
+      title: 'Eine Spalte ist ein Zustand, kein Ordner',
+      body: 'Eine Story rückt nur vor, wenn das Board es zulässt: jede Spalte sammelt die Storys in diesem Zustand, und der Zähler rechts sagt, wie voll die Stufe ist.',
+    },
+    story: {
+      title: 'Eine Story und ihre Prüfpunkte',
+      body: 'Öffne eine Karte: der Plan-Reiter listet die Prüfpunkte, die die Story bestehen muss, Spezifikation, rote Tests, Umsetzung, Nachweis. Keiner wird von Hand abgehakt, jeder wartet auf seinen Nachweis.',
+    },
+    review: {
+      title: 'Die Review-Kaskade',
+      body: 'Im Review-Reiter laufen die Linsen nacheinander, Qualität, dann Sicherheit, dann Barrierefreiheit. Eine Linse startet erst, wenn die vorige bestanden hat, so hält eine Ablehnung die Kaskade an, statt sich darin zu verstecken.',
+    },
+    evidence: {
+      title: 'Eine Nachweisdatei und die Schranke',
+      body: 'Die Legende sagt, wie jede Datei markiert wurde. Die Schranke liest den Nachweis, den ein Prüfpunkt nennt: eine unlesbare, leere oder außerhalb des Geltungsbereichs liegende Datei wird abgelehnt, und der Prüfpunkt bleibt offen.',
+    },
+    guardrail: {
+      title: 'Das Schutzgeländer und der reservierte Geltungsbereich',
+      body: 'Eine Story reserviert die Pfade, an denen sie arbeitet. Ein Schreibzugriff außerhalb dieser Reservierung wird vom Schutzgeländer abgelehnt, und eine Kollision zwischen zwei Storys erscheint hier, bevor die Agenten starten.',
+    },
+  },
 }

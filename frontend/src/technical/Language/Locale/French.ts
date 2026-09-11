@@ -646,4 +646,39 @@ export const FRENCH: Message = {
     createAccount: 'Créer le compte',
     enter: 'Entrer',
   },
+  tour: {
+    label: 'Visite guidée du board de démonstration',
+    progress: 'Étape {current} sur {total}',
+    next: 'Suivant',
+    previous: 'Précédent',
+    finish: 'Terminer',
+    skip: 'Passer',
+    reopen: 'Visite guidée',
+    hint: 'Les flèches passent d’une étape à l’autre, Échap ferme la visite.',
+    spot: 'Étape de la visite',
+    board: {
+      title: 'Le board, écran par écran',
+      body: 'Chaque écran est une étape du pipeline : l’atelier découpe les stories, la forge les construit, l’écran projet garde les fichiers et les périmètres réservés. Le titre dit où tu te trouves.',
+    },
+    column: {
+      title: 'Une colonne est un état, pas un dossier',
+      body: 'Une story n’avance que si le board l’autorise : chaque colonne réunit les stories dans cet état, et le compteur à droite dit à quel point l’étape est chargée.',
+    },
+    story: {
+      title: 'Une story et ses jalons',
+      body: 'Ouvre une carte : l’onglet plan liste les jalons que la story doit franchir, spécification, tests rouges, build, preuve. Aucun ne se coche à la main, chacun attend sa preuve.',
+    },
+    review: {
+      title: 'La cascade de review',
+      body: 'Dans l’onglet review, les lentilles passent l’une après l’autre, qualité puis sécurité puis accessibilité. Une lentille ne démarre que si la précédente est passée, donc un refus arrête la cascade au lieu de s’y perdre.',
+    },
+    evidence: {
+      title: 'Un fichier de preuve et la porte',
+      body: 'La légende dit comment chaque fichier a été marqué. La porte lit la preuve citée par un jalon : un fichier illisible, vide ou hors périmètre est refusé, et le jalon reste ouvert.',
+    },
+    guardrail: {
+      title: 'Le garde-fou et le périmètre réservé',
+      body: 'Une story réserve les chemins sur lesquels elle travaille. Une écriture hors de cette réservation est refusée par le garde-fou, et une collision entre deux stories apparaît ici avant que les agents démarrent.',
+    },
+  },
 }
