@@ -1,7 +1,7 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
-import { createBoardRouter } from './technical/Router/Router'
+import { createBoardRouter } from './composition/BoardRouter'
 import { boardI18n } from './technical/Language/I18n'
 import { startLanguage } from './technical/Language/UseLanguage'
 import './style.css'

@@ -1,6 +1,6 @@
 import { rotateBoardToken } from './technical/Auth/BoardToken.js'
 import { buildRotationReport } from './technical/Auth/RotationReport.js'
-import { defaultBoardServerInput } from './technical/Http/BoardServer.js'
+import { defaultBoardServerInput } from './composition/BoardServer.js'
 
 const { tokenPath } = defaultBoardServerInput()
 

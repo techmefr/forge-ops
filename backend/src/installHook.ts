@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { deriveHookToken, resolveBoardToken } from './technical/Auth/BoardToken.js'
 import { buildHookSettings } from './technical/Auth/HookSettings.js'
-import { defaultBoardServerInput } from './technical/Http/BoardServer.js'
+import { defaultBoardServerInput } from './composition/BoardServer.js'
 
 const SETTINGS_PATH = join('.claude', 'settings.local.json')
 

@@ -1,7 +1,7 @@
 import { createMemoryHistory } from 'vue-router'
 import { describe, expect, it } from 'vitest'
-import { createBoardRouter } from '../../../src/technical/Router/Router.js'
-import { SCREENS } from '../../../src/technical/Router/Screen.js'
+import { createBoardRouter } from '../../src/composition/BoardRouter.js'
+import { SCREENS } from '../../src/technical/Router/Screen.js'
 
 function router() {
   return createBoardRouter(createMemoryHistory())

@@ -1,7 +1,7 @@
-import type { AgentSessionRepository } from '../../domain/Agent/AgentSessionRepository.js'
+import type { SessionLedger } from './SessionLedger.js'
 import type { BoardEvent } from '../Http/EventBus.js'
 
-export function recordUsageFromEvent(sessions: AgentSessionRepository, event: BoardEvent): boolean {
+export function recordUsageFromEvent(sessions: SessionLedger, event: BoardEvent): boolean {
   const { claudeSessionId, costUsd, inputTokens, outputTokens } = event.payload
   if (typeof claudeSessionId !== 'string' || claudeSessionId === '') {
     return false
