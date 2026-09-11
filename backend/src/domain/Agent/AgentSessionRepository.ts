@@ -9,6 +9,7 @@ import type {
   PathConflict,
 } from './AgentSession.js'
 import { UnknownAgentSessionError } from './AgentViolation.js'
+import { assertTouchedPath } from './TouchedPath.js'
 import { STALE_AFTER_SECONDS, type StaleSession } from './Heartbeat.js'
 import { StoryNotFoundError } from '../Story/StoryViolation.js'
 
@@ -222,7 +223,7 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
 
     recordFileTouch: (draft) => {
       const session = requireSession(draft.claudeSessionId)
-      insertFileTouch.run(session.storyId, session.id, draft.path)
+      insertFileTouch.run(session.storyId, session.id, assertTouchedPath(draft.path))
     },
 
     listTouchedPaths: (storyId) => selectTouchedPaths.all(storyId).map((row) => row.path),

@@ -1,5 +1,5 @@
-import { readdir, readFile, stat } from 'node:fs/promises'
-import { join, relative, resolve, sep } from 'node:path'
+import { readdir, readFile, realpath, stat } from 'node:fs/promises'
+import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { CheckoutUnreadableError, PathOutsideCheckoutError } from './LocalTreeViolation.js'
 
 export type TreeEntry = {
@@ -16,24 +16,33 @@ export type FileReading = {
   truncated: boolean
 }
 
-const HIDDEN: readonly string[] = ['.git', 'node_modules', 'dist', '.turbo', '.cache', 'coverage']
-
-function insideOf(root: string, asked: string): string {
-  const base = resolve(root)
-  const full = resolve(base, asked)
-  const inside = relative(base, full)
-  if (inside.startsWith('..') || inside.startsWith(`${sep}..`)) {
-    throw new PathOutsideCheckoutError(asked)
-  }
-  return full
+type ResolvedPath = {
+  base: string
+  full: string
 }
 
-function slashed(root: string, full: string): string {
-  return relative(resolve(root), full).split(sep).join('/')
+const HIDDEN: readonly string[] = ['.git', 'node_modules', 'dist', '.turbo', '.cache', 'coverage']
+
+async function insideOf(root: string, asked: string): Promise<ResolvedPath> {
+  const base = await realpath(resolve(root)).catch((error: Error) => {
+    throw new CheckoutUnreadableError(asked, error.message)
+  })
+  const full = await realpath(resolve(base, asked)).catch((error: Error) => {
+    throw new CheckoutUnreadableError(asked, error.message)
+  })
+  const inside = relative(base, full)
+  if (inside.startsWith('..') || inside.startsWith(`${sep}..`) || isAbsolute(inside)) {
+    throw new PathOutsideCheckoutError(asked)
+  }
+  return { base, full }
+}
+
+function slashed(base: string, full: string): string {
+  return relative(base, full).split(sep).join('/')
 }
 
 export async function listDirectory(root: string, asked: string): Promise<readonly TreeEntry[]> {
-  const full = insideOf(root, asked)
+  const { base, full } = await insideOf(root, asked)
   const found = await readdir(full, { withFileTypes: true }).catch((error: Error) => {
     throw new CheckoutUnreadableError(asked, error.message)
   })
@@ -43,11 +52,12 @@ export async function listDirectory(root: string, asked: string): Promise<readon
     kept.map(async (entry): Promise<TreeEntry> => {
       const child = join(full, entry.name)
       const directory = entry.isDirectory()
+      const measured = directory ? null : await stat(child).catch(() => null)
       return {
-        path: slashed(root, child),
+        path: slashed(base, child),
         name: entry.name,
         kind: directory ? 'directory' : 'file',
-        bytes: directory ? null : (await stat(child)).size,
+        bytes: measured === null ? null : measured.size,
       }
     }),
   )
@@ -58,12 +68,12 @@ export async function listDirectory(root: string, asked: string): Promise<readon
 }
 
 export async function readTextFile(root: string, asked: string, maxBytes: number): Promise<FileReading> {
-  const full = insideOf(root, asked)
+  const { base, full } = await insideOf(root, asked)
   const raw = await readFile(full).catch((error: Error) => {
     throw new CheckoutUnreadableError(asked, error.message)
   })
   return {
-    path: slashed(root, full),
+    path: slashed(base, full),
     text: raw.subarray(0, maxBytes).toString('utf-8'),
     bytes: raw.byteLength,
     truncated: raw.byteLength > maxBytes,

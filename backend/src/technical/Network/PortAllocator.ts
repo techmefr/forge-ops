@@ -16,11 +16,3 @@ export function allocatePort(
   const hash = hashToUint32(branchName)
   return (hash % range) + basePort
 }
-
-export function allocateSubdomain(branchName: string): string {
-  const slug = branchName
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-  return slug
-}
