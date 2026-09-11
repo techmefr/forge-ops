@@ -40,7 +40,8 @@ import {
   assertStepBackReason,
   checkpointsAheadOf,
 } from '../Story/StepBack.js'
-import { assertDoneEarned, assertStoryHand } from '../Story/DoneGate.js'
+import { assertDoneEarned } from '../Story/DoneGate.js'
+import { assertStoryHand } from '../Story/StoryHand.js'
 import { scoreCompleteness } from '../Story/Completeness.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
 import type { CascadeStep } from '../Checkpoint/ReviewCascade.js'
