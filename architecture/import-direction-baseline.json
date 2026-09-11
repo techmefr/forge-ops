@@ -1,12 +1,9 @@
 [
   "backend/src/technical/Auth/HookSettings.ts -> backend/src/domain/Agent/ToolName.ts",
   "backend/src/technical/Browser/PlaywrightPilot.ts -> backend/src/domain/Pilot/Pilot.ts",
-  "backend/src/technical/ClaudeCode/HeartbeatRecorder.ts -> backend/src/domain/Agent/AgentSessionRepository.ts",
-  "backend/src/technical/ClaudeCode/LifecycleRecorder.ts -> backend/src/domain/Agent/AgentSessionRepository.ts",
   "backend/src/technical/ClaudeCode/SdkSessionRunner.ts -> backend/src/domain/Conversation/Conversation.ts",
   "backend/src/technical/ClaudeCode/SdkSessionRunner.ts -> backend/src/domain/Dispatch/Dispatch.ts",
   "backend/src/technical/ClaudeCode/TurnDelivery.ts -> backend/src/domain/Conversation/Conversation.ts",
-  "backend/src/technical/ClaudeCode/UsageRecorder.ts -> backend/src/domain/Agent/AgentSessionRepository.ts",
   "backend/src/technical/Evidence/EvidenceFileReader.ts -> backend/src/domain/Evidence/EvidenceRead.ts",
   "backend/src/technical/Guardrail/PhaseToolPolicy.ts -> backend/src/domain/Agent/AgentSession.ts",
   "backend/src/technical/Guardrail/PhaseToolPolicy.ts -> backend/src/domain/Agent/ToolName.ts",
