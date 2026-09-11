@@ -18,6 +18,8 @@
     "lint:fix": "eslint . --max-warnings=0 --fix",
     "gate:scripts": "tsx backend/src/checkScripts.ts",
     "gate:proof": "tsx backend/src/gateProof.ts",
+    "arch:imports": "node scripts/importDirection.mjs",
+    "arch:imports:baseline": "node scripts/importDirection.mjs --write-baseline",
     "test": "vitest run",
     "test:watch": "vitest"
   },
