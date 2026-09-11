@@ -30,6 +30,7 @@ import {
 } from './StoryViolation.js'
 import type { StepBackDraft, StepBackRecord } from './StepBack.js'
 import type { CheckpointName } from '../Checkpoint/Checkpoint.js'
+import { assertCheckoutPath } from './CheckoutPath.js'
 
 type StepBackRow = {
   id: number
@@ -118,7 +119,14 @@ function toStory(row: StoryRow): Story {
   }
 }
 
-export function createStoryRepository(db: Database.Database): StoryRepository {
+export type StoryRepositoryOptions = {
+  checkoutRoots?: readonly string[]
+}
+
+export function createStoryRepository(
+  db: Database.Database,
+  { checkoutRoots = [process.cwd()] }: StoryRepositoryOptions = {},
+): StoryRepository {
   const insertProject = db.prepare<[string, string, string, string, string, string | null]>(
     'INSERT INTO project (slug, name, repository_url, integration_branch, colour, checkout_path) VALUES (?, ?, ?, ?, ?, ?)',
   )
@@ -296,15 +304,19 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
       if (selectProjectBySlug.get(draft.slug) !== undefined) {
         throw new ProjectSlugTakenError(draft.slug)
       }
+      const checkoutPath =
+        draft.checkoutPath === undefined || draft.checkoutPath === null
+          ? null
+          : assertCheckoutPath(draft.checkoutPath, checkoutRoots)
       const info = insertProject.run(
         draft.slug,
         draft.name,
         draft.repositoryUrl,
         draft.integrationBranch,
         draft.colour,
-        draft.checkoutPath ?? null,
+        checkoutPath,
       )
-      return { id: Number(info.lastInsertRowid), ...draft, checkoutPath: draft.checkoutPath ?? null }
+      return { id: Number(info.lastInsertRowid), ...draft, checkoutPath }
     },
 
     listProjects: allProjects,
@@ -313,7 +325,7 @@ export function createStoryRepository(db: Database.Database): StoryRepository {
       if (selectProjectById.get(projectId) === undefined) {
         throw new ProjectNotFoundError(projectId)
       }
-      updateCheckoutPath.run(checkoutPath, projectId)
+      updateCheckoutPath.run(assertCheckoutPath(checkoutPath, checkoutRoots), projectId)
       const found = allProjects().find((project) => project.id === projectId)
       if (found === undefined) {
         throw new ProjectNotFoundError(projectId)
