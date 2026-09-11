@@ -19,9 +19,10 @@ describe('collectUtterance', () => {
     expect(collectUtterance({ name: 'session.system', payload: { reference: 'FORGE-1' } })).toBeNull()
   })
 
-  it('garde le lancement, meme sans texte, car c est le debut de la session', () => {
+  it('annonce le lancement avec des mots, pas une bulle vide', () => {
     expect(collectUtterance({ name: 'session.dispatched', payload: { phase: 'spec' } })).toMatchObject({
       name: 'session.dispatched',
+      text: 'Session lancee, Claude lit l epique.',
     })
   })
 
