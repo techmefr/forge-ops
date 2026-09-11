@@ -14,6 +14,7 @@ const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'agent_session', column: 'carried_input_tokens', declaration: 'INTEGER NOT NULL DEFAULT 0' },
   { table: 'agent_session', column: 'carried_output_tokens', declaration: 'INTEGER NOT NULL DEFAULT 0' },
   { table: 'scope_reservation', column: 'renewed_at', declaration: 'TEXT' },
+  { table: 'agent_session', column: 'last_heartbeat_at', declaration: 'TEXT' },
 ]
 
 function tableExists(db: Database.Database, table: string): boolean {

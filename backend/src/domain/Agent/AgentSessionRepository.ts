@@ -9,6 +9,7 @@ import type {
   PathConflict,
 } from './AgentSession.js'
 import { UnknownAgentSessionError } from './AgentViolation.js'
+import { STALE_AFTER_SECONDS, type StaleSession } from './Heartbeat.js'
 import { StoryNotFoundError } from '../Story/StoryViolation.js'
 
 type AgentSessionRow = {
@@ -22,6 +23,14 @@ type AgentSessionRow = {
   cost_usd: number | null
   carried_cost_usd: number
 }
+
+type StaleSessionRow = AgentSessionRow & {
+  silent_for_seconds: number
+}
+
+const RUNNING_LIFECYCLES = "('starting', 'working', 'awaiting_human')"
+
+const SILENCE_SECONDS = "(julianday('now') - julianday(COALESCE(last_heartbeat_at, started_at))) * 86400"
 
 export type SessionUsage = {
   costUsd: number
@@ -39,6 +48,8 @@ export type AgentSessionRepository = {
   findByClaudeSessionId: (claudeSessionId: string) => AgentSession | null
   latestSessionOf: (storyId: number) => AgentSession | null
   updateLifecycle: (claudeSessionId: string, lifecycle: AgentLifecycle) => AgentSession
+  recordHeartbeat: (claudeSessionId: string) => void
+  listStaleSessions: (staleAfterSeconds?: number) => readonly StaleSession[]
   closeSession: (claudeSessionId: string, exit: SessionExit) => ClosedSession
   recordUsage: (claudeSessionId: string, usage: SessionUsage) => AgentSession & SessionUsage
   carryUsage: (claudeSessionId: string) => void
@@ -76,6 +87,14 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
   )
   const updateSessionLifecycle = db.prepare<[AgentLifecycle, string]>(
     'UPDATE agent_session SET lifecycle = ? WHERE claude_session_id = ?',
+  )
+  const beatHeartbeat = db.prepare<[string]>(
+    "UPDATE agent_session SET last_heartbeat_at = datetime('now') WHERE claude_session_id = ?",
+  )
+  const selectStaleSessions = db.prepare<[number], StaleSessionRow>(
+    `SELECT *, ${SILENCE_SECONDS} AS silent_for_seconds FROM agent_session
+      WHERE lifecycle IN ${RUNNING_LIFECYCLES} AND ${SILENCE_SECONDS} > ?
+      ORDER BY silent_for_seconds DESC`,
   )
   const closeSessionRow = db.prepare<[AgentLifecycle, OutcomeClass, string]>(
     `UPDATE agent_session SET lifecycle = ?, outcome = ?, ended_at = datetime('now')
@@ -157,6 +176,17 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
       updateSessionLifecycle.run(lifecycle, claudeSessionId)
       return requireSession(claudeSessionId)
     },
+
+    recordHeartbeat: (claudeSessionId) => {
+      requireSession(claudeSessionId)
+      beatHeartbeat.run(claudeSessionId)
+    },
+
+    listStaleSessions: (staleAfterSeconds = STALE_AFTER_SECONDS) =>
+      selectStaleSessions.all(staleAfterSeconds).map((row) => ({
+        ...toAgentSession(row),
+        silentForSeconds: row.silent_for_seconds,
+      })),
 
     closeSession: (claudeSessionId, exit) => {
       requireSession(claudeSessionId)

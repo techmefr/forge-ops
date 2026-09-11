@@ -16,6 +16,21 @@ const OLD_BOARD_USER = `CREATE TABLE board_user (
   disabled_at TEXT
 )`
 
+const OLD_AGENT_SESSION = `CREATE TABLE agent_session (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL,
+  claude_session_id TEXT NOT NULL UNIQUE,
+  phase TEXT NOT NULL DEFAULT 'code',
+  agent_name TEXT NOT NULL DEFAULT 'neo',
+  lifecycle TEXT NOT NULL DEFAULT 'starting',
+  claude_code_version TEXT NOT NULL,
+  cost_usd REAL,
+  input_tokens INTEGER,
+  output_tokens INTEGER,
+  started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  ended_at TEXT
+)`
+
 let folder: string
 let path: string
 
@@ -84,6 +99,41 @@ describe('opening a base written before the email column', () => {
   it('gives a fresh base the column straight away', () => {
     const db = openDatabase(path)
     expect(columnsOf(db, 'board_user')).toContain('email')
+    db.close()
+  })
+})
+
+describe('opening a base written before the heartbeat column', () => {
+  it('adds the column', () => {
+    const older = new Database(path)
+    older.exec(OLD_AGENT_SESSION)
+    older.close()
+    const db = openDatabase(path)
+    expect(columnsOf(db, 'agent_session')).toContain('last_heartbeat_at')
+    db.close()
+  })
+
+  it('keeps the sessions already recorded', () => {
+    const older = new Database(path)
+    older.exec(OLD_AGENT_SESSION)
+    older
+      .prepare('INSERT INTO agent_session (story_id, claude_session_id, claude_code_version) VALUES (?, ?, ?)')
+      .run(1, 'sess-old', '2.1.218')
+    older.close()
+    const db = openDatabase(path)
+    expect(
+      db.prepare<[], { total: number }>('SELECT COUNT(*) AS total FROM agent_session').get()?.total,
+    ).toBe(1)
+    db.close()
+  })
+
+  it('does not add it twice when opened again', () => {
+    const older = new Database(path)
+    older.exec(OLD_AGENT_SESSION)
+    older.close()
+    openDatabase(path).close()
+    const db = openDatabase(path)
+    expect(columnsOf(db, 'agent_session').filter((name) => name === 'last_heartbeat_at')).toHaveLength(1)
     db.close()
   })
 })

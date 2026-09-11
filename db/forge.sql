@@ -168,6 +168,7 @@ CREATE TABLE IF NOT EXISTS agent_session (
   carried_input_tokens INTEGER NOT NULL DEFAULT 0,
   carried_output_tokens INTEGER NOT NULL DEFAULT 0,
   started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_heartbeat_at TEXT,
   ended_at TEXT
 );
 

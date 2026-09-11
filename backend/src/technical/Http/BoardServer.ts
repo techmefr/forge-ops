@@ -46,6 +46,9 @@ import type { SdkUserTurn } from '../ClaudeCode/TurnDelivery.js'
 import { createConversationApi } from '../../domain/Conversation/ConversationApi.js'
 import { recordUsageFromEvent } from '../ClaudeCode/UsageRecorder.js'
 import { recordLifecycleFromEvent } from '../ClaudeCode/LifecycleRecorder.js'
+import { recordHeartbeatFromEvent } from '../ClaudeCode/HeartbeatRecorder.js'
+import { stopRunOverCap } from '../../domain/Budget/CostGuard.js'
+import type { BoardEvent } from './EventBus.js'
 import { createTokenGuard } from '../Auth/TokenGuard.js'
 import { deriveHookToken, resolveBoardToken } from '../Auth/BoardToken.js'
 import { boardOrigins } from '../Auth/BoardOrigin.js'
@@ -124,6 +127,27 @@ export function startBoardServer({
   }
   const foremerge = createForemergeRepository(db, { stories })
   const live = createLiveSessions<SdkUserTurn>()
+  const budget = createBudgetRepository(db)
+  const onSessionEvent = (event: BoardEvent): void => {
+    recordUsageFromEvent(sessions, event)
+    recordHeartbeatFromEvent(sessions, event)
+    recordLifecycleFromEvent(sessions, event)
+    const { claudeSessionId } = event.payload
+    if (typeof claudeSessionId === 'string' && claudeSessionId !== '') {
+      stopRunOverCap(
+        {
+          sessions,
+          stories,
+          budget,
+          hangUp: (identifier) => {
+            live.close(identifier)
+          },
+        },
+        claudeSessionId,
+      )
+    }
+    events.publish(event)
+  }
   const worktrees = createWorktreeRepository(db, {
     stories,
     git: createGitWorktree({ repositoryRoot: process.cwd() }),
@@ -135,17 +159,9 @@ export function startBoardServer({
     checkpoints: createCheckpointRepository(db, { takeCensus: () => censusOfTree(testsDir), readEvidence }),
     criteria: createCriterionRepository(db),
     sessions,
-    budget: createBudgetRepository(db),
+    budget,
     foremerge,
-    runner: createSdkSessionRunner({
-      cwd: process.cwd(),
-      live,
-      onEvent: (event) => {
-        recordUsageFromEvent(sessions, event)
-        recordLifecycleFromEvent(sessions, event)
-        events.publish(event)
-      },
-    }),
+    runner: createSdkSessionRunner({ cwd: process.cwd(), live, onEvent: onSessionEvent }),
     concurrencyCap: Number(process.env.FORGE_SESSION_CAP ?? DEFAULT_SESSION_CAP),
     claudeCodeVersion: process.env.CLAUDE_CODE_VERSION ?? 'unknown',
     rate: {
@@ -159,7 +175,7 @@ export function startBoardServer({
   })
   const api = createBoardApi({
     zones: createZoneRepository(db),
-    budget: createBudgetRepository(db),
+    budget,
     repository: stories,
     agentSessions: sessions,
     checkpoints: createCheckpointRepository(db, {
@@ -216,14 +232,7 @@ export function startBoardServer({
       stories,
       sessions,
       events,
-      talker: createSdkSessionTalker({
-        live,
-        onEvent: (event) => {
-          recordUsageFromEvent(sessions, event)
-          recordLifecycleFromEvent(sessions, event)
-          events.publish(event)
-        },
-      }),
+      talker: createSdkSessionTalker({ live, onEvent: onSessionEvent }),
     }),
   )
   guarded.route(
