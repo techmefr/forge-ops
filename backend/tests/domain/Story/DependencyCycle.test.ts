@@ -60,7 +60,6 @@ describe('addDependency', () => {
     try {
       link(1, 0)
     } catch {
-      // le refus est le sujet du test precedent
     }
 
     expect(stories.listBlockers(ids[1] ?? 0)).toHaveLength(0)
