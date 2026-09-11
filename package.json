@@ -8,6 +8,7 @@
     "forge": "tsx backend/src/forge.ts",
     "hook:install": "tsx backend/src/installHook.ts",
     "demo": "tsx backend/src/demo.ts",
+    "token:rotate": "tsx backend/src/rotateToken.ts",
     "seed:demo": "tsx backend/src/seedDemo.ts",
     "dev:web": "vite",
     "build:back": "tsc -p tsconfig.json",

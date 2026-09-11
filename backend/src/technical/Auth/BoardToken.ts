@@ -1,5 +1,5 @@
 import { createHmac, randomBytes } from 'node:crypto'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 
 const TOKEN_BYTES = 32
 const TOKEN_LENGTH = TOKEN_BYTES * 2
@@ -40,4 +40,22 @@ export function resolveBoardToken(path: string): string {
     throw new TokenUnreadableError(path, `un jeton fait ${TOKEN_LENGTH} caracteres, celui-ci en fait ${token.length}`)
   }
   return token
+}
+
+export type RotatedBoardToken = {
+  token: string
+  hookToken: string
+}
+
+export function rotateBoardToken(path: string): RotatedBoardToken {
+  const token = randomBytes(TOKEN_BYTES).toString('hex')
+  const staging = `${path}.${randomBytes(6).toString('hex')}.rotating`
+  try {
+    writeFileSync(staging, `${token}\n`, { encoding: 'utf-8', mode: 0o600 })
+    renameSync(staging, path)
+  } catch (error) {
+    rmSync(staging, { force: true })
+    throw new TokenUnreadableError(path, error instanceof Error ? error.message : String(error))
+  }
+  return { token, hookToken: deriveHookToken(token) }
 }
