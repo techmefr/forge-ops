@@ -93,6 +93,12 @@ describe('demoAccessLines', () => {
     expect(joined).toContain('Authorization: Bearer')
     expect(joined).toContain('forge_token')
   })
+
+  it('tells the human to paste the token, since opening the page alone hands out nothing', () => {
+    const joined = demoAccessLines({ port: 8899, token }).join('\n')
+
+    expect(joined).toContain('coller le jeton')
+  })
 })
 
 describe('demoBoardUrl', () => {

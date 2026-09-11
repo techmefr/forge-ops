@@ -94,3 +94,50 @@ describe('send', () => {
     expect(fetcher.mock.calls[0]?.[0]).toBe('http://127.0.0.1:8830/api/fleet')
   })
 })
+
+describe("the unauthenticated hook", () => {
+  it("warns its owner when the board turns a read away", async () => {
+    const turnedAway = vi.fn()
+    const client = createBoardClient({
+      fetcher: fetcherReturning(401, { error: "UnauthorizedBoardAccess" }),
+      onUnauthorized: turnedAway,
+    })
+
+    await expect(client.read("/api/projects")).rejects.toBeInstanceOf(BoardRequestError)
+    expect(turnedAway).toHaveBeenCalledTimes(1)
+  })
+
+  it("warns its owner when the board turns a write away too", async () => {
+    const turnedAway = vi.fn()
+    const client = createBoardClient({
+      fetcher: fetcherReturning(401, { error: "UnauthorizedBoardAccess" }),
+      onUnauthorized: turnedAway,
+    })
+
+    await expect(client.send("/api/projects", "POST", {})).rejects.toBeInstanceOf(BoardRequestError)
+    expect(turnedAway).toHaveBeenCalledTimes(1)
+  })
+
+  it("stays quiet on any other refusal", async () => {
+    const turnedAway = vi.fn()
+    const client = createBoardClient({
+      fetcher: fetcherReturning(409, { error: "TwinRequiredError" }),
+      onUnauthorized: turnedAway,
+    })
+
+    await expect(client.read("/api/x")).rejects.toBeInstanceOf(BoardRequestError)
+    expect(turnedAway).not.toHaveBeenCalled()
+  })
+
+  it("stays quiet when all is well", async () => {
+    const turnedAway = vi.fn()
+    const client = createBoardClient({
+      fetcher: fetcherReturning(200, {}),
+      onUnauthorized: turnedAway,
+    })
+
+    await client.read("/api/x")
+
+    expect(turnedAway).not.toHaveBeenCalled()
+  })
+})

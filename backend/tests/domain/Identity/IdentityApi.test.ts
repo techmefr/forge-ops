@@ -7,6 +7,11 @@ import {
   type IdentityRepository,
 } from '../../../src/domain/Identity/IdentityRepository.js'
 import { createIdentityApi } from '../../../src/domain/Identity/IdentityApi.js'
+import { createLoginRateLimit } from '../../../src/technical/Auth/LoginRateLimit.js'
+import {
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+} from '../../../src/technical/Auth/PasswordHash.js'
 
 let db: Database.Database
 let identities: IdentityRepository
@@ -87,7 +92,7 @@ describe('POST /api/auth/enrol', () => {
     expect(response.status).toBe(409)
   })
 
-  it('rend un conflit sur un mot de passe trop faible, pas un plantage', async () => {
+  it('refuses a password the hasher would reject, as an invalid enrolment rather than a crash', async () => {
     const response = await post('/api/auth/enrol', {
       login: 'gaetan',
       displayName: 'Gaetan',
@@ -95,8 +100,34 @@ describe('POST /api/auth/enrol', () => {
       role: 'director',
     })
 
-    expect(response.status).toBe(409)
-    await expect(response.json()).resolves.toMatchObject({ error: 'PasswordRefusedError' })
+    expect(response.status).toBe(422)
+    await expect(response.json()).resolves.toMatchObject({ error: 'InvalidEnrolment' })
+  })
+
+  it('holds the enrolment rule at the very length the hasher demands', async () => {
+    const response = await post('/api/auth/enrol', {
+      login: 'gaetan',
+      displayName: 'Gaetan',
+      password: 'a'.repeat(PASSWORD_MIN_LENGTH),
+      role: 'director',
+    })
+
+    expect(response.status).toBe(201)
+  })
+
+  it('answers a refused password with an unprocessable entity, never a server error', async () => {
+    const response = await api.request('/api/auth/enrol', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        login: 'gaetan',
+        displayName: 'Gaetan',
+        password: 'a'.repeat(PASSWORD_MAX_LENGTH + 1),
+        role: 'director',
+      }),
+    })
+
+    expect(response.status).toBe(422)
   })
 })
 
@@ -166,6 +197,113 @@ describe('POST /api/auth/logout', () => {
 
   it('reste sans erreur quand aucune session n est presentee', async () => {
     const response = await post('/api/auth/logout')
+
+    expect(response.status).toBe(200)
+  })
+
+  it('revokes the session the browser carries in its cookie, not only a header', async () => {
+    await post('/api/auth/enrol', {
+      login: 'gaetan',
+      displayName: 'Gaetan',
+      password: MOT_DE_PASSE,
+      role: 'director',
+    })
+    const opened = identities.openSession('gaetan', MOT_DE_PASSE)
+
+    const response = await post('/api/auth/logout', undefined, {
+      cookie: `forge_identity=${opened.token}`,
+    })
+
+    expect(response.status).toBe(200)
+    expect(identities.readSession(opened.token)).toBeNull()
+  })
+
+  it('clears the browser copy of the cookie as well', async () => {
+    await post('/api/auth/enrol', {
+      login: 'gaetan',
+      displayName: 'Gaetan',
+      password: MOT_DE_PASSE,
+      role: 'director',
+    })
+    const opened = identities.openSession('gaetan', MOT_DE_PASSE)
+
+    const response = await post('/api/auth/logout', undefined, {
+      cookie: `forge_identity=${opened.token}`,
+    })
+
+    expect(response.headers.get('set-cookie')).toContain('forge_identity=')
+  })
+})
+
+describe('the login rate limit', () => {
+  const CAP = 3
+
+  beforeEach(async () => {
+    api = createIdentityApi({
+      identities,
+      allowEnrolment: () => enrolmentOpen,
+      loginLimit: createLoginRateLimit({ attemptCap: CAP }),
+    })
+    await post('/api/auth/enrol', {
+      login: 'gaetan',
+      displayName: 'Gaetan',
+      password: MOT_DE_PASSE,
+      role: 'director',
+    })
+  })
+
+  async function failLogin(times: number): Promise<void> {
+    for (let attempt = 0; attempt < times; attempt += 1) {
+      await post('/api/auth/login', { login: 'gaetan', password: 'mauvais mot de passe' })
+    }
+  }
+
+  it('answers too many requests once the allowance is burnt', async () => {
+    await failLogin(CAP)
+
+    const response = await post('/api/auth/login', { login: 'gaetan', password: 'mauvais mot de passe' })
+
+    expect(response.status).toBe(429)
+  })
+
+  it('shuts the door even on the right password, so guessing gains nothing', async () => {
+    await failLogin(CAP)
+
+    const response = await post('/api/auth/login', { login: 'gaetan', password: MOT_DE_PASSE })
+
+    expect(response.status).toBe(429)
+  })
+
+  it('says how long the caller must wait', async () => {
+    await failLogin(CAP)
+
+    const response = await post('/api/auth/login', { login: 'gaetan', password: MOT_DE_PASSE })
+
+    expect(Number(response.headers.get('retry-after'))).toBeGreaterThan(0)
+  })
+
+  it('leaves another account alone', async () => {
+    await failLogin(CAP)
+
+    const response = await post('/api/auth/login', { login: 'jeremy', password: MOT_DE_PASSE })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('still lets the caller in while the allowance is not burnt', async () => {
+    await failLogin(CAP - 1)
+
+    const response = await post('/api/auth/login', { login: 'gaetan', password: MOT_DE_PASSE })
+
+    expect(response.status).toBe(200)
+  })
+
+  it('forgets the failures of a caller who finally signs in', async () => {
+    await failLogin(CAP - 1)
+    await post('/api/auth/login', { login: 'gaetan', password: MOT_DE_PASSE })
+    await failLogin(CAP - 1)
+
+    const response = await post('/api/auth/login', { login: 'gaetan', password: MOT_DE_PASSE })
 
     expect(response.status).toBe(200)
   })

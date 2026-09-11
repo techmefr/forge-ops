@@ -7,6 +7,10 @@ export const HOOK_INTAKE_PATH = '/api/hooks'
 
 export const IDENTITY_COOKIE = 'forge_identity'
 
+export const SESSION_EXCHANGE_PATH = '/api/auth/session'
+
+export const BOARD_MODE_PATH = '/api/board/mode'
+
 export const OPEN_PATHS: readonly string[] = [
   '/api/auth/login',
   '/api/auth/logout',
@@ -20,9 +24,11 @@ export type TokenGuardInput = {
   allowedOrigins: readonly string[]
   requireIdentity?: boolean
   readIdentity?: (sessionToken: string) => { login: string } | null
+  readBrowserSession?: (sessionToken: string) => boolean
+  allowSessionExchange?: boolean
 }
 
-function sameSecret(offered: string, expected: string): boolean {
+export function sameSecret(offered: string, expected: string): boolean {
   const left = Buffer.from(offered)
   const right = Buffer.from(expected)
   if (left.length !== right.length) {
@@ -51,11 +57,23 @@ export function createTokenGuard({
   allowedOrigins,
   requireIdentity = false,
   readIdentity,
+  readBrowserSession,
+  allowSessionExchange = false,
 }: TokenGuardInput): MiddlewareHandler {
   return async (context, next) => {
     const origin = context.req.header('origin')
     if (origin !== undefined && !allowedOrigins.includes(origin)) {
       return context.json({ error: 'ForbiddenOrigin' }, 403)
+    }
+
+    if (context.req.path === BOARD_MODE_PATH) {
+      await next()
+      return undefined
+    }
+
+    if (allowSessionExchange && context.req.path === SESSION_EXCHANGE_PATH) {
+      await next()
+      return undefined
     }
 
     const fromHeader = headerSecret(context.req.header('authorization'), context.req.header('x-forge-token'))
@@ -84,8 +102,16 @@ export function createTokenGuard({
       return undefined
     }
 
-    const offered = fromHeader ?? getCookie(context, BOARD_COOKIE) ?? null
-    if (offered === null || !sameSecret(offered, token)) {
+    if (fromHeader !== null) {
+      if (!sameSecret(fromHeader, token)) {
+        return context.json({ error: 'UnauthorizedBoardAccess' }, 401)
+      }
+      await next()
+      return undefined
+    }
+
+    const fromCookie = getCookie(context, BOARD_COOKIE) ?? null
+    if (fromCookie === null || readBrowserSession?.(fromCookie) !== true) {
       return context.json({ error: 'UnauthorizedBoardAccess' }, 401)
     }
 
