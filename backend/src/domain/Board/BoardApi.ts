@@ -2,59 +2,29 @@ import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { z } from 'zod'
 import type { EventBus } from '../../technical/Http/EventBus.js'
-import type { Ticket } from '../../../../contract/BoardContract.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
-import {
-  EpicNotFoundError,
-  StoryNotFoundError,
-  StoryViolationError,
-} from '../Story/StoryViolation.js'
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
 import { reapStaleSessions, STALE_AFTER_SECONDS } from '../Agent/Heartbeat.js'
-import { AGENT_PHASE_SEQUENCE } from '../Agent/AgentSession.js'
 import { isWriteTool } from '../Agent/ToolName.js'
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
-import { CHECKPOINT_SEQUENCE, REVIEW_LENS_SEQUENCE } from '../Checkpoint/Checkpoint.js'
-import { CheckpointViolationError } from '../Checkpoint/CheckpointViolation.js'
+import { createCheckpointApi } from '../Checkpoint/CheckpointApi.js'
 import { describeZone } from '../Zone/ZoneDigest.js'
 import type { ZoneRepository } from '../Zone/ZoneRepository.js'
-import { ZoneNotFoundError, ZoneViolationError } from '../Zone/ZoneViolation.js'
+import { createZoneApi } from '../Zone/ZoneApi.js'
 import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
-import { CriterionNotFoundError, CriterionViolationError } from '../Criterion/CriterionViolation.js'
+import { createCriterionApi } from '../Criterion/CriterionApi.js'
 import type { Dispatcher } from '../Dispatch/Dispatcher.js'
-import { DispatchViolationError } from '../Dispatch/DispatchViolation.js'
-import { ScopeTakenError, ScopeViolationError } from '../Foremerge/ForemergeViolation.js'
 import { PHASE_CONTRACTS } from '../Dispatch/Dispatch.js'
-import { EvidencePathRefusedError } from '../Evidence/EvidencePath.js'
-import { EvidenceShapeRefusedError } from '../Evidence/EvidenceShape.js'
-import { EvidenceUnreadableError } from '../Evidence/EvidenceRead.js'
 import type { BudgetRepository } from '../Budget/BudgetRepository.js'
-import { BudgetViolationError } from '../Budget/BudgetViolation.js'
+import { createBudgetApi } from '../Budget/BudgetApi.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
-import { stateAfterCheckpoint } from '../Story/Advance.js'
-import {
-  STEP_BACK_TARGETS,
-  assertHumanHand,
-  assertStepBack,
-  assertStepBackReason,
-  checkpointsAheadOf,
-} from '../Story/StepBack.js'
-import { assertDoneEarned } from '../Story/DoneGate.js'
-import { assertStoryHand } from '../Story/StoryHand.js'
-import { scoreCompleteness } from '../Story/Completeness.js'
+import { createStoryApi } from '../Story/StoryApi.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
 import type { CascadeStep } from '../Checkpoint/ReviewCascade.js'
-import { buildStoryReport } from './StoryReport.js'
+import { mapApiError } from './ApiErrorMap.js'
 import { isConfinedPath } from '../File/ConfinedPath.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
-
-const budgetPolicySchema = z.object({
-  capUsd: z.number().positive(),
-  conduct: z.enum(['stop', 'downgrade', 'reroute']),
-  downgradeModel: z.string(),
-  rerouteBaseUrl: z.string().nullable(),
-})
 
 const projectDraftSchema = z.object({
   slug: z
@@ -67,89 +37,19 @@ const projectDraftSchema = z.object({
   colour: z.string().min(1),
 })
 
-const cardSchema = z.object({
-  title: z.string().trim().min(1).max(200),
-  body: z.string().trim().min(1).max(8000),
-})
-
 const epicDraftSchema = z.object({
   projectId: z.number().int().positive(),
   title: z.string().min(1),
   businessIntent: z.string().min(1),
 })
 
-const storyDraftSchema = z.object({
-  epicId: z.number().int().positive(),
-  title: z.string().min(1),
-  body: z.string().min(1),
-})
-
-const twinDraftSchema = z.object({
-  title: z.string().min(1),
-  body: z.string().min(1),
-})
-
 const identifierSchema = z.coerce.number().int().positive()
-
-const dependencySchema = z.object({ blockingStoryId: z.number().int().positive() })
 
 const hookPayloadSchema = z.object({
   session_id: z.string().min(1),
   hook_event_name: z.string().min(1),
   tool_name: z.string().nullish(),
   tool_input: z.object({ file_path: z.string().nullish() }).passthrough().nullish(),
-})
-
-const checkpointDraftSchema = z.object({
-  name: z.enum(CHECKPOINT_SEQUENCE),
-  evidencePath: z.string(),
-})
-
-const stepBackSchema = z.object({
-  state: z.enum(STEP_BACK_TARGETS),
-  reason: z.string(),
-  claudeSessionId: z.string().nullish(),
-  agentName: z.string().nullish(),
-})
-
-const doneSchema = z.object({
-  claudeSessionId: z.string().nullish(),
-  agentName: z.string().nullish(),
-})
-
-const estimateSchema = z.object({ points: z.number() })
-
-const rolloutSchema = z.object({ percent: z.number() })
-
-const lensSchema = z.object({
-  lens: z.enum(REVIEW_LENS_SEQUENCE),
-  claudeSessionId: z.string().min(1),
-})
-
-const zoneDraftSchema = z.object({
-  projectId: z.number().int().positive(),
-  pathPrefix: z.string().min(1),
-  name: z.string().min(1),
-  colour: z.string().min(1),
-})
-
-const zoneSummarySchema = z.object({
-  projectId: z.number().int().positive(),
-  pathPrefix: z.string().min(1),
-  summary: z.string().min(1),
-})
-
-const criterionDraftSchema = z.object({
-  reference: z.string().min(1),
-  statement: z.string().min(1),
-  persona: z.string().nullish(),
-  expectsRefusal: z.boolean().optional(),
-})
-
-const criterionProofSchema = z.object({ evidencePath: z.string() })
-
-const dispatchSchema = z.object({
-  phase: z.enum(AGENT_PHASE_SEQUENCE),
 })
 
 export type BoardApiInput = {
@@ -198,49 +98,9 @@ export function createBoardApi({
     }),
   )
 
-  api.onError((error, context) => {
-    if (error instanceof StoryNotFoundError || error instanceof EpicNotFoundError) {
-      return context.json({ error: error.name, message: error.message }, 404)
-    }
-    if (error instanceof ZoneNotFoundError) {
-      return context.json({ error: error.name, message: error.message }, 404)
-    }
-    if (error instanceof CriterionNotFoundError) {
-      return context.json({ error: error.name, message: error.message }, 404)
-    }
-    if (error instanceof ScopeTakenError) {
-      return context.json({ error: error.name, message: error.message, heldBy: error.heldBy }, 409)
-    }
-    if (
-      error instanceof ScopeViolationError ||
-      error instanceof StoryViolationError ||
-      error instanceof CheckpointViolationError ||
-      error instanceof ZoneViolationError ||
-      error instanceof CriterionViolationError ||
-      error instanceof DispatchViolationError ||
-      error instanceof BudgetViolationError ||
-      error instanceof EvidencePathRefusedError ||
-      error instanceof EvidenceShapeRefusedError ||
-      error instanceof EvidenceUnreadableError
-    ) {
-      return context.json({ error: error.name, message: error.message }, 409)
-    }
-    return context.json({ error: 'UnexpectedError' }, 500)
-  })
+  api.onError(mapApiError)
 
-  api.get('/api/settings/budget', (context) =>
-    context.json({ policy: budget.readPolicy(), spentUsd: budget.spentToday() }),
-  )
-
-  api.put('/api/settings/budget', async (context) => {
-    const policy = budgetPolicySchema.safeParse(await context.req.json().catch(() => null))
-    if (!policy.success) {
-      return context.json({ error: 'InvalidBudgetPolicy', issues: policy.error.issues }, 422)
-    }
-    const written = budget.writePolicy(policy.data)
-    events.publish({ name: 'budget.policy.written', payload: { ...written } })
-    return context.json(written)
-  })
+  api.route('/', createBudgetApi({ budget, events }))
 
   api.post('/api/projects', async (context) => {
     const draft = projectDraftSchema.safeParse(await context.req.json().catch(() => null))
@@ -292,232 +152,25 @@ export function createBoardApi({
     return context.json(repository.listEpics(projectId.data))
   })
 
-  api.post('/api/stories', async (context) => {
-    const draft = storyDraftSchema.safeParse(await context.req.json().catch(() => null))
-    if (!draft.success) {
-      return context.json({ error: 'InvalidStoryDraft', issues: draft.error.issues }, 422)
-    }
-    const story = repository.writeStory(draft.data)
-    events.publish({ name: 'story.written', payload: { ...story } })
-    return context.json(story, 201)
-  })
+  api.route(
+    '/',
+    createStoryApi({
+      repository,
+      agentSessions,
+      checkpoints,
+      criteria,
+      events,
+      dispatcher,
+      cleanUpAfterMerge,
+    }),
+  )
 
+  api.route(
+    '/',
+    createCheckpointApi({ repository, checkpoints, events, advanceReviewCascade }),
+  )
 
-  api.put('/api/stories/:id', async (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const draft = cardSchema.safeParse(await context.req.json().catch(() => null))
-    if (!draft.success) {
-      return context.json({ error: 'InvalidCard', issues: draft.error.issues }, 422)
-    }
-    const story = repository.editStory(storyId.data, draft.data)
-    events.publish({ name: 'story.edited', payload: { ...story } })
-    return context.json(story)
-  })
-
-  api.post('/api/stories/:id/twin', async (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const draft = twinDraftSchema.safeParse(await context.req.json().catch(() => null))
-    if (!draft.success) {
-      return context.json({ error: 'InvalidTwinDraft', issues: draft.error.issues }, 422)
-    }
-    return context.json(repository.writeTwin({ storyId: storyId.data, ...draft.data }), 201)
-  })
-
-  api.post('/api/stories/:id/backlog', (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    return context.json(repository.sendToBacklog(storyId.data))
-  })
-
-  api.get('/api/stories/backlog', (context) => context.json(repository.listBacklog()))
-
-  api.post('/api/stories/:id/dependencies', async (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const body = dependencySchema.safeParse(await context.req.json().catch(() => null))
-    if (!body.success) {
-      return context.json({ error: 'InvalidDependency', issues: body.error.issues }, 422)
-    }
-    repository.addDependency({ blockedStoryId: storyId.data, blockingStoryId: body.data.blockingStoryId })
-    return context.json({ blockers: repository.listBlockers(storyId.data) }, 201)
-  })
-
-  api.get('/api/stories/:id/blockers', (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    repository.findStory(storyId.data)
-    return context.json({ blockers: repository.listBlockers(storyId.data) })
-  })
-
-  api.post('/api/stories/:id/done', async (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const hand = doneSchema.safeParse(await context.req.json().catch(() => ({})))
-    if (!hand.success) {
-      return context.json({ error: 'InvalidDoneRequest', issues: hand.error.issues }, 422)
-    }
-    assertHumanHand(hand.data, 'Clore une story et effacer son worktree')
-    const story = repository.findStory(storyId.data)
-    assertStoryHand(story.reference, repository.assigneeOf(story.epicId), operatorOf(context))
-    assertDoneEarned(story.reference, {
-      state: story.state,
-      definitionOfDone: checkpoints.definitionOfDone(story.id),
-      cascade: checkpoints.reviewCascade(story.id),
-      unresolvedFindings: checkpoints.listUnresolvedFindings(story.id),
-    })
-    const unblocked = repository.markDoneAndUnblock(storyId.data)
-    for (const story of unblocked) {
-      events.publish({ name: 'story.unblocked', payload: { ...story } })
-    }
-    const cleanUp = cleanUpAfterMerge(storyId.data)
-    events.publish({ name: 'story.merged', payload: { storyId: storyId.data, ...cleanUp } })
-    return context.json({ story: repository.findStory(storyId.data), unblocked, cleanUp })
-  })
-
-  api.post('/api/stories/:id/checkpoints', async (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const draft = checkpointDraftSchema.safeParse(await context.req.json().catch(() => null))
-    if (!draft.success) {
-      return context.json({ error: 'InvalidCheckpointDraft', issues: draft.error.issues }, 422)
-    }
-    const checkpoint = checkpoints.proveCheckpoint({ storyId: storyId.data, ...draft.data })
-    events.publish({ name: 'checkpoint.proven', payload: { ...checkpoint } })
-    const moved = stateAfterCheckpoint(draft.data.name)
-    if (moved !== null) {
-      const story = repository.moveToState(storyId.data, moved)
-      events.publish({ name: 'story.moved', payload: { storyId: story.id, state: story.state } })
-    }
-    if (draft.data.name !== 'verified') {
-      return context.json(checkpoint, 201)
-    }
-    const cascade = await advanceReviewCascade(storyId.data)
-    events.publish({ name: 'review.cascade', payload: { storyId: storyId.data, ...cascade } })
-    return context.json({ ...checkpoint, cascade }, 201)
-  })
-
-  api.post('/api/stories/:id/step-back', async (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const body = stepBackSchema.safeParse(await context.req.json().catch(() => null))
-    if (!body.success) {
-      return context.json({ error: 'InvalidStepBack', issues: body.error.issues }, 422)
-    }
-    assertHumanHand(body.data, 'Reculer une story')
-    const story = repository.findStory(storyId.data)
-    const reason = assertStepBackReason(story.reference, body.data.reason)
-    assertStepBack(story.reference, story.state, body.data.state)
-    const revokedCheckpoints = checkpoints.revokeCheckpoints(
-      story.id,
-      checkpointsAheadOf(body.data.state),
-    )
-    const stepBack = repository.stepBack({
-      storyId: story.id,
-      toState: body.data.state,
-      reason,
-      askedBy: operatorOf(context),
-      revokedCheckpoints,
-    })
-    events.publish({
-      name: 'story.stepped_back',
-      payload: { reference: story.reference, ...stepBack },
-    })
-    events.publish({
-      name: 'story.moved',
-      payload: { storyId: story.id, state: stepBack.toState },
-    })
-    return context.json({ story: repository.findStory(story.id), stepBack })
-  })
-
-  api.post('/api/stories/:id/plan/accept', (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const story = repository.findStory(storyId.data)
-    if (story.state !== 'plan_review') {
-      return context.json({ error: 'PlanNotSettled', state: story.state }, 409)
-    }
-    const building = repository.startBuilding(storyId.data)
-    events.publish({ name: 'story.moved', payload: { storyId: building.id, state: building.state } })
-    return context.json(building)
-  })
-
-  api.get('/api/stories/:id/ticket', (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const asked = repository.findStory(storyId.data)
-    const functional =
-      asked.twinOfStoryId === null ? asked : repository.findStory(asked.twinOfStoryId)
-    const ticket: Ticket = {
-      functional,
-      tests: repository.findTwin(functional.id),
-      criteria: criteria.listCriteria(functional.id),
-      dod: checkpoints.definitionOfDone(functional.id),
-      cascade: checkpoints.reviewCascade(functional.id),
-      blockers: repository.listBlockers(functional.id),
-      stepBacks: repository.listStepBacks(functional.id),
-      completeness: scoreCompleteness({
-        title: functional.title,
-        body: functional.body,
-        criteria: criteria.listCriteria(functional.id).map((criterion) => criterion.reference),
-        hasTwin: repository.findTwin(functional.id) !== null,
-      }),
-    }
-    return context.json(ticket)
-  })
-
-  api.post('/api/stories/:id/criteria', async (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const draft = criterionDraftSchema.safeParse(await context.req.json().catch(() => null))
-    if (!draft.success) {
-      return context.json({ error: 'InvalidCriterionDraft', issues: draft.error.issues }, 422)
-    }
-    return context.json(criteria.declareCriterion({ storyId: storyId.data, ...draft.data }), 201)
-  })
-
-  api.post('/api/criteria/:id/satisfy', async (context) => {
-    const criterionId = identifierSchema.safeParse(context.req.param('id'))
-    if (!criterionId.success) {
-      return context.json({ error: 'InvalidCriterionIdentifier' }, 422)
-    }
-    const body = criterionProofSchema.safeParse(await context.req.json().catch(() => null))
-    if (!body.success) {
-      return context.json({ error: 'InvalidCriterionProof', issues: body.error.issues }, 422)
-    }
-    return context.json(criteria.satisfyCriterion(criterionId.data, body.data.evidencePath))
-  })
-
-  api.get('/api/stories/:id/dod', (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    return context.json(checkpoints.definitionOfDone(storyId.data))
-  })
+  api.route('/', createCriterionApi({ criteria }))
 
   api.post('/api/hooks', async (context) => {
     const payload = hookPayloadSchema.safeParse(await context.req.json().catch(() => null))
@@ -562,123 +215,6 @@ export function createBoardApi({
     return context.json({ recorded: true }, 202)
   })
 
-  api.post('/api/stories/:id/estimate', async (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const body = estimateSchema.safeParse(await context.req.json().catch(() => null))
-    if (!body.success) {
-      return context.json({ error: 'InvalidEstimate', issues: body.error.issues }, 422)
-    }
-    return context.json(repository.estimate(storyId.data, body.data.points))
-  })
-
-  api.post('/api/stories/:id/rollout', async (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const body = rolloutSchema.safeParse(await context.req.json().catch(() => null))
-    if (!body.success) {
-      return context.json({ error: 'InvalidRollout', issues: body.error.issues }, 422)
-    }
-    return context.json(repository.rollOut(storyId.data, body.data.percent))
-  })
-
-  api.post('/api/stories/:id/merge-conflict', (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    return context.json(repository.markMergeConflict(storyId.data))
-  })
-
-  api.delete('/api/stories/:id/merge-conflict', (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    return context.json(repository.clearMergeConflict(storyId.data))
-  })
-
-  api.get('/api/stories/:id/review', (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    return context.json(checkpoints.reviewCascade(storyId.data))
-  })
-
-  api.post('/api/stories/:id/review', async (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const body = lensSchema.safeParse(await context.req.json().catch(() => null))
-    if (!body.success) {
-      return context.json({ error: 'InvalidReviewPass', issues: body.error.issues }, 422)
-    }
-    return context.json(
-      checkpoints.startLens(storyId.data, body.data.lens, body.data.claudeSessionId),
-      201,
-    )
-  })
-
-  api.post('/api/stories/:id/review/:lens/pass', async (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const lens = z.enum(REVIEW_LENS_SEQUENCE).safeParse(context.req.param('lens'))
-    if (!lens.success) {
-      return context.json({ error: 'InvalidReviewLens' }, 422)
-    }
-    const passed = checkpoints.passLens(storyId.data, lens.data)
-    const cascade = await advanceReviewCascade(storyId.data)
-    events.publish({ name: 'review.cascade', payload: { storyId: storyId.data, ...cascade } })
-    return context.json({ ...passed, cascade })
-  })
-
-  api.post('/api/stories/:id/dispatch', async (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    const body = dispatchSchema.safeParse(await context.req.json().catch(() => null))
-    if (!body.success) {
-      return context.json({ error: 'InvalidDispatchOrder', issues: body.error.issues }, 422)
-    }
-    const dispatched = await dispatcher.dispatch({ storyId: storyId.data, phase: body.data.phase })
-    events.publish({
-      name: 'session.dispatched',
-      payload: {
-        storyId: dispatched.storyId,
-        phase: dispatched.phase,
-        agentName: dispatched.agentName,
-        claudeSessionId: dispatched.claudeSessionId,
-      },
-    })
-    return context.json(dispatched, 201)
-  })
-
-  api.get('/api/stories/:id/report', (context) => {
-    const storyId = identifierSchema.safeParse(context.req.param('id'))
-    if (!storyId.success) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    repository.findStory(storyId.data)
-    return context.json(
-      buildStoryReport({
-        storyId: storyId.data,
-        stories: repository,
-        checkpoints,
-        criteria,
-        sessions: agentSessions,
-      }),
-    )
-  })
-
   api.get('/api/sessions/stale', (context) =>
     context.json({
       staleAfterSeconds: STALE_AFTER_SECONDS,
@@ -701,31 +237,7 @@ export function createBoardApi({
 
   api.get('/api/board/phases', (context) => context.json(PHASE_CONTRACTS))
 
-  api.post('/api/zones', async (context) => {
-    const draft = zoneDraftSchema.safeParse(await context.req.json().catch(() => null))
-    if (!draft.success) {
-      return context.json({ error: 'InvalidZoneDraft', issues: draft.error.issues }, 422)
-    }
-    return context.json(zones.declareZone(draft.data), 201)
-  })
-
-  api.post('/api/zones/summary', async (context) => {
-    const body = zoneSummarySchema.safeParse(await context.req.json().catch(() => null))
-    if (!body.success) {
-      return context.json({ error: 'InvalidZoneSummary', issues: body.error.issues }, 422)
-    }
-    return context.json(
-      zones.summariseZone(body.data.projectId, body.data.pathPrefix, body.data.summary),
-    )
-  })
-
-  api.get('/api/projects/:id/zones', (context) => {
-    const projectId = identifierSchema.safeParse(context.req.param('id'))
-    if (!projectId.success) {
-      return context.json({ error: 'InvalidProjectIdentifier' }, 422)
-    }
-    return context.json(zones.overview(projectId.data))
-  })
+  api.route('/', createZoneApi({ zones }))
 
   api.get('/api/files/conflicts', (context) => context.json(agentSessions.listConflictingPaths()))
 
