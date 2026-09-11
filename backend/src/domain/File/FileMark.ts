@@ -19,7 +19,7 @@ export type FileReading = {
   touches: readonly FileTouch[]
 }
 
-const WORKING: readonly StoryState[] = [
+export const WORKING_STATES: readonly StoryState[] = [
   'drafting',
   'backlog',
   'architecture',
@@ -30,7 +30,7 @@ const WORKING: readonly StoryState[] = [
   'escalated',
 ]
 
-const READY: readonly StoryState[] = ['shipping', 'flagged']
+export const READY_STATES: readonly StoryState[] = ['shipping', 'flagged']
 
 function referencesOf(touches: readonly FileTouch[]): readonly string[] {
   return [...new Set(touches.map((touch) => touch.storyReference))].sort()
@@ -59,7 +59,7 @@ export function markOfFile({ onDisk, touches }: FileReading): FileVerdict {
     return { mark: 'quiet', said: '', byReferences: [] }
   }
 
-  const working = touches.filter((touch) => WORKING.includes(touch.storyState))
+  const working = touches.filter((touch) => WORKING_STATES.includes(touch.storyState))
   if (working.length > 0) {
     const who = joined(referencesOf(working))
     const agent = agentOf(working)
@@ -70,7 +70,7 @@ export function markOfFile({ onDisk, touches }: FileReading): FileVerdict {
     return verdictOf(onDisk ? 'planned' : 'created', said, working)
   }
 
-  const ready = touches.filter((touch) => READY.includes(touch.storyState))
+  const ready = touches.filter((touch) => READY_STATES.includes(touch.storyState))
   if (ready.length > 0) {
     const who = joined(referencesOf(ready))
     const verb = referencesOf(ready).length === 1 ? 'l a fini' : 'l ont fini'

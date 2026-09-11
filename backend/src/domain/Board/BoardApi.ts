@@ -11,6 +11,8 @@ import {
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
 import { reapStaleSessions, STALE_AFTER_SECONDS } from '../Agent/Heartbeat.js'
+import { AGENT_PHASE_SEQUENCE } from '../Agent/AgentSession.js'
+import { isWriteTool } from '../Agent/ToolName.js'
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
 import { CHECKPOINT_SEQUENCE, REVIEW_LENS_SEQUENCE } from '../Checkpoint/Checkpoint.js'
 import { CheckpointViolationError } from '../Checkpoint/CheckpointViolation.js'
@@ -93,8 +95,6 @@ const hookPayloadSchema = z.object({
   tool_input: z.object({ file_path: z.string().nullish() }).passthrough().nullish(),
 })
 
-const FILE_TOUCHING_TOOLS: readonly string[] = ['Edit', 'Write', 'NotebookEdit']
-
 const checkpointDraftSchema = z.object({
   name: z.enum(CHECKPOINT_SEQUENCE),
   evidencePath: z.string(),
@@ -135,7 +135,7 @@ const criterionDraftSchema = z.object({
 const criterionProofSchema = z.object({ evidencePath: z.string() })
 
 const dispatchSchema = z.object({
-  phase: z.enum(['spec', 'architecture', 'tdd', 'code', 'gate', 'review', 'ship']),
+  phase: z.enum(AGENT_PHASE_SEQUENCE),
 })
 
 export type BoardApiInput = {
@@ -506,7 +506,7 @@ export function createBoardApi({
       hook.hook_event_name === 'PostToolUse' &&
       hook.tool_name !== null &&
       hook.tool_name !== undefined &&
-      FILE_TOUCHING_TOOLS.includes(hook.tool_name) &&
+      isWriteTool(hook.tool_name) &&
       path !== null &&
       path !== undefined
     if (!touchesAFile) {

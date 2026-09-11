@@ -29,7 +29,7 @@ describe('buildHookSettings', () => {
   it('declares the hook on the tools that touch a file', () => {
     const settings = buildHookSettings({ port: 8830, token: TOKEN })
 
-    expect(JSON.stringify(settings)).toContain('Edit|Write|NotebookEdit')
+    expect(JSON.stringify(settings)).toContain('Write|Edit|MultiEdit|NotebookEdit')
   })
 
   it('declares it as a PostToolUse http hook', () => {

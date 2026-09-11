@@ -1,4 +1,5 @@
-const FILE_TOUCHING_MATCHER = 'Edit|Write|NotebookEdit'
+import { WRITE_TOOL_MATCHER } from '../../domain/Agent/ToolName.js'
+
 const HOOK_TIMEOUT_SECONDS = 2
 
 export type HookSettingsInput = {
@@ -11,7 +12,7 @@ export function buildHookSettings({ port, token }: HookSettingsInput): Record<st
     hooks: {
       PostToolUse: [
         {
-          matcher: FILE_TOUCHING_MATCHER,
+          matcher: WRITE_TOOL_MATCHER,
           hooks: [
             {
               type: 'http',

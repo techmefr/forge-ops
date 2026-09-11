@@ -1,9 +1,10 @@
 import { relative, isAbsolute, resolve } from 'node:path'
 import type { ScopeReservation } from '../../domain/Foremerge/ForemergeRepository.js'
 import { decideOnWrite, type WriteDecision } from '../../domain/Foremerge/ScopeGuard.js'
+import { isWriteTool, WRITE_TOOLS } from '../../domain/Agent/ToolName.js'
 import { decideOnPhasePayload } from './PhaseDecision.js'
 
-export const WRITING_TOOLS: readonly string[] = ['Write', 'Edit', 'MultiEdit', 'NotebookEdit']
+export const WRITING_TOOLS: readonly string[] = WRITE_TOOLS
 
 export type ScopeQuestion = {
   reference: string | null
@@ -74,7 +75,7 @@ export function decideOnScopePayload(
     return { allowed: false, reason: 'le hook de perimetre n a pas su lire ce que Claude Code lui a envoye' }
   }
   const tool = toolOf(payload)
-  if (tool === null || !WRITING_TOOLS.includes(tool)) {
+  if (tool === null || !isWriteTool(tool)) {
     return ALLOWED
   }
   const path = pathOf(payload)
