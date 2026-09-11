@@ -86,6 +86,51 @@ export class EpicTakenError extends StoryViolationError {
   }
 }
 
+export class StepBackReasonRequiredError extends StoryViolationError {
+  constructor(reference: string) {
+    super(
+      `Reculer la story ${reference} exige une raison ecrite, un board sans raison perd sa valeur d audit`,
+      'StepBackReasonRequiredError',
+    )
+  }
+}
+
+export class StepBackFromDoneError extends StoryViolationError {
+  constructor(reference: string) {
+    super(
+      `La story ${reference} est fusionnee : on annule un merge par une story de revert, pas en reculant la carte`,
+      'StepBackFromDoneError',
+    )
+  }
+}
+
+export class StepBackNotBackwardError extends StoryViolationError {
+  constructor(reference: string, from: string, to: string) {
+    super(
+      `Reculer la story ${reference} de ${from} vers ${to} n est pas un retour en arriere`,
+      'StepBackNotBackwardError',
+    )
+  }
+}
+
+export class StepBackOffPipelineError extends StoryViolationError {
+  constructor(reference: string, state: string) {
+    super(
+      `La story ${reference} est en ${state}, hors de la sequence : aucun retour en arriere a calculer`,
+      'StepBackOffPipelineError',
+    )
+  }
+}
+
+export class AgentStepBackRefusedError extends StoryViolationError {
+  constructor(named: string) {
+    super(
+      `Reculer une story est une decision humaine, ${named} ne la prend pas`,
+      'AgentStepBackRefusedError',
+    )
+  }
+}
+
 export class EmptyCardError extends StoryViolationError {
   constructor(reference: string) {
     super(`La carte ${reference} a besoin d un titre et d un corps`, 'EmptyCardError')

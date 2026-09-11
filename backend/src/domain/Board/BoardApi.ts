@@ -28,6 +28,13 @@ import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import { BudgetViolationError } from '../Budget/BudgetViolation.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
 import { stateAfterCheckpoint } from '../Story/Advance.js'
+import {
+  STEP_BACK_TARGETS,
+  assertHumanHand,
+  assertStepBack,
+  assertStepBackReason,
+  checkpointsAheadOf,
+} from '../Story/StepBack.js'
 import { scoreCompleteness } from '../Story/Completeness.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
 import type { CascadeStep } from '../Checkpoint/ReviewCascade.js'
@@ -90,6 +97,13 @@ const FILE_TOUCHING_TOOLS: readonly string[] = ['Edit', 'Write', 'NotebookEdit']
 const checkpointDraftSchema = z.object({
   name: z.enum(CHECKPOINT_SEQUENCE),
   evidencePath: z.string(),
+})
+
+const stepBackSchema = z.object({
+  state: z.enum(STEP_BACK_TARGETS),
+  reason: z.string(),
+  claudeSessionId: z.string().nullish(),
+  agentName: z.string().nullish(),
 })
 
 const estimateSchema = z.object({ points: z.number() })
@@ -370,6 +384,41 @@ export function createBoardApi({
     return context.json({ ...checkpoint, cascade }, 201)
   })
 
+  api.post('/api/stories/:id/step-back', async (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const body = stepBackSchema.safeParse(await context.req.json().catch(() => null))
+    if (!body.success) {
+      return context.json({ error: 'InvalidStepBack', issues: body.error.issues }, 422)
+    }
+    assertHumanHand(body.data)
+    const story = repository.findStory(storyId.data)
+    const reason = assertStepBackReason(story.reference, body.data.reason)
+    assertStepBack(story.reference, story.state, body.data.state)
+    const revokedCheckpoints = checkpoints.revokeCheckpoints(
+      story.id,
+      checkpointsAheadOf(body.data.state),
+    )
+    const stepBack = repository.stepBack({
+      storyId: story.id,
+      toState: body.data.state,
+      reason,
+      askedBy: operatorOf(context),
+      revokedCheckpoints,
+    })
+    events.publish({
+      name: 'story.stepped_back',
+      payload: { reference: story.reference, ...stepBack },
+    })
+    events.publish({
+      name: 'story.moved',
+      payload: { storyId: story.id, state: stepBack.toState },
+    })
+    return context.json({ story: repository.findStory(story.id), stepBack })
+  })
+
   api.post('/api/stories/:id/plan/accept', (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
     if (!storyId.success) {
@@ -399,6 +448,7 @@ export function createBoardApi({
       dod: checkpoints.definitionOfDone(functional.id),
       cascade: checkpoints.reviewCascade(functional.id),
       blockers: repository.listBlockers(functional.id),
+      stepBacks: repository.listStepBacks(functional.id),
       completeness: scoreCompleteness({
         title: functional.title,
         body: functional.body,
