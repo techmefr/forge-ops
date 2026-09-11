@@ -140,7 +140,10 @@ export function startBoardServer({
   const events = createEventBus()
   const allowedCheckoutRoots = [...checkoutRoots, resolve(worktreeRoot)]
   const stories = createStoryRepository(db, { checkoutRoots: allowedCheckoutRoots })
-  const readEvidence = createEvidenceFileReader({ root: process.cwd() })
+  const readEvidence = createEvidenceFileReader({
+    root: process.cwd(),
+    evidenceRoot: join('.claude', 'evidence'),
+  })
   const sessions = createAgentSessionRepository(db)
   const abandoned = sessions.abandonRunningSessions()
   if (abandoned > 0) {
