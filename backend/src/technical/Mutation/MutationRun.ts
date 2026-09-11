@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
+import { resolve, sep } from 'node:path'
 import {
   MUTATION_PER_FILE_CAP,
   MUTATION_RUN_CAP,
@@ -13,6 +14,7 @@ export type TestVerdict = 'passed' | 'failed'
 export type MutationRunInput = {
   paths: readonly string[]
   runTests: () => TestVerdict
+  root?: string
   perFileCap?: number
   runCap?: number
 }
@@ -54,6 +56,14 @@ function guardOnce(): void {
   }
 }
 
+function isInsideRoot(path: string, root: string): boolean {
+  if (path.includes(String.fromCharCode(0))) {
+    return false
+  }
+  const resolved = resolve(root, path)
+  return resolved !== root && resolved.startsWith(root.endsWith(sep) ? root : root + sep)
+}
+
 function readSource(path: string): string | null {
   try {
     return readFileSync(path, 'utf-8')
@@ -67,10 +77,15 @@ export function runMutationCheck({
   runTests,
   perFileCap = MUTATION_PER_FILE_CAP,
   runCap = MUTATION_RUN_CAP,
+  root = process.cwd(),
 }: MutationRunInput): readonly MutationOutcome[] {
   guardOnce()
   const outcomes: MutationOutcome[] = []
+  const confinedRoot = resolve(root)
   for (const path of paths) {
+    if (!isInsideRoot(path, confinedRoot)) {
+      continue
+    }
     const original = readSource(path)
     if (original === null) {
       continue

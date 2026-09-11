@@ -1,3 +1,5 @@
+import { assertConfinedPath, ConfinedPathRefusedError } from '../File/ConfinedPath.js'
+
 export const EVIDENCE_ROOT = '.claude/evidence/'
 
 export class EvidencePathRefusedError extends Error {
@@ -8,29 +10,22 @@ export class EvidencePathRefusedError extends Error {
 }
 
 export function assertEvidencePath(path: string): string {
-  const trimmed = path.trim()
+  let confined: string
+  try {
+    confined = assertConfinedPath(path)
+  } catch (refusal) {
+    if (refusal instanceof ConfinedPathRefusedError) {
+      throw new EvidencePathRefusedError(path, refusal.reason)
+    }
+    throw refusal
+  }
 
-  if (trimmed === '') {
-    throw new EvidencePathRefusedError(path, 'il est vide')
-  }
-  if (trimmed.includes(String.fromCharCode(0))) {
-    throw new EvidencePathRefusedError(path, 'il porte un octet nul')
-  }
-  if (trimmed.includes('\\')) {
-    throw new EvidencePathRefusedError(path, 'les preuves se referencent avec des barres obliques')
-  }
-  if (trimmed.startsWith('/')) {
-    throw new EvidencePathRefusedError(path, 'il est absolu')
-  }
-  if (!trimmed.startsWith(EVIDENCE_ROOT)) {
+  if (!confined.startsWith(EVIDENCE_ROOT)) {
     throw new EvidencePathRefusedError(path, `il sort de ${EVIDENCE_ROOT}`)
   }
-  if (trimmed.split('/').includes('..')) {
-    throw new EvidencePathRefusedError(path, `il remonte au-dessus de ${EVIDENCE_ROOT}`)
-  }
-  if (trimmed === EVIDENCE_ROOT || trimmed.endsWith('/')) {
+  if (confined === EVIDENCE_ROOT) {
     throw new EvidencePathRefusedError(path, 'il designe un dossier, pas un fichier')
   }
 
-  return trimmed
+  return confined
 }

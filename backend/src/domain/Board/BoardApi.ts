@@ -40,6 +40,7 @@ import { scoreCompleteness } from '../Story/Completeness.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
 import type { CascadeStep } from '../Checkpoint/ReviewCascade.js'
 import { buildStoryReport } from './StoryReport.js'
+import { isConfinedPath } from '../File/ConfinedPath.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 
 const budgetPolicySchema = z.object({
@@ -511,6 +512,10 @@ export function createBoardApi({
       path !== undefined
     if (!touchesAFile) {
       return context.json({ recorded: false }, 202)
+    }
+
+    if (!isConfinedPath(path)) {
+      return context.json({ error: 'UnconfinedFilePath', recorded: false }, 422)
     }
 
     if (agentSessions.findByClaudeSessionId(hook.session_id) === null) {
