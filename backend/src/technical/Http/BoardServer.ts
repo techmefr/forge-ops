@@ -14,6 +14,7 @@ import { DEFAULT_DISPATCH_RATE } from '../../domain/Dispatch/DispatchRate.js'
 import { censusOfTree } from '../Tamper/TestTreeCensus.js'
 import { createEvidenceFileReader } from '../Evidence/EvidenceFileReader.js'
 import { createCommandTestRunner, runMutationCheck } from '../Mutation/MutationRun.js'
+import { runRedReport } from '../RedProof/RedProofRun.js'
 import { createBoardApi } from '../../domain/Board/BoardApi.js'
 import { advanceCascade } from '../../domain/Checkpoint/ReviewCascade.js'
 import { createIdentityRepository } from '../../domain/Identity/IdentityRepository.js'
@@ -53,6 +54,8 @@ import { boardOrigins } from '../Auth/BoardOrigin.js'
 const DEFAULT_SESSION_CAP = 5
 
 const DEFAULT_MUTATION_TEST_COMMAND = 'npx vitest run'
+
+const DEFAULT_RED_TEST_COMMAND = 'npx vitest run --reporter=json'
 
 type ServerType = ReturnType<typeof serve>
 
@@ -165,6 +168,11 @@ export function startBoardServer({
     checkpoints: createCheckpointRepository(db, {
       takeCensus: () => censusOfTree(testsDir),
       readEvidence,
+      surveyRed: () =>
+        runRedReport({
+          command: process.env.FORGE_RED_TEST_COMMAND ?? DEFAULT_RED_TEST_COMMAND,
+          cwd: process.cwd(),
+        }),
       surveyMutations: (paths) =>
         runMutationCheck({
           paths,
