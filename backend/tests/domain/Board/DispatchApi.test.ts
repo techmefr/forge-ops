@@ -1,4 +1,9 @@
-import { createForemergeRepository } from '../../../src/domain/Foremerge/ForemergeRepository.js'
+import type Database from 'better-sqlite3'
+import {
+  createForemergeRepository,
+  type ForemergeRepository,
+} from '../../../src/domain/Foremerge/ForemergeRepository.js'
+import type { CheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -18,6 +23,11 @@ import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 let api: Hono
 let stories: StoryRepository
 let storyId: number
+let storyReference: string
+let epicId: number
+let db: Database.Database
+let foremerge: ForemergeRepository
+let checkpoints: CheckpointRepository
 
 function dispatch(id: number, body: unknown): Promise<Response> {
   return api.request(`/api/stories/${id}/dispatch`, {
@@ -28,8 +38,12 @@ function dispatch(id: number, body: unknown): Promise<Response> {
 }
 
 beforeEach(() => {
-  const db = openDatabase(':memory:')
+  db = openDatabase(':memory:')
   stories = createStoryRepository(db)
+  foremerge = createForemergeRepository(db, { stories })
+  checkpoints = createCheckpointRepository(db, {
+    takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
+  })
   const criteria = createCriterionRepository(db)
   const project = stories.createProject({
     slug: 'forge',
@@ -39,6 +53,7 @@ beforeEach(() => {
     colour: '#ff3b00',
   })
   const epic = stories.createEpic({ projectId: project.id, title: 'CRUD Mail', businessIntent: 'gerer' })
+  epicId = epic.id
   const story = stories.writeStory({
     epicId: epic.id,
     title: 'Visualiser la liste des mails du client',
@@ -51,6 +66,7 @@ beforeEach(() => {
     ].join('\n'),
   })
   storyId = story.id
+  storyReference = story.reference
   stories.writeTwin({ storyId, title: 'tests visualiser', body: 'cas...' })
   criteria.declareCriterion({ storyId, reference: 'AC-1', statement: 'le comportement attendu' })
   criteria.declareCriterion({ storyId, reference: 'AC-2', statement: 'le cas vide est annonce' })
@@ -104,6 +120,33 @@ describe('POST /api/stories/:id/dispatch', () => {
     const response = await dispatch(storyId, { phase: 'deployer' })
 
     expect(response.status).toBe(422)
+  })
+
+  it('reports a scope another story holds as a conflict, not a server error', async () => {
+    checkpoints.proveCheckpoint({
+      storyId,
+      name: 'spec_done',
+      evidencePath: `.claude/evidence/${storyReference}/spec.md`,
+    })
+    const neighbour = stories.writeStory({
+      epicId,
+      title: 'Supprimer un mail du client',
+      body: 'En tant que gestionnaire, je veux supprimer un mail devenu inutile.',
+    })
+    foremerge.reserve({ storyId: neighbour.id, pathPrefix: 'backend/src', symbols: [] })
+    db.prepare('INSERT INTO scope_reservation (story_id, path_prefix, symbols) VALUES (?, ?, ?)').run(
+      storyId,
+      'backend/src/domain/Mail',
+      '',
+    )
+
+    const response = await dispatch(storyId, { phase: 'architecture' })
+
+    expect(response.status).toBe(409)
+    await expect(response.json()).resolves.toMatchObject({
+      error: 'ScopeTakenError',
+      heldBy: neighbour.reference,
+    })
   })
 
   it('reports an unknown story as not found', async () => {
