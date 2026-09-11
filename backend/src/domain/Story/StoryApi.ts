@@ -12,7 +12,8 @@ import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
 import type { Dispatcher } from '../Dispatch/Dispatcher.js'
 import { scoreCompleteness } from './Completeness.js'
-import { assertDoneEarned, assertStoryHand } from './DoneGate.js'
+import { assertDoneEarned } from './DoneGate.js'
+import { assertStoryHand } from './StoryHand.js'
 import {
   STEP_BACK_TARGETS,
   assertHumanHand,
