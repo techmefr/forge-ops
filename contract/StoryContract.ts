@@ -30,6 +30,31 @@ export const STEP_BACK_TARGETS = [
 
 export type StepBackTarget = (typeof STEP_BACK_TARGETS)[number]
 
+const HUMAN_DOORS: readonly StoryState[] = ['plan_review', 'shipping', 'escalated']
+
+export const HUMAN_GATE_STATES = STORY_STATE_SEQUENCE.filter((state) => HUMAN_DOORS.includes(state))
+
+export type HumanGateState = (typeof HUMAN_DOORS)[number]
+
+export type HumanGateWait = {
+  storyId: number
+  reference: string
+  state: StoryState
+  waitingSince: string
+  waitingSeconds: number
+}
+
+export type HumanGateStatus = HumanGateWait & {
+  waitingHours: number
+  overdue: boolean
+  statement: string
+}
+
+export type HumanGateReport = {
+  deadlineMinutes: number
+  gates: readonly HumanGateStatus[]
+}
+
 export type StepBackRecord = {
   id: number
   storyId: number

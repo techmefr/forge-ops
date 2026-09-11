@@ -20,6 +20,7 @@ import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import { createBudgetApi } from '../Budget/BudgetApi.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
 import { createStoryApi } from '../Story/StoryApi.js'
+import { createHumanGateApi } from '../Story/HumanGateApi.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
 import type { CascadeStep } from '../Checkpoint/ReviewCascade.js'
 import { mapApiError } from './ApiErrorMap.js'
@@ -171,6 +172,8 @@ export function createBoardApi({
   )
 
   api.route('/', createCriterionApi({ criteria }))
+
+  api.route('/', createHumanGateApi({ stories: repository, events }))
 
   api.post('/api/hooks', async (context) => {
     const payload = hookPayloadSchema.safeParse(await context.req.json().catch(() => null))
