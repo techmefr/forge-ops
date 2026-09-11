@@ -21,6 +21,7 @@ import {
   EvidenceRequiredError,
   LensAlreadyPassedError,
   LensOutOfOrderError,
+  MutationSurvivedError,
   ReviewIncompleteError,
   SelfReviewRefusedError,
   TestsTamperedError,
@@ -31,6 +32,8 @@ import { assertEvidencePath } from '../Evidence/EvidencePath.js'
 import { assertEvidenceShape } from '../Evidence/EvidenceShape.js'
 import { compareCensus, type TestCensus } from '../Tamper/TestCensus.js'
 import { UnknownAgentSessionError } from '../Agent/AgentViolation.js'
+import type { MutationOutcome } from '../Mutation/Mutation.js'
+import { describeSurvivor, filesWorthMutating, survivorsOf } from '../Mutation/MutationVerdict.js'
 
 const PRODUCING_PHASES: readonly string[] = ['spec', 'architecture', 'tdd', 'code', 'ship']
 
@@ -81,11 +84,12 @@ function toFinding(row: FindingRow): ReviewFinding {
 export type CheckpointRepositoryInput = {
   takeCensus: () => TestCensus
   readEvidence?: (path: string) => string | null
+  surveyMutations?: (paths: readonly string[]) => readonly MutationOutcome[]
 }
 
 export function createCheckpointRepository(
   db: Database.Database,
-  { takeCensus, readEvidence = () => null }: CheckpointRepositoryInput,
+  { takeCensus, readEvidence = () => null, surveyMutations }: CheckpointRepositoryInput,
 ): CheckpointRepository {
   const upsertCensus = db.prepare<[number, number, number, number]>(
     `INSERT INTO test_census (story_id, tests, skipped, tautologies) VALUES (?, ?, ?, ?)
@@ -112,6 +116,9 @@ export function createCheckpointRepository(
   )
   const insertCheckpoint = db.prepare<[number, CheckpointName, string]>(
     'INSERT INTO checkpoint (story_id, name, evidence_path) VALUES (?, ?, ?)',
+  )
+  const selectTouchedPaths = db.prepare<[number], { path: string }>(
+    'SELECT DISTINCT path FROM file_touch WHERE story_id = ? ORDER BY path',
   )
   const selectCheckpoints = db.prepare<[number], CheckpointRow>(
     'SELECT * FROM checkpoint WHERE story_id = ?',
@@ -221,6 +228,14 @@ export function createCheckpointRepository(
       if (draft.name === 'tests_written') {
         const taken = takeCensus()
         upsertCensus.run(draft.storyId, taken.tests, taken.skipped, taken.tautologies)
+      }
+
+      if (draft.name === 'build_done' && surveyMutations !== undefined) {
+        const touched = selectTouchedPaths.all(draft.storyId).map((row) => row.path)
+        const survivors = survivorsOf(surveyMutations(filesWorthMutating(touched)))
+        if (survivors.length > 0) {
+          throw new MutationSurvivedError(survivors.map(describeSurvivor))
+        }
       }
 
       if (draft.name === 'reviewed') {
