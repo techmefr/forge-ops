@@ -34,8 +34,8 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
 </script>
 
 <template>
-  <div class="p-8">
-    <div class="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
+  <div class="flex h-full min-h-0 flex-col p-8">
+    <div class="grid flex-none gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
       <article class="rounded-2xl border border-line bg-card p-4">
         <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">Sessions</p>
         <p class="display-italic mt-1 text-3xl">{{ summary.data.value?.sessions ?? 0 }}</p>
@@ -54,7 +54,8 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
       </article>
     </div>
 
-    <div class="mt-6 grid gap-4 lg:grid-cols-2">
+    <div class="mt-2 min-h-0 flex-1 overflow-auto pr-1">
+    <div class="mt-4 grid gap-4 lg:grid-cols-2">
       <section class="rounded-2xl border border-line bg-card p-4">
         <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">Agents les plus sollicites</p>
         <p v-if="busiest.length === 0" class="mt-2 text-xs text-txt-low">Aucune session encore.</p>
@@ -156,5 +157,6 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
         </ScreenState>
       </div>
     </section>
+    </div>
   </div>
 </template>

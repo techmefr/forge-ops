@@ -62,8 +62,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="p-8">
-    <div class="flex flex-wrap items-center gap-3">
+  <div class="flex h-full min-h-0 flex-col p-8">
+    <div class="flex flex-none flex-wrap items-center gap-3">
       <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ countedOf((stories.data.value ?? []).length, 'story', 'stories') }} · {{ chosen.size }} {{ chosen.size > 1 ? 'selectionnees' : 'selectionnee' }}
       </p>
@@ -81,7 +81,7 @@ onMounted(async () => {
       <li v-for="refusal in refusals" :key="refusal" class="text-xs text-red">{{ refusal }}</li>
     </ul>
 
-    <div class="mt-6">
+    <div class="mt-6 min-h-0 flex-1 overflow-auto pr-1">
       <ScreenState
         :pending="stories.pending.value"
         :failure="stories.failure.value"

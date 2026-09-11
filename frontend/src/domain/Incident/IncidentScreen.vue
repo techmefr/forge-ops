@@ -81,8 +81,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="p-8">
-    <div class="flex flex-wrap items-end gap-3">
+  <div class="flex h-full min-h-0 flex-col p-8">
+    <div class="flex flex-none flex-wrap items-end gap-3">
       <div class="flex gap-1">
         <button
           v-for="state in STATES"
@@ -116,7 +116,7 @@ onMounted(async () => {
 
     <p v-if="refusal !== null" class="mt-3 text-xs text-red" role="alert">{{ refusal }}</p>
 
-    <div class="mt-6">
+    <div class="mt-6 min-h-0 flex-1 overflow-auto pr-1">
       <ScreenState
         :pending="incidents.pending.value"
         :failure="incidents.failure.value"

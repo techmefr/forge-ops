@@ -116,8 +116,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="p-8">
-    <div class="flex flex-wrap items-end gap-4">
+  <div class="flex h-full min-h-0 flex-col overflow-auto p-8">
+    <div class="flex flex-none flex-wrap items-end gap-4">
       <label class="flex flex-col gap-1">
         <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">Projet</span>
         <select
@@ -133,11 +133,11 @@ onMounted(async () => {
       <MarkLegend class="pb-2" />
     </div>
 
-    <div class="mt-6">
+    <div class="mt-6 min-h-0 flex-1">
       <FileBrowser :project-id="chosenProject" />
     </div>
 
-    <details class="mt-8 rounded-2xl border border-line bg-bg/40 p-4">
+    <details class="mt-4 max-h-[40vh] flex-none overflow-auto rounded-2xl border border-line bg-bg/40 p-4">
       <summary class="cursor-pointer font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
         Zones, périmètres et fichiers disputés
       </summary>
