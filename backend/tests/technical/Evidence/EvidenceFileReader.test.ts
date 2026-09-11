@@ -18,9 +18,9 @@ function rootWith(content: string | null): string {
 
 describe('createEvidenceFileReader', () => {
   it('reads the content of an evidence file under the root', () => {
-    const read = createEvidenceFileReader({ root: rootWith('## Perimetre\nprose') })
+    const read = createEvidenceFileReader({ root: rootWith('## Scope\nprose') })
 
-    expect(read(RELATIVE)).toBe('## Perimetre\nprose')
+    expect(read(RELATIVE)).toBe('## Scope\nprose')
   })
 
   it('returns nothing when the evidence file is absent', () => {

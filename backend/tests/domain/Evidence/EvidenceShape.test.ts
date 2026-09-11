@@ -13,7 +13,7 @@ function prose(words: number): string {
 }
 
 function specProof(body: string = prose(MINIMUM_PROSE_WORDS)): string {
-  return `# spec FORGE-1\n\n## Perimetre retenu\n\n${body}\n\n## Decisions cles\n\n${body}\n`
+  return `# spec FORGE-1\n\n## Scope retained\n\n${body}\n\n## Key decisions\n\n${body}\n`
 }
 
 describe('assertEvidenceShape', () => {
@@ -42,21 +42,21 @@ describe('assertEvidenceShape', () => {
   it('does not count heading words as prose', () => {
     const headings = Array.from(
       { length: MINIMUM_PROSE_WORDS },
-      (_unused, index) => `## perimetre decisions section ${index}`,
+      (_unused, index) => `## scope decisions section ${index}`,
     ).join('\n')
     expect(() => assertEvidenceShape('spec_done', PATH, headings)).toThrow(EvidenceShapeRefusedError)
   })
 
-  it('refuses a spec proof that misses the perimetre section', () => {
+  it('refuses a spec proof that misses the scope section', () => {
     const body = prose(MINIMUM_PROSE_WORDS)
     expect(() =>
-      assertEvidenceShape('spec_done', PATH, `## Decisions cles\n\n${body}\n`),
+      assertEvidenceShape('spec_done', PATH, `## Key decisions\n\n${body}\n`),
     ).toThrow(EvidenceShapeRefusedError)
   })
 
   it('names the missing section in the refusal', () => {
     const body = prose(MINIMUM_PROSE_WORDS)
-    expect(() => assertEvidenceShape('spec_done', PATH, `## Perimetre retenu\n\n${body}\n`)).toThrow(
+    expect(() => assertEvidenceShape('spec_done', PATH, `## Scope retained\n\n${body}\n`)).toThrow(
       /decisions/,
     )
   })
@@ -64,7 +64,7 @@ describe('assertEvidenceShape', () => {
   it('accepts a section heading whatever its heading level or case', () => {
     const body = prose(MINIMUM_PROSE_WORDS)
     expect(() =>
-      assertEvidenceShape('spec_done', PATH, `#### PERIMETRE\n${body}\n###### Decisions\n${body}\n`),
+      assertEvidenceShape('spec_done', PATH, `#### SCOPE\n${body}\n###### Decisions\n${body}\n`),
     ).not.toThrow()
   })
 
@@ -73,7 +73,7 @@ describe('assertEvidenceShape', () => {
       assertEvidenceShape(
         'spec_done',
         PATH,
-        `le perimetre et les decisions sont la ${prose(MINIMUM_PROSE_WORDS)}`,
+        `le scope et les decisions sont la ${prose(MINIMUM_PROSE_WORDS)}`,
       ),
     ).toThrow(EvidenceShapeRefusedError)
   })

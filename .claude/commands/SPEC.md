@@ -1,15 +1,15 @@
 ---
-description: Ecrire la story et sa story de test jumelle, avant la moindre ligne de code
+description: Write the story and its twin test story, before a single line of code
 ---
 
-Etape 1 de la sequence forge (`/SPEC /PLAN /TEST /BUILD /CODE-SIMPLIFY /VERIFY /REVIEW /SHIP`). Skill locale associee : `spec-clarification`.
+Step 1 of the forge-ops sequence (`/SPEC /PLAN /TEST /BUILD /CODE-SIMPLIFY /VERIFY /REVIEW /SHIP`). Related local skill: `spec-clarification`.
 
-L'unite de travail est la **story**, pas la branche ni la tache. Le board te donne dans ton prompt de dispatch la reference et l'identifiant de la story sur laquelle tu travailles. Le board ecoute sur `http://localhost:8830` (`FORGE_PORT`).
+The unit of work is the **story**, not the branch nor the task. The board gives you in your dispatch prompt the reference and the identifier of the story you are working on. The board listens on `http://localhost:8830` (`FORGE_PORT`).
 
-1. Clarifie avec l'utilisateur ce qui doit etre construit : perimetre exact, criteres d'acceptation, ce qui est explicitement hors scope. Aucun code a cette etape.
-2. Ecris la story : `POST /api/stories` avec `epicId`, `title`, `body`. Le board derive la reference du slug du projet.
-3. Ecris sa **story de test jumelle** : `POST /api/stories/:id/twin` avec `title` et `body`. Elle enonce les cas a couvrir, pas leur implementation, et suit les conventions test-casebook.
-4. Une story sans jumelle ne peut pas quitter la redaction : le board refuse `spec_done` et `POST /api/stories/:id/backlog` en 409 `TwinRequiredError`. Ce n'est pas un bug a contourner.
-5. Ecris le resume de specification dans `.claude/evidence/<REFERENCE>/spec.md` : perimetre retenu, decisions cles, hors scope, points d'attention. Titre les sections `## Perimetre retenu` et `## Decisions cles` : la preuve est refusee si une section manque ou si le fichier ne porte pas de vraie prose.
-6. Prouve l'etape : `POST /api/stories/:id/checkpoints` avec `{"name":"spec_done","evidencePath":".claude/evidence/<REFERENCE>/spec.md"}`.
-7. Envoie la story au backlog (`POST /api/stories/:id/backlog`) et rappelle que l'etape suivante est `/PLAN`.
+1. Clarify with the user what must be built: exact scope, acceptance criteria, what is explicitly out of scope. No code at this step.
+2. Write the story: `POST /api/stories` with `epicId`, `title`, `body`. The board derives the reference from the project slug.
+3. Write its **twin test story**: `POST /api/stories/:id/twin` with `title` and `body`. It states the cases to cover, not their implementation, and follows the test-casebook conventions.
+4. A story without a twin cannot leave drafting: the board refuses `spec_done` and `POST /api/stories/:id/backlog` with a 409 `TwinRequiredError`. This is not a bug to work around.
+5. Write the specification summary in `.claude/evidence/<REFERENCE>/spec.md`: scope retained, key decisions, out of scope, points to watch. Title the sections `## Scope retained` and `## Key decisions`: the proof is refused if a section is missing or if the file carries no real prose.
+6. Prove the step: `POST /api/stories/:id/checkpoints` with `{"name":"spec_done","evidencePath":".claude/evidence/<REFERENCE>/spec.md"}`.
+7. Send the story to the backlog (`POST /api/stories/:id/backlog`) and state that the next step is `/PLAN`.

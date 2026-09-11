@@ -3,25 +3,25 @@ name: systematic-debugging
 description: Use whenever encountering a bug, unexpected test failure, or repeated error during /BUILD, before proposing a fix.
 ---
 
-# Debogage systematique
+# Systematic debugging
 
-Ne propose jamais un correctif avant d'avoir compris la cause reelle. Un correctif qui fait taire le symptome sans comprendre la cause revient tot ou tard, souvent aggrave.
+Never propose a fix before having understood the real cause. A fix that silences the symptom without understanding the cause comes back sooner or later, often worse.
 
-## Demarche
+## Method
 
-1. Reproduis l'erreur de maniere fiable avant de toucher au code.
-2. Lis le message d'erreur en entier, la stack trace complete, pas juste la premiere ligne.
-3. Formule une hypothese explicite sur la cause avant de modifier quoi que ce soit.
-4. Verifie l'hypothese par une observation (log, test isole, print), pas par intuition.
-5. Corrige la cause identifiee, pas le symptome le plus proche.
-6. Relance la suite de tests complete, pas seulement le test qui echouait.
+1. Reproduce the error reliably before touching the code.
+2. Read the whole error message, the full stack trace, not just the first line.
+3. State an explicit hypothesis about the cause before modifying anything.
+4. Check the hypothesis through an observation (log, isolated test, print), not through intuition.
+5. Fix the cause you identified, not the nearest symptom.
+6. Rerun the complete test suite, not only the test that was failing.
 
-## Detection de boucle
+## Loop detection
 
-Si la meme erreur revient a l'identique apres une tentative de correction, c'est le signe que l'hypothese de depart etait fausse — changer d'angle plutot que de retenter la meme correction.
+If the same error comes back identically after an attempted fix, that is the sign that the starting hypothesis was false — change angle rather than retrying the same fix.
 
-## Lien avec la sequence forge
+## Link with the forge-ops sequence
 
-Personne ne compte tes tentatives a ta place : c'est a toi de t'arreter. Deux echecs identiques d'affilee, ou une troisieme hypothese qui tombe, et tu remontes a l'humain plutot que de continuer — la story reste ou elle est, aucun checkpoint n'est prouve.
+Nobody counts your attempts for you: stopping is on you. Two identical failures in a row, or a third hypothesis that falls, and you escalate to the human rather than continue — the story stays where it is, no checkpoint is proven.
 
-Ce que tu as compris de la cause va dans le fichier de preuve de l'etape en cours (`.claude/evidence/<REFERENCE>/build.md` pendant `/BUILD`), avec la sortie brute qui l'etablit. Un blocage documente est reutilisable ; un blocage efface se repaye.
+What you understood of the cause goes in the proof file of the current step (`.claude/evidence/<REFERENCE>/build.md` during `/BUILD`), with the raw output that establishes it. A documented blocker is reusable; an erased blocker is paid for twice.

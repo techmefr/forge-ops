@@ -1,14 +1,14 @@
 ---
-description: Livrer la story derriere une validation humaine
+description: Ship the story behind a human validation
 ---
 
-Etape 8 de la sequence forge. Prerequis : les six checkpoints prouves. Verifie avec `GET /api/stories/:id/dod` : si une seule etape est a `proven: false`, arrete-toi et reprends a celle-la.
+Step 8 of the forge-ops sequence. Prerequisite: the six checkpoints proven. Check with `GET /api/stories/:id/dod`: if a single step is at `proven: false`, stop and resume at that one.
 
-Aucun agent ne clot une story tout seul. La derniere porte est humaine.
+No agent closes a story on its own. The last gate is human.
 
-1. Relis la definition of done complete et affiche-la a l'utilisateur : les six etapes, leur preuve, le chemin de chaque preuve.
-2. Commite sur la branche dediee a la story. Message en anglais, conventional commit, description en minuscule. Aucune trace d'IA dans le code ni dans les messages.
-3. Pousse et ouvre la demande de fusion vers la branche d'integration du projet.
-4. Demande la validation humaine. Tant qu'elle n'est pas donnee, la story reste en `shipping`, pas en `done`.
-5. En cas de conflit de fusion, ne force rien : le board le signale sur la carte kanban, et la resolution se delegue explicitement.
-6. Une fois la validation obtenue, passe la story en `done`. Sa jumelle de test suit le meme sort.
+1. Reread the full definition of done and show it to the user: the six steps, their proof, the path of each proof.
+2. Commit on the branch dedicated to the story. Message in English, conventional commit, description in lowercase. No trace of AI in the code nor in the messages.
+3. Push and open the merge request toward the integration branch of the project.
+4. Ask for the human validation. As long as it is not given, the story stays in `shipping`, not in `done`.
+5. On a merge conflict, force nothing: the board flags it on the kanban card, and the resolution is delegated explicitly.
+6. Once the validation is obtained, move the story to `done`. Its test twin follows the same fate.

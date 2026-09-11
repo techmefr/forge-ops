@@ -3,11 +3,11 @@ import type { CheckpointName } from '../Checkpoint/Checkpoint.js'
 export const MINIMUM_PROSE_WORDS = 40
 
 export const EVIDENCE_SHAPE: Record<CheckpointName, readonly string[]> = {
-  spec_done: ['perimetre', 'decisions'],
-  arch_done: ['decoupage', 'risques'],
-  tests_written: ['cas', 'sortie'],
-  build_done: ['construit', 'sortie'],
-  verified: ['parcouru', 'observe'],
+  spec_done: ['scope', 'decisions'],
+  arch_done: ['breakdown', 'risks'],
+  tests_written: ['cases', 'output'],
+  build_done: ['built', 'output'],
+  verified: ['walked', 'observed'],
   reviewed: ['findings'],
 }
 
