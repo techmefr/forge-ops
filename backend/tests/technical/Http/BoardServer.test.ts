@@ -112,14 +112,14 @@ describe('startBoardServer', () => {
     const booted = await boot()
     board = booted.board
 
-    const response = await fetch(
-      `http://127.0.0.1:${board.port}/api/hooks?token=${deriveHookToken(booted.token)}`,
-      {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ session_id: 'inconnue', hook_event_name: 'PostToolUse' }),
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/hooks`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-forge-token': deriveHookToken(booted.token),
       },
-    )
+      body: JSON.stringify({ session_id: 'inconnue', hook_event_name: 'PostToolUse' }),
+    })
 
     expect(response.status).toBe(202)
   })
@@ -128,9 +128,9 @@ describe('startBoardServer', () => {
     const booted = await boot()
     board = booted.board
 
-    const response = await fetch(`http://127.0.0.1:${board.port}/api/hooks?token=${booted.token}`, {
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/hooks`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'x-forge-token': booted.token },
       body: JSON.stringify({ session_id: 'inconnue', hook_event_name: 'PostToolUse' }),
     })
 
