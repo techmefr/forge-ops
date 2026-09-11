@@ -1,6 +1,25 @@
-export type AgentPhase = 'spec' | 'architecture' | 'tdd' | 'code' | 'gate' | 'review' | 'ship'
+export const AGENT_PHASE_SEQUENCE = [
+  'spec',
+  'architecture',
+  'tdd',
+  'code',
+  'gate',
+  'review',
+  'ship',
+] as const
 
-export type AgentLifecycle = 'starting' | 'working' | 'awaiting_human' | 'finished' | 'failed' | 'interrupted'
+export type AgentPhase = (typeof AGENT_PHASE_SEQUENCE)[number]
+
+export const AGENT_LIFECYCLE_SEQUENCE = [
+  'starting',
+  'working',
+  'awaiting_human',
+  'finished',
+  'failed',
+  'interrupted',
+] as const
+
+export type AgentLifecycle = (typeof AGENT_LIFECYCLE_SEQUENCE)[number]
 
 export type AgentSession = {
   id: number

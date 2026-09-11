@@ -1,17 +1,20 @@
 export type StoryKind = 'functional' | 'test'
 
-export type StoryState =
-  | 'drafting'
-  | 'backlog'
-  | 'architecture'
-  | 'plan_review'
-  | 'building'
-  | 'gating'
-  | 'reviewing'
-  | 'shipping'
-  | 'flagged'
-  | 'done'
-  | 'escalated'
+export const STORY_STATE_SEQUENCE = [
+  'drafting',
+  'backlog',
+  'architecture',
+  'plan_review',
+  'building',
+  'gating',
+  'reviewing',
+  'shipping',
+  'flagged',
+  'done',
+  'escalated',
+] as const
+
+export type StoryState = (typeof STORY_STATE_SEQUENCE)[number]
 
 export type KanbanColumnKey = Extract<
   StoryState,
