@@ -10,6 +10,6 @@ L'unite de travail est la **story**, pas la branche ni la tache. Le board te don
 2. Ecris la story : `POST /api/stories` avec `epicId`, `title`, `body`. Le board derive la reference du slug du projet.
 3. Ecris sa **story de test jumelle** : `POST /api/stories/:id/twin` avec `title` et `body`. Elle enonce les cas a couvrir, pas leur implementation, et suit les conventions test-casebook.
 4. Une story sans jumelle ne peut pas quitter la redaction : le board refuse `spec_done` et `POST /api/stories/:id/backlog` en 409 `TwinRequiredError`. Ce n'est pas un bug a contourner.
-5. Ecris le resume de specification dans `.claude/evidence/<REFERENCE>/spec.md` : perimetre retenu, decisions cles, hors scope, points d'attention.
+5. Ecris le resume de specification dans `.claude/evidence/<REFERENCE>/spec.md` : perimetre retenu, decisions cles, hors scope, points d'attention. Titre les sections `## Perimetre retenu` et `## Decisions cles` : la preuve est refusee si une section manque ou si le fichier ne porte pas de vraie prose.
 6. Prouve l'etape : `POST /api/stories/:id/checkpoints` avec `{"name":"spec_done","evidencePath":".claude/evidence/<REFERENCE>/spec.md"}`.
 7. Envoie la story au backlog (`POST /api/stories/:id/backlog`) et rappelle que l'etape suivante est `/PLAN`.
