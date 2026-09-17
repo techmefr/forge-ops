@@ -646,6 +646,11 @@ export const FRENCH: Message = {
     createAccount: 'Créer le compte',
     enter: 'Entrer',
   },
+  visit: {
+    title: 'Visite figée',
+    body: 'Ces chiffres viennent du board de démonstration, capturés une fois. Rien ne s’écrit ici et aucun agent ne tourne. Installez le board pour le lancer pour de vrai.',
+    source: 'Le dépôt',
+  },
   tour: {
     label: 'Visite guidée du board de démonstration',
     progress: 'Étape {current} sur {total}',

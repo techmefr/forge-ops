@@ -635,6 +635,11 @@ export const ENGLISH = {
     createAccount: 'Create the account',
     enter: 'Enter',
   },
+  visit: {
+    title: 'Frozen visit',
+    body: 'These figures come from the demonstration board, captured once. Nothing is written here and no agent runs. Install the board to run it for real.',
+    source: 'The repository',
+  },
   tour: {
     label: 'Guided tour of the demonstration board',
     progress: 'Step {current} of {total}',

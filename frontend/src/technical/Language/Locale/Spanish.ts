@@ -649,6 +649,11 @@ export const SPANISH: Message = {
     createAccount: 'Crear la cuenta',
     enter: 'Entrar',
   },
+  visit: {
+    title: 'Visita congelada',
+    body: 'Estas cifras vienen del tablero de demostración, capturadas una sola vez. Aquí no se escribe nada y ningún agente se ejecuta. Instala el board para usarlo de verdad.',
+    source: 'El repositorio',
+  },
   tour: {
     label: 'Visita guiada del tablero de demostración',
     progress: 'Paso {current} de {total}',
