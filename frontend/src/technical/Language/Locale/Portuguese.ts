@@ -648,6 +648,11 @@ export const PORTUGUESE: Message = {
     createAccount: 'Criar a conta',
     enter: 'Entrar',
   },
+  visit: {
+    title: 'Visita congelada',
+    body: 'Estes números vêm do quadro de demonstração, capturados uma única vez. Aqui nada é escrito e nenhum agente corre. Instale o board para o executar a sério.',
+    source: 'O repositório',
+  },
   tour: {
     label: 'Visita guiada ao quadro de demonstração',
     progress: 'Passo {current} de {total}',

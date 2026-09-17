@@ -1,3 +1,5 @@
+import { FROZEN_VISIT } from './Visit.js'
+
 export type StreamedEvent = {
   name: string
   payload: Record<string, unknown>
@@ -62,6 +64,10 @@ export function openBoardStream({
   onError,
   source = (url) => new EventSource(url, { withCredentials: true }),
 }: StreamInput): StreamHandle {
+  if (FROZEN_VISIT) {
+    return { close: () => undefined }
+  }
+
   const stream = source(path)
 
   for (const name of WATCHED_EVENTS) {

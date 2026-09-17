@@ -11,3 +11,4 @@ dist/
 CLAUDE.md
 test-results.json
 dist/web/
+frontend/public/demo-snapshot.json
