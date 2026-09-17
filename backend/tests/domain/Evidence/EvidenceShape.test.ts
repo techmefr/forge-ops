@@ -78,8 +78,48 @@ describe('assertEvidenceShape', () => {
     ).toThrow(EvidenceShapeRefusedError)
   })
 
-  it('demands its own sections for every checkpoint kind', () => {
+  it('refuses a run section that transcribes an output without referencing the run', () => {
     const body = prose(MINIMUM_PROSE_WORDS)
+    expect(() =>
+      assertEvidenceShape('build_done', PATH, `## What was built\n\n${body}\n\n## Run reference\n\n${body}\n`),
+    ).toThrow(/run/)
+  })
+
+  it('accepts a run section that carries a run url', () => {
+    const body = prose(MINIMUM_PROSE_WORDS)
+    expect(() =>
+      assertEvidenceShape(
+        'build_done',
+        PATH,
+        `## What was built\n\n${body}\n\n## Run reference\n\n${body}\nhttps://ci.invalid/runs/42\n`,
+      ),
+    ).not.toThrow()
+  })
+
+  it('accepts a run section that carries the exact command instead of a url', () => {
+    const body = prose(MINIMUM_PROSE_WORDS)
+    expect(() =>
+      assertEvidenceShape(
+        'tests_written',
+        PATH,
+        `## Cases covered\n\n${body}\n\n## Run reference\n\n${body}\n\`npm test -w backend\`\n`,
+      ),
+    ).not.toThrow()
+  })
+
+  it('refuses a reference that sits under another section', () => {
+    const body = prose(MINIMUM_PROSE_WORDS)
+    expect(() =>
+      assertEvidenceShape(
+        'build_done',
+        PATH,
+        `## What was built\n\n${body}\nhttps://ci.invalid/runs/42\n\n## Run reference\n\n${body}\n`,
+      ),
+    ).toThrow(EvidenceShapeRefusedError)
+  })
+
+  it('demands its own sections for every checkpoint kind', () => {
+    const body = `${prose(MINIMUM_PROSE_WORDS)}\nhttps://ci.invalid/runs/1`
     for (const [name, sections] of Object.entries(EVIDENCE_SHAPE)) {
       const shaped = `${sections.map((section) => `## ${section}`).join(`\n${body}\n`)}\n${body}\n`
       expect(() => assertEvidenceShape(name as keyof typeof EVIDENCE_SHAPE, PATH, shaped)).not.toThrow()

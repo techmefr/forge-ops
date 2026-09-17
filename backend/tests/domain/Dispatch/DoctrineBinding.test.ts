@@ -12,7 +12,7 @@ const POSTED_CHECKPOINT = /"name"\s*:\s*"([a-z_]+)"/g
 const ANNOUNCED_SEQUENCE = /sequence \(`([^`]+)`\)/
 const SLASH_COMMAND = /\/([A-Z][A-Z-]+)/g
 
-const FILLER = 'prose '.repeat(MINIMUM_PROSE_WORDS)
+const FILLER = `${'prose '.repeat(MINIMUM_PROSE_WORDS)}\nrun https://ci.invalid/runs/1`
 
 function doctrineOf(command: string): string {
   return readFileSync(fileURLToPath(new URL(command, DOCTRINE)), 'utf8')

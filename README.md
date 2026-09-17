@@ -45,7 +45,7 @@ Eight steps, six checkpoints. `/PLAN` and `/CODE-SIMPLIFY` have no checkpoint of
 |---|---|---|
 | `/SPEC` | `spec_done` | `evidence/<REF>/spec.md` — scope, acceptance criteria, out of scope, twin written |
 | `/PLAN` | `arch_done` | `evidence/<REF>/arch.md` — breakdown, placement across the layers, risks |
-| `/TEST` | `tests_written` | `evidence/<REF>/tests.md` — the **red** tests, output pasted in |
+| `/TEST` | `tests_written` | `evidence/<REF>/tests.md` — the **red** tests, the run referenced |
 | `/BUILD` | `build_done` | `evidence/<REF>/build.md` — the same tests green, full suite |
 | `/CODE-SIMPLIFY` | — | behavior unchanged, suite still green |
 | `/VERIFY` | `verified` | `evidence/<REF>/verified.md` — the story's path walked for real |

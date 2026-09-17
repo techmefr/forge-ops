@@ -10,6 +10,6 @@ Step 4 of the forge-ops sequence. Prerequisite: `tests_written` proven (`GET /ap
 4. The board receives the files you edit through the `PostToolUse` hook and attributes them to the story. You have nothing to declare.
 5. If the same failure repeats identically, do not run in a loop: diagnose the cause with `systematic-debugging`. Two identical failures in a row are a stop signal, escalate to the human instead of insisting.
 6. Finish with the whole suite green and the typing clean, not only the tests of the file you touched.
-7. Write in `.claude/evidence/<REFERENCE>/build.md` what was built and the output of the green run, under the sections `## What was built` and `## Run output`: the proof is refused if a section is missing or if the file carries no real prose.
+7. Write in `.claude/evidence/<REFERENCE>/build.md` what was built and a pointer to the green run, under the sections `## What was built` and `## Run reference`: the reference is the run itself, not its transcript - a CI run url or id, or the exact command between backticks and where its output lives. The proof is refused if a section is missing, if the file carries no real prose, or if the run section points at nothing.
 8. Prove the step: `POST /api/stories/:id/checkpoints` with `{"name":"build_done","evidencePath":".claude/evidence/<REFERENCE>/build.md"}`.
 9. State that the next step is `/CODE-SIMPLIFY`.
