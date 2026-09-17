@@ -26,6 +26,6 @@ export const ROUTES: readonly RouteRecordRaw[] = [
   { path: '/:rest(.*)', redirect: HOME_PATH },
 ]
 
-export function createBoardRouter(history: RouterHistory = createWebHistory()): Router {
+export function createBoardRouter(history: RouterHistory = createWebHistory(import.meta.env.BASE_URL)): Router {
   return createRouter({ history, routes: [...ROUTES] })
 }

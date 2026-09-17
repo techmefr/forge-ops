@@ -21,7 +21,9 @@
     "arch:imports": "node scripts/importDirection.js",
     "arch:imports:baseline": "node scripts/importDirection.js --write-baseline",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "demo:snapshot": "tsx backend/src/demoSnapshot.ts",
+    "build:demo": "npm run demo:snapshot && VITE_FORGE_DEMO=true vite build --base=/forge-ops/"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.266",
@@ -55,5 +57,9 @@
     "vitest": "^3.0.8",
     "vue-eslint-parser": "^10.4.1",
     "vue-tsc": "^3.3.11"
+  },
+  "allowScripts": {
+    "better-sqlite3@11.10.0": true,
+    "esbuild@0.28.1": true
   }
 }

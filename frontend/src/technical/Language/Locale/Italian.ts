@@ -649,6 +649,11 @@ export const ITALIAN: Message = {
     createAccount: 'Creare l’account',
     enter: 'Entrare',
   },
+  visit: {
+    title: 'Visita congelata',
+    body: 'Questi dati vengono dalla bacheca dimostrativa, catturati una volta sola. Qui non si scrive nulla e nessun agente gira. Installa il board per usarlo davvero.',
+    source: 'Il repository',
+  },
   tour: {
     label: 'Visita guidata della board di dimostrazione',
     progress: 'Passo {current} su {total}',

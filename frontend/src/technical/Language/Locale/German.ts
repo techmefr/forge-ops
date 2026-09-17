@@ -650,6 +650,11 @@ export const GERMAN: Message = {
     createAccount: 'Das Konto anlegen',
     enter: 'Eintreten',
   },
+  visit: {
+    title: 'Eingefrorener Rundgang',
+    body: 'Diese Zahlen stammen vom Demo-Board und wurden einmalig erfasst. Hier wird nichts geschrieben und kein Agent läuft. Installieren Sie das Board, um es wirklich zu betreiben.',
+    source: 'Das Repository',
+  },
   tour: {
     label: 'Geführte Tour durch das Demonstrationsboard',
     progress: 'Schritt {current} von {total}',
