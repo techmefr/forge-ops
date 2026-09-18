@@ -5,9 +5,10 @@ import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
-import type { KanbanColumn, ProjectCard, StoryHold } from '@/domain/Board/BoardModel'
+import type { ColumnTemplate, KanbanColumn, ProjectCard, StoryHold } from '@/domain/Board/BoardModel'
 import { tintOf } from '@/technical/Ui/Tint'
 import CardDrawer from './CardDrawer.vue'
+import ColumnPanel from '@/domain/Template/ColumnPanel.vue'
 import { holdOf } from './Hold'
 
 const { t } = useI18n()
@@ -16,6 +17,10 @@ const say = usePhrase()
 const columns = useResource<readonly KanbanColumn[]>(() => board.read('/api/board/columns'))
 const stories = useResource<readonly ProjectCard[]>(() => board.read('/api/board/projects'))
 const holds = useResource<readonly StoryHold[]>(() => board.read('/api/board/holds'))
+const templates = useResource<{ defaultTemplate: ColumnTemplate; maySettle: boolean }>(() =>
+  board.read('/api/templates'),
+)
+const settled = ref<string | null>(null)
 
 const heldStory = computed(() => (storyId: number) => holdOf(holds.data.value ?? [], storyId))
 const drawerId = ref<number | null>(null)
@@ -71,7 +76,11 @@ function reloadBoard(): Promise<unknown> {
   return Promise.all([stories.reload(), holds.reload()])
 }
 
-onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
+async function reloadTemplate(): Promise<void> {
+  await Promise.all([templates.reload(), columns.reload()])
+}
+
+onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()]))
 </script>
 
 <template>
@@ -97,11 +106,29 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
                 :style="{ background: `var(--forge-${column.colour})` }"
                 aria-hidden="true"
               />
-              <h2 class="display-italic text-sm">{{ t(`state.${column.key}`) }}</h2>
+              <h2 class="display-italic text-sm">{{ column.label }}</h2>
               <span class="ml-auto font-mono text-[11px] text-txt-low">{{
                 (byColumn.get(column.key) ?? []).length
               }}</span>
+              <button
+                type="button"
+                class="rounded-md border border-line px-1.5 py-0.5 font-mono text-[9.5px] text-txt-low uppercase hover:border-acc hover:text-txt-hi"
+                :aria-expanded="settled === column.key"
+                :aria-label="t('template.openPanel', { column: column.label })"
+                @click="settled = settled === column.key ? null : column.key"
+              >
+                {{ t('template.settings') }}
+              </button>
             </header>
+
+            <ColumnPanel
+              v-if="settled === column.key"
+              :template="templates.data.value?.defaultTemplate ?? null"
+              :stage="column.key"
+              :may-settle="templates.data.value?.maySettle ?? false"
+              @close="settled = null"
+              @written="reloadTemplate()"
+            />
             <div
               v-if="column.key === 'backlog'"
               class="flex flex-wrap items-center gap-2 border-b border-line px-4 py-2"
