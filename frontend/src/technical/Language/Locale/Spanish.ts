@@ -389,6 +389,15 @@ export const SPANISH: Message = {
     awaitingSaid: 'El agente propone, tú validas: es tu sí lo que envía la tarjeta a la reserva.',
     validate: 'Validar y enviar a la reserva',
   },
+  driver: {
+    driven: 'pilotado por {name}',
+  },
+  degradation: {
+    threadWaitsForTheEnd: 'el hilo espera al final',
+    costUnknown: 'coste desconocido',
+    startsOver: 'empieza de cero',
+    runsToTheEnd: 'va hasta el final',
+  },
   discussion: {
     held: 'Bloqueada',
     askedBy: 'pedido por {author} · una respuesta humana la libera',

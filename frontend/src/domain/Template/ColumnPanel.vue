@@ -6,6 +6,7 @@ import { reasonOf } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import type { Phrase } from '@/technical/Language/Phrase'
 import type { ColumnTemplate, TemplateColumn } from '@/domain/Board/BoardModel'
+import { sheetOfColumn, type DriverSheet } from '@contract/DriverContract'
 
 const props = defineProps<{ template: ColumnTemplate | null; stage: string; maySettle: boolean }>()
 const emit = defineEmits<{ close: []; written: [] }>()
@@ -16,6 +17,18 @@ const say = usePhrase()
 const column = computed<TemplateColumn | null>(
   () => props.template?.columns.find((one) => one.state === props.stage) ?? null,
 )
+
+const sheets = ref<readonly DriverSheet[]>([])
+const sheet = computed(() => sheetOfColumn(sheets.value, column.value?.agent ?? null))
+
+void board
+  .read<readonly DriverSheet[]>('/api/drivers')
+  .then((found) => {
+    sheets.value = found
+  })
+  .catch(() => {
+    sheets.value = []
+  })
 
 const agent = ref('')
 const prompt = ref('')
@@ -83,6 +96,13 @@ async function write(): Promise<void> {
 
     <p class="font-mono text-[10px] text-txt-low">
       {{ t('template.stayedOn', { name: template?.name ?? '', version: template?.version ?? 0 }) }}
+    </p>
+
+    <p v-if="sheet !== null" class="font-mono text-[10px] text-txt-low">
+      {{ t('driver.driven', { name: sheet.name }) }}
+      <span v-for="loss in sheet.degradations" :key="loss" class="ml-2 text-orange">{{
+        t(`degradation.${loss}`)
+      }}</span>
     </p>
 
     <template v-if="maySettle">

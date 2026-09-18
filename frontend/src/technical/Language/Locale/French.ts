@@ -387,6 +387,15 @@ export const FRENCH: Message = {
     awaitingSaid: 'L\'agent propose, vous validez : c\'est votre oui qui envoie la carte à la réserve.',
     validate: 'Valider et envoyer à la réserve',
   },
+  driver: {
+    driven: 'piloté par {name}',
+  },
+  degradation: {
+    threadWaitsForTheEnd: 'le fil attend la fin',
+    costUnknown: 'coût inconnu',
+    startsOver: 'repart de zéro',
+    runsToTheEnd: 'va jusqu\'au bout',
+  },
   discussion: {
     held: 'Bloquée',
     askedBy: 'demandé par {author} · une réponse humaine la libère',
