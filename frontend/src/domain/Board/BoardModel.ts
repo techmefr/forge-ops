@@ -45,12 +45,17 @@ export type {
 } from '@contract/StoryContract'
 
 export { JUDGEMENT_KIND_SEQUENCE, REMARK_VOICE_SEQUENCE } from '@contract/BoardContract'
+export { ATTENTIONS } from '@contract/BoardContract'
+export { MILESTONE_KINDS } from '@contract/StoryContract'
+export type { Attention } from '@contract/BoardContract'
+export type { Milestone, MilestoneKind } from '@contract/StoryContract'
 export type {
   Discussion,
   JudgementKind,
   KanbanColumn,
   KanbanColumnKey,
   KanbanStory,
+  ProjectCard,
   RemarkVoice,
   ReportFact,
   ReportJudgement,

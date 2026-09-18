@@ -5,6 +5,7 @@ export const PARAMETERLESS_PATHS: readonly string[] = [
   '/api/board/kanban',
   '/api/board/mode',
   '/api/board/phases',
+  '/api/board/projects',
   '/api/board/self',
   '/api/files/conflicts',
   '/api/fleet',

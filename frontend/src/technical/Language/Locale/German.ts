@@ -30,6 +30,17 @@ export const GERMAN: Message = {
     money: '{amount} $',
     percent: '{value} %',
   },
+  attention: {
+    blocked: 'Blockiert',
+    conflict: 'Konflikt',
+    gate: 'Wartet auf Sie',
+    late: 'Verspätet',
+  },
+  milestone: {
+    demo: 'Demo',
+    production: 'Produktion',
+    everyone: 'Alle',
+  },
   screen: {
     projects: {
       label: 'Projekte',
@@ -299,6 +310,9 @@ export const GERMAN: Message = {
     takeOne: '{reference} nehmen',
   },
   kanban: {
+    nobody: 'Niemand',
+    daysLeft: 'in {count} Tag | in {count} Tagen',
+    daysLate: '{count} Tag zu spät | {count} Tage zu spät',
     empty: 'Keine Story im Gang.',
     mergeConflict: 'Merge-Konflikt',
     held: 'Angehalten',

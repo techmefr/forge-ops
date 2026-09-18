@@ -26,6 +26,8 @@ import type { CascadeStep } from '../Checkpoint/ReviewCascade.js'
 import { mapApiError } from './ApiErrorMap.js'
 import { isConfinedPath } from '../File/ConfinedPath.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
+import { attentionOf, daysLeft, nextMilestone } from './CardAttention.js'
+import type { StoryHold } from '../Discussion/Discussion.js'
 
 const projectDraftSchema = z.object({
   slug: z
@@ -65,6 +67,8 @@ export type BoardApiInput = {
   cleanUpAfterMerge: (storyId: number) => MergeCleanupReport
   advanceReviewCascade: (storyId: number) => Promise<CascadeStep>
   claudeHome: string
+  openHolds?: () => readonly StoryHold[]
+  today?: () => string
 }
 
 export function createBoardApi({
@@ -79,6 +83,8 @@ export function createBoardApi({
   cleanUpAfterMerge,
   advanceReviewCascade,
   claudeHome,
+  openHolds = () => [],
+  today = () => new Date().toISOString().slice(0, 10),
 }: BoardApiInput): Hono {
   const api = new Hono()
 
@@ -233,6 +239,37 @@ export function createBoardApi({
         usage: agentSessions.sumUsage(story.id),
         blockers: repository.listBlockers(story.id),
       })),
+    )
+  })
+
+  api.get('/api/board/projects', (context) => {
+    const held = new Set(openHolds().map((hold) => hold.storyId))
+    const context_ = new Map(repository.listCardContexts().map((card) => [card.storyId, card]))
+    const day = today()
+    return context.json(
+      repository.listKanban().map((story) => {
+        const card = context_.get(story.id) ?? null
+        const blockers = repository.listBlockers(story.id)
+        const milestone = nextMilestone(card?.milestones ?? [], day)
+        return {
+          ...story,
+          usage: agentSessions.sumUsage(story.id),
+          blockers,
+          projectSlug: card?.projectSlug ?? '',
+          projectColour: card?.projectColour ?? 'line',
+          epicTitle: card?.epicTitle ?? '',
+          holder: card?.holder ?? null,
+          milestone,
+          daysLeft: daysLeft(milestone, day),
+          attention: attentionOf({
+            story,
+            blockers,
+            held: held.has(story.id),
+            milestone,
+            today: day,
+          }),
+        }
+      }),
     )
   })
 
