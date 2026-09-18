@@ -27,7 +27,6 @@ import { FONT_FACES, FONT_SCALES } from '@/technical/Appearance/Appearance'
 import { MODE_CHOICES } from '@/technical/Appearance/ModeChoice'
 import { SCREEN_SEQUENCE } from '@/technical/Router/Screen'
 import { PERSONAL_TABS, PROJECT_TABS } from '@/technical/Router/ScreenTab'
-import { NAV_LAYOUTS } from '@/technical/Shell/Navigation'
 import { LANGUAGES } from '@/technical/Language/Language'
 
 export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
@@ -45,7 +44,6 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   lifecycle: AGENT_LIFECYCLE_SEQUENCE,
   mark: SPOKEN_MARKS,
   modeChoice: MODE_CHOICES,
-  navLayout: NAV_LAYOUTS,
   outcome: OUTCOME_CLASSES,
   ownership: OWNERSHIPS,
   personalTab: PERSONAL_TABS,
