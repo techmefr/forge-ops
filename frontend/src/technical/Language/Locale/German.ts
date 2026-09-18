@@ -389,6 +389,13 @@ export const GERMAN: Message = {
     awaitingSaid: 'Der Agent schlägt vor, Sie bestätigen: Ihr Ja schickt die Karte in den Vorrat.',
     validate: 'Bestätigen und in den Vorrat schicken',
   },
+  grouping: {
+    single: 'Eine Story, ein Merge Request',
+    grouped: 'Mehrere Storys in einem Merge Request',
+    label: 'Was ein Merge Request trägt',
+    hint: 'Gruppieren bleibt eine Option: eine Story lässt sich jederzeit aus einer laufenden Sitzung herausziehen.',
+    said: 'Eine Sitzung trägt eine Story, ihr eigenes Worktree und ihren eigenen Merge Request. Der Beweis bleibt an der Story, nie an der Sitzung.',
+  },
   driver: {
     driven: 'gesteuert von {name}',
   },
@@ -636,6 +643,7 @@ export const GERMAN: Message = {
     jsonl: 'JSONL - ein Datensatz pro Zeile, der Kopf dann eine Zeile pro Spalte',
   },
   setting: {
+    delivery: 'Lieferung',
     templates: 'Spaltenvorlagen',
     appearance: 'Erscheinungsbild',
     palette: 'Farbpalette',
