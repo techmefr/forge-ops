@@ -13,6 +13,7 @@ import type { Epic, Project, StoryState } from '../../../../contract/StoryContra
 import type { KanbanColumn, KanbanColumnKey } from '../../../../contract/BoardContract.js'
 
 export const KANBAN_COLUMNS: readonly KanbanColumn[] = [
+  { key: 'backlog', label: 'Reserve', colour: 'line' },
   { key: 'architecture', label: 'Plan', colour: 'info' },
   { key: 'plan_review', label: 'Plan a valider', colour: 'warn' },
   { key: 'building', label: 'Dev', colour: 'acc' },
