@@ -61,5 +61,11 @@
   "allowScripts": {
     "better-sqlite3@11.10.0": true,
     "esbuild@0.28.1": true
+  },
+  "license": "AGPL-3.0-only",
+  "author": "Gaetan Compigni",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/techmefr/forge-ops.git"
   }
 }

@@ -290,3 +290,11 @@ Low-level orchestration is not rewritten: it leans on the first party — the `c
 | Browser piloting of step 6 (slow motion, pause, inspection) | Done, a real Chromium through `playwright-core`, screenshot at every step |
 
 The step-by-step survey of the existing tooling is in [docs/Tooling.md](docs/Tooling.md), and the exhaustive listing of the landscape — around 120 projects, licenses and mechanisms — in [docs/Landscape.md](docs/Landscape.md).
+
+## 12. Licence
+
+forge-ops is free software under the **GNU Affero General Public License v3.0** - the full text is in [LICENSE](LICENSE).
+
+Copyright (C) 2026 Gaetan Compigni.
+
+Running it, modifying it and hosting it are allowed. Running a modified copy as a service carries one obligation: publish the modifications. Contributions are covered by the same licence and are signed off under the Developer Certificate of Origin - see [CONTRIBUTING.md](CONTRIBUTING.md).
