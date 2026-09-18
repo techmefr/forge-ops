@@ -20,6 +20,7 @@ import {
 import { PARCOURS_REASON_SEQUENCE } from '@contract/PilotContract'
 import { ATTENTIONS } from '@contract/BoardContract'
 import { PROVIDER_KINDS } from '@contract/OrganisationContract'
+import { GROUPING_MODES } from '@contract/DeliveryContract'
 import { DEGRADATIONS } from '@contract/DriverContract'
 import { MILESTONE_KINDS } from '@contract/StoryContract'
 import { SPOKEN_MARKS } from '@/domain/File/FileMarkTone'
@@ -46,6 +47,7 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   fleetState: FLEET_JOB_STATE_SEQUENCE,
   fontFace: FONT_FACES,
   fontScale: FONT_SCALES,
+  grouping: GROUPING_MODES,
   incidentState: INCIDENT_STATE_SEQUENCE,
   judgement: JUDGEMENT_KIND_SEQUENCE,
   language: LANGUAGES,

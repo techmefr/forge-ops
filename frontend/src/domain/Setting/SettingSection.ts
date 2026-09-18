@@ -20,6 +20,7 @@ export const SETTING_SECTIONS: readonly SettingSection[] = [
   { key: 'templates', half: 'organisation', effect: 'immediate' },
   { key: 'budget', half: 'organisation', effect: 'immediate' },
   { key: 'organisation', half: 'organisation', effect: 'restart' },
+  { key: 'delivery', half: 'organisation', effect: 'immediate' },
 ]
 
 export function sectionsOf(half: SettingHalf): readonly SettingSection[] {

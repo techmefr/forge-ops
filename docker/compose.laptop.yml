@@ -1,0 +1,36 @@
+name: forge-laptop
+
+services:
+  instance:
+    build:
+      context: ..
+      dockerfile: docker/instance.Dockerfile
+    environment:
+      FORGE_MODE: local
+      FORGE_TOKEN_FILE: /run/secrets/board_token
+    secrets:
+      - board_token
+    volumes:
+      - instance-data:/data
+      - ${FORGE_REPOSITORIES:-./repositories}:/repositories
+    ports:
+      - '4311:4311'
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/web.Dockerfile
+    environment:
+      FORGE_INSTANCE_URL: http://localhost:4311
+    depends_on:
+      instance:
+        condition: service_healthy
+    ports:
+      - '4310:80'
+
+secrets:
+  board_token:
+    file: ./board_token.secret
+
+volumes:
+  instance-data:

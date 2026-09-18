@@ -28,6 +28,7 @@ describe('les sections de reglages', () => {
       'templates',
       'budget',
       'organisation',
+      'delivery',
     ])
   })
 

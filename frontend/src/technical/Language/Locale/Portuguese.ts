@@ -388,6 +388,13 @@ export const PORTUGUESE: Message = {
     awaitingSaid: 'O agente propõe, você valida: é o seu sim que envia o cartão para a reserva.',
     validate: 'Validar e enviar para a reserva',
   },
+  grouping: {
+    single: 'Uma história, um pedido de merge',
+    grouped: 'Várias histórias num pedido de merge',
+    label: 'O que leva um pedido de merge',
+    hint: 'O agrupamento continua uma opção: uma história pode sempre ser retirada de uma sessão em voo.',
+    said: 'Uma sessão leva uma história, o seu worktree e o seu pedido de merge. A prova fica presa à história, nunca à sessão.',
+  },
   driver: {
     driven: 'pilotado por {name}',
   },
@@ -655,6 +662,7 @@ export const PORTUGUESE: Message = {
   },
   setting: {
     organisation: 'Organização',
+    delivery: 'Entrega',
     templates: 'Modelos de colunas',
     appearance: 'Aspeto',
     palette: 'Paleta',

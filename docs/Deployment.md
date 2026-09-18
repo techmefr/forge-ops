@@ -30,3 +30,20 @@ Pick by one question: **where do you want the agent to run?** Everything else fo
 - **The instance keeps a volume** - its database, its worktrees, its screenshots. When the volume is missing it says so instead of starting empty and silent.
 - **Healthchecks on server and instance**, so a compose file can order the startup instead of racing it.
 - **The instance container carries the agent CLI**, and the repositories are mounted: an image that bakes in a checkout is an image that is stale the next day.
+
+## What to run
+
+| Topology | File |
+|---|---|
+| 1. Everything on one laptop | `docker/compose.laptop.yml` |
+| 2. Instance on the laptop, server on a VPS | `docker/compose.split.yml` |
+| 3. Everything on a VPS | `docker/compose.vps.yml` |
+| 4. Hosted server, self-hosted instances | `docker/compose.hosted.yml` |
+
+```bash
+docker compose -f docker/compose.laptop.yml up --build
+```
+
+Each file reads its secrets from `docker/board_token.secret` and, when a server is involved, `docker/instance_token.secret` - mint the second one from the organisation half of the settings. Neither ever enters an image or a URL.
+
+The web image writes `config.js` at startup from `FORGE_INSTANCE_URL` and `FORGE_SERVER_URL`, and the page reads it before it calls anything: the same built bundle serves all four topologies.

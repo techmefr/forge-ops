@@ -387,6 +387,13 @@ export const FRENCH: Message = {
     awaitingSaid: 'L\'agent propose, vous validez : c\'est votre oui qui envoie la carte à la réserve.',
     validate: 'Valider et envoyer à la réserve',
   },
+  grouping: {
+    single: 'Une story, une demande de fusion',
+    grouped: 'Plusieurs stories sur une demande de fusion',
+    label: 'Ce que porte une demande de fusion',
+    hint: 'Le groupage reste une option : une story peut toujours être sortie d\'une session en vol.',
+    said: 'Une session porte une story, son propre worktree et sa propre demande de fusion. La preuve reste attachée à la story, jamais à la session.',
+  },
   driver: {
     driven: 'piloté par {name}',
   },
@@ -653,6 +660,7 @@ export const FRENCH: Message = {
   },
   setting: {
     organisation: 'Organisation',
+    delivery: 'Livraison',
     templates: 'Modèles de colonnes',
     appearance: 'Apparence',
     palette: 'Palette',

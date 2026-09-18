@@ -1,0 +1,38 @@
+name: forge-hosted
+
+services:
+  instance:
+    image: ${FORGE_INSTANCE_IMAGE:-ghcr.io/techmefr/forge-ops-instance:latest}
+    environment:
+      FORGE_MODE: hub
+      FORGE_SERVER_URL: ${FORGE_SERVER_URL:-https://server.forge-ops.dev}
+      FORGE_TOKEN_FILE: /run/secrets/board_token
+      FORGE_INSTANCE_TOKEN_FILE: /run/secrets/instance_token
+    secrets:
+      - board_token
+      - instance_token
+    volumes:
+      - instance-data:/data
+      - ${FORGE_REPOSITORIES:-./repositories}:/repositories
+    ports:
+      - '4311:4311'
+
+  web:
+    image: ${FORGE_WEB_IMAGE:-ghcr.io/techmefr/forge-ops-web:latest}
+    environment:
+      FORGE_INSTANCE_URL: http://localhost:4311
+      FORGE_SERVER_URL: ${FORGE_SERVER_URL:-https://server.forge-ops.dev}
+    depends_on:
+      instance:
+        condition: service_healthy
+    ports:
+      - '4310:80'
+
+secrets:
+  board_token:
+    file: ./board_token.secret
+  instance_token:
+    file: ./instance_token.secret
+
+volumes:
+  instance-data:

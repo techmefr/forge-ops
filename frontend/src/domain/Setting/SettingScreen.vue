@@ -7,6 +7,7 @@ import AccountSection from './AccountSection.vue'
 import AppearanceSection from './AppearanceSection.vue'
 import BudgetSection from './BudgetSection.vue'
 import OrganisationSection from './OrganisationSection.vue'
+import DeliverySection from './DeliverySection.vue'
 import TemplateSection from './TemplateSection.vue'
 import { keepsTheOrganisation } from './SettingSection'
 
@@ -48,6 +49,7 @@ onMounted(() => void look())
       <TemplateSection />
       <BudgetSection />
       <OrganisationSection />
+      <DeliverySection />
     </section>
     <p v-else class="text-[12.5px] text-txt-low">{{ t('settingHalf.organisationClosed') }}</p>
   </div>
