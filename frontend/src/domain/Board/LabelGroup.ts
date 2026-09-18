@@ -18,6 +18,8 @@ import {
   STORY_STATE_SEQUENCE,
 } from './BoardModel.js'
 import { PARCOURS_REASON_SEQUENCE } from '@contract/PilotContract'
+import { ATTENTIONS } from '@contract/BoardContract'
+import { MILESTONE_KINDS } from '@contract/StoryContract'
 import { SPOKEN_MARKS } from '@/domain/File/FileMarkTone'
 import { DRAWER_TABS } from '@/domain/Kanban/DrawerTab'
 import { DESKS } from '@/domain/Story/Desk'
@@ -30,6 +32,7 @@ import { PERSONAL_TABS, PROJECT_TABS } from '@/technical/Router/ScreenTab'
 import { LANGUAGES } from '@/technical/Language/Language'
 
 export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
+  attention: ATTENTIONS,
   checkpoint: CHECKPOINT_SEQUENCE,
   conduct: COST_CAP_CONDUCT_SEQUENCE,
   desk: DESKS,
@@ -43,6 +46,7 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   lens: REVIEW_LENS_SEQUENCE,
   lifecycle: AGENT_LIFECYCLE_SEQUENCE,
   mark: SPOKEN_MARKS,
+  milestone: MILESTONE_KINDS,
   modeChoice: MODE_CHOICES,
   outcome: OUTCOME_CLASSES,
   ownership: OWNERSHIPS,

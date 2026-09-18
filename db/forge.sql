@@ -347,3 +347,13 @@ CREATE TABLE IF NOT EXISTS story_hold (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_story_hold_open ON story_hold(story_id) WHERE lifted_at IS NULL;
+
+CREATE TABLE IF NOT EXISTS epic_milestone (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  epic_id INTEGER NOT NULL REFERENCES epic(id),
+  kind TEXT NOT NULL CHECK (kind IN ('demo', 'production', 'everyone')),
+  due_on TEXT NOT NULL,
+  UNIQUE (epic_id, kind)
+);
+
+CREATE INDEX IF NOT EXISTS idx_epic_milestone_epic ON epic_milestone(epic_id, due_on);

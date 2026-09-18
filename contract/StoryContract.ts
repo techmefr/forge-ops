@@ -123,3 +123,13 @@ export type CompletenessVerdict = {
   launchable: boolean
   gaps: readonly string[]
 }
+
+export const MILESTONE_KINDS = ['demo', 'production', 'everyone'] as const
+
+export type MilestoneKind = (typeof MILESTONE_KINDS)[number]
+
+export type Milestone = {
+  epicId: number
+  kind: MilestoneKind
+  dueOn: string
+}

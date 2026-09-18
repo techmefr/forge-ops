@@ -30,6 +30,17 @@ export const SPANISH: Message = {
     money: '{amount} $',
     percent: '{value} %',
   },
+  attention: {
+    blocked: 'Bloqueada',
+    conflict: 'Conflicto',
+    gate: 'Te espera',
+    late: 'Con retraso',
+  },
+  milestone: {
+    demo: 'Demo',
+    production: 'Producción',
+    everyone: 'Todo el mundo',
+  },
   screen: {
     projects: {
       label: 'Proyectos',
@@ -299,6 +310,9 @@ export const SPANISH: Message = {
     takeOne: 'Tomar {reference}',
   },
   kanban: {
+    nobody: 'Nadie',
+    daysLeft: 'en {count} día | en {count} días',
+    daysLate: '{count} día de retraso | {count} días de retraso',
     empty: 'Ninguna historia en curso.',
     mergeConflict: 'Conflicto de fusión',
     held: 'Bloqueada',

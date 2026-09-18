@@ -2,6 +2,7 @@ import type { DefinitionOfDoneStep, ReviewPass } from './CheckpointContract.js'
 import type {
   CompletenessVerdict,
   Criterion,
+  Milestone,
   StepBackRecord,
   Story,
   StoryState,
@@ -90,4 +91,18 @@ export type StoryHold = {
 export type Discussion = {
   remarks: readonly StoryRemark[]
   hold: StoryHold | null
+}
+
+export const ATTENTIONS = ['blocked', 'conflict', 'gate', 'late'] as const
+
+export type Attention = (typeof ATTENTIONS)[number]
+
+export type ProjectCard = KanbanStory & {
+  projectSlug: string
+  projectColour: string
+  epicTitle: string
+  holder: string | null
+  milestone: Milestone | null
+  daysLeft: number | null
+  attention: Attention | null
 }

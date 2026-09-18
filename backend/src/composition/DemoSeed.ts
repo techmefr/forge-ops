@@ -1,3 +1,4 @@
+import type { Milestone, MilestoneKind } from '../../../contract/StoryContract.js'
 import type Database from 'better-sqlite3'
 import { createStoryRepository } from '../domain/Story/StoryRepository.js'
 import { createCheckpointRepository } from '../domain/Checkpoint/CheckpointRepository.js'
@@ -13,6 +14,21 @@ import type { CheckpointName } from '../domain/Checkpoint/Checkpoint.js'
 import type { StoryState } from '../domain/Story/Story.js'
 import type { AgentPhase } from '../domain/Agent/AgentSession.js'
 import type { SessionExit } from '../domain/Agent/SessionOutcome.js'
+
+const MILESTONE_SPREAD: readonly { kind: MilestoneKind; inDays: number }[] = [
+  { kind: 'demo', inDays: 4 },
+  { kind: 'production', inDays: 21 },
+  { kind: 'everyone', inDays: 45 },
+]
+
+function milestonesOf(epicId: number, rank: number): readonly Milestone[] {
+  const start = Date.now()
+  return MILESTONE_SPREAD.map(({ kind, inDays }) => ({
+    epicId,
+    kind,
+    dueOn: new Date(start + (inDays - rank * 6) * 86400000).toISOString().slice(0, 10),
+  }))
+}
 
 export type DemoBoard = {
   projects: number
@@ -467,6 +483,9 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
       businessIntent: project.epicIntent,
     })
     stories.claimEpic(epic.id, 'local')
+    for (const milestone of milestonesOf(epic.id, projectIds.size)) {
+      stories.writeMilestone(milestone)
+    }
 
     for (const plan of project.stories) {
       const story = stories.writeStory({ epicId: epic.id, title: plan.title, body: plan.body })

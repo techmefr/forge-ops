@@ -12,6 +12,7 @@ import type {
   StoryState,
   TwinDraft,
 } from './Story.js'
+import type { Milestone, MilestoneKind } from '../../../../contract/StoryContract.js'
 import {
   BlockedByDependencyError,
   PointsOutOfRangeError,
@@ -86,6 +87,9 @@ export type StoryRepository = {
   listStepBacks: (storyId: number) => readonly StepBackRecord[]
   listBacklog: () => readonly Story[]
   listKanban: () => readonly Story[]
+  listCardContexts: () => readonly CardContext[]
+  writeMilestone: (milestone: Milestone) => Milestone
+  listMilestones: (epicId: number) => readonly Milestone[]
   editStory: (storyId: number, draft: { title: string; body: string }) => Story
   estimate: (storyId: number, points: number) => Story
   rollOut: (storyId: number, percent: number) => Story
@@ -105,6 +109,34 @@ function toStepBack(row: StepBackRow): StepBackRecord {
       row.revoked_checkpoints === '' ? [] : (row.revoked_checkpoints.split(',') as CheckpointName[]),
     steppedBackAt: row.stepped_back_at,
   }
+}
+
+export type CardContext = {
+  storyId: number
+  projectSlug: string
+  projectColour: string
+  epicTitle: string
+  holder: string | null
+  milestones: readonly Milestone[]
+}
+
+type CardContextRow = {
+  story_id: number
+  project_slug: string
+  project_colour: string
+  epic_id: number
+  epic_title: string
+  holder: string | null
+}
+
+type MilestoneRow = {
+  epic_id: number
+  kind: MilestoneKind
+  due_on: string
+}
+
+function toMilestone(row: MilestoneRow): Milestone {
+  return { epicId: row.epic_id, kind: row.kind, dueOn: row.due_on }
 }
 
 function toStory(row: StoryRow): Story {
@@ -220,6 +252,28 @@ export function createStoryRepository(
   )
   const selectBacklog = db.prepare<[], StoryRow>(
     "SELECT * FROM story WHERE kind = 'functional' AND state = 'backlog' ORDER BY id",
+  )
+  const selectCardContexts = db.prepare<[], CardContextRow>(
+    `SELECT story.id AS story_id,
+            project.slug AS project_slug,
+            project.colour AS project_colour,
+            epic.id AS epic_id,
+            epic.title AS epic_title,
+            epic.assignee AS holder
+       FROM story
+       JOIN epic ON epic.id = story.epic_id
+       JOIN project ON project.id = epic.project_id
+      ORDER BY story.id`,
+  )
+  const selectMilestones = db.prepare<[number], MilestoneRow>(
+    'SELECT epic_id, kind, due_on FROM epic_milestone WHERE epic_id = ? ORDER BY due_on',
+  )
+  const selectEveryMilestone = db.prepare<[], MilestoneRow>(
+    'SELECT epic_id, kind, due_on FROM epic_milestone ORDER BY epic_id, due_on',
+  )
+  const insertMilestone = db.prepare<[number, MilestoneKind, string]>(
+    `INSERT INTO epic_milestone (epic_id, kind, due_on) VALUES (?, ?, ?)
+      ON CONFLICT (epic_id, kind) DO UPDATE SET due_on = excluded.due_on`,
   )
   const selectKanban = db.prepare<[], StoryRow>(
     `SELECT * FROM story
@@ -531,6 +585,31 @@ export function createStoryRepository(
     listBacklog: () => selectBacklog.all().map(toStory),
 
     listKanban: () => selectKanban.all().map(toStory),
+
+    listCardContexts: () => {
+      const dated = new Map<number, Milestone[]>()
+      for (const row of selectEveryMilestone.all()) {
+        dated.set(row.epic_id, [...(dated.get(row.epic_id) ?? []), toMilestone(row)])
+      }
+      return selectCardContexts.all().map((row) => ({
+        storyId: row.story_id,
+        projectSlug: row.project_slug,
+        projectColour: row.project_colour,
+        epicTitle: row.epic_title,
+        holder: row.holder,
+        milestones: dated.get(row.epic_id) ?? [],
+      }))
+    },
+
+    writeMilestone: (milestone) => {
+      if (selectEpicById.get(milestone.epicId) === undefined) {
+        throw new EpicNotFoundError(milestone.epicId)
+      }
+      insertMilestone.run(milestone.epicId, milestone.kind, milestone.dueOn)
+      return milestone
+    },
+
+    listMilestones: (epicId) => selectMilestones.all(epicId).map(toMilestone),
 
     editStory: (storyId, draft) => {
       const story = findStory(storyId)

@@ -4,14 +4,15 @@ import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
 import { useResource } from '@/technical/Api/UseResource'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
-import type { KanbanColumn, KanbanStory, StoryHold } from '@/domain/Board/BoardModel'
+import type { KanbanColumn, ProjectCard, StoryHold } from '@/domain/Board/BoardModel'
+import { tintOf } from '@/technical/Ui/Tint'
 import CardDrawer from './CardDrawer.vue'
 import { holdOf } from './Hold'
 
 const { t } = useI18n()
 
 const columns = useResource<readonly KanbanColumn[]>(() => board.read('/api/board/columns'))
-const stories = useResource<readonly KanbanStory[]>(() => board.read('/api/board/kanban'))
+const stories = useResource<readonly ProjectCard[]>(() => board.read('/api/board/projects'))
 const holds = useResource<readonly StoryHold[]>(() => board.read('/api/board/holds'))
 
 const heldStory = computed(() => (storyId: number) => holdOf(holds.data.value ?? [], storyId))
@@ -21,8 +22,12 @@ const openStory = computed(
   () => (stories.data.value ?? []).find((story) => story.id === drawerId.value) ?? null,
 )
 
+function lateness(story: ProjectCard): string {
+  return story.daysLeft !== null && story.daysLeft < 0 ? 'text-orange' : 'text-txt-low'
+}
+
 const byColumn = computed(() => {
-  const grouped = new Map<string, KanbanStory[]>()
+  const grouped = new Map<string, ProjectCard[]>()
   for (const story of stories.data.value ?? []) {
     grouped.set(story.state, [...(grouped.get(story.state) ?? []), story])
   }
@@ -69,44 +74,37 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
                 v-for="story in byColumn.get(column.key) ?? []"
                 :key="story.id"
                 type="button"
-                :aria-label="`${story.reference} ${story.title}`"
+                :aria-label="`${story.projectSlug} ${story.reference} ${story.title}`"
                 data-tour="kanban-card"
                 class="w-full rounded-xl border bg-card p-3 text-left hover:border-acc"
-                :class="story.mergeConflict ? 'border-red' : 'border-line'"
+                :class="story.attention === null ? 'border-line' : 'border-orange'"
                 @click="drawerId = story.id"
               >
                 <div class="flex items-center gap-2">
+                  <span
+                    class="rounded-md px-1.5 py-0.5 font-mono text-[10px] font-semibold text-deep"
+                    :style="{ background: tintOf(story.projectColour) }"
+                    >{{ story.projectSlug }}</span
+                  >
                   <span class="font-mono text-[10px] font-semibold text-acc">{{ story.reference }}</span>
-                  <span v-if="story.points !== null" class="ml-auto font-mono text-[10px] text-txt-low">{{
-                    t('kanban.points', { count: story.points }, story.points)
-                  }}</span>
+                  <span
+                    v-if="story.attention !== null"
+                    class="ml-auto rounded-md border border-orange px-1.5 py-0.5 font-mono text-[9.5px] text-orange uppercase"
+                    >{{ t(`attention.${story.attention}`) }}</span
+                  >
                 </div>
                 <span class="mt-1.5 block text-sm text-txt-hi">{{ story.title }}</span>
-                <p v-if="story.mergeConflict" class="mt-2 font-mono text-[10px] text-red uppercase">
-                  {{ t('kanban.mergeConflict') }}
-                </p>
-                <p v-if="heldStory(story.id) !== null" class="mt-2 text-[11px] text-orange">
-                  <span class="font-mono text-[10px] font-bold uppercase">{{ t('kanban.held') }}</span>
-                  · {{ heldStory(story.id)?.reason }}
-                </p>
-                <p v-if="story.blockers.length > 0" class="mt-2 text-[11px] text-orange">
-                  {{ t('kanban.blockedBy') }}
-                  <span
-                    v-for="blocker in story.blockers"
-                    :key="blocker"
-                    class="ml-1 font-mono text-[10px]"
-                    >{{ blocker }}</span
-                  >
-                </p>
-                <p class="mt-2 font-mono text-[10px] text-txt-low">
-                  {{ t('common.money', { amount: story.usage.costUsd.toFixed(2) }) }} ·
-                  {{
-                    t(
-                      'kanban.tokens',
-                      { count: story.usage.inputTokens + story.usage.outputTokens },
-                      story.usage.inputTokens + story.usage.outputTokens,
-                    )
-                  }}
+                <p class="mt-2 flex flex-wrap items-center gap-x-2 font-mono text-[10px] text-txt-low">
+                  <span>{{ story.holder ?? t('kanban.nobody') }}</span>
+                  <span>{{ t('common.money', { amount: story.usage.costUsd.toFixed(2) }) }}</span>
+                  <span v-if="story.milestone !== null" class="ml-auto" :class="lateness(story)">
+                    {{ t(`milestone.${story.milestone.kind}`) }} {{ story.milestone.dueOn }}
+                    <span v-if="story.daysLeft !== null">{{
+                      story.daysLeft < 0
+                        ? t('kanban.daysLate', { count: -story.daysLeft }, -story.daysLeft)
+                        : t('kanban.daysLeft', { count: story.daysLeft }, story.daysLeft)
+                    }}</span>
+                  </span>
                 </p>
               </button>
             </div>
@@ -119,6 +117,7 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
     <CardDrawer
       v-if="openStory !== null"
       :story="openStory"
+      :hold="heldStory(openStory.id)"
       @close="drawerId = null"
       @moved="reloadBoard()"
     />
