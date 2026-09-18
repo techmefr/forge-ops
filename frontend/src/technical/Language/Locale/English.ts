@@ -60,7 +60,6 @@ export const ENGLISH = {
   projectTab: {
     aria: 'Project views',
     board: 'Board',
-    backlog: 'Backlog',
     deployment: 'Deployment',
   },
   personal: {
@@ -303,11 +302,8 @@ export const ENGLISH = {
     claim: 'Assign to me',
   },
   backlog: {
-    storyCount: '{count} story | {count} stories',
     chosenCount: '{count} selected | {count} selected',
     sendToArchitecture: 'Send to architecture',
-    empty: 'The store is empty. Write a story.',
-    unknownEpic: 'unknown epic',
     refusalOn: 'Story {id}: {reason}',
     takeOne: 'Take {reference}',
   },

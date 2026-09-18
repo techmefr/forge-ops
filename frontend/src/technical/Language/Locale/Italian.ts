@@ -62,7 +62,6 @@ export const ITALIAN: Message = {
   projectTab: {
     aria: 'Viste del progetto',
     board: 'Lavagna',
-    backlog: 'Riserva',
     deployment: 'Rilascio',
   },
   personal: {
@@ -309,11 +308,8 @@ export const ITALIAN: Message = {
     claim: 'Assegnarmelo',
   },
   backlog: {
-    storyCount: '{count} storia | {count} storie',
     chosenCount: '{count} selezionata | {count} selezionate',
     sendToArchitecture: 'Mandare in architettura',
-    empty: 'La riserva è vuota. Scrivi una storia.',
-    unknownEpic: 'epic sconosciuto',
     refusalOn: 'Storia {id}: {reason}',
     takeOne: 'Prendere {reference}',
   },

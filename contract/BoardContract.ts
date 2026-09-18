@@ -10,6 +10,7 @@ import type {
 
 export type KanbanColumnKey = Extract<
   StoryState,
+  | 'backlog'
   | 'architecture'
   | 'plan_review'
   | 'building'

@@ -62,7 +62,6 @@ export const SPANISH: Message = {
   projectTab: {
     aria: 'Vistas del proyecto',
     board: 'Tablero',
-    backlog: 'Reserva',
     deployment: 'Despliegue',
   },
   personal: {
@@ -309,11 +308,8 @@ export const SPANISH: Message = {
     claim: 'Asignármela',
   },
   backlog: {
-    storyCount: '{count} historia | {count} historias',
     chosenCount: '{count} seleccionada | {count} seleccionadas',
     sendToArchitecture: 'Enviar a arquitectura',
-    empty: 'La reserva está vacía. Escribe una historia.',
-    unknownEpic: 'épica desconocida',
     refusalOn: 'Historia {id}: {reason}',
     takeOne: 'Tomar {reference}',
   },

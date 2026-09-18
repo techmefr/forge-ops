@@ -1,4 +1,4 @@
-export const PROJECT_TABS = ['board', 'backlog', 'deployment'] as const
+export const PROJECT_TABS = ['board', 'deployment'] as const
 export const PERSONAL_TABS = ['stories', 'files', 'view', 'resources'] as const
 
 export type ProjectTab = (typeof PROJECT_TABS)[number]

@@ -20,7 +20,7 @@ export const HOME_PATH = SCREENS[0]?.path ?? '/projects'
 
 export const ABSORBED_PATHS: Readonly<Record<string, string>> = {
   '/atelier': '/me/stories',
-  '/reserve': '/projects/backlog',
+  '/reserve': '/projects/board',
   '/forge': '/projects/board',
   '/deployment': '/projects/deployment',
   '/incidents': '/me/stories',

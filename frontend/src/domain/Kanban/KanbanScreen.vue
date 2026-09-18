@@ -2,7 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
-import { useResource } from '@/technical/Api/UseResource'
+import { reasonOf, useResource } from '@/technical/Api/UseResource'
+import { usePhrase } from '@/technical/Language/UsePhrase'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import type { KanbanColumn, ProjectCard, StoryHold } from '@/domain/Board/BoardModel'
 import { tintOf } from '@/technical/Ui/Tint'
@@ -10,6 +11,7 @@ import CardDrawer from './CardDrawer.vue'
 import { holdOf } from './Hold'
 
 const { t } = useI18n()
+const say = usePhrase()
 
 const columns = useResource<readonly KanbanColumn[]>(() => board.read('/api/board/columns'))
 const stories = useResource<readonly ProjectCard[]>(() => board.read('/api/board/projects'))
@@ -17,6 +19,37 @@ const holds = useResource<readonly StoryHold[]>(() => board.read('/api/board/hol
 
 const heldStory = computed(() => (storyId: number) => holdOf(holds.data.value ?? [], storyId))
 const drawerId = ref<number | null>(null)
+const chosen = ref<Set<number>>(new Set())
+const refusals = ref<readonly string[]>([])
+const busy = ref(false)
+
+function toggle(storyId: number): void {
+  const next = new Set(chosen.value)
+  if (next.has(storyId)) {
+    next.delete(storyId)
+  } else {
+    next.add(storyId)
+  }
+  chosen.value = next
+}
+
+async function sendToArchitecture(): Promise<void> {
+  busy.value = true
+  refusals.value = []
+  for (const storyId of chosen.value) {
+    try {
+      await board.send(`/api/stories/${storyId}/dispatch`, 'POST', { phase: 'architecture' })
+    } catch (error) {
+      refusals.value = [
+        ...refusals.value,
+        t('backlog.refusalOn', { id: storyId, reason: say(reasonOf(error)) }),
+      ]
+    }
+  }
+  chosen.value = new Set()
+  busy.value = false
+  await reloadBoard()
+}
 
 const openStory = computed(
   () => (stories.data.value ?? []).find((story) => story.id === drawerId.value) ?? null,
@@ -69,6 +102,28 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
                 (byColumn.get(column.key) ?? []).length
               }}</span>
             </header>
+            <div
+              v-if="column.key === 'backlog'"
+              class="flex flex-wrap items-center gap-2 border-b border-line px-4 py-2"
+            >
+              <span class="font-mono text-[10px] text-txt-low uppercase">{{
+                t('backlog.chosenCount', { count: chosen.size }, chosen.size)
+              }}</span>
+              <button
+                type="button"
+                :disabled="busy || chosen.size === 0"
+                class="ml-auto rounded-lg border border-acc bg-acc px-3 py-1.5 font-mono text-[10px] font-bold text-ink uppercase disabled:opacity-40"
+                @click="sendToArchitecture()"
+              >
+                {{ t('backlog.sendToArchitecture') }}
+              </button>
+              <ul v-if="refusals.length > 0" class="flex w-full flex-col gap-1" role="alert">
+                <li v-for="refusal in refusals" :key="refusal" class="text-[11px] text-red">
+                  {{ refusal }}
+                </li>
+              </ul>
+            </div>
+
             <div class="flex flex-col gap-2 overflow-auto p-3">
               <button
                 v-for="story in byColumn.get(column.key) ?? []"
@@ -87,9 +142,23 @@ onMounted(() => Promise.all([columns.reload(), reloadBoard()]))
                     >{{ story.projectSlug }}</span
                   >
                   <span class="font-mono text-[10px] font-semibold text-acc">{{ story.reference }}</span>
+                  <label
+                    v-if="column.key === 'backlog'"
+                    class="ml-auto flex cursor-pointer items-center gap-1.5 rounded-lg px-1.5 py-1 font-mono text-[9.5px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
+                    @click.stop
+                  >
+                    <input
+                      type="checkbox"
+                      class="h-[16px] w-[16px] accent-acc"
+                      :checked="chosen.has(story.id)"
+                      :aria-label="t('backlog.takeOne', { reference: story.reference })"
+                      @change="toggle(story.id)"
+                    />
+                    {{ t('common.take') }}
+                  </label>
                   <span
                     v-if="story.attention !== null"
-                    class="ml-auto rounded-md border border-orange px-1.5 py-0.5 font-mono text-[9.5px] text-orange uppercase"
+                    class="rounded-md border border-orange px-1.5 py-0.5 font-mono text-[9.5px] text-orange uppercase"
                     >{{ t(`attention.${story.attention}`) }}</span
                   >
                 </div>

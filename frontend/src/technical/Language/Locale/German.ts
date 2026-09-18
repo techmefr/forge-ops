@@ -62,7 +62,6 @@ export const GERMAN: Message = {
   projectTab: {
     aria: 'Projektansichten',
     board: 'Board',
-    backlog: 'Vorrat',
     deployment: 'Auslieferung',
   },
   personal: {
@@ -309,11 +308,8 @@ export const GERMAN: Message = {
     claim: 'Mir zuweisen',
   },
   backlog: {
-    storyCount: '{count} Story | {count} Storys',
     chosenCount: '{count} ausgewählt | {count} ausgewählt',
     sendToArchitecture: 'In die Architektur schicken',
-    empty: 'Der Vorrat ist leer. Schreib eine Story.',
-    unknownEpic: 'unbekanntes Epic',
     refusalOn: 'Story {id}: {reason}',
     takeOne: '{reference} nehmen',
   },
