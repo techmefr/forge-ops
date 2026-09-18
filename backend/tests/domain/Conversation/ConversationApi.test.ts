@@ -48,7 +48,11 @@ beforeAll(() => {
 })
 
 afterEach(() => {
-  db.exec('DELETE FROM agent_session; DELETE FROM story_remark')
+  db.exec(
+    'DELETE FROM agent_session; DELETE FROM story_remark; DELETE FROM acceptance_criterion;' +
+      ' DELETE FROM checkpoint; DELETE FROM story; DELETE FROM epic; DELETE FROM project;' +
+      ' DELETE FROM sqlite_sequence',
+  )
 })
 
 beforeEach(() => {
@@ -61,7 +65,7 @@ beforeEach(() => {
     published.push(event.name)
   })
   const project = stories.createProject({
-    slug: `forge-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    slug: 'forge',
     name: 'Forge',
     repositoryUrl: 'git@example.com:forge.git',
     integrationBranch: 'forge',
