@@ -27,6 +27,7 @@ import { OWNERSHIPS } from '@/domain/Story/EpicFilter'
 import { PARTS } from '@/domain/Story/StoryPart'
 import { FONT_FACES, FONT_SCALES } from '@/technical/Appearance/Appearance'
 import { MODE_CHOICES } from '@/technical/Appearance/ModeChoice'
+import { TALLY_FIGURES } from '@/domain/Personal/Tally'
 import { SCREEN_SEQUENCE } from '@/technical/Router/Screen'
 import { PERSONAL_TABS, PROJECT_TABS } from '@/technical/Router/ScreenTab'
 import { LANGUAGES } from '@/technical/Language/Language'
@@ -51,6 +52,7 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   outcome: OUTCOME_CLASSES,
   ownership: OWNERSHIPS,
   personalTab: PERSONAL_TABS,
+  personal: TALLY_FIGURES,
   phase: AGENT_PHASE_SEQUENCE,
   'pilot.reason': PARCOURS_REASON_SEQUENCE,
   pilotPace: PILOT_PACE_SEQUENCE,

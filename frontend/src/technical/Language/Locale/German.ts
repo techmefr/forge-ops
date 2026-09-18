@@ -65,6 +65,14 @@ export const GERMAN: Message = {
     backlog: 'Vorrat',
     deployment: 'Auslieferung',
   },
+  personal: {
+    aria: 'Ihre Kennzahlen',
+    mine: 'Meine Projekte',
+    late: 'Verspätet',
+    soon: 'Bald fällig',
+    attention: 'Brauchen eine Hand',
+    soonHint: 'in {count} Tag | in {count} Tagen',
+  },
   personalTab: {
     aria: 'Persönliche Ansichten',
     stories: 'Stories',

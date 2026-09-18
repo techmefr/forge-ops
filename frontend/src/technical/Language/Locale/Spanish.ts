@@ -65,6 +65,14 @@ export const SPANISH: Message = {
     backlog: 'Reserva',
     deployment: 'Despliegue',
   },
+  personal: {
+    aria: 'Tus indicadores',
+    mine: 'Mis proyectos',
+    late: 'Con retraso',
+    soon: 'Fecha próxima',
+    attention: 'Piden una mano',
+    soonHint: 'dentro de {count} día | dentro de {count} días',
+  },
   personalTab: {
     aria: 'Vistas personales',
     stories: 'Historias',
