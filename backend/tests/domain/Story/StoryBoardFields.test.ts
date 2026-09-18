@@ -79,8 +79,9 @@ describe('story board fields', () => {
 })
 
 describe('kanban columns', () => {
-  it('runs from the plan to production', () => {
+  it('runs from the store to production', () => {
     expect(KANBAN_COLUMNS.map((column) => column.key)).toEqual([
+      'backlog',
       'architecture',
       'plan_review',
       'building',
@@ -92,7 +93,11 @@ describe('kanban columns', () => {
     ])
   })
 
-  it('carries the planning as its first two columns', () => {
+  it('opens on the store, where stories wait for a session', () => {
+    expect(columnOfState('backlog')).toBe('backlog')
+  })
+
+  it('carries the planning right after it', () => {
     expect(columnOfState('architecture')).toBe('architecture')
     expect(columnOfState('plan_review')).toBe('plan_review')
   })
@@ -100,6 +105,5 @@ describe('kanban columns', () => {
   it('places every board state in exactly one column', () => {
     expect(columnOfState('building')).toBe('building')
     expect(columnOfState('drafting')).toBeNull()
-    expect(columnOfState('backlog')).toBeNull()
   })
 })
