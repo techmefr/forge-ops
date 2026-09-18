@@ -551,6 +551,8 @@ export const SPANISH: Message = {
     gigabytes: '{used} / {total} GB',
   },
   statistic: {
+    timePerStory: 'Tiempo por historia',
+    thisMachine: 'Este es el registro de esta máquina: las sesiones que lanzó, el tiempo y el dinero que costaron. En qué punto están los proyectos se lee en el tablero de proyectos.',
     sessions: 'Sesiones',
     totalCost: 'Coste total',
     machineTime: 'Tiempo de máquina',

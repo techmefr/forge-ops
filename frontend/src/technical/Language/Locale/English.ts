@@ -539,6 +539,8 @@ export const ENGLISH = {
     gigabytes: '{used} / {total} GB',
   },
   statistic: {
+    timePerStory: 'Time per story',
+    thisMachine: 'This is the record of this machine: the sessions it ran, the time and the money they took. Where the projects themselves stand is on the projects board.',
     sessions: 'Sessions',
     totalCost: 'Total cost',
     machineTime: 'Machine time',
