@@ -2,6 +2,10 @@
 
 Branch `main`. Complete rewrite: the unit of work is no longer the task, it is the **story**, always accompanied by its **twin test story**. The board orchestrates Claude Code sessions on those stories and refuses to let a story move forward without proof.
 
+**Look at it without installing anything:** [techmefr.github.io/forge-ops](https://techmefr.github.io/forge-ops/) — the demonstration board, frozen, with its guided tour in six languages. Nothing runs there; it is a visit, not a trial.
+
+**Where this is going.** A rework was decided on 2026-09-18: the tool splits into a shared server and an executing instance, the interface comes down to four screens, the kanban columns become a template an organisation writes for itself, and the agent behind a card becomes a driver. [docs/Architecture.md](docs/Architecture.md) says what is being built and why; [docs/Deployment.md](docs/Deployment.md) says how it is run. This README describes what exists today — section 11 is the honest state of it.
+
 ## 1. The problem addressed
 
 An agent coding on its own produces three classes of friction:
@@ -289,7 +293,7 @@ Low-level orchestration is not rewritten: it leans on the first party — the `c
 | Feature flags | To be delegated to OpenFeature, the board keeps only the percentage |
 | Browser piloting of step 6 (slow motion, pause, inspection) | Done, a real Chromium through `playwright-core`, screenshot at every step |
 
-The step-by-step survey of the existing tooling is in [docs/Tooling.md](docs/Tooling.md), and the exhaustive listing of the landscape — around 120 projects, licenses and mechanisms — in [docs/Landscape.md](docs/Landscape.md).
+The architecture being built towards is in [docs/Architecture.md](docs/Architecture.md) and the ways to run it in [docs/Deployment.md](docs/Deployment.md). The step-by-step survey of the existing tooling is in [docs/Tooling.md](docs/Tooling.md), and the exhaustive listing of the landscape — around 120 projects, licenses and mechanisms — in [docs/Landscape.md](docs/Landscape.md).
 
 ## 12. Licence
 
