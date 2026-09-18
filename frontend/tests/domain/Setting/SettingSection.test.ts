@@ -24,7 +24,10 @@ describe('les sections de reglages', () => {
 
   it('separent ce qui appartient a la personne de ce qui appartient a l organisation', () => {
     expect(sectionsOf('mine').map((section) => section.key)).toEqual(['appearance', 'account'])
-    expect(sectionsOf('organisation').map((section) => section.key)).toEqual(['budget'])
+    expect(sectionsOf('organisation').map((section) => section.key)).toEqual([
+      'templates',
+      'budget',
+    ])
   })
 
   it('donnent l effet d une section connue, et rien d une section inconnue', () => {

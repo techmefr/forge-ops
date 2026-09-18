@@ -68,6 +68,7 @@ export type BoardApiInput = {
   advanceReviewCascade: (storyId: number) => Promise<CascadeStep>
   claudeHome: string
   openHolds?: () => readonly StoryHold[]
+  boardColumns?: () => readonly { key: string; label: string; colour: string }[]
   today?: () => string
 }
 
@@ -84,6 +85,7 @@ export function createBoardApi({
   advanceReviewCascade,
   claudeHome,
   openHolds = () => [],
+  boardColumns = () => KANBAN_COLUMNS,
   today = () => new Date().toISOString().slice(0, 10),
 }: BoardApiInput): Hono {
   const api = new Hono()
@@ -273,7 +275,7 @@ export function createBoardApi({
     )
   })
 
-  api.get('/api/board/columns', (context) => context.json(KANBAN_COLUMNS))
+  api.get('/api/board/columns', (context) => context.json(boardColumns()))
 
   api.get('/api/board/phases', (context) => context.json(PHASE_CONTRACTS))
 

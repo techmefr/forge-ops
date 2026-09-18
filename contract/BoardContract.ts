@@ -107,3 +107,23 @@ export type ProjectCard = KanbanStory & {
   daysLeft: number | null
   attention: Attention | null
 }
+
+export type TemplateColumn = {
+  state: KanbanColumnKey
+  label: string
+  colour: string
+  agent: string | null
+  prompt: string | null
+  delayHours: number | null
+}
+
+export type ColumnTemplate = {
+  id: number
+  slug: string
+  name: string
+  version: number
+  isDefault: boolean
+  columns: readonly TemplateColumn[]
+}
+
+export type TemplateDraft = Omit<ColumnTemplate, 'id' | 'version'>
