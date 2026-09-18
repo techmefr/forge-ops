@@ -179,6 +179,7 @@ export const GERMAN: Message = {
     free: 'Freie',
   },
   drawerTab: {
+    thread: 'Faden',
     story: 'Story',
     plan: 'Plan',
     review: 'Review',
@@ -376,6 +377,17 @@ export const GERMAN: Message = {
     inProduction: 'In Produktion',
     cleanUpKept: 'Aufräumen: {count} Reservierungen freigegeben, Worktree behalten.',
     cleanUpClosed: 'Aufräumen: {count} Reservierungen freigegeben, Worktree geschlossen.',
+  },
+  threadEntry: {
+    testimony: 'Gesagt',
+    proof: 'Beweis',
+  },
+  thread: {
+    empty: 'Zu dieser Karte wurde noch nichts gesagt.',
+    entries: 'kein Eintrag | ein Eintrag | {count} Einträge',
+    awaiting: 'Wartet auf einen Menschen',
+    awaitingSaid: 'Der Agent schlägt vor, Sie bestätigen: Ihr Ja schickt die Karte in den Vorrat.',
+    validate: 'Bestätigen und in den Vorrat schicken',
   },
   discussion: {
     held: 'Angehalten',

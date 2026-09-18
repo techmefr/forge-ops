@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type Database from 'better-sqlite3'
 import { Hono } from 'hono'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
@@ -7,6 +7,10 @@ import { createStoryRepository } from '../../../src/domain/Story/StoryRepository
 import { createConversationApi } from '../../../src/domain/Conversation/ConversationApi.js'
 import { framedTurn, type SpokenTurn } from '../../../src/domain/Conversation/Conversation.js'
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
+import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
+import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
+import { createDiscussionRepository } from '../../../src/domain/Discussion/DiscussionRepository.js'
+import { createTemplateRepository } from '../../../src/domain/Template/TemplateRepository.js'
 
 let db: Database.Database
 let api: Hono
@@ -26,10 +30,32 @@ function talk(id: number, body: unknown): Promise<Response> {
   }) as Promise<Response>
 }
 
-beforeEach(() => {
+let sessions: ReturnType<typeof createAgentSessionRepository>
+let discussion: ReturnType<typeof createDiscussionRepository>
+let checkpoints: ReturnType<typeof createCheckpointRepository>
+let templates: ReturnType<typeof createTemplateRepository>
+
+beforeAll(() => {
   db = openDatabase(':memory:')
   stories = createStoryRepository(db)
-  const sessions = createAgentSessionRepository(db)
+  sessions = createAgentSessionRepository(db)
+  discussion = createDiscussionRepository(db, { stories })
+  checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
+    takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
+  })
+  templates = createTemplateRepository(db)
+})
+
+afterEach(() => {
+  db.exec(
+    'DELETE FROM agent_session; DELETE FROM story_remark; DELETE FROM acceptance_criterion;' +
+      ' DELETE FROM checkpoint; DELETE FROM story; DELETE FROM epic; DELETE FROM project;' +
+      ' DELETE FROM sqlite_sequence',
+  )
+})
+
+beforeEach(() => {
   const events = createEventBus()
   said = []
   hungUp = []
@@ -56,6 +82,9 @@ beforeEach(() => {
     stories,
     sessions,
     events,
+    discussion,
+    checkpoints,
+    templates,
     talker: {
       say: (turn) => {
         said.push(turn)
@@ -70,7 +99,6 @@ beforeEach(() => {
 })
 
 function openSession(): string {
-  const sessions = createAgentSessionRepository(db)
   return sessions.registerSession({
     storyId,
     claudeSessionId: 'session-abc',
@@ -105,7 +133,7 @@ describe('POST /api/stories/:id/talk', () => {
 
   it('talks to the newest session when several ran', async () => {
     openSession()
-    createAgentSessionRepository(db).registerSession({
+    sessions.registerSession({
       storyId,
       claudeSessionId: 'session-def',
       phase: 'architecture',
@@ -173,7 +201,7 @@ describe('DELETE /api/stories/:id/talk', () => {
 
     await hangUp(storyId)
 
-    expect(createAgentSessionRepository(db).findByClaudeSessionId('session-abc')?.lifecycle).toBe(
+    expect(sessions.findByClaudeSessionId('session-abc')?.lifecycle).toBe(
       'interrupted',
     )
   })

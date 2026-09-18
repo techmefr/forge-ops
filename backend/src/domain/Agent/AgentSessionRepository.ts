@@ -12,6 +12,7 @@ import type {
 import { UnknownAgentSessionError } from './AgentViolation.js'
 import { STALE_AFTER_SECONDS, type StaleSession } from './Heartbeat.js'
 import { StoryNotFoundError } from '../Story/StoryViolation.js'
+import type { ThreadSession } from '../Conversation/Thread.js'
 
 type AgentSessionRow = {
   id: number
@@ -43,10 +44,18 @@ export type ClosedSession = AgentSession & {
   statement: string
 }
 
+type ThreadSessionRow = {
+  claude_session_id: string
+  phase: string
+  agent_name: string
+  started_at: string
+}
+
 export type AgentSessionRepository = {
   registerSession: (draft: AgentSessionDraft) => AgentSession
   findByClaudeSessionId: (claudeSessionId: string) => AgentSession | null
   latestSessionOf: (storyId: number) => AgentSession | null
+  listSessionsOf: (storyId: number) => readonly ThreadSession[]
   updateLifecycle: (claudeSessionId: string, lifecycle: AgentLifecycle) => AgentSession
   recordHeartbeat: (claudeSessionId: string) => void
   listStaleSessions: (staleAfterSeconds?: number) => readonly StaleSession[]
@@ -80,6 +89,10 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
   )
   const selectLatestOfStory = db.prepare<[number], AgentSessionRow>(
     'SELECT * FROM agent_session WHERE story_id = ? ORDER BY id DESC LIMIT 1',
+  )
+  const selectSessionsOfStory = db.prepare<[number], ThreadSessionRow>(
+    `SELECT claude_session_id, phase, agent_name, started_at FROM agent_session
+      WHERE story_id = ? ORDER BY started_at, id`,
   )
   const selectSession = db.prepare<[string], AgentSessionRow>(
     'SELECT * FROM agent_session WHERE claude_session_id = ?',
@@ -159,6 +172,14 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
 
     findByClaudeSessionId,
     latestSessionOf,
+
+    listSessionsOf: (storyId) =>
+      selectSessionsOfStory.all(storyId).map((row) => ({
+        claudeSessionId: row.claude_session_id,
+        phase: row.phase,
+        agentName: row.agent_name,
+        startedAt: row.started_at,
+      })),
 
     updateLifecycle: (claudeSessionId, lifecycle) => {
       requireSession(claudeSessionId)

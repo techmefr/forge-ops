@@ -294,6 +294,9 @@ export function startBoardServer({
       sessions,
       events,
       talker: createSdkSessionTalker({ live, onEvent: onSessionEvent }),
+      discussion,
+      checkpoints: cascadeCheckpoints,
+      templates,
     }),
   )
   guarded.route(

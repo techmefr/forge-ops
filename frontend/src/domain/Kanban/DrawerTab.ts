@@ -1,4 +1,4 @@
-export const DRAWER_TABS = ['story', 'plan', 'review', 'delivery', 'discussion'] as const
+export const DRAWER_TABS = ['thread', 'story', 'plan', 'review', 'delivery', 'discussion'] as const
 
 export type DrawerTab = (typeof DRAWER_TABS)[number]
 
@@ -14,5 +14,5 @@ const TAB_OF_STATE: Readonly<Record<string, DrawerTab>> = {
 }
 
 export function tabOfState(state: string): DrawerTab {
-  return TAB_OF_STATE[state] ?? 'story'
+  return TAB_OF_STATE[state] ?? 'thread'
 }

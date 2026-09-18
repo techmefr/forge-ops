@@ -179,6 +179,7 @@ export const FRENCH: Message = {
     free: 'Libres',
   },
   drawerTab: {
+    thread: 'Fil',
     story: 'Story',
     plan: 'Plan',
     review: 'Review',
@@ -374,6 +375,17 @@ export const FRENCH: Message = {
     inProduction: 'En production',
     cleanUpKept: 'Nettoyage : {count} réservations libérées, worktree gardé.',
     cleanUpClosed: 'Nettoyage : {count} réservations libérées, worktree fermé.',
+  },
+  threadEntry: {
+    testimony: 'Dit',
+    proof: 'Preuve',
+  },
+  thread: {
+    empty: 'Rien n\'a encore été dit sur cette carte.',
+    entries: 'aucune entrée | une entrée | {count} entrées',
+    awaiting: 'En attente d\'un humain',
+    awaitingSaid: 'L\'agent propose, vous validez : c\'est votre oui qui envoie la carte à la réserve.',
+    validate: 'Valider et envoyer à la réserve',
   },
   discussion: {
     held: 'Bloquée',

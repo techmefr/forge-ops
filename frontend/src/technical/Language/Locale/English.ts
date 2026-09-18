@@ -177,6 +177,7 @@ export const ENGLISH = {
     free: 'Free',
   },
   drawerTab: {
+    thread: 'Thread',
     story: 'Story',
     plan: 'Plan',
     review: 'Review',
@@ -369,6 +370,17 @@ export const ENGLISH = {
     inProduction: 'In production',
     cleanUpKept: 'Clean-up: {count} reservations released, worktree kept.',
     cleanUpClosed: 'Clean-up: {count} reservations released, worktree closed.',
+  },
+  threadEntry: {
+    testimony: 'Said',
+    proof: 'Proof',
+  },
+  thread: {
+    empty: 'Nothing has been said on this card yet.',
+    entries: 'no entry | one entry | {count} entries',
+    awaiting: 'Waiting for a human',
+    awaitingSaid: 'The agent proposes, you validate: it is your yes that sends the card to the reserve.',
+    validate: 'Validate and send to the reserve',
   },
   discussion: {
     held: 'Held',
