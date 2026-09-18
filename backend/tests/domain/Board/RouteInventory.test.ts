@@ -10,6 +10,7 @@ const EXPECTED_ROUTES = [
   'GET /api/board/human-gates',
   'GET /api/board/kanban',
   'GET /api/board/phases',
+  'GET /api/board/projects',
   'GET /api/board/self',
   'GET /api/events',
   'GET /api/files/conflicts',

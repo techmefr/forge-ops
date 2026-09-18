@@ -28,6 +28,17 @@ export const ENGLISH = {
     money: '{amount} $',
     percent: '{value} %',
   },
+  attention: {
+    blocked: 'Blocked',
+    conflict: 'Conflict',
+    gate: 'Waiting for you',
+    late: 'Late',
+  },
+  milestone: {
+    demo: 'Demo',
+    production: 'Production',
+    everyone: 'Everyone',
+  },
   screen: {
     projects: {
       label: 'Projects',
@@ -293,6 +304,9 @@ export const ENGLISH = {
     takeOne: 'Take {reference}',
   },
   kanban: {
+    nobody: 'Nobody',
+    daysLeft: 'in {count} day | in {count} days',
+    daysLate: '{count} day late | {count} days late',
     empty: 'No story in progress.',
     mergeConflict: 'Merge conflict',
     held: 'Held',

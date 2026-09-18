@@ -216,7 +216,10 @@ export function startBoardServer({
     },
   })
   const cascadeCheckpoints = createCheckpointRepository(db, checkpointGates)
+  const discussion = createDiscussionRepository(db, { stories })
   const api = createBoardApi({
+    openHolds: discussion.openHolds,
+    today: () => new Date().toISOString().slice(0, 10),
     zones: createZoneRepository(db),
     budget,
     repository: stories,
@@ -279,7 +282,7 @@ export function startBoardServer({
     '/',
     createDiscussionApi({
       stories,
-      discussion: createDiscussionRepository(db, { stories }),
+      discussion,
       events,
     }),
   )
