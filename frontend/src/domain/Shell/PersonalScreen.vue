@@ -5,6 +5,7 @@ import FileScreen from '@/domain/File/FileScreen.vue'
 import ResourceScreen from '@/domain/Resource/ResourceScreen.vue'
 import StoryScreen from '@/domain/Story/StoryScreen.vue'
 import ViewScreen from '@/domain/View/ViewScreen.vue'
+import PersonalTally from '@/domain/Personal/PersonalTally.vue'
 import ScreenTabs from './ScreenTabs.vue'
 import {
   PERSONAL_BASE,
@@ -18,6 +19,7 @@ const current = computed(() => tabOfRoute(PERSONAL_TABS, route.params.tab))
 
 <template>
   <div class="flex h-full min-h-0 min-w-0 flex-col">
+    <PersonalTally />
     <ScreenTabs
       :base="PERSONAL_BASE"
       :tabs="PERSONAL_TABS"

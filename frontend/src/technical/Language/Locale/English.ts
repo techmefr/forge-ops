@@ -63,6 +63,14 @@ export const ENGLISH = {
     backlog: 'Backlog',
     deployment: 'Deployment',
   },
+  personal: {
+    aria: 'Your indicators',
+    mine: 'My projects',
+    late: 'Late',
+    soon: 'Due soon',
+    attention: 'Need a hand',
+    soonHint: 'within {count} day | within {count} days',
+  },
   personalTab: {
     aria: 'Personal views',
     stories: 'Stories',

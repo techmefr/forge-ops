@@ -65,6 +65,14 @@ export const FRENCH: Message = {
     backlog: 'Réserve',
     deployment: 'Déploiement',
   },
+  personal: {
+    aria: 'Vos indicateurs',
+    mine: 'Mes projets',
+    late: 'En retard',
+    soon: 'Échéance proche',
+    attention: 'Demandent une main',
+    soonHint: 'sous {count} jour | sous {count} jours',
+  },
   personalTab: {
     aria: 'Vues personnelles',
     stories: 'Stories',
