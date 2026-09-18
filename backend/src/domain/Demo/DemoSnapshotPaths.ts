@@ -39,6 +39,7 @@ export const STORY_PATHS: readonly string[] = [
   '/api/stories/:id/dod',
   '/api/stories/:id/pilot',
   '/api/stories/:id/report',
+  '/api/stories/:id/thread',
   '/api/stories/:id/review',
   '/api/stories/:id/ticket',
   '/api/stories/:id/worktree',

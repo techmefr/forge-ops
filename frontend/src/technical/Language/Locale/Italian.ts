@@ -179,6 +179,7 @@ export const ITALIAN: Message = {
     free: 'Libere',
   },
   drawerTab: {
+    thread: 'Filo',
     story: 'Storia',
     plan: 'Piano',
     review: 'Review',
@@ -376,6 +377,17 @@ export const ITALIAN: Message = {
     inProduction: 'In produzione',
     cleanUpKept: 'Pulizia: {count} prenotazioni liberate, worktree mantenuto.',
     cleanUpClosed: 'Pulizia: {count} prenotazioni liberate, worktree chiuso.',
+  },
+  threadEntry: {
+    testimony: 'Detto',
+    proof: 'Prova',
+  },
+  thread: {
+    empty: 'Su questa carta non è stato ancora detto nulla.',
+    entries: 'nessuna voce | una voce | {count} voci',
+    awaiting: 'In attesa di un umano',
+    awaitingSaid: 'L\'agente propone, tu convalidi: è il tuo sì che manda la carta alla riserva.',
+    validate: 'Convalida e manda alla riserva',
   },
   discussion: {
     held: 'Bloccata',

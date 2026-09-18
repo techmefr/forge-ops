@@ -13,8 +13,8 @@ const COLUMN_STATES = [
 ]
 
 describe('les onglets du tiroir', () => {
-  it('vont de la story a la discussion', () => {
-    expect([...DRAWER_TABS]).toEqual(['story', 'plan', 'review', 'delivery', 'discussion'])
+  it('vont du fil a la discussion', () => {
+    expect([...DRAWER_TABS]).toEqual(['thread', 'story', 'plan', 'review', 'delivery', 'discussion'])
   })
 
   it('ne repetent jamais le meme onglet', () => {
@@ -39,8 +39,8 @@ describe('tabOfState', () => {
     expect(tabOfState('shipping')).toBe('delivery')
   })
 
-  it('ouvre la story pour un etat sans onglet propre', () => {
-    expect(tabOfState('drafting')).toBe('story')
+  it('ouvre le fil pour un etat sans onglet propre', () => {
+    expect(tabOfState('drafting')).toBe('thread')
   })
 
   it('donne un onglet connu a chaque colonne du kanban', () => {

@@ -7,16 +7,25 @@ import { StoryNotFoundError, StoryViolationError } from '../Story/StoryViolation
 import { assertStoryHand } from '../Story/StoryHand.js'
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import { framedTurn, type SessionTalker } from './Conversation.js'
+import { openingOf, threadOf, validationRefusalOf, voiceOf } from './Thread.js'
+import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
+import type { DiscussionRepository } from '../Discussion/DiscussionRepository.js'
+import type { TemplateRepository } from '../Template/TemplateRepository.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
 const turnSchema = z.object({ message: z.string().trim().min(1).max(4000) })
+
+export const AGENT_SESSION_HEADER = 'x-forge-session'
 
 export type ConversationApiInput = {
   stories: StoryRepository
   sessions: AgentSessionRepository
   talker: SessionTalker
   events: EventBus
+  discussion: DiscussionRepository
+  checkpoints: CheckpointRepository
+  templates: TemplateRepository
 }
 
 export function createConversationApi({
@@ -24,6 +33,9 @@ export function createConversationApi({
   sessions,
   talker,
   events,
+  discussion,
+  checkpoints,
+  templates,
 }: ConversationApiInput): Hono {
   const api = new Hono()
 
@@ -94,6 +106,46 @@ export function createConversationApi({
       },
     })
     return context.json({ hungUp: true, claudeSessionId: session.claudeSessionId })
+  })
+
+  api.get('/api/stories/:id/thread', (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const story = stories.findStory(storyId.data)
+    return context.json(
+      threadOf(
+        story,
+        {
+          sessions: sessions.listSessionsOf(story.id),
+          remarks: discussion.listRemarks(story.id),
+          proofs: checkpoints.listProofs(story.id),
+        },
+        openingOf(templates.templateOfProject(stories.projectOfStory(story.id)).columns, story),
+      ),
+    )
+  })
+
+  api.post('/api/stories/:id/validate', (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const story = stories.findStory(storyId.data)
+    const refusal = validationRefusalOf(
+      story.state,
+      voiceOf(context.req.header(AGENT_SESSION_HEADER) ?? null),
+    )
+    if (refusal !== null) {
+      return context.json({ error: refusal, reference: story.reference }, 409)
+    }
+    const validated = stories.sendToBacklog(story.id)
+    events.publish({
+      name: 'story.validated',
+      payload: { reference: story.reference, validatedBy: operatorOf(context) },
+    })
+    return context.json(validated)
   })
 
   return api

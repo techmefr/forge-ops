@@ -22,6 +22,7 @@ import { ATTENTIONS } from '@contract/BoardContract'
 import { MILESTONE_KINDS } from '@contract/StoryContract'
 import { SPOKEN_MARKS } from '@/domain/File/FileMarkTone'
 import { DRAWER_TABS } from '@/domain/Kanban/DrawerTab'
+import { THREAD_ENTRY_KINDS } from '@contract/ConversationContract'
 import { DESKS } from '@/domain/Story/Desk'
 import { OWNERSHIPS } from '@/domain/Story/EpicFilter'
 import { PARTS } from '@/domain/Story/StoryPart'
@@ -67,5 +68,6 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   state: STORY_STATE_SEQUENCE,
   storyKind: STORY_KIND_SEQUENCE,
   storyPart: PARTS,
+  threadEntry: THREAD_ENTRY_KINDS,
   voice: REMARK_VOICE_SEQUENCE,
 }
