@@ -170,7 +170,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
               <tbody>
                 <tr v-for="entry in history.data.value ?? []" :key="entry.id" class="border-b border-line/60">
                   <td class="py-2">
-                    <RouterLink :to="`/atelier/${entry.storyId}`" class="font-mono text-[11px] text-acc">{{
+                    <RouterLink :to="`/me/stories/${entry.storyId}`" class="font-mono text-[11px] text-acc">{{
                       entry.storyReference
                     }}</RouterLink>
                   </td>

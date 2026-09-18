@@ -76,12 +76,6 @@ const heading = computed(() => {
       sub: t(`screen.${current.value.key}.sub`),
     }
   }
-  if (route.path === '/settings') {
-    return { digit: '~', label: t('shell.settings'), sub: t('shell.settingsSub') }
-  }
-  if (route.path === '/incidents') {
-    return { digit: '~', label: t('shell.incidents'), sub: t('shell.incidentsSub') }
-  }
   return { digit: '~', label: t('shell.access'), sub: t('shell.accessSub') }
 })
 </script>
@@ -122,24 +116,7 @@ const heading = computed(() => {
           <span class="display-italic text-[14.5px]">{{ t(`screen.${screen.key}.label`) }}</span>
         </RouterLink>
 
-        <RouterLink
-          to="/settings"
-          class="mt-1.5 flex items-center gap-3 rounded-[10px] px-3 py-[11px] transition-colors"
-          :class="
-            route.path === '/settings'
-              ? 'bg-acc-soft/15 text-txt-hi'
-              : 'text-txt-mid hover:bg-elev hover:text-txt-hi'
-          "
-        >
-          <span
-            class="min-w-[12px] font-mono text-[10px] font-semibold"
-            :class="route.path === '/settings' ? 'text-acc' : 'text-txt-low'"
-            >~</span
-          >
-          <Glyph name="settings" :size="15" />
-          <span class="display-italic text-[14.5px]">{{ t('shell.settings') }}</span>
-        </RouterLink>
-      </nav>
+              </nav>
 
       <div class="mt-auto flex flex-col gap-3 border-t border-line px-4 py-4">
         <MachineBadge />
@@ -196,26 +173,7 @@ const heading = computed(() => {
             </span>
           </RouterLink>
 
-          <RouterLink
-            to="/settings"
-            class="flex flex-col justify-center gap-[3px] border-b-[3px] px-4 transition-colors"
-            :class="
-              route.path === '/settings'
-                ? 'border-acc text-txt-hi'
-                : 'border-transparent text-txt-mid hover:text-txt-hi'
-            "
-          >
-            <span
-              class="font-mono text-[9.5px]"
-              :class="route.path === '/settings' ? 'text-acc' : 'text-txt-low'"
-              >~</span
-            >
-            <span class="flex items-center gap-1.5 whitespace-nowrap">
-              <Glyph name="settings" :size="14" />
-              <span class="display-italic text-sm uppercase">{{ t('shell.settings') }}</span>
-            </span>
-          </RouterLink>
-        </nav>
+                  </nav>
       </header>
 
       <header

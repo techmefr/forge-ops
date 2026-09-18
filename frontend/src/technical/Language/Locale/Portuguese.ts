@@ -31,46 +31,39 @@ export const PORTUGUESE: Message = {
     percent: '{value} %',
   },
   screen: {
-    story: {
-      label: 'Oficina',
-      sub: 'Partir de um épico do diretor, cortar a story e a sua gémea de teste',
+    projects: {
+      label: 'Projetos',
+      sub: 'Em que ponto está cada projeto, quem pegou o que, qual prazo se aproxima',
     },
-    backlog: {
-      label: 'Reserva',
-      sub: 'As peças prontas: agrupar as stories da próxima fornada',
+    personal: {
+      label: 'Meu espaço',
+      sub: 'Seus épicos, seus arquivos, suas prévias e o que a máquina ainda aguenta',
     },
-    kanban: {
-      label: 'Forja',
-      sub: 'O plano, o desenvolvimento, a revisão e a entrega de cada story, coluna a coluna',
-    },
-    project: {
-      label: 'Projeto',
-      sub: 'Percorrer os ficheiros, saber para que servem e quem os edita',
-    },
-    view: {
-      label: 'Vista',
-      sub: 'Ver o resultado e experimentar o front de cada sessão de trabalho',
-    },
-    deployment: {
-      label: 'Implantação',
-      sub: 'Em que ponto está a entrega, ramos, conflitos e etapas de CI/CD',
-    },
-    resources: {
-      label: 'Recursos',
-      sub: 'O que a máquina consome, e o que está prestes a consumir',
+    settings: {
+      label: 'Ajustes',
+      sub: 'A conta, a aparência, o idioma e o teto de custo',
     },
     statistics: {
       label: 'Estatísticas',
-      sub: 'O que rende o trabalho lançado, sessão a sessão',
+      sub: 'O que rende o trabalho lançado, sessão por sessão',
     },
+  },
+  projectTab: {
+    aria: 'Vistas do projeto',
+    board: 'Quadro',
+    backlog: 'Reserva',
+    deployment: 'Entrega',
+  },
+  personalTab: {
+    aria: 'Vistas pessoais',
+    stories: 'Histórias',
+    files: 'Arquivos',
+    view: 'Prévia',
+    resources: 'Máquina',
   },
   shell: {
     orchestration: 'Orquestração de agentes',
     pipeline: 'Etapas do pipeline',
-    settings: 'Definições',
-    settingsSub: 'A conta, o aspeto, o idioma e o teto de custo',
-    incidents: 'Comunicações',
-    incidentsSub: 'O que chega de fora, para decidir um a um',
     access: 'Acesso',
     accessSub: 'Abrir uma sessão no board',
     agents: 'Agentes ativos',

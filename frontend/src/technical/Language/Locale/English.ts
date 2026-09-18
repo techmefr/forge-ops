@@ -29,46 +29,39 @@ export const ENGLISH = {
     percent: '{value} %',
   },
   screen: {
-    story: {
-      label: 'Workshop',
-      sub: 'Start from a director epic, cut the story and its test twin',
+    projects: {
+      label: 'Projects',
+      sub: 'Where every project stands, who took what, which milestone is coming',
     },
-    backlog: {
-      label: 'Store',
-      sub: 'The pieces that are ready: group the stories of the next batch',
+    personal: {
+      label: 'Mine',
+      sub: 'Your epics, your files, your renderings and what your machine can still take',
     },
-    kanban: {
-      label: 'Forge',
-      sub: 'The plan, the build, the review and the delivery of each story, column by column',
-    },
-    project: {
-      label: 'Project',
-      sub: 'Walk the files, learn what they serve and who edits them',
-    },
-    view: {
-      label: 'View',
-      sub: 'See the rendering and try the front of each working session',
-    },
-    deployment: {
-      label: 'Deployment',
-      sub: 'Where delivery stands, branches, conflicts and CI/CD steps',
-    },
-    resources: {
-      label: 'Resources',
-      sub: 'What the machine burns, and what it is about to burn',
+    settings: {
+      label: 'Settings',
+      sub: 'The account, the look, the language and the cost cap',
     },
     statistics: {
       label: 'Statistics',
       sub: 'What the launched work yields, session by session',
     },
   },
+  projectTab: {
+    aria: 'Project views',
+    board: 'Board',
+    backlog: 'Backlog',
+    deployment: 'Deployment',
+  },
+  personalTab: {
+    aria: 'Personal views',
+    stories: 'Stories',
+    files: 'Files',
+    view: 'Rendering',
+    resources: 'Machine',
+  },
   shell: {
     orchestration: 'Agent orchestration',
     pipeline: 'Pipeline steps',
-    settings: 'Settings',
-    settingsSub: 'The account, the look, the language and the cost cap',
-    incidents: 'Reports',
-    incidentsSub: 'What comes from outside, to settle one by one',
     access: 'Access',
     accessSub: 'Open a session on the board',
     agents: 'Working agents',

@@ -31,46 +31,39 @@ export const ITALIAN: Message = {
     percent: '{value} %',
   },
   screen: {
-    story: {
-      label: 'Officina',
-      sub: 'Partire da un epic del direttore, tagliare la storia e la sua gemella di test',
+    projects: {
+      label: 'Progetti',
+      sub: 'A che punto è ogni progetto, chi ha preso cosa, quale scadenza arriva',
     },
-    backlog: {
-      label: 'Riserva',
-      sub: 'I pezzi pronti: raggruppare le storie della prossima infornata',
+    personal: {
+      label: 'Da me',
+      sub: 'Le tue epiche, i tuoi file, le tue anteprime e ciò che la macchina può ancora reggere',
     },
-    kanban: {
-      label: 'Fucina',
-      sub: 'Il piano, lo sviluppo, la review e la consegna di ogni storia, colonna per colonna',
-    },
-    project: {
-      label: 'Progetto',
-      sub: 'Percorrere i file, sapere a cosa servono e chi li modifica',
-    },
-    view: {
-      label: 'Vista',
-      sub: 'Vedere il risultato e provare il front di ogni sessione di lavoro',
-    },
-    deployment: {
-      label: 'Rilascio',
-      sub: 'A che punto è la consegna, rami, conflitti e passaggi di CI/CD',
-    },
-    resources: {
-      label: 'Risorse',
-      sub: 'Quello che la macchina consuma, e quello che sta per consumare',
+    settings: {
+      label: 'Impostazioni',
+      sub: 'L’account, l’aspetto, la lingua e il tetto di costo',
     },
     statistics: {
       label: 'Statistiche',
-      sub: 'Quello che rende il lavoro avviato, sessione per sessione',
+      sub: 'Cosa rende il lavoro lanciato, sessione per sessione',
     },
+  },
+  projectTab: {
+    aria: 'Viste del progetto',
+    board: 'Lavagna',
+    backlog: 'Riserva',
+    deployment: 'Rilascio',
+  },
+  personalTab: {
+    aria: 'Viste personali',
+    stories: 'Storie',
+    files: 'File',
+    view: 'Anteprima',
+    resources: 'Macchina',
   },
   shell: {
     orchestration: 'Orchestrazione di agenti',
     pipeline: 'Passaggi della pipeline',
-    settings: 'Impostazioni',
-    settingsSub: 'L’account, l’aspetto, la lingua e il tetto di spesa',
-    incidents: 'Segnalazioni',
-    incidentsSub: 'Quello che arriva da fuori, da decidere uno per uno',
     access: 'Accesso',
     accessSub: 'Aprire una sessione sulla board',
     agents: 'Agenti attivi',

@@ -4,15 +4,15 @@ import { SCREENS } from '../../../src/technical/Router/Screen.js'
 
 describe('screenOfDigit', () => {
   it('mene a l ecran qui porte le chiffre', () => {
-    expect(screenOfDigit('1')?.key).toBe('story')
+    expect(screenOfDigit('1')?.key).toBe('projects')
   })
 
   it('mene au dernier ecran par son chiffre', () => {
-    expect(screenOfDigit('8')?.key).toBe('statistics')
+    expect(screenOfDigit('4')?.key).toBe('statistics')
   })
 
   it('ne mene nulle part sur un chiffre au dela du rail', () => {
-    expect(screenOfDigit('9')).toBeNull()
+    expect(screenOfDigit('5')).toBeNull()
   })
 
   it('refuse une lettre', () => {
@@ -35,10 +35,6 @@ describe('les chiffres des ecrans', () => {
       '2',
       '3',
       '4',
-      '5',
-      '6',
-      '7',
-      '8',
     ])
   })
 
