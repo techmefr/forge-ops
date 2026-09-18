@@ -31,46 +31,39 @@ export const GERMAN: Message = {
     percent: '{value} %',
   },
   screen: {
-    story: {
-      label: 'Werkstatt',
-      sub: 'Von einem Epic der Leitung ausgehen, die Story und ihren Test-Zwilling zuschneiden',
+    projects: {
+      label: 'Projekte',
+      sub: 'Wo jedes Projekt steht, wer was genommen hat, welcher Termin kommt',
     },
-    backlog: {
-      label: 'Vorrat',
-      sub: 'Die fertigen Teile: die Storys der nächsten Charge bündeln',
+    personal: {
+      label: 'Bei mir',
+      sub: 'Ihre Epics, Ihre Dateien, Ihre Ansichten und was Ihre Maschine noch tragen kann',
     },
-    kanban: {
-      label: 'Schmiede',
-      sub: 'Plan, Umsetzung, Review und Auslieferung jeder Story, Spalte für Spalte',
-    },
-    project: {
-      label: 'Projekt',
-      sub: 'Durch die Dateien gehen, sehen wozu sie dienen und wer sie bearbeitet',
-    },
-    view: {
-      label: 'Ansicht',
-      sub: 'Das Ergebnis sehen und das Frontend jeder Arbeitssitzung ausprobieren',
-    },
-    deployment: {
-      label: 'Auslieferung',
-      sub: 'Wo die Lieferung steht, Branches, Konflikte und CI/CD-Schritte',
-    },
-    resources: {
-      label: 'Ressourcen',
-      sub: 'Was die Maschine verbraucht, und was sie gleich verbrauchen wird',
+    settings: {
+      label: 'Einstellungen',
+      sub: 'Das Konto, das Aussehen, die Sprache und die Kostengrenze',
     },
     statistics: {
-      label: 'Statistik',
-      sub: 'Was die gestartete Arbeit einbringt, Sitzung für Sitzung',
+      label: 'Statistiken',
+      sub: 'Was die gestartete Arbeit bringt, Sitzung für Sitzung',
     },
+  },
+  projectTab: {
+    aria: 'Projektansichten',
+    board: 'Board',
+    backlog: 'Vorrat',
+    deployment: 'Auslieferung',
+  },
+  personalTab: {
+    aria: 'Persönliche Ansichten',
+    stories: 'Stories',
+    files: 'Dateien',
+    view: 'Ansicht',
+    resources: 'Maschine',
   },
   shell: {
     orchestration: 'Agenten-Orchestrierung',
     pipeline: 'Schritte der Pipeline',
-    settings: 'Einstellungen',
-    settingsSub: 'Konto, Erscheinungsbild, Sprache und Kostenobergrenze',
-    incidents: 'Meldungen',
-    incidentsSub: 'Was von außen hereinkommt, eines nach dem anderen zu entscheiden',
     access: 'Zugang',
     accessSub: 'Eine Sitzung auf dem Board öffnen',
     agents: 'Aktive Agenten',

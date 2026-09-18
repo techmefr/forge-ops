@@ -1,29 +1,34 @@
 import { describe, expect, it } from 'vitest'
-import { HOME_PATH, SCREENS, screenOfPath } from '../../../src/technical/Router/Screen.js'
+import {
+  ABSORBED_PATHS,
+  HOME_PATH,
+  SCREENS,
+  screenOfPath,
+} from '../../../src/technical/Router/Screen.js'
 
 describe('SCREENS', () => {
-  it('couvre les huit etapes du pipeline', () => {
-    expect(SCREENS).toHaveLength(8)
+  it('tient l application en quatre ecrans', () => {
+    expect(SCREENS).toHaveLength(4)
+    expect(SCREENS.map((screen) => screen.key)).toEqual([
+      'projects',
+      'personal',
+      'settings',
+      'statistics',
+    ])
   })
 
-  it('laisse le plan et la review au kanban plutot qu a leur propre ecran', () => {
-    const keys = SCREENS.map((screen) => screen.key)
-    expect(keys).not.toContain('architecture')
-    expect(keys).not.toContain('review')
-    expect(keys).toContain('kanban')
-    expect(keys).toContain('view')
+  it('range les reglages parmi les ecrans, ils ne sont plus un lien a part', () => {
+    expect(SCREENS.find((screen) => screen.key === 'settings')?.path).toBe(
+      '/settings',
+    )
   })
 
-  it('nomme l ecran des fichiers par le projet qu il donne a lire', () => {
-    expect(SCREENS.find((screen) => screen.key === 'project')?.path).toBe('/project')
-  })
-
-  it('donne un chiffre unique a chaque etape', () => {
-    expect(new Set(SCREENS.map((screen) => screen.digit)).size).toBe(SCREENS.length)
-  })
-
-  it('donne un chemin unique a chaque etape', () => {
-    expect(new Set(SCREENS.map((screen) => screen.path)).size).toBe(SCREENS.length)
+  it('donne un chiffre, un chemin et un sigle uniques a chaque ecran', () => {
+    for (const field of ['digit', 'path', 'tiny'] as const) {
+      expect(new Set(SCREENS.map((screen) => screen[field])).size, field).toBe(
+        SCREENS.length,
+      )
+    }
   })
 
   it('ancre chaque chemin a la racine, sinon le routeur ne le voit pas', () => {
@@ -32,30 +37,32 @@ describe('SCREENS', () => {
     }
   })
 
-  it('donne a chaque ecran un raccourci et un sigle propres', () => {
-    expect(new Set(SCREENS.map((screen) => screen.digit)).size).toBe(SCREENS.length)
-    expect(new Set(SCREENS.map((screen) => screen.tiny)).size).toBe(SCREENS.length)
+  it('ouvre sur les projets', () => {
+    expect(HOME_PATH).toBe('/projects')
   })
 
-  it('ouvre sur la premiere etape', () => {
-    expect(HOME_PATH).toBe('/atelier')
+  it('range chaque ancien chemin sous un des quatre ecrans', () => {
+    for (const [from, to] of Object.entries(ABSORBED_PATHS)) {
+      expect(screenOfPath(from), from).toBeNull()
+      expect(screenOfPath(to)?.path, to).toBeTruthy()
+    }
   })
 })
 
 describe('screenOfPath', () => {
   it('reconnait un chemin exact', () => {
-    expect(screenOfPath('/forge')?.key).toBe('kanban')
+    expect(screenOfPath('/projects')?.key).toBe('projects')
   })
 
-  it('reconnait un chemin enfant, pour que le rail reste allume', () => {
-    expect(screenOfPath('/reserve/12')?.key).toBe('backlog')
+  it('reconnait un onglet, pour que l ecran reste allume', () => {
+    expect(screenOfPath('/me/resources')?.key).toBe('personal')
   })
 
   it('ne confond pas deux chemins de meme prefixe', () => {
-    expect(screenOfPath('/atelierage')).toBeNull()
+    expect(screenOfPath('/projectsphere')).toBeNull()
   })
 
-  it('rend nul sur un ecran hors du rail', () => {
-    expect(screenOfPath('/settings')).toBeNull()
+  it('rend nul sur un ecran hors des onglets', () => {
+    expect(screenOfPath('/login')).toBeNull()
   })
 })

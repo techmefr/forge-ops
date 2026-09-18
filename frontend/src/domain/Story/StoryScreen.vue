@@ -79,7 +79,7 @@ function leaveQueue(): void {
 async function backToEpics(): Promise<void> {
   const talking = written.value.map((story) => story.id)
   leaveQueue()
-  await router.push('/atelier')
+  await router.push('/me/stories')
   ticket.data.value = null
   await Promise.all(talking.map((storyId) => hangUp(storyId).catch(() => undefined)))
 }
@@ -105,7 +105,7 @@ function newStory(epic: EpicOverview): Promise<void> {
       body: epic.businessIntent,
     })
     written.value = [...written.value, story]
-    await router.push(`/atelier/${story.id}`)
+    await router.push(`/me/stories/${story.id}`)
     await dispatch(story.id, 'spec')
   })
 }
@@ -114,7 +114,7 @@ function openWritten(storyId: number): Promise<void> {
   return guard(async () => {
     transcript.clear()
     await open(storyId)
-    await router.push(`/atelier/${storyId}`)
+    await router.push(`/me/stories/${storyId}`)
   })
 }
 

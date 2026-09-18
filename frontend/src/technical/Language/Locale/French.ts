@@ -31,46 +31,39 @@ export const FRENCH: Message = {
     percent: '{value} %',
   },
   screen: {
-    story: {
-      label: 'Atelier',
-      sub: 'Partir d’une épique du directeur, découper la story et sa jumelle de test',
+    projects: {
+      label: 'Projets',
+      sub: 'Où en est chaque projet, qui a pris quoi, quelle échéance arrive',
     },
-    backlog: {
-      label: 'Réserve',
-      sub: 'Les pièces prêtes : grouper les stories de la prochaine fournée',
+    personal: {
+      label: 'Chez moi',
+      sub: 'Vos épiques, vos fichiers, vos rendus et ce que votre machine peut encore prendre',
     },
-    kanban: {
-      label: 'Forge',
-      sub: 'Le plan, le dev, la review et la livraison de chaque story, colonne par colonne',
-    },
-    project: {
-      label: 'Projet',
-      sub: 'Naviguer dans les fichiers, savoir à quoi ils servent et qui les édite',
-    },
-    view: {
-      label: 'Vue',
-      sub: 'Voir le rendu et tester le front de chaque session de travail',
-    },
-    deployment: {
-      label: 'Déploiement',
-      sub: 'Où en est la livraison, branches, conflits et étapes de CI/CD',
-    },
-    resources: {
-      label: 'Ressources',
-      sub: 'Ce que la machine consomme, et ce qu’elle va consommer',
+    settings: {
+      label: 'Réglages',
+      sub: 'Le compte, l’apparence, la langue et le plafond de coût',
     },
     statistics: {
       label: 'Statistiques',
       sub: 'Ce que donne le travail lancé, session par session',
     },
   },
+  projectTab: {
+    aria: 'Vues du projet',
+    board: 'Tableau',
+    backlog: 'Réserve',
+    deployment: 'Déploiement',
+  },
+  personalTab: {
+    aria: 'Vues personnelles',
+    stories: 'Stories',
+    files: 'Fichiers',
+    view: 'Rendu',
+    resources: 'Machine',
+  },
   shell: {
     orchestration: 'Orchestration d’agents',
     pipeline: 'Étapes du pipeline',
-    settings: 'Réglages',
-    settingsSub: 'Le compte, l’apparence, la langue et le plafond de coût',
-    incidents: 'Signalements',
-    incidentsSub: 'Ce qui remonte du dehors, à trancher un par un',
     access: 'Accès',
     accessSub: 'Ouvrir une session sur le board',
     agents: 'Agents actifs',

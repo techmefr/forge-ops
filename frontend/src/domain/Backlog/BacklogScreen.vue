@@ -135,7 +135,7 @@ onMounted(async () => {
                 epics.get(story.epicId)?.title ?? t('backlog.unknownEpic')
               }}</span>
               <RouterLink
-                :to="`/atelier/${story.id}`"
+                :to="`/me/stories/${story.id}`"
                 class="ml-auto font-mono text-[10px] text-acc uppercase hover:underline"
                 >{{ t('common.open') }}</RouterLink
               >

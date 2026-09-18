@@ -1,31 +1,63 @@
-import { createRouter, createWebHistory, type RouteRecordRaw, type Router, type RouterHistory } from 'vue-router'
-import { HOME_PATH } from '@/technical/Router/Screen.js'
+import {
+  createRouter,
+  createWebHistory,
+  type RouteRecordRaw,
+  type Router,
+  type RouterHistory,
+} from 'vue-router'
+import { ABSORBED_PATHS, HOME_PATH } from '@/technical/Router/Screen.js'
+
+const ABSORBED: readonly RouteRecordRaw[] = Object.entries(ABSORBED_PATHS).map(
+  ([from, to]) => ({
+    path: from,
+    redirect: to,
+  }),
+)
 
 export const ROUTES: readonly RouteRecordRaw[] = [
   { path: '/', redirect: HOME_PATH },
-  { path: '/atelier', name: 'story', component: () => import('@/domain/Story/StoryScreen.vue') },
-  { path: '/atelier/:id', name: 'story.one', component: () => import('@/domain/Story/StoryScreen.vue') },
-  { path: '/reserve', name: 'backlog', component: () => import('@/domain/Backlog/BacklogScreen.vue') },
-  { path: '/forge', name: 'kanban', component: () => import('@/domain/Kanban/KanbanScreen.vue') },
-  { path: '/project', name: 'project', component: () => import('@/domain/File/FileScreen.vue') },
-  { path: '/view', name: 'view', component: () => import('@/domain/View/ViewScreen.vue') },
+  { path: '/projects', redirect: '/projects/board' },
   {
-    path: '/deployment',
-    name: 'deployment',
-    component: () => import('@/domain/Deployment/DeploymentScreen.vue'),
+    path: '/projects/:tab',
+    name: 'projects',
+    component: () => import('@/domain/Shell/ProjectsScreen.vue'),
   },
-  { path: '/resources', name: 'resources', component: () => import('@/domain/Resource/ResourceScreen.vue') },
+  { path: '/me', redirect: '/me/stories' },
+  {
+    path: '/me/stories/:id',
+    name: 'personal.story',
+    component: () => import('@/domain/Shell/PersonalScreen.vue'),
+  },
+  {
+    path: '/me/:tab',
+    name: 'personal',
+    component: () => import('@/domain/Shell/PersonalScreen.vue'),
+  },
   {
     path: '/statistics',
     name: 'statistics',
     component: () => import('@/domain/Statistic/StatisticScreen.vue'),
   },
-  { path: '/incidents', name: 'incidents', redirect: '/atelier' },
-  { path: '/settings', name: 'settings', component: () => import('@/domain/Setting/SettingScreen.vue') },
-  { path: '/login', name: 'login', component: () => import('@/domain/Access/LoginScreen.vue') },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('@/domain/Setting/SettingScreen.vue'),
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('@/domain/Access/LoginScreen.vue'),
+  },
+  {
+    path: '/atelier/:id',
+    redirect: (to) => `/me/stories/${String(to.params.id)}`,
+  },
+  ...ABSORBED,
   { path: '/:rest(.*)', redirect: HOME_PATH },
 ]
 
-export function createBoardRouter(history: RouterHistory = createWebHistory(import.meta.env.BASE_URL)): Router {
+export function createBoardRouter(
+  history: RouterHistory = createWebHistory(import.meta.env.BASE_URL),
+): Router {
   return createRouter({ history, routes: [...ROUTES] })
 }
