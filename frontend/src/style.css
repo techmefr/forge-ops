@@ -222,6 +222,11 @@ body {
   pointer-events: none;
 }
 
+.tour-spot--flip::after {
+  top: auto;
+  bottom: -12px;
+}
+
 @keyframes tour-ghost {
   0% {
     transform: scale(1);

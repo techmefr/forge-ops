@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { clearSpot, lightSpot } from '@/technical/Ui/Spotlight'
+import { LOGIN_PATH } from '@/technical/Api/Board'
 import { useTour } from './UseTour'
 import GhostPointer from './GhostPointer.vue'
 
@@ -29,6 +30,10 @@ const panel = ref<HTMLElement | null>(null)
 const heading = ref<HTMLElement | null>(null)
 
 async function placeOnStep(): Promise<void> {
+  if (window.location.pathname === LOGIN_PATH) {
+    clearSpot()
+    return
+  }
   const step = tour.step.value
   if (step === null) {
     clearSpot()
@@ -71,6 +76,14 @@ function onKey(event: KeyboardEvent): void {
 }
 
 watch(() => tour.step.value?.id ?? null, () => void placeOnStep(), { flush: 'post' })
+watch(
+  () => route.path === LOGIN_PATH,
+  (stillOnLogin) => {
+    if (!stillOnLogin) {
+      void placeOnStep()
+    }
+  },
+)
 
 onMounted(async () => {
   window.addEventListener('keydown', onKey)
