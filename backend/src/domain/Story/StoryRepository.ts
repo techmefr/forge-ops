@@ -277,7 +277,7 @@ export function createStoryRepository(
   )
   const selectKanban = db.prepare<[], StoryRow>(
     `SELECT * FROM story
-      WHERE kind = 'functional' AND state NOT IN ('drafting', 'backlog')
+      WHERE kind = 'functional' AND state <> 'drafting'
       ORDER BY id`,
   )
   const updateCard = db.prepare<[string, string, number]>(

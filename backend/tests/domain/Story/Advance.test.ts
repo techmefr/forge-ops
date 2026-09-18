@@ -34,9 +34,9 @@ describe('stateAfterCheckpoint', () => {
     }
   })
 
-  it('reaches every kanban column but the two a human opens', () => {
+  it('reaches every kanban column but the store and the ones a human opens', () => {
     const reached = CHECKPOINT_SEQUENCE.map((name) => stateAfterCheckpoint(name))
-    const opened = ['building', 'flagged', 'done']
+    const opened = ['backlog', 'building', 'flagged', 'done']
 
     for (const column of KANBAN_COLUMNS) {
       expect(reached.includes(column.key) || opened.includes(column.key), column.key).toBe(true)

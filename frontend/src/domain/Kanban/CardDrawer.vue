@@ -34,9 +34,14 @@ watch(
         <span class="font-mono text-[11px] font-semibold text-acc">{{ story.reference }}</span>
         <h2 class="display-italic mt-1 text-lg leading-tight">{{ story.title }}</h2>
       </div>
+      <RouterLink
+        :to="`/me/stories/${story.id}`"
+        class="ml-auto rounded-lg border border-line bg-card px-2.5 py-1.5 font-mono text-[10px] text-txt-mid uppercase hover:border-acc"
+        >{{ t('common.open') }}</RouterLink
+      >
       <button
         type="button"
-        class="ml-auto rounded-lg border border-line bg-card px-2.5 py-1.5 font-mono text-[10px] text-txt-mid uppercase hover:border-acc"
+        class="rounded-lg border border-line bg-card px-2.5 py-1.5 font-mono text-[10px] text-txt-mid uppercase hover:border-acc"
         @click="emit('close')"
       >
         {{ t('common.close') }}
