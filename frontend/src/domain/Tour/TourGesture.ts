@@ -57,3 +57,14 @@ export function moveOf(from: TourSpot | null, to: TourSpot, gesture: TourGesture
 export function travelled(move: TourMove): boolean {
   return move.from.x !== move.to.x || move.from.y !== move.to.y
 }
+
+export const AIM_ATTEMPTS = 5
+
+const FIRST_AIM_MILLIS = 120
+
+export function aimDelayOf(attempt: number): number | null {
+  if (attempt < 0 || attempt >= AIM_ATTEMPTS) {
+    return null
+  }
+  return FIRST_AIM_MILLIS * Math.pow(2, attempt)
+}
