@@ -46,6 +46,8 @@ import { createDiscussionRepository } from '../domain/Discussion/DiscussionRepos
 import { operatorOf } from '../technical/Auth/BoardIdentity.js'
 import { createTemplateRepository } from '../domain/Template/TemplateRepository.js'
 import { createTemplateApi } from '../domain/Template/TemplateApi.js'
+import { createOrganisationRepository } from '../domain/Organisation/OrganisationRepository.js'
+import { createOrganisationApi } from '../domain/Organisation/OrganisationApi.js'
 import { createBatchRepository } from '../domain/Delivery/BatchRepository.js'
 import { createBatchApi } from '../domain/Delivery/BatchApi.js'
 import { columnAgentOfPhase, createDrivenRunner } from '../domain/Driver/Driver.js'
@@ -208,6 +210,7 @@ export function startBoardServer({
     root: worktreeRoot,
   })
   const templates = createTemplateRepository(db)
+  const organisations = createOrganisationRepository(db)
   const drivers = [
     claudeCodeDriver(createSdkSessionRunner({ cwd: process.cwd(), live, onEvent: onSessionEvent })),
   ]
@@ -293,6 +296,14 @@ export function startBoardServer({
     createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
   )
   guarded.route('/', createDriverApi({ drivers }))
+  guarded.route(
+    '/',
+    createOrganisationApi({
+      organisations,
+      maySettle: (context) =>
+        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
+    }),
+  )
   guarded.route(
     '/',
     createBatchApi({
