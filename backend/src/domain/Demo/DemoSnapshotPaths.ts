@@ -11,6 +11,8 @@ export const PARAMETERLESS_PATHS: readonly string[] = [
   '/api/delivery/grouping',
   '/api/drivers',
   '/api/fleet',
+  '/api/instance/tokens',
+  '/api/organisation',
   '/api/templates',
   '/api/incidents',
   '/api/machine',
