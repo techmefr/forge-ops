@@ -581,6 +581,17 @@ export const PORTUGUESE: Message = {
     minutesAgo: 'há {count} min',
     hoursAgo: 'há {count} h',
   },
+  settingEffect: {
+    immediate: 'Efeito imediato',
+    restart: 'No reinício',
+  },
+  settingHalf: {
+    mine: 'Meu espaço',
+    mineSub: 'O aspeto deste quadro e quem é nele. Só seu.',
+    organisation: 'Organização',
+    organisationSub: 'O que se aplica a toda a gente que trabalha aqui.',
+    organisationClosed: 'As definições da organização pertencem a um diretor. Peça-lhe para as mudar.',
+  },
   setting: {
     appearance: 'Aspeto',
     palette: 'Paleta',
