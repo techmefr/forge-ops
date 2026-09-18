@@ -56,7 +56,7 @@ watch(() => props.story.id, () => ticket.reload(), { immediate: true })
     </section>
 
     <RouterLink
-      :to="`/atelier/${story.id}`"
+      :to="`/me/stories/${story.id}`"
       class="self-start rounded-lg border border-line bg-elev px-3 py-2 text-[10px] font-bold text-txt-mid uppercase hover:border-acc"
       >{{ t('storyTab.openWorkshop') }}</RouterLink
     >

@@ -31,46 +31,39 @@ export const SPANISH: Message = {
     percent: '{value} %',
   },
   screen: {
-    story: {
-      label: 'Taller',
-      sub: 'Partir de una épica del director, dividir la historia y su gemela de prueba',
+    projects: {
+      label: 'Proyectos',
+      sub: 'En qué punto está cada proyecto, quién tomó qué, qué fecha llega',
     },
-    backlog: {
-      label: 'Reserva',
-      sub: 'Las piezas listas: agrupar las historias de la próxima tanda',
+    personal: {
+      label: 'Lo mío',
+      sub: 'Tus épicas, tus archivos, tus vistas y lo que tu máquina todavía aguanta',
     },
-    kanban: {
-      label: 'Fragua',
-      sub: 'El plan, el desarrollo, la revisión y la entrega de cada historia, columna por columna',
-    },
-    project: {
-      label: 'Proyecto',
-      sub: 'Recorrer los archivos, saber para qué sirven y quién los edita',
-    },
-    view: {
-      label: 'Vista',
-      sub: 'Ver el resultado y probar el front de cada sesión de trabajo',
-    },
-    deployment: {
-      label: 'Despliegue',
-      sub: 'Por dónde va la entrega, ramas, conflictos y etapas de CI/CD',
-    },
-    resources: {
-      label: 'Recursos',
-      sub: 'Lo que consume la máquina, y lo que va a consumir',
+    settings: {
+      label: 'Ajustes',
+      sub: 'La cuenta, la apariencia, el idioma y el tope de coste',
     },
     statistics: {
       label: 'Estadísticas',
       sub: 'Lo que rinde el trabajo lanzado, sesión por sesión',
     },
   },
+  projectTab: {
+    aria: 'Vistas del proyecto',
+    board: 'Tablero',
+    backlog: 'Reserva',
+    deployment: 'Despliegue',
+  },
+  personalTab: {
+    aria: 'Vistas personales',
+    stories: 'Historias',
+    files: 'Archivos',
+    view: 'Vista',
+    resources: 'Máquina',
+  },
   shell: {
     orchestration: 'Orquestación de agentes',
     pipeline: 'Etapas del pipeline',
-    settings: 'Ajustes',
-    settingsSub: 'La cuenta, el aspecto, el idioma y el tope de coste',
-    incidents: 'Avisos',
-    incidentsSub: 'Lo que llega de fuera, para resolver uno a uno',
     access: 'Acceso',
     accessSub: 'Abrir una sesión en el tablero',
     agents: 'Agentes activos',
