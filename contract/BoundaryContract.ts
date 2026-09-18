@@ -17,6 +17,8 @@ export const SERVER_HELD: readonly string[] = [
   'column_template',
   'template_column',
   'project_template',
+  'merge_batch',
+  'batch_story',
 ]
 
 export const INSTANCE_HELD: readonly string[] = [

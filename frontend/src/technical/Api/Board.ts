@@ -1,6 +1,7 @@
 import { createBoardClient } from './BoardClient.js'
 import { createDemoFetcher, type DemoSnapshot } from './DemoFetcher.js'
 import { FROZEN_VISIT } from './Visit.js'
+import { readAddresses } from './Addresses.js'
 
 export const LOGIN_PATH = '/login'
 
@@ -18,4 +19,4 @@ async function loadSnapshot(): Promise<DemoSnapshot> {
 
 export const board = FROZEN_VISIT
   ? createBoardClient({ fetcher: createDemoFetcher(loadSnapshot) })
-  : createBoardClient({ onUnauthorized: askForTheWayIn })
+  : createBoardClient({ baseUrl: readAddresses().instanceUrl, onUnauthorized: askForTheWayIn })

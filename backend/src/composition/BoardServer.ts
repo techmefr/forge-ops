@@ -48,6 +48,10 @@ import { createTemplateRepository } from '../domain/Template/TemplateRepository.
 import { createTemplateApi } from '../domain/Template/TemplateApi.js'
 import { createOutboxRepository } from '../domain/Boundary/OutboxRepository.js'
 import { createBoundaryApi } from '../domain/Boundary/BoundaryApi.js'
+import { createOrganisationRepository } from '../domain/Organisation/OrganisationRepository.js'
+import { createOrganisationApi } from '../domain/Organisation/OrganisationApi.js'
+import { createBatchRepository } from '../domain/Delivery/BatchRepository.js'
+import { createBatchApi } from '../domain/Delivery/BatchApi.js'
 import { columnAgentOfPhase, createDrivenRunner } from '../domain/Driver/Driver.js'
 import { createDriverApi } from '../domain/Driver/DriverApi.js'
 import { claudeCodeDriver } from './ClaudeCodeDriver.js'
@@ -209,6 +213,7 @@ export function startBoardServer({
   })
   const templates = createTemplateRepository(db)
   const outbox = createOutboxRepository(db)
+  const organisations = createOrganisationRepository(db)
   const drivers = [
     claudeCodeDriver(createSdkSessionRunner({ cwd: process.cwd(), live, onEvent: onSessionEvent })),
   ]
@@ -234,6 +239,7 @@ export function startBoardServer({
   })
   const cascadeCheckpoints = createCheckpointRepository(db, checkpointGates)
   const discussion = createDiscussionRepository(db, { stories })
+  const batches = createBatchRepository(db)
   const api = createBoardApi({
     openHolds: discussion.openHolds,
     boardColumns: () =>
@@ -270,6 +276,9 @@ export function startBoardServer({
   const identities = createIdentityRepository(db)
   const browserSessions = createBrowserSessions()
   const guarded = new Hono()
+  guarded.get('/health', (context) =>
+    context.json({ role: process.env.FORGE_ROLE ?? 'instance', mode, ready: true }),
+  )
   guarded.use(
     '/api/*',
     createTokenGuard({
@@ -296,6 +305,22 @@ export function startBoardServer({
       outbox,
       installedVersion: process.env.FORGE_VERSION ?? '0.1.0',
       offeredVersion: () => process.env.FORGE_OFFERED_VERSION ?? process.env.FORGE_VERSION ?? '0.1.0',
+    }),
+  )
+  guarded.route(
+    '/',
+    createOrganisationApi({
+      organisations,
+      maySettle: (context) =>
+        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
+    }),
+  )
+  guarded.route(
+    '/',
+    createBatchApi({
+      batches,
+      maySettle: (context) =>
+        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
     }),
   )
   guarded.route(

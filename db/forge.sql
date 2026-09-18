@@ -1,7 +1,15 @@
 PRAGMA foreign_keys = ON;
 
+CREATE TABLE IF NOT EXISTS organisation (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS project (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  organisation_id INTEGER REFERENCES organisation(id),
   slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   repository_url TEXT NOT NULL,
@@ -246,6 +254,7 @@ CREATE INDEX IF NOT EXISTS idx_incident_state ON incident(state);
 
 CREATE TABLE IF NOT EXISTS board_user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  organisation_id INTEGER REFERENCES organisation(id),
   login TEXT NOT NULL UNIQUE,
   display_name TEXT NOT NULL,
   password_hash TEXT NOT NULL,
@@ -398,3 +407,39 @@ CREATE TABLE IF NOT EXISTS sync_outbox (
 );
 
 CREATE INDEX IF NOT EXISTS idx_sync_outbox_owed ON sync_outbox(sent_at, id);
+CREATE TABLE IF NOT EXISTS auth_provider (
+  organisation_id INTEGER NOT NULL REFERENCES organisation(id),
+  kind TEXT NOT NULL CHECK (kind IN ('password', 'microsoft', 'google', 'magicLink')),
+  enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
+  issuer TEXT,
+  client_id TEXT,
+  PRIMARY KEY (organisation_id, kind)
+);
+
+CREATE TABLE IF NOT EXISTS instance_token (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  organisation_id INTEGER NOT NULL REFERENCES organisation(id),
+  name TEXT NOT NULL,
+  token_hash TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_seen_at TEXT,
+  revoked_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_instance_token_live ON instance_token(organisation_id, revoked_at);
+CREATE TABLE IF NOT EXISTS merge_batch (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL REFERENCES project(id),
+  branch TEXT NOT NULL,
+  state TEXT NOT NULL DEFAULT 'open' CHECK (state IN ('open', 'shipped')),
+  opened_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS batch_story (
+  batch_id INTEGER NOT NULL REFERENCES merge_batch(id),
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (batch_id, story_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_batch_story_story ON batch_story(story_id);
