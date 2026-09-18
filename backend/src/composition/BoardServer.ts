@@ -291,6 +291,7 @@ export function startBoardServer({
       allowSessionExchange: mode === 'local',
     }),
   )
+  guarded.get('/api/auth/whoami', (context) => context.json({ authenticated: true }))
   if (mode === 'local') {
     guarded.route('/', createSessionApi({ token, sessions: browserSessions }))
   }

@@ -14,6 +14,7 @@ const DECLARED_GET = /\.get\('(\/api[^']*)'/g
 
 const OUTSIDE_THE_VISIT: readonly string[] = [
   '/api/auth/me',
+  '/api/auth/whoami',
   '/api/batches/:id',
   '/api/auth/state',
   '/api/events',

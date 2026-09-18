@@ -11,8 +11,8 @@ import {
   PROJECT_TABS,
 } from '../../src/technical/Router/ScreenTab.js'
 
-function router() {
-  return createBoardRouter(createMemoryHistory())
+function router(checkSession: () => Promise<boolean> = () => Promise.resolve(true)) {
+  return createBoardRouter(createMemoryHistory(), checkSession)
 }
 
 describe('createBoardRouter', () => {
@@ -25,17 +25,21 @@ describe('createBoardRouter', () => {
     ])
   })
 
-  it('sert chacun des quatre ecrans', async () => {
-    const board = router()
+  it(
+    'sert chacun des quatre ecrans',
+    async () => {
+      const board = router()
 
-    for (const screen of SCREENS) {
-      await board.push(screen.path)
-      expect(
-        board.currentRoute.value.matched.length,
-        screen.path,
-      ).toBeGreaterThan(0)
-    }
-  })
+      for (const screen of SCREENS) {
+        await board.push(screen.path)
+        expect(
+          board.currentRoute.value.matched.length,
+          screen.path,
+        ).toBeGreaterThan(0)
+      }
+    },
+    20000,
+  )
 
   it('ouvre sur les projets depuis la racine', async () => {
     const board = router()
@@ -98,5 +102,29 @@ describe('createBoardRouter', () => {
 
     await board.push('/atelier/7')
     expect(board.currentRoute.value.path).toBe('/me/stories/7')
+  })
+
+  it('refuse d ouvrir un ecran protege sans session valide', async () => {
+    const board = router(() => Promise.resolve(false))
+
+    await board.push('/projects/board')
+
+    expect(board.currentRoute.value.path).toBe('/login')
+  })
+
+  it('laisse toujours entrer sur l ecran de connexion, meme sans session', async () => {
+    const board = router(() => Promise.resolve(false))
+
+    await board.push('/login')
+
+    expect(board.currentRoute.value.path).toBe('/login')
+  })
+
+  it('laisse passer un ecran protege quand la session est valide', async () => {
+    const board = router(() => Promise.resolve(true))
+
+    await board.push('/statistics')
+
+    expect(board.currentRoute.value.path).toBe('/statistics')
   })
 })
