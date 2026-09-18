@@ -746,29 +746,37 @@ export const PORTUGUESE: Message = {
     reopen: 'Visita guiada',
     hint: 'As setas passam de um passo ao outro, Escape fecha a visita.',
     spot: 'Passo da visita',
-    board: {
-      title: 'O quadro, ecrã a ecrã',
-      body: 'Cada ecrã é uma etapa do pipeline: a oficina corta as histórias, a forja constrói-as, o ecrã do projeto guarda os ficheiros e os perímetros reservados. O título diz onde estás.',
+    pipeline: {
+      title: 'Quatro ecrãs, um pipeline',
+      say: 'Os separadores seguem o trabalho: o quadro, a minha forja, as contas, as regras.',
     },
     column: {
-      title: 'Uma coluna é um estado, não uma pasta',
-      body: 'Uma história só avança se o quadro o permitir: cada coluna reúne as histórias nesse estado, e o contador à direita diz o quanto a etapa está carregada.',
+      title: 'Uma coluna é um estado',
+      say: 'Uma história só avança se o quadro o permitir.',
     },
     story: {
-      title: 'Uma história e os seus marcos',
-      body: 'Abre um cartão: o separador do plano lista os marcos que a história tem de passar, especificação, testes vermelhos, desenvolvimento, prova. Nenhum se assinala à mão, cada um espera a sua prova.',
+      title: 'O cartão é a conversa',
+      say: 'Abre-o: o fio guarda o que foi dito e o que foi provado.',
     },
-    review: {
-      title: 'A cascata de revisão',
-      body: 'No separador de revisão as lentes passam uma após a outra, qualidade, depois segurança, depois acessibilidade. Uma lente só arranca quando a anterior passou, por isso uma recusa pára a cascata em vez de se esconder nela.',
+    mine: {
+      title: 'A minha forja',
+      say: 'Aquilo em que estou a trabalhar agora, e mais nada.',
     },
     evidence: {
-      title: 'Um ficheiro de prova e a porta',
-      body: 'A legenda diz como cada ficheiro foi marcado. A porta lê a prova citada por um marco: um ficheiro ilegível, vazio ou fora do perímetro é recusado, e o marco fica em aberto.',
+      title: 'Uma prova é um ficheiro',
+      say: 'A legenda diz como cada ficheiro foi marcado.',
     },
     guardrail: {
-      title: 'A guarda e o perímetro reservado',
-      body: 'Uma história reserva os caminhos em que trabalha. Uma escrita fora dessa reserva é recusada pela guarda, e uma colisão entre duas histórias aparece aqui antes de os agentes arrancarem.',
+      title: 'O terreno reservado',
+      say: 'Uma história anuncia os caminhos que toca, o resto é recusado.',
+    },
+    ledger: {
+      title: 'Quanto custou',
+      say: 'Tempo, tokens e dinheiro, por agente e por história.',
+    },
+    rules: {
+      title: 'As regras da casa',
+      say: 'Entradas, modelos, orçamento, entrega: decididos uma vez, aplicados em todo o lado.',
     },
   },
 }

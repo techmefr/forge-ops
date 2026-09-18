@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { clearSpot, lightSpot } from '@/technical/Ui/Spotlight'
 import { useTour } from './UseTour'
+import GhostPointer from './GhostPointer.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -15,10 +16,14 @@ const title = computed(() => {
   return step === null ? '' : t(step.titleKey)
 })
 
-const body = computed(() => {
+const say = computed(() => {
   const step = tour.step.value
-  return step === null ? '' : t(step.bodyKey)
+  return step === null ? '' : t(step.sayKey)
 })
+
+const gesture = computed(() => tour.step.value?.gesture ?? 'point')
+
+const anchor = computed(() => (tour.open.value ? (tour.step.value?.anchor ?? null) : null))
 
 const panel = ref<HTMLElement | null>(null)
 const heading = ref<HTMLElement | null>(null)
@@ -89,6 +94,8 @@ onBeforeUnmount(() => {
     {{ t('tour.reopen') }}
   </button>
 
+  <GhostPointer :anchor="anchor" :gesture="gesture" />
+
   <aside
     v-if="tour.open.value && tour.step.value !== null"
     ref="panel"
@@ -105,7 +112,7 @@ onBeforeUnmount(() => {
       {{ title }}
     </h2>
 
-    <p class="text-[13px] leading-relaxed text-txt-mid">{{ body }}</p>
+    <p class="text-[13px] leading-relaxed text-txt-mid">{{ say }}</p>
 
     <div class="mt-1 flex flex-wrap items-center gap-2">
       <button

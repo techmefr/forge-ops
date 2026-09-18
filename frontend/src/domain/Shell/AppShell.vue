@@ -92,6 +92,7 @@ const heading = computed(() => {
       <nav
         ref="strip"
         role="tablist"
+        data-tour="shell-pipeline"
         class="flex items-stretch gap-0.5"
         :aria-label="t('shell.pipeline')"
         @keydown="ride"

@@ -747,29 +747,37 @@ export const SPANISH: Message = {
     reopen: 'Visita guiada',
     hint: 'Las flechas pasan de un paso a otro, Escape cierra la visita.',
     spot: 'Paso de la visita',
-    board: {
-      title: 'El tablero, pantalla por pantalla',
-      body: 'Cada pantalla es una etapa del pipeline: el taller corta las historias, la forja las construye, la pantalla de proyecto guarda los archivos y los perímetros reservados. El título dice dónde estás.',
+    pipeline: {
+      title: 'Cuatro pantallas, un pipeline',
+      say: 'Las pestañas siguen el trabajo: el tablero, mi forja, las cuentas, las reglas.',
     },
     column: {
-      title: 'Una columna es un estado, no una carpeta',
-      body: 'Una historia solo avanza si el tablero lo permite: cada columna reúne las historias en ese estado, y el contador de la derecha dice cuánto pesa esa etapa.',
+      title: 'Una columna es un estado',
+      say: 'Una historia solo avanza si el tablero lo permite.',
     },
     story: {
-      title: 'Una historia y sus hitos',
-      body: 'Abre una tarjeta: la pestaña del plan enumera los hitos que la historia debe superar, especificación, pruebas en rojo, desarrollo, prueba. Ninguno se marca a mano, cada uno espera su evidencia.',
+      title: 'La tarjeta es la conversación',
+      say: 'Ábrela: el hilo guarda lo que se dijo y lo que se probó.',
     },
-    review: {
-      title: 'La cascada de revisión',
-      body: 'En la pestaña de revisión las lentes pasan una tras otra, calidad, luego seguridad, luego accesibilidad. Una lente solo arranca cuando la anterior ha pasado, así un rechazo detiene la cascada en lugar de esconderse en ella.',
+    mine: {
+      title: 'Mi forja',
+      say: 'Aquello en lo que estoy trabajando ahora, y nada más.',
     },
     evidence: {
-      title: 'Un archivo de evidencia y la puerta',
-      body: 'La leyenda dice cómo se marcó cada archivo. La puerta lee la evidencia que cita un hito: un archivo ilegible, vacío o fuera del perímetro es rechazado, y el hito sigue abierto.',
+      title: 'Una prueba es un archivo',
+      say: 'La leyenda dice cómo se marcó cada archivo.',
     },
     guardrail: {
-      title: 'El guardarraíl y el perímetro reservado',
-      body: 'Una historia reserva las rutas en las que trabaja. Una escritura fuera de esa reserva es rechazada por el guardarraíl, y una colisión entre dos historias aparece aquí antes de que arranquen los agentes.',
+      title: 'El terreno reservado',
+      say: 'Una historia anuncia las rutas que toca, el resto se rechaza.',
+    },
+    ledger: {
+      title: 'Lo que costó',
+      say: 'Tiempo, tokens y dinero, por agente y por historia.',
+    },
+    rules: {
+      title: 'Las reglas de la casa',
+      say: 'Accesos, plantillas, presupuesto, entrega: decididos una vez, aplicados en todas partes.',
     },
   },
 }
