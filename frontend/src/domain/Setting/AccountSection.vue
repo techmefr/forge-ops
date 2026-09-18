@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import EffectBadge from './EffectBadge.vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
@@ -81,7 +82,10 @@ onMounted(load)
 
 <template>
   <section class="flex flex-col gap-6 rounded-2xl border border-line bg-card p-5">
-    <h2 class="display-italic m-0 text-xl">{{ t('setting.account') }}</h2>
+    <div class="flex flex-wrap items-center gap-3">
+      <h2 class="display-italic m-0 text-xl">{{ t('setting.account') }}</h2>
+      <EffectBadge section="account" />
+    </div>
 
     <p v-if="absent" class="text-xs text-txt-low">{{ t('setting.localModeNote') }}</p>
 

@@ -583,6 +583,17 @@ export const GERMAN: Message = {
     minutesAgo: 'vor {count} Min',
     hoursAgo: 'vor {count} Std',
   },
+  settingEffect: {
+    immediate: 'Sofort wirksam',
+    restart: 'Nach Neustart',
+  },
+  settingHalf: {
+    mine: 'Bei mir',
+    mineSub: 'Wie dieses Board aussieht und wer Sie darauf sind. Nur für Sie.',
+    organisation: 'Organisation',
+    organisationSub: 'Was für alle gilt, die hier arbeiten.',
+    organisationClosed: 'Die Organisationseinstellungen gehören einer Direktion. Bitten Sie sie um die Änderung.',
+  },
   setting: {
     appearance: 'Erscheinungsbild',
     palette: 'Farbpalette',

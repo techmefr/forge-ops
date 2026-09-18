@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import EffectBadge from './EffectBadge.vue'
 import ChoiceRow from './ChoiceRow.vue'
 import { FONT_FACES, FONT_SCALES } from '@/technical/Appearance/Appearance'
 import { MODE_CHOICES } from '@/technical/Appearance/ModeChoice'
@@ -25,7 +26,10 @@ const scales = computed(() => listOf(FONT_SCALES, 'fontScale'))
 
 <template>
   <section class="flex flex-col gap-6 rounded-2xl border border-line bg-card p-5">
-    <h2 class="display-italic m-0 text-xl">{{ t('setting.appearance') }}</h2>
+    <div class="flex flex-wrap items-center gap-3">
+      <h2 class="display-italic m-0 text-xl">{{ t('setting.appearance') }}</h2>
+      <EffectBadge section="appearance" />
+    </div>
 
     <ChoiceRow
       :label="t('setting.palette')"

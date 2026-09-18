@@ -27,6 +27,7 @@ import { OWNERSHIPS } from '@/domain/Story/EpicFilter'
 import { PARTS } from '@/domain/Story/StoryPart'
 import { FONT_FACES, FONT_SCALES } from '@/technical/Appearance/Appearance'
 import { MODE_CHOICES } from '@/technical/Appearance/ModeChoice'
+import { SETTING_EFFECTS } from '@/domain/Setting/SettingSection'
 import { TALLY_FIGURES } from '@/domain/Personal/Tally'
 import { SCREEN_SEQUENCE } from '@/technical/Router/Screen'
 import { PERSONAL_TABS, PROJECT_TABS } from '@/technical/Router/ScreenTab'
@@ -62,6 +63,7 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   projectTab: PROJECT_TABS,
   role: ACCOUNT_ROLE_SEQUENCE,
   screen: SCREEN_SEQUENCE,
+  settingEffect: SETTING_EFFECTS,
   state: STORY_STATE_SEQUENCE,
   storyKind: STORY_KIND_SEQUENCE,
   storyPart: PARTS,

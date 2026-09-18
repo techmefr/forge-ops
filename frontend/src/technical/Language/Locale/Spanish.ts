@@ -582,6 +582,17 @@ export const SPANISH: Message = {
     minutesAgo: 'hace {count} min',
     hoursAgo: 'hace {count} h',
   },
+  settingEffect: {
+    immediate: 'Efecto inmediato',
+    restart: 'Al reiniciar',
+  },
+  settingHalf: {
+    mine: 'Lo mío',
+    mineSub: 'El aspecto de este tablero y quién eres en él. Solo tuyo.',
+    organisation: 'Organización',
+    organisationSub: 'Lo que se aplica a todos los que trabajan aquí.',
+    organisationClosed: 'Los ajustes de la organización pertenecen a un director. Pídele que los cambie.',
+  },
   setting: {
     appearance: 'Aspecto',
     palette: 'Paleta',

@@ -570,6 +570,17 @@ export const ENGLISH = {
     minutesAgo: '{count} min ago',
     hoursAgo: '{count} h ago',
   },
+  settingEffect: {
+    immediate: 'Applies now',
+    restart: 'Needs a restart',
+  },
+  settingHalf: {
+    mine: 'Mine',
+    mineSub: 'How this board looks and who you are on it. Yours alone.',
+    organisation: 'Organisation',
+    organisationSub: 'What applies to everyone working here.',
+    organisationClosed: 'The organisation settings belong to a director. Ask one to change them.',
+  },
   setting: {
     appearance: 'Appearance',
     palette: 'Palette',

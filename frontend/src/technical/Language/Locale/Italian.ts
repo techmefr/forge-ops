@@ -582,6 +582,17 @@ export const ITALIAN: Message = {
     minutesAgo: '{count} min fa',
     hoursAgo: '{count} h fa',
   },
+  settingEffect: {
+    immediate: 'Effetto immediato',
+    restart: 'Al riavvio',
+  },
+  settingHalf: {
+    mine: 'Da me',
+    mineSub: 'L’aspetto di questa lavagna e chi sei su di essa. Solo tuo.',
+    organisation: 'Organizzazione',
+    organisationSub: 'Cio che vale per tutti quelli che lavorano qui.',
+    organisationClosed: 'Le impostazioni dell’organizzazione appartengono a un direttore. Chiedi a lui di cambiarle.',
+  },
   setting: {
     appearance: 'Aspetto',
     palette: 'Tavolozza',
