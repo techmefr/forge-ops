@@ -579,6 +579,17 @@ export const FRENCH: Message = {
     minutesAgo: 'il y a {count} min',
     hoursAgo: 'il y a {count} h',
   },
+  settingEffect: {
+    immediate: 'Effet immédiat',
+    restart: 'Au redémarrage',
+  },
+  settingHalf: {
+    mine: 'Chez moi',
+    mineSub: 'L’allure de ce board et qui vous y êtes. À vous seul.',
+    organisation: 'Organisation',
+    organisationSub: 'Ce qui s’applique à tous ceux qui travaillent ici.',
+    organisationClosed: 'Les réglages de l’organisation appartiennent à un directeur. Demandez-lui de les changer.',
+  },
   setting: {
     appearance: 'Apparence',
     palette: 'Palette',
