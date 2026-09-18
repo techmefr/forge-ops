@@ -47,7 +47,7 @@ export const FRENCH: Message = {
       sub: 'Où en est chaque projet, qui a pris quoi, quelle échéance arrive',
     },
     personal: {
-      label: 'Chez moi',
+      label: 'Ma forge',
       sub: 'Vos épiques, vos fichiers, vos rendus et ce que votre machine peut encore prendre',
     },
     settings: {
@@ -74,10 +74,10 @@ export const FRENCH: Message = {
   },
   personalTab: {
     aria: 'Vues personnelles',
-    stories: 'Stories',
+    stories: 'Mes stories',
     files: 'Fichiers',
-    view: 'Rendu',
-    resources: 'Machine',
+    view: 'Aperçu',
+    resources: 'Établi',
   },
   shell: {
     pipeline: 'Étapes du pipeline',
