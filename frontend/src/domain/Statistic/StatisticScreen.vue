@@ -8,6 +8,7 @@ import ScreenState from '@/technical/Ui/ScreenState.vue'
 import type { BoardStatistics, SessionHistoryEntry } from '@/domain/Board/BoardModel'
 import { sessionEndKey } from '@/domain/Agent/SessionEnd'
 import { humanDuration } from './Duration'
+import { perStory } from './ByStory'
 
 const OUTCOME_COLOURS: Readonly<Record<string, string>> = {
   succeeded: 'text-green',
@@ -30,6 +31,7 @@ const summary = useResource<BoardStatistics>(() => board.read('/api/statistics')
 const history = useResource<readonly SessionHistoryEntry[]>(() => board.read('/api/sessions/history'))
 
 const busiest = computed(() => summary.data.value?.agents.slice(0, 6) ?? [])
+const stories = computed(() => perStory(history.data.value ?? []).slice(0, 8))
 
 function colourOf(outcome: string | null): string {
   return outcome === null ? 'text-txt-low' : (OUTCOME_COLOURS[outcome] ?? 'text-txt-low')
@@ -131,6 +133,39 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
       </section>
     </div>
 
+    <section class="mt-6 rounded-2xl border border-line bg-card p-4">
+      <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+        {{ t('statistic.timePerStory') }}
+      </p>
+      <p v-if="stories.length === 0" class="mt-2 text-xs text-txt-low">
+        {{ t('statistic.noSessionYet') }}
+      </p>
+      <ul class="mt-3 flex flex-col gap-2">
+        <li v-for="story in stories" :key="story.storyId" class="text-xs">
+          <div class="flex items-center gap-2">
+            <RouterLink
+              :to="`/me/stories/${story.storyId}`"
+              class="font-mono text-[11px] text-acc"
+              >{{ story.storyReference }}</RouterLink
+            >
+            <span class="ml-auto font-mono text-[10px] text-txt-low"
+              >{{ t('statistic.sessionCount', { count: story.sessions }, story.sessions) }} ·
+              {{ say(humanDuration(story.seconds)) }} ·
+              {{ t('common.money', { amount: story.costUsd.toFixed(2) }) }}</span
+            >
+          </div>
+          <div class="mt-1 h-1.5 rounded bg-elev">
+            <div
+              class="h-full rounded bg-acc"
+              :style="{
+                width: `${Math.round((story.seconds / Math.max(stories[0]?.seconds ?? 1, 1)) * 100)}%`,
+              }"
+            />
+          </div>
+        </li>
+      </ul>
+    </section>
+
     <section class="mt-6">
       <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('statistic.sessionHistory') }}
@@ -194,6 +229,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
         </ScreenState>
       </div>
     </section>
+    <p class="mt-6 text-[11px] text-txt-low">{{ t('statistic.thisMachine') }}</p>
     </div>
   </div>
 </template>

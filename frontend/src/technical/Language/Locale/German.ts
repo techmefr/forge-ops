@@ -552,6 +552,8 @@ export const GERMAN: Message = {
     gigabytes: '{used} / {total} GB',
   },
   statistic: {
+    timePerStory: 'Zeit pro Story',
+    thisMachine: 'Dies ist das Protokoll dieser Maschine: die Sitzungen, die sie gestartet hat, die Zeit und das Geld, die sie gekostet haben. Wo die Projekte stehen, steht auf dem Projektboard.',
     sessions: 'Sitzungen',
     totalCost: 'Gesamtkosten',
     machineTime: 'Maschinenzeit',
