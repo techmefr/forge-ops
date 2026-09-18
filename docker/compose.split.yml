@@ -1,0 +1,42 @@
+name: forge-split
+
+services:
+  instance:
+    build:
+      context: ..
+      dockerfile: docker/instance.Dockerfile
+    environment:
+      FORGE_MODE: hub
+      FORGE_SERVER_URL: ${FORGE_SERVER_URL:?the address of the server this instance answers to}
+      FORGE_TOKEN_FILE: /run/secrets/board_token
+      FORGE_INSTANCE_TOKEN_FILE: /run/secrets/instance_token
+    secrets:
+      - board_token
+      - instance_token
+    volumes:
+      - instance-data:/data
+      - ${FORGE_REPOSITORIES:-./repositories}:/repositories
+    ports:
+      - '4311:4311'
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/web.Dockerfile
+    environment:
+      FORGE_INSTANCE_URL: http://localhost:4311
+      FORGE_SERVER_URL: ${FORGE_SERVER_URL}
+    depends_on:
+      instance:
+        condition: service_healthy
+    ports:
+      - '4310:80'
+
+secrets:
+  board_token:
+    file: ./board_token.secret
+  instance_token:
+    file: ./instance_token.secret
+
+volumes:
+  instance-data:
