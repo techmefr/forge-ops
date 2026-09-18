@@ -5,8 +5,18 @@ import { readAddresses } from './Addresses.js'
 
 export const LOGIN_PATH = '/login'
 
+let redirectToLogin: (() => void) | null = null
+
+export function setLoginRedirect(redirect: () => void): void {
+  redirectToLogin = redirect
+}
+
 function askForTheWayIn(): void {
   if (typeof window === 'undefined' || window.location.pathname === LOGIN_PATH) {
+    return
+  }
+  if (redirectToLogin !== null) {
+    redirectToLogin()
     return
   }
   window.location.assign(LOGIN_PATH)
@@ -20,3 +30,12 @@ async function loadSnapshot(): Promise<DemoSnapshot> {
 export const board = FROZEN_VISIT
   ? createBoardClient({ fetcher: createDemoFetcher(loadSnapshot) })
   : createBoardClient({ baseUrl: readAddresses().instanceUrl, onUnauthorized: askForTheWayIn })
+
+export async function checkBoardSession(): Promise<boolean> {
+  try {
+    await board.read('/api/auth/whoami')
+    return true
+  } catch {
+    return false
+  }
+}

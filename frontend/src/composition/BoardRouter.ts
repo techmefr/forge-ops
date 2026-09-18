@@ -6,6 +6,9 @@ import {
   type RouterHistory,
 } from 'vue-router'
 import { ABSORBED_PATHS, HOME_PATH } from '@/technical/Router/Screen.js'
+import { checkBoardSession } from '@/technical/Api/Board.js'
+import { FROZEN_VISIT } from '@/technical/Api/Visit.js'
+import { createSessionGuard, type SessionCheck } from '@/technical/Router/SessionGuard.js'
 
 const ABSORBED: readonly RouteRecordRaw[] = Object.entries(ABSORBED_PATHS).map(
   ([from, to]) => ({
@@ -58,6 +61,11 @@ export const ROUTES: readonly RouteRecordRaw[] = [
 
 export function createBoardRouter(
   history: RouterHistory = createWebHistory(import.meta.env.BASE_URL),
+  checkSession: SessionCheck = checkBoardSession,
 ): Router {
-  return createRouter({ history, routes: [...ROUTES] })
+  const router = createRouter({ history, routes: [...ROUTES] })
+  if (!FROZEN_VISIT) {
+    router.beforeEach(createSessionGuard(checkSession))
+  }
+  return router
 }

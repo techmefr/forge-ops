@@ -68,6 +68,27 @@ describe('startBoardServer', () => {
     expect(response.status).toBe(401)
   })
 
+  it('tells a navigation guard the session is valid without doing anything else', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/auth/whoami`, {
+      headers: { authorization: `Bearer ${booted.token}` },
+    })
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({ authenticated: true })
+  })
+
+  it('refuses whoami to a caller with no session', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/auth/whoami`)
+
+    expect(response.status).toBe(401)
+  })
+
   it('refuses a dispatch coming from a web page', async () => {
     const booted = await boot()
     board = booted.board
