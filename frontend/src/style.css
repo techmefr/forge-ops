@@ -221,3 +221,28 @@ body {
   text-transform: uppercase;
   pointer-events: none;
 }
+
+@keyframes tour-ghost {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--forge-acc) 60%, transparent);
+  }
+  70% {
+    transform: scale(1.35);
+    box-shadow: 0 0 0 14px transparent;
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.tour-ghost-pulse {
+  animation: tour-ghost 1.4s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-ghost-pulse {
+    animation: none;
+  }
+}

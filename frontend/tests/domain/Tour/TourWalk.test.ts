@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { TOUR_GESTURES } from '../../../../contract/TourContract'
 import { TOUR_STEPS } from '@/domain/Tour/TourStep'
 import {
   clampIndex,
@@ -14,12 +15,13 @@ import {
 } from '@/domain/Tour/TourWalk'
 
 describe('la visite est une liste ordonnee, pas de la prose dans les composants', () => {
-  it('donne a chaque etape un ancrage et deux cles de copie', () => {
+  it('donne a chaque etape un ancrage, un geste et deux cles de copie', () => {
     for (const step of TOUR_STEPS) {
       expect(step.anchor).not.toBe('')
       expect(step.path.startsWith('/')).toBe(true)
       expect(step.titleKey).toBe(`tour.${step.id}.title`)
-      expect(step.bodyKey).toBe(`tour.${step.id}.body`)
+      expect(step.sayKey).toBe(`tour.${step.id}.say`)
+      expect(TOUR_GESTURES).toContain(step.gesture)
     }
   })
 
@@ -28,15 +30,22 @@ describe('la visite est une liste ordonnee, pas de la prose dans les composants'
     expect(new Set(identifiers).size).toBe(identifiers.length)
   })
 
-  it('couvre le kanban, la story, la review, la preuve et le garde-fou', () => {
+  it('passe par les quatre ecrans de la refonte', () => {
     expect(TOUR_STEPS.map((step) => step.id)).toEqual([
-      'board',
+      'pipeline',
       'column',
       'story',
-      'review',
+      'mine',
       'evidence',
       'guardrail',
+      'ledger',
+      'rules',
     ])
+  })
+
+  it('ne laisse aucun ecran hors de la visite', () => {
+    const screens = new Set(TOUR_STEPS.map((step) => step.path.split('/')[1]))
+    expect([...screens].sort()).toEqual(['me', 'projects', 'settings', 'statistics'])
   })
 })
 
@@ -65,7 +74,7 @@ describe('le parcours ne sort jamais des bornes', () => {
 
   it('rend l etape demandee', () => {
     expect(stepAt(1)?.id).toBe('column')
-    expect(stepAt(500)?.id).toBe('guardrail')
+    expect(stepAt(500)?.id).toBe('rules')
   })
 })
 

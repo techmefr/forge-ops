@@ -734,29 +734,37 @@ export const ENGLISH = {
     reopen: 'Guided tour',
     hint: 'The arrow keys move from one step to the next, Escape closes the tour.',
     spot: 'Tour step',
-    board: {
-      title: 'The board, screen by screen',
-      body: 'Every screen is one stage of the pipeline: the workshop cuts the stories, the forge builds them, the project screen keeps the files and the reserved perimeters. The heading says where you stand.',
+    pipeline: {
+      title: 'Four screens, one pipeline',
+      say: 'The tabs follow the work: the board, my forge, the ledger, the rules.',
     },
     column: {
-      title: 'A column is a state, not a folder',
-      body: 'A story only moves when the board allows it: each column gathers the stories in that state, and the counter on the right says how loaded the stage is.',
+      title: 'A column is a state',
+      say: 'A story moves only when the board lets it.',
     },
     story: {
-      title: 'A story and its checkpoints',
-      body: 'Open a card: the plan tab lists the checkpoints the story has to clear, specification, red tests, build, proof. None of them is ticked by hand, each one waits for its evidence.',
+      title: 'A card is the conversation',
+      say: 'Open it: the thread holds what was said and what was proven.',
     },
-    review: {
-      title: 'The review cascade',
-      body: 'In the review tab the lenses pass one after the other, quality then security then accessibility. A lens only starts once the previous one has passed, so a refusal stops the cascade instead of hiding inside it.',
+    mine: {
+      title: 'My forge',
+      say: 'What I am working on right now, and nothing else.',
     },
     evidence: {
-      title: 'An evidence file and the gate',
-      body: 'The legend says how each file was marked. The gate reads the evidence a checkpoint cites: a file that cannot be read, that is empty or that sits outside the perimeter is refused, and the checkpoint stays open.',
+      title: 'A proof is a file',
+      say: 'The legend says how each file was marked.',
     },
     guardrail: {
-      title: 'The guardrail and the reserved perimeter',
-      body: 'A story reserves the paths it works on. A write outside that reservation is refused by the guardrail, and a collision between two stories shows up here before either agent starts.',
+      title: 'Reserved ground',
+      say: 'A story announces the paths it touches; the rest is refused.',
+    },
+    ledger: {
+      title: 'What it cost',
+      say: 'Time, tokens and money, per agent and per story.',
+    },
+    rules: {
+      title: 'The house rules',
+      say: 'Ways in, templates, budget, delivery: decided once, applied everywhere.',
     },
   },
 }

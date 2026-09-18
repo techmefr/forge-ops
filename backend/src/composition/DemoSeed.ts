@@ -7,6 +7,7 @@ import { createCriterionRepository } from '../domain/Criterion/CriterionReposito
 import { createAgentSessionRepository } from '../domain/Agent/AgentSessionRepository.js'
 import { createZoneRepository } from '../domain/Zone/ZoneRepository.js'
 import { createForemergeRepository } from '../domain/Foremerge/ForemergeRepository.js'
+import { createDiscussionRepository } from '../domain/Discussion/DiscussionRepository.js'
 import { createBudgetRepository } from '../domain/Budget/BudgetRepository.js'
 import { describeZone } from '../domain/Zone/ZoneDigest.js'
 import { REVIEW_LENS_SEQUENCE } from '../domain/Checkpoint/Checkpoint.js'
@@ -409,6 +410,52 @@ const SESSION_PLAN: readonly SessionPlan[] = [
   { story: 'atlas/zones', phase: 'gate', agentName: 'galadriel', daysAgo: 1, seconds: 410, costUsd: 0.22, inputTokens: 31000, outputTokens: 3300, exit: { exitCode: 2 } },
 ]
 
+type RemarkPlan = {
+  story: string
+  author: string
+  voice: 'human' | 'agent'
+  body: string
+}
+
+const REMARK_PLAN: readonly RemarkPlan[] = [
+  {
+    story: 'forge/rename',
+    author: 'local',
+    voice: 'human',
+    body: 'Une zone mal nommee reste mal nommee parce que la renommer perdrait son historique. Je veux pouvoir corriger le nom sans rien perdre.',
+  },
+  {
+    story: 'forge/rename',
+    author: 'architecte',
+    voice: 'agent',
+    body: 'Le prefixe de chemin est la cle de la zone, le nom n est qu un libelle. Renommer ne touche donc ni les fichiers rattaches ni les resumes deja ecrits.',
+  },
+  {
+    story: 'forge/rename',
+    author: 'local',
+    voice: 'human',
+    body: 'Et si deux zones du meme projet finissent avec le meme nom ?',
+  },
+  {
+    story: 'forge/rename',
+    author: 'architecte',
+    voice: 'agent',
+    body: 'Le board refuse le renommage et nomme la zone qui tient deja ce nom, comme il refuse deja deux reservations sur le meme chemin.',
+  },
+  {
+    story: 'forge/scope',
+    author: 'local',
+    voice: 'human',
+    body: 'La remarque de securite sur le chemin absolu est juste, mais elle attendra la story suivante : celle-ci ne touche pas la comparaison.',
+  },
+  {
+    story: 'forge/metrics',
+    author: 'trinity',
+    voice: 'agent',
+    body: 'Sans collecteur branche je ne peux pas remplir la memoire, je laisse le champ vide et je le dis plutot que d ecrire zero.',
+  },
+]
+
 function evidenceOf(reference: string, name: CheckpointName): string {
   return `.claude/evidence/${reference.toLowerCase()}/${name}.md`
 }
@@ -436,6 +483,7 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
   const sessions = createAgentSessionRepository(db)
   const foremerge = createForemergeRepository(db, { stories })
   const budget = createBudgetRepository(db)
+  const discussion = createDiscussionRepository(db, { stories })
 
   const setState = db.prepare<[StoryState, number]>('UPDATE story SET state = ? WHERE id = ?')
   const setEscalation = db.prepare<[string, number]>('UPDATE story SET escalation_reason = ? WHERE id = ?')
@@ -785,6 +833,19 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
   }
   if (atlasStory !== undefined && pilotStory !== undefined) {
     stories.addDependency({ blockedStoryId: atlasStory, blockingStoryId: pilotStory })
+  }
+
+  for (const plan of REMARK_PLAN) {
+    const storyId = storyIds.get(plan.story)
+    if (storyId === undefined) {
+      continue
+    }
+    discussion.writeRemark({
+      storyId,
+      author: plan.author,
+      voice: plan.voice,
+      body: plan.body,
+    })
   }
 
   budget.writePolicy({ capUsd: 25, conduct: 'downgrade', downgradeModel: 'claude-haiku-4-5-20251001', rerouteBaseUrl: null })

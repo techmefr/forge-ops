@@ -43,7 +43,7 @@ onMounted(() => void look())
       <AccountSection />
     </section>
 
-    <section v-if="organisation" class="flex flex-col gap-4">
+    <section v-if="organisation" class="flex flex-col gap-4" data-tour="setting-organisation">
       <h2 class="display-italic m-0 text-[22px]">{{ t('settingHalf.organisation') }}</h2>
       <p class="text-[12.5px] text-txt-low">{{ t('settingHalf.organisationSub') }}</p>
       <TemplateSection />

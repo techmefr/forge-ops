@@ -745,29 +745,37 @@ export const FRENCH: Message = {
     reopen: 'Visite guidée',
     hint: 'Les flèches passent d’une étape à l’autre, Échap ferme la visite.',
     spot: 'Étape de la visite',
-    board: {
-      title: 'Le board, écran par écran',
-      body: 'Chaque écran est une étape du pipeline : l’atelier découpe les stories, la forge les construit, l’écran projet garde les fichiers et les périmètres réservés. Le titre dit où tu te trouves.',
+    pipeline: {
+      title: 'Quatre écrans, un pipeline',
+      say: 'Les onglets suivent le travail : le board, ma forge, les comptes, les règles.',
     },
     column: {
-      title: 'Une colonne est un état, pas un dossier',
-      body: 'Une story n’avance que si le board l’autorise : chaque colonne réunit les stories dans cet état, et le compteur à droite dit à quel point l’étape est chargée.',
+      title: 'Une colonne est un état',
+      say: 'Une story n’avance que si le board l’autorise.',
     },
     story: {
-      title: 'Une story et ses jalons',
-      body: 'Ouvre une carte : l’onglet plan liste les jalons que la story doit franchir, spécification, tests rouges, build, preuve. Aucun ne se coche à la main, chacun attend sa preuve.',
+      title: 'La carte est la conversation',
+      say: 'Ouvre-la : le fil garde ce qui a été dit et ce qui a été prouvé.',
     },
-    review: {
-      title: 'La cascade de review',
-      body: 'Dans l’onglet review, les lentilles passent l’une après l’autre, qualité puis sécurité puis accessibilité. Une lentille ne démarre que si la précédente est passée, donc un refus arrête la cascade au lieu de s’y perdre.',
+    mine: {
+      title: 'Ma forge',
+      say: 'Ce sur quoi je travaille en ce moment, et rien d’autre.',
     },
     evidence: {
-      title: 'Un fichier de preuve et la porte',
-      body: 'La légende dit comment chaque fichier a été marqué. La porte lit la preuve citée par un jalon : un fichier illisible, vide ou hors périmètre est refusé, et le jalon reste ouvert.',
+      title: 'Une preuve est un fichier',
+      say: 'La légende dit comment chaque fichier a été marqué.',
     },
     guardrail: {
-      title: 'Le garde-fou et le périmètre réservé',
-      body: 'Une story réserve les chemins sur lesquels elle travaille. Une écriture hors de cette réservation est refusée par le garde-fou, et une collision entre deux stories apparaît ici avant que les agents démarrent.',
+      title: 'Le terrain réservé',
+      say: 'Une story annonce les chemins qu’elle touche, le reste est refusé.',
+    },
+    ledger: {
+      title: 'Ce que ça a coûté',
+      say: 'Le temps, les jetons et l’argent, par agent et par story.',
+    },
+    rules: {
+      title: 'Les règles de la maison',
+      say: 'Portes d’entrée, gabarits, budget, livraison : décidés une fois, appliqués partout.',
     },
   },
 }

@@ -19,7 +19,9 @@ const current = computed(() => tabOfRoute(PERSONAL_TABS, route.params.tab))
 
 <template>
   <div class="flex h-full min-h-0 min-w-0 flex-col">
-    <PersonalTally />
+    <div data-tour="personal-tally">
+      <PersonalTally />
+    </div>
     <ScreenTabs
       :base="PERSONAL_BASE"
       :tabs="PERSONAL_TABS"

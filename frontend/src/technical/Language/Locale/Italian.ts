@@ -747,29 +747,37 @@ export const ITALIAN: Message = {
     reopen: 'Visita guidata',
     hint: 'Le frecce passano da un passo all’altro, Esc chiude la visita.',
     spot: 'Passo della visita',
-    board: {
-      title: 'La board, schermo per schermo',
-      body: 'Ogni schermo è una tappa della pipeline: l’officina taglia le storie, la forgia le costruisce, lo schermo progetto tiene i file e i perimetri prenotati. Il titolo dice dove ti trovi.',
+    pipeline: {
+      title: 'Quattro schermate, una pipeline',
+      say: 'Le schede seguono il lavoro: la board, la mia forgia, i conti, le regole.',
     },
     column: {
-      title: 'Una colonna è uno stato, non una cartella',
-      body: 'Una storia avanza solo se la board lo consente: ogni colonna raccoglie le storie in quello stato, e il contatore a destra dice quanto è carica la tappa.',
+      title: 'Una colonna è uno stato',
+      say: 'Una storia avanza solo se la board lo consente.',
     },
     story: {
-      title: 'Una storia e i suoi traguardi',
-      body: 'Apri una scheda: la scheda del piano elenca i traguardi che la storia deve superare, specifica, test rossi, sviluppo, prova. Nessuno si spunta a mano, ognuno aspetta la sua prova.',
+      title: 'La scheda è la conversazione',
+      say: 'Aprila: il filo conserva ciò che è stato detto e ciò che è stato provato.',
     },
-    review: {
-      title: 'La cascata di review',
-      body: 'Nella scheda di review le lenti passano una dopo l’altra, qualità, poi sicurezza, poi accessibilità. Una lente parte solo quando la precedente è passata, così un rifiuto ferma la cascata invece di nascondersi dentro.',
+    mine: {
+      title: 'La mia forgia',
+      say: 'Quello su cui sto lavorando adesso, e nient’altro.',
     },
     evidence: {
-      title: 'Un file di prova e il varco',
-      body: 'La legenda dice come è stato marcato ogni file. Il varco legge la prova citata da un traguardo: un file illeggibile, vuoto o fuori perimetro viene rifiutato, e il traguardo resta aperto.',
+      title: 'Una prova è un file',
+      say: 'La legenda dice come ogni file è stato marcato.',
     },
     guardrail: {
-      title: 'Il guardrail e il perimetro prenotato',
-      body: 'Una storia prenota i percorsi su cui lavora. Una scrittura fuori da quella prenotazione viene rifiutata dal guardrail, e una collisione fra due storie appare qui prima che gli agenti partano.',
+      title: 'Il terreno riservato',
+      say: 'Una storia annuncia i percorsi che tocca, il resto è rifiutato.',
+    },
+    ledger: {
+      title: 'Quanto è costato',
+      say: 'Tempo, token e denaro, per agente e per storia.',
+    },
+    rules: {
+      title: 'Le regole della casa',
+      say: 'Accessi, modelli, budget, consegna: decisi una volta, applicati ovunque.',
     },
   },
 }
