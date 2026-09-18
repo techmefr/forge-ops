@@ -46,6 +46,8 @@ import { createDiscussionRepository } from '../domain/Discussion/DiscussionRepos
 import { operatorOf } from '../technical/Auth/BoardIdentity.js'
 import { createTemplateRepository } from '../domain/Template/TemplateRepository.js'
 import { createTemplateApi } from '../domain/Template/TemplateApi.js'
+import { createOutboxRepository } from '../domain/Boundary/OutboxRepository.js'
+import { createBoundaryApi } from '../domain/Boundary/BoundaryApi.js'
 import { columnAgentOfPhase, createDrivenRunner } from '../domain/Driver/Driver.js'
 import { createDriverApi } from '../domain/Driver/DriverApi.js'
 import { claudeCodeDriver } from './ClaudeCodeDriver.js'
@@ -206,6 +208,7 @@ export function startBoardServer({
     root: worktreeRoot,
   })
   const templates = createTemplateRepository(db)
+  const outbox = createOutboxRepository(db)
   const drivers = [
     claudeCodeDriver(createSdkSessionRunner({ cwd: process.cwd(), live, onEvent: onSessionEvent })),
   ]
@@ -287,6 +290,14 @@ export function startBoardServer({
     createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
   )
   guarded.route('/', createDriverApi({ drivers }))
+  guarded.route(
+    '/',
+    createBoundaryApi({
+      outbox,
+      installedVersion: process.env.FORGE_VERSION ?? '0.1.0',
+      offeredVersion: () => process.env.FORGE_OFFERED_VERSION ?? process.env.FORGE_VERSION ?? '0.1.0',
+    }),
+  )
   guarded.route(
     '/',
     createTemplateApi({
