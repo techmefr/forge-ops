@@ -382,6 +382,13 @@ export const ENGLISH = {
     awaitingSaid: 'The agent proposes, you validate: it is your yes that sends the card to the reserve.',
     validate: 'Validate and send to the reserve',
   },
+  grouping: {
+    single: 'One story, one merge request',
+    grouped: 'Several stories on one merge request',
+    label: 'How a merge request is filled',
+    hint: 'Grouping stays an option: a story can always be pulled out of a session in flight.',
+    said: 'A session carries one story, its own worktree and its own merge request. The proof stays attached to the story, never to the session.',
+  },
   discussion: {
     held: 'Held',
     askedBy: 'asked by {author} · a human answer frees it',
@@ -614,6 +621,7 @@ export const ENGLISH = {
     jsonl: 'JSONL - one record per line, the header then one line per column',
   },
   setting: {
+    delivery: 'Delivery',
     templates: 'Column templates',
     appearance: 'Appearance',
     palette: 'Palette',

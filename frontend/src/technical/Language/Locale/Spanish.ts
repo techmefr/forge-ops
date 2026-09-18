@@ -389,6 +389,13 @@ export const SPANISH: Message = {
     awaitingSaid: 'El agente propone, tú validas: es tu sí lo que envía la tarjeta a la reserva.',
     validate: 'Validar y enviar a la reserva',
   },
+  grouping: {
+    single: 'Una historia, una solicitud de fusión',
+    grouped: 'Varias historias en una solicitud de fusión',
+    label: 'Lo que lleva una solicitud de fusión',
+    hint: 'El agrupamiento sigue siendo una opción: una historia siempre se puede sacar de una sesión en vuelo.',
+    said: 'Una sesión lleva una historia, su propio worktree y su propia solicitud de fusión. La prueba queda unida a la historia, nunca a la sesión.',
+  },
   discussion: {
     held: 'Bloqueada',
     askedBy: 'pedido por {author} · una respuesta humana la libera',
@@ -626,6 +633,7 @@ export const SPANISH: Message = {
     jsonl: 'JSONL - un registro por línea, la cabecera y luego una línea por columna',
   },
   setting: {
+    delivery: 'Entrega',
     templates: 'Modelos de columnas',
     appearance: 'Aspecto',
     palette: 'Paleta',

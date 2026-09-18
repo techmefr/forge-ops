@@ -6,6 +6,7 @@ import type { Account } from '@/domain/Board/BoardModel'
 import AccountSection from './AccountSection.vue'
 import AppearanceSection from './AppearanceSection.vue'
 import BudgetSection from './BudgetSection.vue'
+import DeliverySection from './DeliverySection.vue'
 import TemplateSection from './TemplateSection.vue'
 import { keepsTheOrganisation } from './SettingSection'
 
@@ -46,6 +47,7 @@ onMounted(() => void look())
       <p class="text-[12.5px] text-txt-low">{{ t('settingHalf.organisationSub') }}</p>
       <TemplateSection />
       <BudgetSection />
+      <DeliverySection />
     </section>
     <p v-else class="text-[12.5px] text-txt-low">{{ t('settingHalf.organisationClosed') }}</p>
   </div>
