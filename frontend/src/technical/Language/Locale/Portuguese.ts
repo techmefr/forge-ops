@@ -62,13 +62,10 @@ export const PORTUGUESE: Message = {
     resources: 'Máquina',
   },
   shell: {
-    orchestration: 'Orquestração de agentes',
     pipeline: 'Etapas do pipeline',
     access: 'Acesso',
     accessSub: 'Abrir uma sessão no board',
-    agents: 'Agentes ativos',
     agentCount: '{count} agente | {count} agentes',
-    noSession: 'Nenhuma sessão em curso',
     shortcut: 'z z e depois {digit}, ou Alt+Shift+{digit}',
     strokeArmed: 'z z … algarismo',
     strokeStarted: 'z …',
@@ -574,9 +571,6 @@ export const PORTUGUESE: Message = {
     font: 'Tipo de letra',
     textSize: 'Tamanho do texto',
     textSizeHint: 'Toda a interface segue, não só este painel.',
-    navigation: 'Navegação',
-    navigationHint:
-      'Os ecrãs continuam acessíveis pelo teclado com z z e depois o seu algarismo.',
     languageHint:
       'Toda a interface segue. O que os agentes escrevem mantém o idioma em que o escreveram.',
     account: 'Conta',
@@ -617,10 +611,6 @@ export const PORTUGUESE: Message = {
     normal: 'Normal',
     large: 'Grande',
     huge: 'Muito grande',
-  },
-  navLayout: {
-    rail: 'Barra lateral',
-    tabs: 'Separadores',
   },
   access: {
     enterBoard: 'Entrar no board',

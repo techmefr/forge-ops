@@ -60,13 +60,10 @@ export const ENGLISH = {
     resources: 'Machine',
   },
   shell: {
-    orchestration: 'Agent orchestration',
     pipeline: 'Pipeline steps',
     access: 'Access',
     accessSub: 'Open a session on the board',
-    agents: 'Working agents',
     agentCount: '{count} agent | {count} agents',
-    noSession: 'No session running',
     shortcut: 'z z then {digit}, or Alt+Shift+{digit}',
     strokeArmed: 'z z … digit',
     strokeStarted: 'z …',
@@ -563,8 +560,6 @@ export const ENGLISH = {
     font: 'Typeface',
     textSize: 'Text size',
     textSizeHint: 'The whole interface follows, not only this panel.',
-    navigation: 'Navigation',
-    navigationHint: 'The screens stay reachable from the keyboard with z z then their digit.',
     languageHint: 'The whole interface follows. What the agents write keeps the language they wrote it in.',
     account: 'Account',
     localModeNote:
@@ -604,10 +599,6 @@ export const ENGLISH = {
     normal: 'Normal',
     large: 'Large',
     huge: 'Very large',
-  },
-  navLayout: {
-    rail: 'Side rail',
-    tabs: 'Tabs',
   },
   access: {
     enterBoard: 'Enter the board',

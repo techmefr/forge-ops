@@ -62,13 +62,10 @@ export const SPANISH: Message = {
     resources: 'Máquina',
   },
   shell: {
-    orchestration: 'Orquestación de agentes',
     pipeline: 'Etapas del pipeline',
     access: 'Acceso',
     accessSub: 'Abrir una sesión en el tablero',
-    agents: 'Agentes activos',
     agentCount: '{count} agente | {count} agentes',
-    noSession: 'Ninguna sesión en curso',
     shortcut: 'z z y luego {digit}, o Alt+Mayús+{digit}',
     strokeArmed: 'z z … cifra',
     strokeStarted: 'z …',
@@ -575,9 +572,6 @@ export const SPANISH: Message = {
     font: 'Tipografía',
     textSize: 'Tamaño del texto',
     textSizeHint: 'Toda la interfaz lo sigue, no solo este panel.',
-    navigation: 'Navegación',
-    navigationHint:
-      'Las pantallas siguen siendo accesibles con el teclado mediante z z y su cifra.',
     languageHint:
       'Toda la interfaz lo sigue. Lo que escriben los agentes conserva el idioma en que lo escribieron.',
     account: 'Cuenta',
@@ -618,10 +612,6 @@ export const SPANISH: Message = {
     normal: 'Normal',
     large: 'Grande',
     huge: 'Muy grande',
-  },
-  navLayout: {
-    rail: 'Barra lateral',
-    tabs: 'Pestañas',
   },
   access: {
     enterBoard: 'Entrar en el tablero',
