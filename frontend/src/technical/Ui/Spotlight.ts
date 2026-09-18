@@ -1,6 +1,10 @@
 export const SPOT_CLASS = 'tour-spot'
 
+export const FLIP_CLASS = 'tour-spot--flip'
+
 export const SPOT_ATTRIBUTE = 'data-tour'
+
+const LABEL_CLEARANCE_PX = 24
 
 export function prefersReducedMotion(): boolean {
   try {
@@ -30,7 +34,7 @@ function unfoldAncestors(element: HTMLElement): void {
 
 export function clearSpot(): void {
   for (const marked of document.querySelectorAll<HTMLElement>(`.${SPOT_CLASS}`)) {
-    marked.classList.remove(SPOT_CLASS)
+    marked.classList.remove(SPOT_CLASS, FLIP_CLASS)
     marked.removeAttribute('data-tour-spot')
   }
 }
@@ -44,6 +48,9 @@ export function lightSpot(anchor: string, label: string): HTMLElement | null {
   unfoldAncestors(target)
   target.classList.add(SPOT_CLASS)
   target.setAttribute('data-tour-spot', label)
+  if (target.getBoundingClientRect().top < LABEL_CLEARANCE_PX) {
+    target.classList.add(FLIP_CLASS)
+  }
   target.scrollIntoView?.({
     block: 'nearest',
     inline: 'nearest',
