@@ -47,7 +47,7 @@ export const SPANISH: Message = {
       sub: 'En qué punto está cada proyecto, quién tomó qué, qué fecha llega',
     },
     personal: {
-      label: 'Lo mío',
+      label: 'Mi forja',
       sub: 'Tus épicas, tus archivos, tus vistas y lo que tu máquina todavía aguanta',
     },
     settings: {
@@ -74,10 +74,10 @@ export const SPANISH: Message = {
   },
   personalTab: {
     aria: 'Vistas personales',
-    stories: 'Historias',
+    stories: 'Mis historias',
     files: 'Archivos',
-    view: 'Vista',
-    resources: 'Máquina',
+    view: 'Vista previa',
+    resources: 'Banco',
   },
   shell: {
     pipeline: 'Etapas del pipeline',

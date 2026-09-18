@@ -45,7 +45,7 @@ export const ENGLISH = {
       sub: 'Where every project stands, who took what, which milestone is coming',
     },
     personal: {
-      label: 'Mine',
+      label: 'My forge',
       sub: 'Your epics, your files, your renderings and what your machine can still take',
     },
     settings: {
@@ -72,10 +72,10 @@ export const ENGLISH = {
   },
   personalTab: {
     aria: 'Personal views',
-    stories: 'Stories',
+    stories: 'My stories',
     files: 'Files',
-    view: 'Rendering',
-    resources: 'Machine',
+    view: 'Preview',
+    resources: 'Bench',
   },
   shell: {
     pipeline: 'Pipeline steps',

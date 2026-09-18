@@ -47,7 +47,7 @@ export const GERMAN: Message = {
       sub: 'Wo jedes Projekt steht, wer was genommen hat, welcher Termin kommt',
     },
     personal: {
-      label: 'Bei mir',
+      label: 'Meine Forge',
       sub: 'Ihre Epics, Ihre Dateien, Ihre Ansichten und was Ihre Maschine noch tragen kann',
     },
     settings: {
@@ -74,10 +74,10 @@ export const GERMAN: Message = {
   },
   personalTab: {
     aria: 'Persönliche Ansichten',
-    stories: 'Stories',
+    stories: 'Meine Storys',
     files: 'Dateien',
-    view: 'Ansicht',
-    resources: 'Maschine',
+    view: 'Vorschau',
+    resources: 'Werkbank',
   },
   shell: {
     pipeline: 'Schritte der Pipeline',
