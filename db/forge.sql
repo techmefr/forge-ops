@@ -387,3 +387,20 @@ CREATE TABLE IF NOT EXISTS project_template (
   template_id INTEGER NOT NULL REFERENCES column_template(id),
   adopted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS merge_batch (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL REFERENCES project(id),
+  branch TEXT NOT NULL,
+  state TEXT NOT NULL DEFAULT 'open' CHECK (state IN ('open', 'shipped')),
+  opened_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS batch_story (
+  batch_id INTEGER NOT NULL REFERENCES merge_batch(id),
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  joined_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (batch_id, story_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_batch_story_story ON batch_story(story_id);

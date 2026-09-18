@@ -46,6 +46,8 @@ import { createDiscussionRepository } from '../domain/Discussion/DiscussionRepos
 import { operatorOf } from '../technical/Auth/BoardIdentity.js'
 import { createTemplateRepository } from '../domain/Template/TemplateRepository.js'
 import { createTemplateApi } from '../domain/Template/TemplateApi.js'
+import { createBatchRepository } from '../domain/Delivery/BatchRepository.js'
+import { createBatchApi } from '../domain/Delivery/BatchApi.js'
 import { columnAgentOfPhase, createDrivenRunner } from '../domain/Driver/Driver.js'
 import { createDriverApi } from '../domain/Driver/DriverApi.js'
 import { claudeCodeDriver } from './ClaudeCodeDriver.js'
@@ -231,6 +233,7 @@ export function startBoardServer({
   })
   const cascadeCheckpoints = createCheckpointRepository(db, checkpointGates)
   const discussion = createDiscussionRepository(db, { stories })
+  const batches = createBatchRepository(db)
   const api = createBoardApi({
     openHolds: discussion.openHolds,
     boardColumns: () =>
@@ -287,6 +290,14 @@ export function startBoardServer({
     createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
   )
   guarded.route('/', createDriverApi({ drivers }))
+  guarded.route(
+    '/',
+    createBatchApi({
+      batches,
+      maySettle: (context) =>
+        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
+    }),
+  )
   guarded.route(
     '/',
     createTemplateApi({
