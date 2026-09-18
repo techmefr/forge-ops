@@ -7,14 +7,11 @@ import { MODE_CHOICES } from '@/technical/Appearance/ModeChoice'
 import { useAppearance } from '@/technical/Appearance/UseAppearance'
 import { THEME_LABELS, THEME_NAMES } from '@/technical/Theme/Palette'
 import { useTheme } from '@/technical/Theme/UseTheme'
-import { NAV_LAYOUTS } from '@/technical/Shell/Navigation'
-import { useNavigation } from '@/technical/Shell/UseNavigation'
 import LanguageSwitch from '@/technical/Language/LanguageSwitch.vue'
 
 const { t } = useI18n()
 const { theme, choice, selectTheme, selectMode } = useTheme()
 const { face, scale, selectFace, selectScale } = useAppearance()
-const { layout, selectLayout } = useNavigation()
 
 function listOf<T extends string>(keys: readonly T[], namespace: string) {
   return keys.map((key) => ({ key, label: t(`${namespace}.${key}`) }))
@@ -24,7 +21,6 @@ const themes = computed(() => THEME_NAMES.map((key) => ({ key, label: THEME_LABE
 const modes = computed(() => listOf(MODE_CHOICES, 'modeChoice'))
 const faces = computed(() => listOf(FONT_FACES, 'fontFace'))
 const scales = computed(() => listOf(FONT_SCALES, 'fontScale'))
-const layouts = computed(() => listOf(NAV_LAYOUTS, 'navLayout'))
 </script>
 
 <template>
@@ -51,13 +47,6 @@ const layouts = computed(() => listOf(NAV_LAYOUTS, 'navLayout'))
       :options="scales"
       :current="scale"
       @select="selectScale"
-    />
-    <ChoiceRow
-      :label="t('setting.navigation')"
-      :hint="t('setting.navigationHint')"
-      :options="layouts"
-      :current="layout"
-      @select="selectLayout"
     />
 
     <div class="flex flex-col gap-2">

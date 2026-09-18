@@ -62,13 +62,10 @@ export const FRENCH: Message = {
     resources: 'Machine',
   },
   shell: {
-    orchestration: 'Orchestration d’agents',
     pipeline: 'Étapes du pipeline',
     access: 'Accès',
     accessSub: 'Ouvrir une session sur le board',
-    agents: 'Agents actifs',
     agentCount: '{count} agent | {count} agents',
-    noSession: 'Aucune session en cours',
     shortcut: 'z z puis {digit}, ou Alt+Maj+{digit}',
     strokeArmed: 'z z … chiffre',
     strokeStarted: 'z …',
@@ -572,8 +569,6 @@ export const FRENCH: Message = {
     font: 'Police',
     textSize: 'Taille du texte',
     textSizeHint: 'Toute l’interface suit, pas seulement ce cadre.',
-    navigation: 'Navigation',
-    navigationHint: 'Les écrans restent joignables au clavier par z z puis leur chiffre.',
     languageHint:
       'Toute l’interface suit. Ce que les agents écrivent garde la langue dans laquelle ils l’ont écrit.',
     account: 'Compte',
@@ -614,10 +609,6 @@ export const FRENCH: Message = {
     normal: 'Normale',
     large: 'Grande',
     huge: 'Très grande',
-  },
-  navLayout: {
-    rail: 'Barre latérale',
-    tabs: 'Onglets',
   },
   access: {
     enterBoard: 'Entrer sur le board',
