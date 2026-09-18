@@ -388,6 +388,15 @@ export const PORTUGUESE: Message = {
     awaitingSaid: 'O agente propõe, você valida: é o seu sim que envia o cartão para a reserva.',
     validate: 'Validar e enviar para a reserva',
   },
+  driver: {
+    driven: 'pilotado por {name}',
+  },
+  degradation: {
+    threadWaitsForTheEnd: 'o fio espera pelo fim',
+    costUnknown: 'custo desconhecido',
+    startsOver: 'recomeça do zero',
+    runsToTheEnd: 'vai até ao fim',
+  },
   discussion: {
     held: 'Bloqueada',
     askedBy: 'pedido por {author} · uma resposta humana liberta-a',

@@ -389,6 +389,15 @@ export const ITALIAN: Message = {
     awaitingSaid: 'L\'agente propone, tu convalidi: è il tuo sì che manda la carta alla riserva.',
     validate: 'Convalida e manda alla riserva',
   },
+  driver: {
+    driven: 'pilotato da {name}',
+  },
+  degradation: {
+    threadWaitsForTheEnd: 'il filo aspetta la fine',
+    costUnknown: 'costo sconosciuto',
+    startsOver: 'riparte da zero',
+    runsToTheEnd: 'va fino in fondo',
+  },
   discussion: {
     held: 'Bloccata',
     askedBy: 'chiesto da {author} · una risposta umana la libera',

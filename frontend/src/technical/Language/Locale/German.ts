@@ -389,6 +389,15 @@ export const GERMAN: Message = {
     awaitingSaid: 'Der Agent schlägt vor, Sie bestätigen: Ihr Ja schickt die Karte in den Vorrat.',
     validate: 'Bestätigen und in den Vorrat schicken',
   },
+  driver: {
+    driven: 'gesteuert von {name}',
+  },
+  degradation: {
+    threadWaitsForTheEnd: 'der Faden wartet bis zum Ende',
+    costUnknown: 'Kosten unbekannt',
+    startsOver: 'fängt von vorne an',
+    runsToTheEnd: 'läuft bis zum Ende',
+  },
   discussion: {
     held: 'Angehalten',
     askedBy: 'angefragt von {author} · eine menschliche Antwort gibt sie frei',

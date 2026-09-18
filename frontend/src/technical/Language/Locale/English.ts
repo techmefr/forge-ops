@@ -382,6 +382,15 @@ export const ENGLISH = {
     awaitingSaid: 'The agent proposes, you validate: it is your yes that sends the card to the reserve.',
     validate: 'Validate and send to the reserve',
   },
+  driver: {
+    driven: 'driven by {name}',
+  },
+  degradation: {
+    threadWaitsForTheEnd: 'the thread waits for the end',
+    costUnknown: 'cost unknown',
+    startsOver: 'starts over',
+    runsToTheEnd: 'runs to the end',
+  },
   discussion: {
     held: 'Held',
     askedBy: 'asked by {author} · a human answer frees it',
