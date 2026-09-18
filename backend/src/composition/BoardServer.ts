@@ -48,6 +48,9 @@ import { createTemplateRepository } from '../domain/Template/TemplateRepository.
 import { createTemplateApi } from '../domain/Template/TemplateApi.js'
 import { createBatchRepository } from '../domain/Delivery/BatchRepository.js'
 import { createBatchApi } from '../domain/Delivery/BatchApi.js'
+import { columnAgentOfPhase, createDrivenRunner } from '../domain/Driver/Driver.js'
+import { createDriverApi } from '../domain/Driver/DriverApi.js'
+import { claudeCodeDriver } from './ClaudeCodeDriver.js'
 import type { SdkUserTurn } from '../technical/ClaudeCode/TurnDelivery.js'
 import { createConversationApi } from '../domain/Conversation/ConversationApi.js'
 import { recordUsageFromEvent } from '../technical/ClaudeCode/UsageRecorder.js'
@@ -204,6 +207,10 @@ export function startBoardServer({
     git: createGitWorktree({ repositoryRoot: process.cwd() }),
     root: worktreeRoot,
   })
+  const templates = createTemplateRepository(db)
+  const drivers = [
+    claudeCodeDriver(createSdkSessionRunner({ cwd: process.cwd(), live, onEvent: onSessionEvent })),
+  ]
   const dispatcher = createDispatcher({
     database: db,
     stories,
@@ -212,7 +219,11 @@ export function startBoardServer({
     sessions,
     budget,
     foremerge,
-    runner: createSdkSessionRunner({ cwd: process.cwd(), live, onEvent: onSessionEvent }),
+    runner: createDrivenRunner({
+      drivers,
+      columnAgentOf: (order) =>
+        columnAgentOfPhase(templates.templateOfProject(stories.projectOfStory(order.storyId)).columns, order.phase),
+    }),
     concurrencyCap: Number(process.env.FORGE_SESSION_CAP ?? DEFAULT_SESSION_CAP),
     claudeCodeVersion: process.env.CLAUDE_CODE_VERSION ?? 'unknown',
     rate: {
@@ -222,7 +233,6 @@ export function startBoardServer({
   })
   const cascadeCheckpoints = createCheckpointRepository(db, checkpointGates)
   const discussion = createDiscussionRepository(db, { stories })
-  const templates = createTemplateRepository(db)
   const batches = createBatchRepository(db)
   const api = createBoardApi({
     openHolds: discussion.openHolds,
@@ -279,6 +289,7 @@ export function startBoardServer({
     '/',
     createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
   )
+  guarded.route('/', createDriverApi({ drivers }))
   guarded.route(
     '/',
     createBatchApi({

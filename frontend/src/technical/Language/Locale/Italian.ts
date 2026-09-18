@@ -396,6 +396,15 @@ export const ITALIAN: Message = {
     hint: 'Il raggruppamento resta un\'opzione: una storia si può sempre estrarre da una sessione in volo.',
     said: 'Una sessione porta una storia, il suo worktree e la sua richiesta di merge. La prova resta attaccata alla storia, mai alla sessione.',
   },
+  driver: {
+    driven: 'pilotato da {name}',
+  },
+  degradation: {
+    threadWaitsForTheEnd: 'il filo aspetta la fine',
+    costUnknown: 'costo sconosciuto',
+    startsOver: 'riparte da zero',
+    runsToTheEnd: 'va fino in fondo',
+  },
   discussion: {
     held: 'Bloccata',
     askedBy: 'chiesto da {author} · una risposta umana la libera',

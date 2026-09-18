@@ -396,6 +396,15 @@ export const GERMAN: Message = {
     hint: 'Gruppieren bleibt eine Option: eine Story lässt sich jederzeit aus einer laufenden Sitzung herausziehen.',
     said: 'Eine Sitzung trägt eine Story, ihr eigenes Worktree und ihren eigenen Merge Request. Der Beweis bleibt an der Story, nie an der Sitzung.',
   },
+  driver: {
+    driven: 'gesteuert von {name}',
+  },
+  degradation: {
+    threadWaitsForTheEnd: 'der Faden wartet bis zum Ende',
+    costUnknown: 'Kosten unbekannt',
+    startsOver: 'fängt von vorne an',
+    runsToTheEnd: 'läuft bis zum Ende',
+  },
   discussion: {
     held: 'Angehalten',
     askedBy: 'angefragt von {author} · eine menschliche Antwort gibt sie frei',

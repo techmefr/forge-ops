@@ -9,6 +9,7 @@ export const PARAMETERLESS_PATHS: readonly string[] = [
   '/api/board/self',
   '/api/files/conflicts',
   '/api/delivery/grouping',
+  '/api/drivers',
   '/api/fleet',
   '/api/templates',
   '/api/incidents',

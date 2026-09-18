@@ -20,6 +20,7 @@ import {
 import { PARCOURS_REASON_SEQUENCE } from '@contract/PilotContract'
 import { ATTENTIONS } from '@contract/BoardContract'
 import { GROUPING_MODES } from '@contract/DeliveryContract'
+import { DEGRADATIONS } from '@contract/DriverContract'
 import { MILESTONE_KINDS } from '@contract/StoryContract'
 import { SPOKEN_MARKS } from '@/domain/File/FileMarkTone'
 import { DRAWER_TABS } from '@/domain/Kanban/DrawerTab'
@@ -39,6 +40,7 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   attention: ATTENTIONS,
   checkpoint: CHECKPOINT_SEQUENCE,
   conduct: COST_CAP_CONDUCT_SEQUENCE,
+  degradation: DEGRADATIONS,
   desk: DESKS,
   drawerTab: DRAWER_TABS,
   fleetState: FLEET_JOB_STATE_SEQUENCE,
