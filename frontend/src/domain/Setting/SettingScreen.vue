@@ -6,6 +6,7 @@ import type { Account } from '@/domain/Board/BoardModel'
 import AccountSection from './AccountSection.vue'
 import AppearanceSection from './AppearanceSection.vue'
 import BudgetSection from './BudgetSection.vue'
+import TemplateSection from './TemplateSection.vue'
 import { keepsTheOrganisation } from './SettingSection'
 
 const { t } = useI18n()
@@ -43,6 +44,7 @@ onMounted(() => void look())
     <section v-if="organisation" class="flex flex-col gap-4">
       <h2 class="display-italic m-0 text-[22px]">{{ t('settingHalf.organisation') }}</h2>
       <p class="text-[12.5px] text-txt-low">{{ t('settingHalf.organisationSub') }}</p>
+      <TemplateSection />
       <BudgetSection />
     </section>
     <p v-else class="text-[12.5px] text-txt-low">{{ t('settingHalf.organisationClosed') }}</p>

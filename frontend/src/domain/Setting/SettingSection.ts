@@ -17,6 +17,7 @@ export type SettingSection = {
 export const SETTING_SECTIONS: readonly SettingSection[] = [
   { key: 'appearance', half: 'mine', effect: 'immediate' },
   { key: 'account', half: 'mine', effect: 'immediate' },
+  { key: 'templates', half: 'organisation', effect: 'immediate' },
   { key: 'budget', half: 'organisation', effect: 'immediate' },
 ]
 

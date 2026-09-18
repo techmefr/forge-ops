@@ -9,6 +9,7 @@ export const PARAMETERLESS_PATHS: readonly string[] = [
   '/api/board/self',
   '/api/files/conflicts',
   '/api/fleet',
+  '/api/templates',
   '/api/incidents',
   '/api/machine',
   '/api/origins',
@@ -27,6 +28,7 @@ export const PARAMETERLESS_PATHS: readonly string[] = [
 export const PROJECT_PATHS: readonly string[] = [
   '/api/projects/:id/clashes',
   '/api/projects/:id/epics',
+  '/api/projects/:id/template',
   '/api/projects/:id/tree',
   '/api/projects/:id/zones',
 ]

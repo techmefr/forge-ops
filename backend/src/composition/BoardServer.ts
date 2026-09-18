@@ -43,6 +43,9 @@ import { createSdkSessionRunner, createSdkSessionTalker } from '../technical/Cla
 import { createLiveSessions } from '../technical/ClaudeCode/LiveSessions.js'
 import { createDiscussionApi } from '../domain/Discussion/DiscussionApi.js'
 import { createDiscussionRepository } from '../domain/Discussion/DiscussionRepository.js'
+import { operatorOf } from '../technical/Auth/BoardIdentity.js'
+import { createTemplateRepository } from '../domain/Template/TemplateRepository.js'
+import { createTemplateApi } from '../domain/Template/TemplateApi.js'
 import type { SdkUserTurn } from '../technical/ClaudeCode/TurnDelivery.js'
 import { createConversationApi } from '../domain/Conversation/ConversationApi.js'
 import { recordUsageFromEvent } from '../technical/ClaudeCode/UsageRecorder.js'
@@ -217,8 +220,15 @@ export function startBoardServer({
   })
   const cascadeCheckpoints = createCheckpointRepository(db, checkpointGates)
   const discussion = createDiscussionRepository(db, { stories })
+  const templates = createTemplateRepository(db)
   const api = createBoardApi({
     openHolds: discussion.openHolds,
+    boardColumns: () =>
+      templates.defaultTemplate().columns.map((column) => ({
+        key: column.state,
+        label: column.label,
+        colour: column.colour,
+      })),
     today: () => new Date().toISOString().slice(0, 10),
     zones: createZoneRepository(db),
     budget,
@@ -265,6 +275,14 @@ export function startBoardServer({
   guarded.route(
     '/',
     createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
+  )
+  guarded.route(
+    '/',
+    createTemplateApi({
+      templates,
+      maySettle: (context) =>
+        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
+    }),
   )
   guarded.get('/api/board/mode', (context) =>
     context.json({ mode, environment: environmentMode }),

@@ -18,6 +18,7 @@ const OUTSIDE_THE_VISIT: readonly string[] = [
   '/api/events',
   '/api/pilots/shots/:name',
   '/api/projects/:id/file',
+  '/api/templates/:id/jsonl',
 ]
 
 function sourceFiles(directory: string): readonly string[] {

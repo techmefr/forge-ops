@@ -357,3 +357,33 @@ CREATE TABLE IF NOT EXISTS epic_milestone (
 );
 
 CREATE INDEX IF NOT EXISTS idx_epic_milestone_epic ON epic_milestone(epic_id, due_on);
+
+CREATE TABLE IF NOT EXISTS column_template (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL,
+  name TEXT NOT NULL,
+  version INTEGER NOT NULL,
+  is_default INTEGER NOT NULL DEFAULT 0 CHECK (is_default IN (0, 1)),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (slug, version)
+);
+
+CREATE TABLE IF NOT EXISTS template_column (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  template_id INTEGER NOT NULL REFERENCES column_template(id),
+  position INTEGER NOT NULL,
+  state TEXT NOT NULL,
+  label TEXT NOT NULL,
+  colour TEXT NOT NULL,
+  agent TEXT,
+  prompt TEXT,
+  delay_hours INTEGER,
+  UNIQUE (template_id, position),
+  UNIQUE (template_id, state)
+);
+
+CREATE TABLE IF NOT EXISTS project_template (
+  project_id INTEGER PRIMARY KEY REFERENCES project(id),
+  template_id INTEGER NOT NULL REFERENCES column_template(id),
+  adopted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
