@@ -267,6 +267,9 @@ export function startBoardServer({
   const identities = createIdentityRepository(db)
   const browserSessions = createBrowserSessions()
   const guarded = new Hono()
+  guarded.get('/health', (context) =>
+    context.json({ role: process.env.FORGE_ROLE ?? 'instance', mode, ready: true }),
+  )
   guarded.use(
     '/api/*',
     createTokenGuard({

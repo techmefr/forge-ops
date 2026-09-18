@@ -1,0 +1,10 @@
+node_modules
+dist
+*.db
+*.db-wal
+*.db-shm
+.git
+docker/*.secret
+gateproof
+design
+architecture
