@@ -389,6 +389,13 @@ export const ITALIAN: Message = {
     awaitingSaid: 'L\'agente propone, tu convalidi: è il tuo sì che manda la carta alla riserva.',
     validate: 'Convalida e manda alla riserva',
   },
+  grouping: {
+    single: 'Una storia, una richiesta di merge',
+    grouped: 'Più storie su una richiesta di merge',
+    label: 'Cosa porta una richiesta di merge',
+    hint: 'Il raggruppamento resta un\'opzione: una storia si può sempre estrarre da una sessione in volo.',
+    said: 'Una sessione porta una storia, il suo worktree e la sua richiesta di merge. La prova resta attaccata alla storia, mai alla sessione.',
+  },
   driver: {
     driven: 'pilotato da {name}',
   },
@@ -635,6 +642,7 @@ export const ITALIAN: Message = {
     jsonl: 'JSONL - un record per riga, l’intestazione poi una riga per colonna',
   },
   setting: {
+    delivery: 'Consegna',
     templates: 'Modelli di colonne',
     appearance: 'Aspetto',
     palette: 'Tavolozza',
