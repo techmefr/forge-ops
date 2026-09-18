@@ -25,11 +25,10 @@ export const PARAMETERLESS_PATHS: readonly string[] = [
   '/api/worktrees',
 ]
 
-export const PROJECT_TEMPLATE_NOTE = 'the template of a project travels with the project paths'
-
 export const PROJECT_PATHS: readonly string[] = [
   '/api/projects/:id/clashes',
   '/api/projects/:id/epics',
+  '/api/projects/:id/template',
   '/api/projects/:id/tree',
   '/api/projects/:id/zones',
 ]
