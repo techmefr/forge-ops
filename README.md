@@ -22,7 +22,7 @@ An agent coding on its own produces three classes of friction:
 - **A single source of truth.** One SQLite database in WAL mode, read by the API and by the board. No duplicated state to synchronize.
 - **The guardrail fails closed.** One `PreToolUse` hook carries two refusals — the deny list on `Bash|PowerShell`, the scope guard on `Edit|Write` — and blocks whenever it cannot decide: unreadable deny list, incomprehensible payload. The previous version failed open: deleting the script silently deleted all the protection.
 - **File attribution comes from the hooks, not from a watcher.** Claude Code posts every `Edit`/`Write` to the API; the board knows which story touched which file and detects paths claimed by several stories.
-- **Determinism rather than allocation.** Port and subdomain derived from a hash of the branch name: the conflict class disappears at the source.
+- **Reservation, not a bare hash.** The branch name's hash only seeds a candidate port; the repository walks the range from there, checking both the `port_reservation` table and whether the port actually binds, and reuses a worktree's held port when it is still free. A hash alone collides by birthday paradox well before the range fills up.
 - **The last gate is human.** No agent moves a story to `done`.
 
 ## 3. Work hierarchy
