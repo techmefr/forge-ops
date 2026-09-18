@@ -1,5 +1,7 @@
 # The two-panel ticket and the remote platform
 
+> Design record of 2026-09-09. The deployment half of this document is superseded by [Architecture.md](Architecture.md), decided on 2026-09-18: the hub becomes a server holding organisations and accounts, and the local board becomes an instance. The two-panel ticket below still stands.
+
 Design of 2026-09-09. Only the ticket route is written to date; the rest of this document settles the breakdown before the code.
 
 ## 1. The two-panel ticket
