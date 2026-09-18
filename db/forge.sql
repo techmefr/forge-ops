@@ -397,6 +397,16 @@ CREATE TABLE IF NOT EXISTS project_template (
   adopted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS sync_outbox (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  queued_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  sent_at TEXT,
+  attempts INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_sync_outbox_owed ON sync_outbox(sent_at, id);
 CREATE TABLE IF NOT EXISTS auth_provider (
   organisation_id INTEGER NOT NULL REFERENCES organisation(id),
   kind TEXT NOT NULL CHECK (kind IN ('password', 'microsoft', 'google', 'magicLink')),
