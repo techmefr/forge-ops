@@ -42,7 +42,10 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
 
 <template>
   <div class="flex h-full min-h-0 flex-col p-8">
-    <div class="grid flex-none gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
+    <div
+      class="grid flex-none gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]"
+      data-tour="statistic-tally"
+    >
       <article class="rounded-2xl border border-line bg-card p-4">
         <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.sessions') }}
