@@ -39,6 +39,7 @@ import type { MutationOutcome } from '../Mutation/Mutation.js'
 import { describeSurvivor, filesWorthMutating, survivorsOf } from '../Mutation/MutationVerdict.js'
 import type { TestReport } from '../RedProof/RedProof.js'
 import { describeRedVerdict, redVerdictOf } from '../RedProof/RedVerdict.js'
+import type { ThreadProof } from '../Conversation/Thread.js'
 
 const PRODUCING_PHASES: readonly AgentPhase[] = ['spec', 'architecture', 'tdd', 'code', 'ship']
 
@@ -64,10 +65,17 @@ type FindingRow = {
   statement: string
 }
 
+type ProofRow = {
+  name: CheckpointName
+  proven_at: string
+  evidence_path: string
+}
+
 export type CheckpointRepository = {
   proveCheckpoint: (draft: CheckpointDraft) => Checkpoint
   revokeCheckpoints: (storyId: number, names: readonly CheckpointName[]) => readonly CheckpointName[]
   definitionOfDone: (storyId: number) => readonly DefinitionOfDoneStep[]
+  listProofs: (storyId: number) => readonly ThreadProof[]
   recordFinding: (draft: ReviewFindingDraft) => ReviewFinding
   listUnresolvedFindings: (storyId: number) => readonly ReviewFinding[]
   resolveFinding: (findingId: number) => void
@@ -129,6 +137,9 @@ export function createCheckpointRepository(
   )
   const selectCheckpoints = db.prepare<[number], CheckpointRow>(
     'SELECT * FROM checkpoint WHERE story_id = ?',
+  )
+  const selectProofs = db.prepare<[number], ProofRow>(
+    'SELECT name, proven_at, evidence_path FROM checkpoint WHERE story_id = ? ORDER BY proven_at, id',
   )
   const deleteCheckpoint = db.prepare<[number, CheckpointName]>(
     'DELETE FROM checkpoint WHERE story_id = ? AND name = ?',
@@ -317,6 +328,13 @@ export function createCheckpointRepository(
         }
       })
     },
+
+    listProofs: (storyId) =>
+      selectProofs.all(storyId).map((row) => ({
+        name: row.name,
+        provenAt: row.proven_at,
+        evidencePath: row.evidence_path,
+      })),
 
     recordFinding: (draft) => {
       const session = selectSession.get(draft.claudeSessionId)

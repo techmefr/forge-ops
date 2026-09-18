@@ -37,16 +37,27 @@ export function refusalOf(columns: readonly TemplateColumn[]): TemplateRefusal |
   return missing === undefined ? null : { reason: 'MissingStage', stage: missing }
 }
 
+export const WRITING_AGENT = 'architect'
+
+export const WRITING_PROMPT = [
+  'Ecris la story {reference} avec l architecte : {title}.',
+  '',
+  '{body}',
+  '',
+  'Pose les questions qui manquent, propose le decoupage, puis redige la specification.',
+  'Tu ne valides jamais toi meme : c est l humain qui envoie la carte a la reserve.',
+].join('\n')
+
 export const SHIPPED_TEMPLATE: TemplateDraft = {
   slug: 'shipped',
   name: 'Forge',
   isDefault: true,
-  columns: KANBAN_COLUMNS.map((column) => ({
+  columns: KANBAN_COLUMNS.map((column, position) => ({
     state: column.key,
     label: column.label,
     colour: column.colour,
-    agent: null,
-    prompt: null,
+    agent: position === 0 ? WRITING_AGENT : null,
+    prompt: position === 0 ? WRITING_PROMPT : null,
     delayHours: null,
   })),
 }

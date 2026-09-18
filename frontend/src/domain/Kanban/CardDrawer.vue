@@ -8,6 +8,7 @@ import DiscussionTab from './DiscussionTab.vue'
 import PlanTab from './PlanTab.vue'
 import ReviewTab from './ReviewTab.vue'
 import StoryTab from './StoryTab.vue'
+import ThreadTab from './ThreadTab.vue'
 
 const props = defineProps<{ story: ProjectCard; hold: StoryHold | null }>()
 const emit = defineEmits<{ close: []; moved: [] }>()
@@ -97,7 +98,8 @@ watch(
     </nav>
 
     <div class="min-h-0 flex-1 overflow-auto p-5">
-      <StoryTab v-if="tab === 'story'" :story="story" />
+      <ThreadTab v-if="tab === 'thread'" :story="story" @moved="emit('moved')" />
+      <StoryTab v-else-if="tab === 'story'" :story="story" />
       <PlanTab v-else-if="tab === 'plan'" :story="story" @moved="emit('moved')" />
       <ReviewTab v-else-if="tab === 'review'" :story="story" @moved="emit('moved')" />
       <DeliveryTab v-else-if="tab === 'delivery'" :story="story" @moved="emit('moved')" />

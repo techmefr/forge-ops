@@ -179,6 +179,7 @@ export const PORTUGUESE: Message = {
     free: 'Livres',
   },
   drawerTab: {
+    thread: 'Fio',
     story: 'Story',
     plan: 'Plano',
     review: 'Revisão',
@@ -375,6 +376,17 @@ export const PORTUGUESE: Message = {
     inProduction: 'Em produção',
     cleanUpKept: 'Limpeza: {count} reservas libertadas, worktree mantido.',
     cleanUpClosed: 'Limpeza: {count} reservas libertadas, worktree fechado.',
+  },
+  threadEntry: {
+    testimony: 'Dito',
+    proof: 'Prova',
+  },
+  thread: {
+    empty: 'Ainda nada foi dito sobre este cartão.',
+    entries: 'nenhuma entrada | uma entrada | {count} entradas',
+    awaiting: 'À espera de um humano',
+    awaitingSaid: 'O agente propõe, você valida: é o seu sim que envia o cartão para a reserva.',
+    validate: 'Validar e enviar para a reserva',
   },
   discussion: {
     held: 'Bloqueada',
