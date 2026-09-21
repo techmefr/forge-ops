@@ -83,6 +83,7 @@ export type BoardServerInput = {
   dbPath: string
   claudeHome: string
   host: string
+  publicOrigin: string | null
   tokenPath: string
   distDir: string
   testsDir: string
@@ -123,6 +124,7 @@ export function defaultBoardServerInput(): BoardServerInput {
     dbPath: process.env.FORGE_DB_PATH ?? 'forge.db',
     claudeHome: process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), '.claude'),
     host: process.env.FORGE_HOST ?? LOOPBACK,
+    publicOrigin: process.env.FORGE_PUBLIC_ORIGIN ?? null,
     tokenPath: process.env.FORGE_TOKEN_PATH ?? '.forge-token',
     distDir: process.env.FORGE_DIST_DIR ?? join('dist', 'web'),
     testsDir: process.env.FORGE_TESTS_DIR ?? 'backend/tests',
@@ -141,6 +143,7 @@ export function startBoardServer({
   dbPath,
   claudeHome,
   host,
+  publicOrigin,
   tokenPath,
   distDir,
   testsDir,
@@ -283,7 +286,7 @@ export function startBoardServer({
     '/api/*',
     createTokenGuard({
       token,
-      allowedOrigins: boardOrigins(host, port),
+      allowedOrigins: boardOrigins(host, port, publicOrigin),
       hookToken: deriveHookToken(token),
       requireIdentity: mode === 'hub',
       readIdentity: (sessionToken) => identities.readSession(sessionToken),
