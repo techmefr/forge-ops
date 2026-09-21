@@ -1,5 +1,8 @@
 FROM node:24-bookworm-slim AS build
 WORKDIR /forge
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3 make g++ \
+ && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
@@ -19,8 +22,9 @@ RUN apt-get update \
 WORKDIR /forge
 COPY --from=build /forge/node_modules ./node_modules
 COPY --from=build /forge/dist ./dist
-COPY --from=build /forge/db ./db
+COPY --from=build /forge/db ./dist/db
 COPY --from=build /forge/package.json ./package.json
+RUN mkdir -p /data /repositories && chown node:node /data /repositories
 VOLUME /data
 VOLUME /repositories
 EXPOSE 4311
