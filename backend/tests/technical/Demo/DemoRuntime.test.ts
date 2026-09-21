@@ -150,7 +150,7 @@ describe('demoAccessLines', () => {
   it('prints the url to open and the token on separate lines', () => {
     const lines = demoAccessLines({ port: 8899, token })
 
-    expect(lines.some((line) => line.includes('http://127.0.0.1:8899'))).toBe(true)
+    expect(lines.some((line) => line.includes('http://forge.localhost:8899'))).toBe(true)
     expect(lines.some((line) => line.includes(token) && !line.includes('http://'))).toBe(true)
   })
 
@@ -169,10 +169,10 @@ describe('demoAccessLines', () => {
 })
 
 describe('demoBoardUrl', () => {
-  it('stays on the loopback and carries no query string', () => {
+  it('stays on the loopback, under the friendly dev name, and carries no query string', () => {
     const url = demoBoardUrl(8899)
 
-    expect(url).toBe('http://127.0.0.1:8899')
+    expect(url).toBe('http://forge.localhost:8899')
     expect(url).not.toContain('?')
   })
 })
