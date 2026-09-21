@@ -7,7 +7,7 @@ services:
       dockerfile: docker/instance.Dockerfile
     environment:
       FORGE_MODE: local
-      FORGE_TOKEN_FILE: /run/secrets/board_token
+      FORGE_TOKEN_PATH: /run/secrets/board_token
       FORGE_PUBLIC_ORIGIN: http://forge.localhost
     secrets:
       - board_token

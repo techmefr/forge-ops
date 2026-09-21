@@ -5,6 +5,7 @@ dist/
 *.db-wal
 .env
 .forge-token*
+docker/*.secret
 .claude/settings.local.json
 .claude/*.tmp.*
 .claude/evidence/
