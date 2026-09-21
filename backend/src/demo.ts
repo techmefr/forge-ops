@@ -17,7 +17,7 @@ import {
 const defaults = defaultBoardServerInput()
 const runRoot = createDemoRunRoot()
 const environment = demoEnvironment(runRoot)
-const { dbPath, worktreeRoot, shotDir } = environment
+const { dbPath, worktreeRoot, shotDir, tokenPath } = environment
 
 console.log(`Mode ${environment.mode} declare, tout tient dans ${runRoot}`)
 
@@ -60,12 +60,13 @@ if (!bundle.built) {
 mkdirSync(worktreeRoot, { recursive: true })
 mkdirSync(shotDir, { recursive: true })
 
-const token = resolveBoardToken(defaults.tokenPath)
+const token = resolveBoardToken(tokenPath)
 const running = await startBoardServer({
   ...defaults,
   dbPath,
   worktreeRoot,
   shotDir,
+  tokenPath,
   environmentMode: environment.mode,
 })
 
