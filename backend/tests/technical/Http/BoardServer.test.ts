@@ -21,6 +21,7 @@ afterEach(async () => {
 
 async function boot(
   environmentMode: EnvironmentMode = 'real',
+  publicOrigin: string | null = null,
 ): Promise<{ board: BoardServer; token: string }> {
   claudeHome = mkdtempSync(join(tmpdir(), 'forge-claude-home-'))
   const tokenPath = join(claudeHome, '.forge-token')
@@ -32,6 +33,7 @@ async function boot(
     dbPath: ':memory:',
     claudeHome,
     host: '127.0.0.1',
+    publicOrigin,
     worktreeRoot: join(claudeHome, 'worktrees'),
     checkoutRoots: [claudeHome],
     shotDir: join(claudeHome, 'shots'),
@@ -101,6 +103,28 @@ describe('startBoardServer', () => {
         origin: 'https://site-malveillant.example',
       },
       body: JSON.stringify({ phase: 'spec' }),
+    })
+
+    expect(response.status).toBe(403)
+  })
+
+  it('accepts the declared public origin even though the API never binds there', async () => {
+    const booted = await boot('real', 'http://forge.localhost')
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/fleet`, {
+      headers: { authorization: `Bearer ${booted.token}`, origin: 'http://forge.localhost' },
+    })
+
+    expect(response.status).toBe(200)
+  })
+
+  it('still refuses an origin nobody declared, with a public origin set', async () => {
+    const booted = await boot('real', 'http://forge.localhost')
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/fleet`, {
+      headers: { authorization: `Bearer ${booted.token}`, origin: 'https://site-malveillant.example' },
     })
 
     expect(response.status).toBe(403)

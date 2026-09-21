@@ -47,4 +47,16 @@ describe('boardOrigins', () => {
 
     expect(new Set(origins).size).toBe(origins.length)
   })
+
+  it('accepts a declared public origin even when it does not match the bind host', () => {
+    expect(boardOrigins('0.0.0.0', 4311, 'http://forge.localhost')).toContain(
+      'http://forge.localhost',
+    )
+  })
+
+  it('never invents a public origin nobody declared', () => {
+    expect(boardOrigins('0.0.0.0', 4311).some((origin) => origin === 'http://forge.localhost')).toBe(
+      false,
+    )
+  })
 })

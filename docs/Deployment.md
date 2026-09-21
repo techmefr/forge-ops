@@ -44,6 +44,8 @@ Pick by one question: **where do you want the agent to run?** Everything else fo
 docker compose -f docker/compose.laptop.yml up --build
 ```
 
+Opens on **http://forge.localhost** — no port, works the same on macOS, Linux and Windows with no host configuration, since every modern browser resolves `.localhost` to the loopback on its own. `web`'s nginx proxies `/api/*` straight to `instance` inside the compose network, so the browser only ever sees one origin; `instance` still declares that origin explicitly (`FORGE_PUBLIC_ORIGIN`) since it binds `0.0.0.0` to be reachable at all, and a bind address is not an origin a browser will ever send.
+
 Each file reads its secrets from `docker/board_token.secret` and, when a server is involved, `docker/instance_token.secret` - mint the second one from the organisation half of the settings. Neither ever enters an image or a URL.
 
 The web image writes `config.js` at startup from `FORGE_INSTANCE_URL` and `FORGE_SERVER_URL`, and the page reads it before it calls anything: the same built bundle serves all four topologies.
