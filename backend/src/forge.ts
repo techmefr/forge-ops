@@ -18,5 +18,5 @@ const board = await startBoardServer(input)
 
 closeOnSignals(board)
 
-console.log(`Board forge en ecoute sur http://localhost:${board.port}`)
+console.log(`Board forge en ecoute sur http://forge.localhost:${board.port}`)
 console.log(`Base ${input.dbPath}, daemon lu dans ${input.claudeHome}`)

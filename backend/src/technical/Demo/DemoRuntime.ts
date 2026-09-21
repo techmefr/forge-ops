@@ -5,7 +5,6 @@ import { join } from 'node:path'
 import { BOARD_COOKIE } from '../Auth/TokenGuard.js'
 import { DEMO_MARK_KEY, carriesDemoMark } from './DemoMark.js'
 
-const LOOPBACK = '127.0.0.1'
 const INDEX_PAGE = 'index.html'
 const DATABASE_SUFFIXES: readonly string[] = ['', '-wal', '-shm']
 const DEMO_RUN_PREFIX = 'forge-demo-run-'
@@ -70,7 +69,7 @@ export function buildWebBundle(cwd: string): boolean {
 }
 
 export function demoBoardUrl(port: number): string {
-  return `http://${LOOPBACK}:${port}`
+  return `http://forge.localhost:${port}`
 }
 
 export function demoAccessLines({ port, token }: DemoAccessInput): readonly string[] {

@@ -10,12 +10,24 @@ describe('boardOrigins', () => {
     expect(boardOrigins('127.0.0.1', 8830)).toContain('http://localhost:8830')
   })
 
+  it('allows the same port under forge.localhost, the friendly dev address', () => {
+    expect(boardOrigins('127.0.0.1', 8830)).toContain('http://forge.localhost:8830')
+  })
+
   it('allows the loopback address when bound to localhost', () => {
     expect(boardOrigins('localhost', 8830)).toContain('http://127.0.0.1:8830')
   })
 
+  it('allows the loopback address when bound to forge.localhost', () => {
+    expect(boardOrigins('forge.localhost', 8830)).toContain('http://127.0.0.1:8830')
+  })
+
   it('allows the dev server, which proxies the api', () => {
     expect(boardOrigins('127.0.0.1', 8830)).toContain('http://localhost:8832')
+  })
+
+  it('allows the dev server under forge.localhost too', () => {
+    expect(boardOrigins('127.0.0.1', 8830)).toContain('http://forge.localhost:8832')
   })
 
   it('does not allow another port on the same host', () => {
