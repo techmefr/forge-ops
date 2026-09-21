@@ -8,6 +8,7 @@ services:
     environment:
       FORGE_MODE: local
       FORGE_TOKEN_FILE: /run/secrets/board_token
+      FORGE_PUBLIC_ORIGIN: http://forge.localhost
     secrets:
       - board_token
     volumes:
@@ -21,12 +22,12 @@ services:
       context: ..
       dockerfile: docker/web.Dockerfile
     environment:
-      FORGE_INSTANCE_URL: http://localhost:4311
+      FORGE_API_PROXY_TARGET: http://instance:4311
     depends_on:
       instance:
         condition: service_healthy
     ports:
-      - '4310:80'
+      - '80:80'
 
 secrets:
   board_token:

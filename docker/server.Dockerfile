@@ -8,6 +8,8 @@ RUN npm run build:back
 FROM node:24-bookworm-slim
 ENV NODE_ENV=production
 ENV FORGE_ROLE=server
+ENV FORGE_HOST=0.0.0.0
+ENV FORGE_PORT=4311
 ENV FORGE_DB_PATH=/data/forge.db
 WORKDIR /forge
 COPY --from=build /forge/node_modules ./node_modules
