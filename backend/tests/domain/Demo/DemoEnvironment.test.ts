@@ -12,25 +12,39 @@ describe('demoEnvironment', () => {
   it('keeps every demo path under the run root it was given', () => {
     const environment = demoEnvironment(runRoot)
 
-    for (const path of [environment.dbPath, environment.worktreeRoot, environment.shotDir]) {
+    for (const path of [
+      environment.dbPath,
+      environment.worktreeRoot,
+      environment.shotDir,
+      environment.tokenPath,
+    ]) {
       expect(path.startsWith(runRoot)).toBe(true)
     }
+  })
+
+  it('never hands out a real board token, even when one already exists in the repo', () => {
+    const environment = demoEnvironment(runRoot)
+
+    expect(environment.tokenPath).not.toBe('.forge-token')
   })
 
   it('ignores the ambient variables a real board reads', () => {
     process.env.FORGE_DB_PATH = join('ailleurs', 'reelle.db')
     process.env.FORGE_WORKTREE_ROOT = join('ailleurs', 'worktrees')
     process.env.FORGE_SHOT_DIR = join('ailleurs', 'shots')
+    process.env.FORGE_TOKEN_PATH = join('ailleurs', '.forge-token')
     try {
       const environment = demoEnvironment(runRoot)
 
       expect(environment.dbPath).not.toContain('ailleurs')
       expect(environment.worktreeRoot).not.toContain('ailleurs')
       expect(environment.shotDir).not.toContain('ailleurs')
+      expect(environment.tokenPath).not.toContain('ailleurs')
     } finally {
       delete process.env.FORGE_DB_PATH
       delete process.env.FORGE_WORKTREE_ROOT
       delete process.env.FORGE_SHOT_DIR
+      delete process.env.FORGE_TOKEN_PATH
     }
   })
 
@@ -47,6 +61,7 @@ describe('realEnvironment', () => {
       dbPath: 'forge.db',
       worktreeRoot: 'worktrees',
       shotDir: 'shots',
+      tokenPath: '.forge-token',
     })
 
     expect(environment).toEqual({
@@ -54,6 +69,7 @@ describe('realEnvironment', () => {
       dbPath: 'forge.db',
       worktreeRoot: 'worktrees',
       shotDir: 'shots',
+      tokenPath: '.forge-token',
     })
   })
 })
