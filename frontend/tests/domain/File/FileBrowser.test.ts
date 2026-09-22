@@ -60,7 +60,11 @@ function mounted() {
 
 async function openTheOnlyFile(wrapper: ReturnType<typeof mounted>): Promise<void> {
   await flushPromises()
-  await wrapper.find('button').trigger('click')
+  const fileButton = wrapper.findAll('button').find((button) => button.text().includes('App.vue'))
+  if (fileButton === undefined) {
+    throw new Error('bouton du fichier App.vue introuvable dans l’arbre')
+  }
+  await fileButton.trigger('click')
   await flushPromises()
 }
 
