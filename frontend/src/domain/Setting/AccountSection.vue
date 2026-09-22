@@ -81,13 +81,13 @@ onMounted(load)
 </script>
 
 <template>
-  <section class="flex flex-col gap-6 rounded-2xl border border-line bg-card p-5">
+  <section class="flex flex-col gap-6 rounded-2xl border border-line bg-card p-4">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="display-italic m-0 text-xl">{{ t('setting.account') }}</h2>
+      <h2 class="display-italic m-0 text-[22px]">{{ t('setting.account') }}</h2>
       <EffectBadge section="account" />
     </div>
 
-    <p v-if="absent" class="text-xs text-txt-low">{{ t('setting.localModeNote') }}</p>
+    <p v-if="absent" class="text-[13px] text-txt-low">{{ t('setting.localModeNote') }}</p>
 
     <template v-else-if="account !== null">
       <p class="font-mono text-[11px] text-txt-low uppercase">
@@ -96,7 +96,7 @@ onMounted(load)
 
       <form class="flex flex-col gap-4" @submit.prevent="saveProfile">
         <label class="flex flex-col gap-2">
-          <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+          <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
             t('setting.displayName')
           }}</span>
           <input
@@ -106,7 +106,7 @@ onMounted(load)
           />
         </label>
         <label class="flex flex-col gap-2">
-          <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+          <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
             t('setting.emailAddress')
           }}</span>
           <input
@@ -121,20 +121,20 @@ onMounted(load)
           <button
             type="submit"
             :disabled="busy"
-            class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+            class="rounded-lg border border-acc bg-acc px-4 py-2 text-[13px] font-bold text-ink uppercase disabled:opacity-40"
           >
             {{ t('common.save') }}
           </button>
-          <span v-if="profileSaved" class="text-xs text-green">{{ t('setting.accountSaved') }}</span>
+          <span v-if="profileSaved" class="text-[13px] text-green">{{ t('setting.accountSaved') }}</span>
         </div>
-        <p v-if="profileRefusal !== null" class="text-xs text-red" role="alert">
+        <p v-if="profileRefusal !== null" class="text-[13px] text-red" role="alert">
           {{ say(profileRefusal) }}
         </p>
       </form>
 
       <form class="flex flex-col gap-4 border-t border-line pt-5" @submit.prevent="savePassword">
         <label class="flex flex-col gap-2">
-          <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+          <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
             t('setting.currentPassword')
           }}</span>
           <input
@@ -145,7 +145,7 @@ onMounted(load)
           />
         </label>
         <label class="flex flex-col gap-2">
-          <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+          <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
             t('setting.newPassword')
           }}</span>
           <input
@@ -154,21 +154,21 @@ onMounted(load)
             autocomplete="new-password"
             class="max-w-sm rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
-          <span class="text-xs text-txt-low">{{ t('setting.passwordHint') }}</span>
+          <span class="text-[13px] text-txt-low">{{ t('setting.passwordHint') }}</span>
         </label>
         <div class="flex items-center gap-3">
           <button
             type="submit"
             :disabled="busy"
-            class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+            class="rounded-lg border border-acc bg-acc px-4 py-2 text-[13px] font-bold text-ink uppercase disabled:opacity-40"
           >
             {{ t('setting.changePassword') }}
           </button>
-          <span v-if="passwordSaved" class="text-xs text-green">{{
+          <span v-if="passwordSaved" class="text-[13px] text-green">{{
             t('setting.passwordChanged')
           }}</span>
         </div>
-        <p v-if="passwordRefusal !== null" class="text-xs text-red" role="alert">
+        <p v-if="passwordRefusal !== null" class="text-[13px] text-red" role="alert">
           {{ say(passwordRefusal) }}
         </p>
       </form>
