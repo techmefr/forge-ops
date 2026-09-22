@@ -80,6 +80,19 @@ export async function readTextFile(root: string, asked: string, maxBytes: number
   }
 }
 
+export type FileStamp = {
+  path: string
+  mtimeMs: number
+}
+
+export async function statTextFile(root: string, asked: string): Promise<FileStamp> {
+  const { base, full } = await insideOf(root, asked)
+  const measured = await stat(full).catch((error: Error) => {
+    throw new CheckoutUnreadableError(asked, error.message)
+  })
+  return { path: slashed(base, full), mtimeMs: measured.mtimeMs }
+}
+
 export async function walkPaths(root: string, maxFiles: number): Promise<readonly string[]> {
   const found: string[] = []
 

@@ -26,6 +26,8 @@ export type FileReading = {
   mark: FileMark
   byReferences: readonly string[]
   agentName: string | null
+  highlightedHtml: string
+  highlightAvailable: boolean
 }
 
 export type ClashReading = {
