@@ -8,7 +8,6 @@ import type { Phrase } from '@/technical/Language/Phrase'
 import { createLatest } from '@/technical/Api/Latest'
 import Glyph from '@/technical/Ui/Glyph.vue'
 import { decoratedOf } from '@/technical/Ui/CodeDecor'
-import { highlightedOf, languageOfPath } from '@/technical/Ui/CodeHighlight'
 import CardHead from './CardHead.vue'
 import { crumbsOf, toneOf } from './FileMarkTone'
 import { saidOf, type FileVerdictView } from './FileSaid'
@@ -37,9 +36,7 @@ const wide = ref<'split' | 'tree' | 'code'>('split')
 
 const crumbs = computed(() => crumbsOf(here.value))
 const painted = computed(() =>
-  opened.value === null
-    ? ''
-    : decoratedOf(highlightedOf(opened.value.text, languageOfPath(opened.value.path))),
+  opened.value === null ? '' : decoratedOf(opened.value.highlightedHtml),
 )
 
 const walking = createLatest()
@@ -305,6 +302,9 @@ watch(here, () => void look())
               :class="toneOf(opened.mark).text"
             >
               {{ spoken(opened) }}
+            </p>
+            <p v-if="!opened.highlightAvailable" class="border-b border-line px-4 py-2 text-[11px] text-txt-low">
+              {{ t('browser.noHighlight') }}
             </p>
             <pre
               class="min-h-0 flex-1 overflow-auto px-4 py-3 font-mono text-[11px] leading-relaxed text-txt-mid"

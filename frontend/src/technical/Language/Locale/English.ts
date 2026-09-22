@@ -316,10 +316,21 @@ export const ENGLISH = {
     mergeConflict: 'Merge conflict',
     held: 'Held',
     blockedBy: 'Blocked by',
-    tokens: '{count} token | {count} tokens',
-    points: '{count} pt | {count} pts',
+    pointsLabel: 'Points',
+    costLabel: 'Cost',
+    tokensLabel: 'Tokens',
     drawerAria: 'Story sheet',
     tabsAria: 'Sheet',
+  },
+  contextGauge: {
+    title: 'Context',
+    aria: 'Context window usage',
+    known: '{tokens} tokens of {window} ({percent}%)',
+    unknown: '{tokens} tokens, window unknown',
+  },
+  sessionActivity: {
+    title: 'Activity',
+    aria: 'Recent session activity',
   },
   storyTab: {
     story: 'Story',
@@ -477,6 +488,7 @@ export const ENGLISH = {
     widen: 'Widen the card',
     collapse: 'Collapse the card',
     expand: 'Expand the card',
+    noHighlight: 'No colour highlighting for this file type.',
   },
   view: {
     sessionsToWatch: 'Sessions to watch',

@@ -3,10 +3,12 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ProjectCard, StoryHold } from '@/domain/Board/BoardModel'
 import { DRAWER_TABS, tabOfState, type DrawerTab } from './DrawerTab'
+import ContextGauge from './ContextGauge.vue'
 import DeliveryTab from './DeliveryTab.vue'
 import DiscussionTab from './DiscussionTab.vue'
 import PlanTab from './PlanTab.vue'
 import ReviewTab from './ReviewTab.vue'
+import SessionActivity from './SessionActivity.vue'
 import StoryTab from './StoryTab.vue'
 import ThreadTab from './ThreadTab.vue'
 
@@ -50,19 +52,32 @@ watch(
     </header>
 
     <div class="flex flex-col gap-1.5 border-b border-line px-5 py-3">
-      <p class="flex flex-wrap items-center gap-x-3 font-mono text-[10px] text-txt-low">
-        <span v-if="story.points !== null">{{
-          t('kanban.points', { count: story.points }, story.points)
-        }}</span>
-        <span>{{ t('common.money', { amount: story.usage.costUsd.toFixed(2) }) }}</span>
-        <span>{{
-          t(
-            'kanban.tokens',
-            { count: story.usage.inputTokens + story.usage.outputTokens },
-            story.usage.inputTokens + story.usage.outputTokens,
-          )
-        }}</span>
-      </p>
+      <div class="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(90px,1fr))]">
+        <article v-if="story.points !== null" class="rounded-lg border border-line bg-card p-2.5">
+          <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+            {{ t('kanban.pointsLabel') }}
+          </p>
+          <p class="display-italic mt-1 text-lg">{{ story.points }}</p>
+        </article>
+        <article class="rounded-lg border border-line bg-card p-2.5">
+          <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+            {{ t('kanban.costLabel') }}
+          </p>
+          <p class="display-italic mt-1 text-lg">
+            {{ t('common.money', { amount: story.usage.costUsd.toFixed(2) }) }}
+          </p>
+        </article>
+        <article class="rounded-lg border border-line bg-card p-2.5">
+          <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+            {{ t('kanban.tokensLabel') }}
+          </p>
+          <p class="display-italic mt-1 text-lg">
+            {{ story.usage.inputTokens + story.usage.outputTokens }}
+          </p>
+        </article>
+      </div>
+      <ContextGauge :context="story.context" />
+      <SessionActivity :entries="story.activity" />
       <p v-if="story.mergeConflict" class="font-mono text-[10px] text-red uppercase">
         {{ t('kanban.mergeConflict') }}
       </p>

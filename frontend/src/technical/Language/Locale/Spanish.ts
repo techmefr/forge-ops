@@ -322,10 +322,21 @@ export const SPANISH: Message = {
     mergeConflict: 'Conflicto de fusión',
     held: 'Bloqueada',
     blockedBy: 'Bloqueada por',
-    tokens: '{count} token | {count} tokens',
-    points: '{count} pt | {count} pts',
+    pointsLabel: 'Puntos',
+    costLabel: 'Coste',
+    tokensLabel: 'Tokens',
     drawerAria: 'Ficha de la historia',
     tabsAria: 'Ficha',
+  },
+  contextGauge: {
+    title: 'Contexto',
+    aria: 'Consumo de la ventana de contexto',
+    known: '{tokens} tokens de {window} ({percent}%)',
+    unknown: '{tokens} tokens, ventana desconocida',
+  },
+  sessionActivity: {
+    title: 'Actividad',
+    aria: 'Actividad reciente de la sesión',
   },
   storyTab: {
     story: 'Historia',
@@ -486,6 +497,7 @@ export const SPANISH: Message = {
     widen: 'Ampliar la tarjeta',
     collapse: 'Plegar la tarjeta',
     expand: 'Desplegar la tarjeta',
+    noHighlight: 'Sin coloreado para este tipo de archivo.',
   },
   view: {
     sessionsToWatch: 'Sesiones que mirar',

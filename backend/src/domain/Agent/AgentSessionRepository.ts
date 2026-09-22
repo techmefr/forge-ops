@@ -13,6 +13,9 @@ import { UnknownAgentSessionError } from './AgentViolation.js'
 import { STALE_AFTER_SECONDS, type StaleSession } from './Heartbeat.js'
 import { StoryNotFoundError } from '../Story/StoryViolation.js'
 import type { ThreadSession } from '../Conversation/Thread.js'
+import type { SessionActivityEntry } from '../../../../contract/BoardContract.js'
+
+export type { SessionActivityEntry }
 
 type AgentSessionRow = {
   id: number
@@ -23,6 +26,11 @@ type AgentSessionRow = {
   lifecycle: AgentLifecycle
   claude_code_version: string
   cost_usd: number | null
+  context_tokens: number | null
+  context_window: number | null
+  outcome: OutcomeClass | null
+  started_at: string
+  ended_at: string | null
 }
 
 type StaleSessionRow = AgentSessionRow & {
@@ -37,6 +45,8 @@ export type SessionUsage = {
   costUsd: number
   inputTokens: number
   outputTokens: number
+  contextTokens?: number
+  contextWindow?: number
 }
 
 export type ClosedSession = AgentSession & {
@@ -60,9 +70,13 @@ export type AgentSessionRepository = {
   recordHeartbeat: (claudeSessionId: string) => void
   listStaleSessions: (staleAfterSeconds?: number) => readonly StaleSession[]
   closeSession: (claudeSessionId: string, exit: SessionExit) => ClosedSession
-  recordUsage: (claudeSessionId: string, usage: SessionUsage) => AgentSession & SessionUsage
+  recordUsage: (
+    claudeSessionId: string,
+    usage: SessionUsage,
+  ) => AgentSession & Pick<SessionUsage, 'inputTokens' | 'outputTokens'>
   abandonRunningSessions: () => number
   sumUsage: (storyId: number) => SessionUsage
+  listRecentActivity: (storyId: number, limit?: number) => readonly SessionActivityEntry[]
   recordFileTouch: (draft: FileTouchDraft) => void
   listTouchedPaths: (storyId: number) => readonly string[]
   listConflictingPaths: () => readonly PathConflict[]
@@ -78,6 +92,8 @@ function toAgentSession(row: AgentSessionRow): AgentSession {
     lifecycle: row.lifecycle,
     claudeCodeVersion: row.claude_code_version,
     costUsd: row.cost_usd ?? 0,
+    contextTokens: row.context_tokens,
+    contextWindow: row.context_window,
   }
 }
 
@@ -112,9 +128,13 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
     `UPDATE agent_session SET lifecycle = ?, outcome = ?, ended_at = datetime('now')
       WHERE claude_session_id = ?`,
   )
-  const updateUsage = db.prepare<[number, number, number, string]>(
-    `UPDATE agent_session SET cost_usd = ?, input_tokens = ?, output_tokens = ?
+  const updateUsage = db.prepare<[number, number, number, number | null, number | null, string]>(
+    `UPDATE agent_session SET cost_usd = ?, input_tokens = ?, output_tokens = ?,
+        context_tokens = COALESCE(?, context_tokens), context_window = COALESCE(?, context_window)
       WHERE claude_session_id = ?`,
+  )
+  const selectRecentActivity = db.prepare<[number, number], AgentSessionRow>(
+    'SELECT * FROM agent_session WHERE story_id = ? ORDER BY started_at DESC, id DESC LIMIT ?',
   )
   const abandonRunning = db.prepare(
     `UPDATE agent_session
@@ -208,9 +228,19 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
 
     recordUsage: (claudeSessionId, usage) => {
       requireSession(claudeSessionId)
-      updateUsage.run(usage.costUsd, usage.inputTokens, usage.outputTokens, claudeSessionId)
-      const session = requireSession(claudeSessionId)
-      return { ...session, ...usage, costUsd: session.costUsd }
+      updateUsage.run(
+        usage.costUsd,
+        usage.inputTokens,
+        usage.outputTokens,
+        usage.contextTokens ?? null,
+        usage.contextWindow ?? null,
+        claudeSessionId,
+      )
+      return {
+        ...requireSession(claudeSessionId),
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+      }
     },
 
     abandonRunningSessions: () =>
@@ -224,6 +254,17 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
         outputTokens: row?.output_tokens ?? 0,
       }
     },
+
+    listRecentActivity: (storyId, limit = 8) =>
+      selectRecentActivity.all(storyId, limit).map((row) => ({
+        claudeSessionId: row.claude_session_id,
+        phase: row.phase,
+        agentName: row.agent_name,
+        lifecycle: row.lifecycle,
+        outcome: row.outcome,
+        startedAt: row.started_at,
+        endedAt: row.ended_at,
+      })),
 
     recordFileTouch: (draft) => {
       const path = assertConfinedPath(draft.path)

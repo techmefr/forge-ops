@@ -2,7 +2,7 @@ import type { SessionLedger } from './SessionLedger.js'
 import type { BoardEvent } from '../Http/EventBus.js'
 
 export function recordUsageFromEvent(sessions: SessionLedger, event: BoardEvent): boolean {
-  const { claudeSessionId, costUsd, inputTokens, outputTokens } = event.payload
+  const { claudeSessionId, costUsd, inputTokens, outputTokens, contextTokens, contextWindow } = event.payload
   if (typeof claudeSessionId !== 'string' || claudeSessionId === '') {
     return false
   }
@@ -16,6 +16,8 @@ export function recordUsageFromEvent(sessions: SessionLedger, event: BoardEvent)
     costUsd: typeof costUsd === 'number' ? costUsd : 0,
     inputTokens: typeof inputTokens === 'number' ? inputTokens : 0,
     outputTokens: typeof outputTokens === 'number' ? outputTokens : 0,
+    ...(typeof contextTokens === 'number' ? { contextTokens } : {}),
+    ...(typeof contextWindow === 'number' ? { contextWindow } : {}),
   })
   return true
 }

@@ -107,7 +107,8 @@ describe('GET /api/projects/:id/file', () => {
   it('rend le contenu du fichier et qui le tient', async () => {
     const answer = await api.request(`/api/projects/${projectId}/file?path=src/UserModal.vue`)
     expect(answer.status).toBe(200)
-    expect(await answer.json()).toEqual({
+    const body = (await answer.json()) as { highlightedHtml: string; highlightAvailable: boolean }
+    expect(body).toMatchObject({
       path: 'src/UserModal.vue',
       text: '<template />\n',
       bytes: 13,
@@ -116,7 +117,9 @@ describe('GET /api/projects/:id/file', () => {
       mark: 'planned',
       byReferences: ['FORGE-1'],
       agentName: 'neo',
+      highlightAvailable: true,
     })
+    expect(body.highlightedHtml).toContain('<pre')
   })
 
   it('refuse de sortir du depot', async () => {

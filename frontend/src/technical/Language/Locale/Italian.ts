@@ -322,10 +322,21 @@ export const ITALIAN: Message = {
     mergeConflict: 'Conflitto di merge',
     held: 'Bloccata',
     blockedBy: 'Bloccata da',
-    tokens: '{count} token | {count} token',
-    points: '{count} pt | {count} pt',
+    pointsLabel: 'Punti',
+    costLabel: 'Costo',
+    tokensLabel: 'Token',
     drawerAria: 'Scheda della storia',
     tabsAria: 'Scheda',
+  },
+  contextGauge: {
+    title: 'Contesto',
+    aria: 'Consumo della finestra di contesto',
+    known: '{tokens} token su {window} ({percent}%)',
+    unknown: '{tokens} token, finestra sconosciuta',
+  },
+  sessionActivity: {
+    title: 'Attività',
+    aria: 'Attività recente della sessione',
   },
   storyTab: {
     story: 'Storia',
@@ -486,6 +497,7 @@ export const ITALIAN: Message = {
     widen: 'Allargare la scheda',
     collapse: 'Ridurre la scheda',
     expand: 'Aprire la scheda',
+    noHighlight: 'Nessuna colorazione per questo tipo di file.',
   },
   view: {
     sessionsToWatch: 'Sessioni da guardare',

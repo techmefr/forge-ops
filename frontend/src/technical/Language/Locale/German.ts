@@ -322,10 +322,21 @@ export const GERMAN: Message = {
     mergeConflict: 'Merge-Konflikt',
     held: 'Angehalten',
     blockedBy: 'Blockiert durch',
-    tokens: '{count} Token | {count} Token',
-    points: '{count} Pkt | {count} Pkt',
+    pointsLabel: 'Punkte',
+    costLabel: 'Kosten',
+    tokensLabel: 'Token',
     drawerAria: 'Story-Blatt',
     tabsAria: 'Blatt',
+  },
+  contextGauge: {
+    title: 'Kontext',
+    aria: 'Auslastung des Kontextfensters',
+    known: '{tokens} Token von {window} ({percent}%)',
+    unknown: '{tokens} Token, Fenster unbekannt',
+  },
+  sessionActivity: {
+    title: 'Aktivität',
+    aria: 'Letzte Aktivität der Session',
   },
   storyTab: {
     story: 'Story',
@@ -486,6 +497,7 @@ export const GERMAN: Message = {
     widen: 'Die Karte verbreitern',
     collapse: 'Die Karte einklappen',
     expand: 'Die Karte aufklappen',
+    noHighlight: 'Keine Farbmarkierung für diesen Dateityp.',
   },
   view: {
     sessionsToWatch: 'Sitzungen zum Anschauen',

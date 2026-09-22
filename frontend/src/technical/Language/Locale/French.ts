@@ -320,10 +320,21 @@ export const FRENCH: Message = {
     mergeConflict: 'Conflit de merge',
     held: 'Bloquée',
     blockedBy: 'Bloquée par',
-    tokens: '{count} jeton | {count} jetons',
-    points: '{count} pt | {count} pts',
+    pointsLabel: 'Points',
+    costLabel: 'Coût',
+    tokensLabel: 'Jetons',
     drawerAria: 'Fiche de la story',
     tabsAria: 'Fiche',
+  },
+  contextGauge: {
+    title: 'Contexte',
+    aria: 'Consommation du contexte',
+    known: '{tokens} jetons sur {window} ({percent} %)',
+    unknown: '{tokens} jetons, fenêtre inconnue',
+  },
+  sessionActivity: {
+    title: 'Activité',
+    aria: 'Activité récente de la session',
   },
   storyTab: {
     story: 'Story',
@@ -484,6 +495,7 @@ export const FRENCH: Message = {
     widen: 'Agrandir la carte',
     collapse: 'Réduire la carte',
     expand: 'Déplier la carte',
+    noHighlight: 'Pas de coloration pour ce type de fichier.',
   },
   view: {
     sessionsToWatch: 'Sessions à regarder',

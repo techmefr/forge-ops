@@ -321,10 +321,21 @@ export const PORTUGUESE: Message = {
     mergeConflict: 'Conflito de integração',
     held: 'Bloqueada',
     blockedBy: 'Bloqueada por',
-    tokens: '{count} token | {count} tokens',
-    points: '{count} pt | {count} pts',
+    pointsLabel: 'Pontos',
+    costLabel: 'Custo',
+    tokensLabel: 'Tokens',
     drawerAria: 'Ficha da story',
     tabsAria: 'Ficha',
+  },
+  contextGauge: {
+    title: 'Contexto',
+    aria: 'Consumo da janela de contexto',
+    known: '{tokens} tokens de {window} ({percent}%)',
+    unknown: '{tokens} tokens, janela desconhecida',
+  },
+  sessionActivity: {
+    title: 'Atividade',
+    aria: 'Atividade recente da sessão',
   },
   storyTab: {
     story: 'Story',
@@ -485,6 +496,7 @@ export const PORTUGUESE: Message = {
     widen: 'Alargar o cartão',
     collapse: 'Recolher o cartão',
     expand: 'Expandir o cartão',
+    noHighlight: 'Sem coloração para este tipo de ficheiro.',
   },
   view: {
     sessionsToWatch: 'Sessões para ver',

@@ -61,6 +61,8 @@ export type {
   RemarkVoice,
   ReportFact,
   ReportJudgement,
+  SessionActivityEntry,
+  SessionContext,
   SessionUsage,
   StoryHold,
   StoryRemark,
