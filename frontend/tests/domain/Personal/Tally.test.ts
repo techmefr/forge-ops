@@ -18,6 +18,8 @@ function card(over: Partial<ProjectCard>): ProjectCard {
     escalationReason: null,
     usage: { costUsd: 0, inputTokens: 0, outputTokens: 0 },
     blockers: [],
+    context: null,
+    activity: [],
     projectSlug: 'forge',
     projectColour: 'acc',
     epicTitle: 'une epique',

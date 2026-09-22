@@ -28,6 +28,7 @@ import { isConfinedPath } from '../File/ConfinedPath.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 import { attentionOf, daysLeft, nextMilestone } from './CardAttention.js'
 import type { StoryHold } from '../Discussion/Discussion.js'
+import { sessionContextOf } from '../Agent/SessionContext.js'
 
 const projectDraftSchema = z.object({
   slug: z
@@ -240,6 +241,8 @@ export function createBoardApi({
         ...story,
         usage: agentSessions.sumUsage(story.id),
         blockers: repository.listBlockers(story.id),
+        context: sessionContextOf(agentSessions.latestSessionOf(story.id)),
+        activity: agentSessions.listRecentActivity(story.id),
       })),
     )
   })
@@ -257,6 +260,8 @@ export function createBoardApi({
           ...story,
           usage: agentSessions.sumUsage(story.id),
           blockers,
+          context: sessionContextOf(agentSessions.latestSessionOf(story.id)),
+          activity: agentSessions.listRecentActivity(story.id),
           projectSlug: card?.projectSlug ?? '',
           projectColour: card?.projectColour ?? 'line',
           epicTitle: card?.epicTitle ?? '',

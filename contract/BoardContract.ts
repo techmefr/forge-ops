@@ -7,6 +7,7 @@ import type {
   Story,
   StoryState,
 } from './StoryContract.js'
+import type { AgentLifecycle, AgentPhase, OutcomeClass } from './AgentContract.js'
 
 export type KanbanColumnKey = Extract<
   StoryState,
@@ -33,9 +34,26 @@ export type SessionUsage = {
   outputTokens: number
 }
 
+export type SessionContext = {
+  tokens: number
+  window: number | null
+}
+
+export type SessionActivityEntry = {
+  claudeSessionId: string
+  phase: AgentPhase
+  agentName: string
+  lifecycle: AgentLifecycle
+  outcome: OutcomeClass | null
+  startedAt: string
+  endedAt: string | null
+}
+
 export type KanbanStory = Story & {
   usage: SessionUsage
   blockers: readonly string[]
+  context: SessionContext | null
+  activity: readonly SessionActivityEntry[]
 }
 
 export type Ticket = {

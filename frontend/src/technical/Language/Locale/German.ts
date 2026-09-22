@@ -328,6 +328,16 @@ export const GERMAN: Message = {
     drawerAria: 'Story-Blatt',
     tabsAria: 'Blatt',
   },
+  contextGauge: {
+    title: 'Kontext',
+    aria: 'Auslastung des Kontextfensters',
+    known: '{tokens} Token von {window} ({percent}%)',
+    unknown: '{tokens} Token, Fenster unbekannt',
+  },
+  sessionActivity: {
+    title: 'Aktivität',
+    aria: 'Letzte Aktivität der Session',
+  },
   storyTab: {
     story: 'Story',
     nothingWritten: 'Vorerst nichts geschrieben.',

@@ -21,6 +21,8 @@ export const AGENT_LIFECYCLE_SEQUENCE = [
 
 export type AgentLifecycle = (typeof AGENT_LIFECYCLE_SEQUENCE)[number]
 
+export const RUNNING_AGENT_LIFECYCLES = ['starting', 'working', 'awaiting_human'] as const
+
 export const OUTCOME_CLASSES = [
   'succeeded',
   'failed',

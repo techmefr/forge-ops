@@ -101,6 +101,38 @@ export function textOf(message: unknown): string | null {
   return spoken.length === 0 ? null : spoken.join('\n\n')
 }
 
+type ModelUsageLike = {
+  contextWindow: number
+  inputTokens: number
+  outputTokens: number
+  cacheReadInputTokens?: number
+  cacheCreationInputTokens?: number
+}
+
+function isModelUsageLike(value: unknown): value is ModelUsageLike {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+  const candidate = value as Record<string, unknown>
+  return (
+    typeof candidate.contextWindow === 'number' &&
+    typeof candidate.inputTokens === 'number' &&
+    typeof candidate.outputTokens === 'number'
+  )
+}
+
+function primaryModelUsageOf(record: Record<string, unknown>): ModelUsageLike | null {
+  const modelUsage = record.modelUsage
+  if (typeof modelUsage !== 'object' || modelUsage === null) {
+    return null
+  }
+  const entries = Object.values(modelUsage as Record<string, unknown>).filter(isModelUsageLike)
+  return entries.reduce<ModelUsageLike | null>(
+    (widest, entry) => (widest === null || entry.contextWindow > widest.contextWindow ? entry : widest),
+    null,
+  )
+}
+
 export function usageOf(message: unknown): Record<string, number> {
   if (typeof message !== 'object' || message === null) {
     return {}
@@ -116,6 +148,15 @@ export function usageOf(message: unknown): Record<string, number> {
   }
   if (typeof usage?.output_tokens === 'number') {
     collected.outputTokens = usage.output_tokens
+  }
+  const primary = primaryModelUsageOf(record)
+  if (primary !== null) {
+    collected.contextWindow = primary.contextWindow
+    collected.contextTokens =
+      primary.inputTokens +
+      primary.outputTokens +
+      (primary.cacheReadInputTokens ?? 0) +
+      (primary.cacheCreationInputTokens ?? 0)
   }
   return collected
 }

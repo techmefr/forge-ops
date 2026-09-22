@@ -172,6 +172,8 @@ CREATE TABLE IF NOT EXISTS agent_session (
   cost_usd REAL,
   input_tokens INTEGER,
   output_tokens INTEGER,
+  context_tokens INTEGER,
+  context_window INTEGER,
   started_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   last_heartbeat_at TEXT,
   ended_at TEXT

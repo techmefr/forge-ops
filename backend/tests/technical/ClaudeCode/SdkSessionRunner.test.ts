@@ -138,6 +138,57 @@ describe('createSdkSessionRunner', () => {
     })
   })
 
+  it('reports the widest context window it saw across the models used this turn', async () => {
+    const spoken = [
+      { type: 'system', session_id: 'sess-7' },
+      {
+        type: 'result',
+        session_id: 'sess-7',
+        total_cost_usd: 0.12,
+        usage: { input_tokens: 40, output_tokens: 9 },
+        modelUsage: {
+          'claude-haiku-4-5': { contextWindow: 200000, inputTokens: 10, outputTokens: 2 },
+          'claude-opus-4-7': {
+            contextWindow: 1000000,
+            inputTokens: 400,
+            outputTokens: 90,
+            cacheReadInputTokens: 500,
+            cacheCreationInputTokens: 10,
+          },
+        },
+      },
+    ]
+    queried.mockReturnValue(conversationOf(spoken))
+    const seen: { name: string; payload: Record<string, unknown> }[] = []
+    const runner = createSdkSessionRunner({
+      cwd: '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: (event) => seen.push(event),
+    })
+
+    await runner.launch(ORDER)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(seen.at(-1)?.payload.contextWindow).toBe(1000000)
+    expect(seen.at(-1)?.payload.contextTokens).toBe(1000)
+  })
+
+  it('leaves the context reading out when the sdk never sent a modelUsage entry', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    const seen: { name: string; payload: Record<string, unknown> }[] = []
+    const runner = createSdkSessionRunner({
+      cwd: '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: (event) => seen.push(event),
+    })
+
+    await runner.launch(ORDER)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(seen.at(-1)?.payload.contextWindow).toBeUndefined()
+    expect(seen.at(-1)?.payload.contextTokens).toBeUndefined()
+  })
+
   it('refuses a conversation that never announced an identifier', async () => {
     queried.mockReturnValue(conversationOf([{ type: 'system' }]))
     const runner = createSdkSessionRunner({
