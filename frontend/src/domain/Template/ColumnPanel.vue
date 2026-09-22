@@ -82,23 +82,23 @@ async function write(): Promise<void> {
 <template>
   <div class="flex flex-col gap-2 border-b border-line bg-elev px-4 py-3">
     <div class="flex items-center gap-2">
-      <p class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">
+      <p class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
         {{ t('template.whoWorksIt') }}
       </p>
       <button
         type="button"
-        class="ml-auto font-mono text-[10px] text-txt-low uppercase hover:text-txt-hi"
+        class="ml-auto font-mono text-[11px] text-txt-low uppercase hover:text-txt-hi"
         @click="emit('close')"
       >
         {{ t('common.close') }}
       </button>
     </div>
 
-    <p class="font-mono text-[10px] text-txt-low">
+    <p class="font-mono text-[11px] text-txt-low">
       {{ t('template.stayedOn', { name: template?.name ?? '', version: template?.version ?? 0 }) }}
     </p>
 
-    <p v-if="sheet !== null" class="font-mono text-[10px] text-txt-low">
+    <p v-if="sheet !== null" class="font-mono text-[11px] text-txt-low">
       {{ t('driver.driven', { name: sheet.name }) }}
       <span v-for="loss in sheet.degradations" :key="loss" class="ml-2 text-orange">{{
         t(`degradation.${loss}`)
@@ -134,7 +134,7 @@ async function write(): Promise<void> {
       <button
         type="button"
         :disabled="busy"
-        class="self-start rounded-lg border border-acc bg-acc px-3 py-1.5 font-mono text-[10px] font-bold text-ink uppercase disabled:opacity-40"
+        class="self-start rounded-lg border border-acc bg-acc px-3 py-1.5 font-mono text-[11px] font-bold text-ink uppercase disabled:opacity-40"
         @click="write()"
       >
         {{ t('template.writeVersion') }}
