@@ -114,7 +114,7 @@ const heading = computed(() => {
           "
         >
           <span
-            class="font-mono text-[9.5px]"
+            class="font-mono text-[11px]"
             :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
             >{{ screen.digit }}</span
           >
@@ -134,15 +134,15 @@ const heading = computed(() => {
       <div class="min-w-0 flex-[1_1_240px]" data-tour="shell-heading">
         <div class="flex items-baseline gap-2.5">
           <span class="font-mono text-[11px] font-semibold text-acc">{{ heading.digit }}</span>
-          <h1 class="display-italic m-0 text-[34px] leading-none">{{ heading.label }}</h1>
+          <h1 class="display-italic m-0 text-[28px] leading-none">{{ heading.label }}</h1>
         </div>
-        <p class="mt-1 text-[12.5px] text-txt-low">{{ heading.sub }}</p>
+        <p class="mt-1 text-[13px] text-txt-low">{{ heading.sub }}</p>
       </div>
 
       <div class="ml-auto flex flex-wrap items-center gap-3">
         <LanguageSwitch />
         <MachineBadge />
-        <span class="flex items-center gap-2 font-mono text-[10px] text-txt-low uppercase">
+        <span class="flex items-center gap-2 font-mono text-[11px] text-txt-low uppercase">
           <span
             class="h-1.5 w-1.5 flex-none rounded-full"
             :class="working.length === 0 ? 'bg-line' : 'bg-green'"
@@ -151,7 +151,7 @@ const heading = computed(() => {
         </span>
         <span
           v-if="phase !== IDLE"
-          class="rounded-lg border border-acc px-2.5 py-1.5 font-mono text-[10px] text-acc uppercase"
+          class="rounded-lg border border-acc px-2.5 py-1.5 font-mono text-[11px] text-acc uppercase"
           role="status"
           >{{ phase === ARMED ? t('shell.strokeArmed') : t('shell.strokeStarted') }}</span
         >
