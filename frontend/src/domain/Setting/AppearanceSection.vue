@@ -25,9 +25,9 @@ const scales = computed(() => listOf(FONT_SCALES, 'fontScale'))
 </script>
 
 <template>
-  <section class="flex flex-col gap-6 rounded-2xl border border-line bg-card p-5">
+  <section class="flex flex-col gap-6 rounded-2xl border border-line bg-card p-4">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="display-italic m-0 text-xl">{{ t('setting.appearance') }}</h2>
+      <h2 class="display-italic m-0 text-[22px]">{{ t('setting.appearance') }}</h2>
       <EffectBadge section="appearance" />
     </div>
 
@@ -55,7 +55,7 @@ const scales = computed(() => listOf(FONT_SCALES, 'fontScale'))
 
     <div class="flex flex-col gap-2">
       <LanguageSwitch />
-      <span class="text-xs text-txt-low">{{ t('setting.languageHint') }}</span>
+      <span class="text-[13px] text-txt-low">{{ t('setting.languageHint') }}</span>
     </div>
   </section>
 </template>
