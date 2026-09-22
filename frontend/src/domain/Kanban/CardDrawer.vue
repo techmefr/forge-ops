@@ -32,62 +32,62 @@ watch(
     class="flex w-[420px] flex-none flex-col border-l border-line bg-panel"
     :aria-label="t('kanban.drawerAria')"
   >
-    <header class="flex items-start gap-3 border-b border-line px-5 py-4">
+    <header class="flex items-start gap-3 border-b border-line px-6 py-4">
       <div class="min-w-0">
         <span class="font-mono text-[11px] font-semibold text-acc">{{ story.reference }}</span>
-        <h2 class="display-italic mt-1 text-lg leading-tight">{{ story.title }}</h2>
+        <h2 class="display-italic mt-1 text-[22px] leading-tight">{{ story.title }}</h2>
       </div>
       <RouterLink
         :to="`/me/stories/${story.id}`"
-        class="ml-auto rounded-lg border border-line bg-card px-2.5 py-1.5 font-mono text-[10px] text-txt-mid uppercase hover:border-acc"
+        class="ml-auto rounded-lg border border-line bg-card px-2.5 py-1.5 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
         >{{ t('common.open') }}</RouterLink
       >
       <button
         type="button"
-        class="rounded-lg border border-line bg-card px-2.5 py-1.5 font-mono text-[10px] text-txt-mid uppercase hover:border-acc"
+        class="rounded-lg border border-line bg-card px-2.5 py-1.5 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
         @click="emit('close')"
       >
         {{ t('common.close') }}
       </button>
     </header>
 
-    <div class="flex flex-col gap-1.5 border-b border-line px-5 py-3">
-      <div class="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(90px,1fr))]">
-        <article v-if="story.points !== null" class="rounded-lg border border-line bg-card p-2.5">
-          <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+    <div class="flex flex-col gap-1.5 border-b border-line px-6 py-3">
+      <div class="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(90px,1fr))]">
+        <article v-if="story.points !== null" class="rounded-lg bg-card p-2.5">
+          <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
             {{ t('kanban.pointsLabel') }}
           </p>
-          <p class="display-italic mt-1 text-lg">{{ story.points }}</p>
+          <p class="display-italic mt-1 text-[22px]">{{ story.points }}</p>
         </article>
-        <article class="rounded-lg border border-line bg-card p-2.5">
-          <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+        <article class="rounded-lg bg-card p-2.5">
+          <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
             {{ t('kanban.costLabel') }}
           </p>
-          <p class="display-italic mt-1 text-lg">
+          <p class="display-italic mt-1 text-[22px]">
             {{ t('common.money', { amount: story.usage.costUsd.toFixed(2) }) }}
           </p>
         </article>
-        <article class="rounded-lg border border-line bg-card p-2.5">
-          <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+        <article class="rounded-lg bg-card p-2.5">
+          <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
             {{ t('kanban.tokensLabel') }}
           </p>
-          <p class="display-italic mt-1 text-lg">
+          <p class="display-italic mt-1 text-[22px]">
             {{ story.usage.inputTokens + story.usage.outputTokens }}
           </p>
         </article>
       </div>
       <ContextGauge :context="story.context" />
       <SessionActivity :entries="story.activity" />
-      <p v-if="story.mergeConflict" class="font-mono text-[10px] text-red uppercase">
+      <p v-if="story.mergeConflict" class="font-mono text-[11px] text-red uppercase">
         {{ t('kanban.mergeConflict') }}
       </p>
       <p v-if="hold !== null" class="text-[11px] text-orange">
-        <span class="font-mono text-[10px] font-bold uppercase">{{ t('kanban.held') }}</span>
+        <span class="font-mono text-[11px] font-bold uppercase">{{ t('kanban.held') }}</span>
         · {{ hold.reason }}
       </p>
       <p v-if="story.blockers.length > 0" class="text-[11px] text-orange">
         {{ t('kanban.blockedBy') }}
-        <span v-for="blocker in story.blockers" :key="blocker" class="ml-1 font-mono text-[10px]">{{
+        <span v-for="blocker in story.blockers" :key="blocker" class="ml-1 font-mono text-[11px]">{{
           blocker
         }}</span>
       </p>
@@ -102,7 +102,7 @@ watch(
         :key="name"
         type="button"
         :aria-current="name === tab ? 'page' : undefined"
-        class="border-b-[3px] px-3 py-2.5 font-mono text-[10px] font-bold whitespace-nowrap uppercase"
+        class="border-b-[3px] px-4 py-2.5 display-italic text-sm whitespace-nowrap uppercase transition-colors"
         :class="
           name === tab ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'
         "
@@ -112,7 +112,7 @@ watch(
       </button>
     </nav>
 
-    <div class="min-h-0 flex-1 overflow-auto p-5">
+    <div class="min-h-0 flex-1 overflow-auto p-6">
       <ThreadTab v-if="tab === 'thread'" :story="story" @moved="emit('moved')" />
       <StoryTab v-else-if="tab === 'story'" :story="story" />
       <PlanTab v-else-if="tab === 'plan'" :story="story" @moved="emit('moved')" />
