@@ -6,6 +6,8 @@ export type LedgerUsage = {
   costUsd: number
   inputTokens: number
   outputTokens: number
+  contextTokens?: number
+  contextWindow?: number
 }
 
 export type SessionLedger = {

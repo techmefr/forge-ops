@@ -3,10 +3,12 @@ import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ProjectCard, StoryHold } from '@/domain/Board/BoardModel'
 import { DRAWER_TABS, tabOfState, type DrawerTab } from './DrawerTab'
+import ContextGauge from './ContextGauge.vue'
 import DeliveryTab from './DeliveryTab.vue'
 import DiscussionTab from './DiscussionTab.vue'
 import PlanTab from './PlanTab.vue'
 import ReviewTab from './ReviewTab.vue'
+import SessionActivity from './SessionActivity.vue'
 import StoryTab from './StoryTab.vue'
 import ThreadTab from './ThreadTab.vue'
 
@@ -63,6 +65,8 @@ watch(
           )
         }}</span>
       </p>
+      <ContextGauge :context="story.context" />
+      <SessionActivity :entries="story.activity" />
       <p v-if="story.mergeConflict" class="font-mono text-[10px] text-red uppercase">
         {{ t('kanban.mergeConflict') }}
       </p>
