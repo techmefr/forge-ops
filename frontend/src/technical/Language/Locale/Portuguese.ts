@@ -486,6 +486,7 @@ export const PORTUGUESE: Message = {
     widen: 'Alargar o cartão',
     collapse: 'Recolher o cartão',
     expand: 'Expandir o cartão',
+    noHighlight: 'Sem coloração para este tipo de ficheiro.',
   },
   view: {
     sessionsToWatch: 'Sessões para ver',

@@ -487,6 +487,7 @@ export const GERMAN: Message = {
     widen: 'Die Karte verbreitern',
     collapse: 'Die Karte einklappen',
     expand: 'Die Karte aufklappen',
+    noHighlight: 'Keine Farbmarkierung für diesen Dateityp.',
   },
   view: {
     sessionsToWatch: 'Sitzungen zum Anschauen',

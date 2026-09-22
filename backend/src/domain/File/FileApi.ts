@@ -2,9 +2,11 @@ import { stat } from 'node:fs/promises'
 import { Hono } from 'hono'
 import { z } from 'zod'
 import type { StoryRepository } from '../Story/StoryRepository.js'
-import { listDirectory, readTextFile, walkPaths } from '../../technical/Repository/LocalTree.js'
+import { listDirectory, readTextFile, statTextFile, walkPaths } from '../../technical/Repository/LocalTree.js'
 import { PathOutsideCheckoutError } from '../../technical/Repository/LocalTreeViolation.js'
 import { assertCheckoutPath, CheckoutPathRefusedError } from '../Story/CheckoutPath.js'
+import { createCodeRenderer, type CodeRenderer } from '../../technical/File/CodeRender.js'
+import { createHighlightCache, type HighlightCache } from '../../technical/File/HighlightCache.js'
 import { describeFile } from './FileDigest.js'
 import { markOfFile, type FileTouch } from './FileMark.js'
 import { clashesOf } from './NameClash.js'
@@ -16,6 +18,8 @@ export type FileApiInput = {
   maxFileBytes?: number
   maxWalkedFiles?: number
   checkoutRoots?: readonly string[]
+  codeRenderer?: CodeRenderer
+  highlightCache?: HighlightCache<{ html: string; known: boolean }>
 }
 
 const identifierSchema = z.coerce.number().int().positive()
@@ -46,6 +50,8 @@ export function createFileApi({
   maxFileBytes = DEFAULT_MAX_FILE_BYTES,
   maxWalkedFiles = DEFAULT_MAX_WALKED_FILES,
   checkoutRoots = [process.cwd()],
+  codeRenderer = createCodeRenderer(),
+  highlightCache = createHighlightCache(),
 }: FileApiInput): Hono {
   const api = new Hono()
 
@@ -139,10 +145,22 @@ export function createFileApi({
     const asked = context.req.query('path') ?? ''
     try {
       const reading = await readTextFile(holder.checkoutPath, asked, maxFileBytes)
+      const stamp = await statTextFile(holder.checkoutPath, asked)
+      const cacheKey = { path: reading.path, mtimeMs: stamp.mtimeMs }
+      let highlight = highlightCache.get(cacheKey)
+      if (highlight === null) {
+        const rendered = await codeRenderer.renderedOf(reading.text, reading.path)
+        highlight = { html: rendered.html, known: rendered.known }
+        if (!rendered.timedOut) {
+          highlightCache.set(cacheKey, highlight)
+        }
+      }
       return context.json({
         ...reading,
         description: describeFile(reading.path),
         ...markOfFile({ onDisk: true, touches: holder.touches.get(reading.path) ?? [] }),
+        highlightedHtml: highlight.html,
+        highlightAvailable: highlight.known,
       })
     } catch (error) {
       if (error instanceof PathOutsideCheckoutError) {
