@@ -477,6 +477,7 @@ export const ENGLISH = {
     widen: 'Widen the card',
     collapse: 'Collapse the card',
     expand: 'Expand the card',
+    noHighlight: 'No colour highlighting for this file type.',
   },
   view: {
     sessionsToWatch: 'Sessions to watch',

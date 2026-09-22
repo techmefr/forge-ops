@@ -486,6 +486,7 @@ export const ITALIAN: Message = {
     widen: 'Allargare la scheda',
     collapse: 'Ridurre la scheda',
     expand: 'Aprire la scheda',
+    noHighlight: 'Nessuna colorazione per questo tipo di file.',
   },
   view: {
     sessionsToWatch: 'Sessioni da guardare',

@@ -484,6 +484,7 @@ export const FRENCH: Message = {
     widen: 'Agrandir la carte',
     collapse: 'Réduire la carte',
     expand: 'Déplier la carte',
+    noHighlight: 'Pas de coloration pour ce type de fichier.',
   },
   view: {
     sessionsToWatch: 'Sessions à regarder',
