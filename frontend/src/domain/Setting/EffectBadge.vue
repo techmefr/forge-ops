@@ -12,7 +12,7 @@ const effect = computed(() => effectOf(props.section))
 <template>
   <span
     v-if="effect !== null"
-    class="rounded-md border px-2 py-0.5 font-mono text-[9.5px] uppercase"
+    class="rounded-md border px-2 py-0.5 font-mono text-[11px] uppercase"
     :class="effect === 'immediate' ? 'border-line text-txt-low' : 'border-orange text-orange'"
     >{{ t(`settingEffect.${effect}`) }}</span
   >

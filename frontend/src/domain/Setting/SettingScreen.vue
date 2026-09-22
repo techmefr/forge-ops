@@ -38,19 +38,19 @@ onMounted(() => void look())
   <div class="flex h-full min-h-0 max-w-3xl flex-col gap-8 overflow-auto p-8">
     <section class="flex flex-col gap-4">
       <h2 class="display-italic m-0 text-[22px]">{{ t('settingHalf.mine') }}</h2>
-      <p class="text-[12.5px] text-txt-low">{{ t('settingHalf.mineSub') }}</p>
+      <p class="text-[13px] text-txt-low">{{ t('settingHalf.mineSub') }}</p>
       <AppearanceSection />
       <AccountSection />
     </section>
 
     <section v-if="organisation" class="flex flex-col gap-4" data-tour="setting-organisation">
       <h2 class="display-italic m-0 text-[22px]">{{ t('settingHalf.organisation') }}</h2>
-      <p class="text-[12.5px] text-txt-low">{{ t('settingHalf.organisationSub') }}</p>
+      <p class="text-[13px] text-txt-low">{{ t('settingHalf.organisationSub') }}</p>
       <TemplateSection />
       <BudgetSection />
       <OrganisationSection />
       <DeliverySection />
     </section>
-    <p v-else class="text-[12.5px] text-txt-low">{{ t('settingHalf.organisationClosed') }}</p>
+    <p v-else class="text-[13px] text-txt-low">{{ t('settingHalf.organisationClosed') }}</p>
   </div>
 </template>

@@ -154,19 +154,19 @@ watch(here, () => void look())
       @submit.prevent="pointCheckout"
     >
       <p class="display-italic text-sm text-txt-mid">{{ t('browser.noCheckout') }}</p>
-      <p class="mt-1 text-xs text-txt-low">{{ t('browser.noCheckoutHint') }}</p>
+      <p class="mt-1 text-[13px] text-txt-low">{{ t('browser.noCheckoutHint') }}</p>
       <div class="mt-3 flex flex-wrap gap-2">
         <input
           v-model="checkoutPath"
           type="text"
           :placeholder="t('browser.checkoutPlaceholder')"
           :aria-label="t('browser.pointFolder')"
-          class="min-w-[280px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 font-mono text-xs text-txt-hi"
+          class="min-w-[280px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 font-mono text-[13px] text-txt-hi"
         />
         <button
           type="submit"
           :disabled="busy || checkoutPath === ''"
-          class="rounded-lg bg-acc px-3 py-2 text-[10px] font-bold text-ink uppercase disabled:opacity-40"
+          class="rounded-lg bg-acc px-3 py-2 text-[11px] font-bold text-ink uppercase disabled:opacity-40"
         >
           {{ t('browser.pointFolder') }}
         </button>
@@ -177,19 +177,19 @@ watch(here, () => void look())
       v-if="clashes !== null && clashes.clashes.length > 0"
       class="rounded-2xl border border-orange bg-card p-4"
     >
-      <p class="font-mono text-[10px] tracking-[0.18em] text-orange uppercase">
+      <p class="font-mono text-[11px] tracking-[0.18em] text-orange uppercase">
         {{ t('browser.closeNames') }}
       </p>
-      <p class="mt-1 text-xs text-txt-low">{{ t('browser.closeNamesHint') }}</p>
+      <p class="mt-1 text-[13px] text-txt-low">{{ t('browser.closeNamesHint') }}</p>
       <ul class="mt-2 flex max-h-[16vh] flex-col gap-1.5 overflow-y-auto">
-        <li v-for="clash in clashes.clashes" :key="clash.name" class="text-xs text-txt-hi">
+        <li v-for="clash in clashes.clashes" :key="clash.name" class="text-[13px] text-txt-hi">
           <span class="font-mono text-[11px] text-orange">{{ clash.name }}</span>
           <span class="ml-2 font-mono text-[11px] text-txt-low">{{ clash.paths.join('  ·  ') }}</span>
         </li>
       </ul>
     </section>
 
-    <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</p>
+    <p v-if="refusal !== null" class="text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
 
     <div
       class="grid min-h-[240px] flex-1 gap-4"
@@ -210,7 +210,7 @@ watch(here, () => void look())
         >
           <nav class="flex flex-wrap items-center gap-1" :aria-label="t('browser.pathNav')">
             <template v-for="(crumb, depth) in crumbs" :key="crumb.path">
-              <span v-if="depth > 0" class="font-mono text-[10px] text-txt-low" aria-hidden="true">/</span>
+              <span v-if="depth > 0" class="font-mono text-[11px] text-txt-low" aria-hidden="true">/</span>
               <button
                 type="button"
                 class="min-h-[24px] rounded px-1 font-mono text-[11px]"
@@ -247,7 +247,7 @@ watch(here, () => void look())
                 />
                 <span class="min-w-0 flex-1">
                   <span class="flex items-center gap-2">
-                    <span class="truncate font-mono text-[12px]" :class="toneOf(entry.mark).text">{{
+                    <span class="truncate font-mono text-[13px]" :class="toneOf(entry.mark).text">{{
                       entry.name
                     }}</span>
                     <span
@@ -258,7 +258,7 @@ watch(here, () => void look())
                     />
                     <span
                       v-if="spoken(entry) !== ''"
-                      class="truncate text-[10px]"
+                      class="truncate text-[11px]"
                       :class="toneOf(entry.mark).text"
                       >{{ spoken(entry) }}</span
                     >
@@ -309,7 +309,7 @@ watch(here, () => void look())
             <pre
               class="min-h-0 flex-1 overflow-auto px-4 py-3 font-mono text-[11px] leading-relaxed text-txt-mid"
             ><code v-html="painted" /></pre>
-            <p v-if="opened.truncated" class="border-t border-line px-4 py-2 text-[10px] text-txt-low">
+            <p v-if="opened.truncated" class="border-t border-line px-4 py-2 text-[11px] text-txt-low">
               {{ t('browser.truncated', { bytes: opened.bytes }) }}
             </p>
           </template>

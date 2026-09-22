@@ -64,16 +64,16 @@ onMounted(() => settings.reload())
 </script>
 
 <template>
-  <section class="flex flex-col gap-6 rounded-2xl border border-line bg-card p-5">
+  <section class="flex flex-col gap-6 rounded-2xl border border-line bg-card p-4">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="display-italic m-0 text-xl">{{ t('setting.budget') }}</h2>
+      <h2 class="display-italic m-0 text-[22px]">{{ t('setting.budget') }}</h2>
       <EffectBadge section="budget" />
     </div>
-    <div class="rounded-2xl border border-line bg-panel p-5">
-      <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+    <div class="rounded-2xl bg-panel p-4">
+      <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('setting.spentToday') }}
       </p>
-      <p class="display-italic mt-1 text-3xl">
+      <p class="display-italic mt-1 text-[28px]">
         {{ t('common.money', { amount: spent.toFixed(2) }) }}
         <span class="text-txt-low">/ {{ t('common.money', { amount: draft.capUsd.toFixed(2) }) }}</span>
       </p>
@@ -88,7 +88,7 @@ onMounted(() => settings.reload())
 
     <form class="flex flex-col gap-6" @submit.prevent="save">
       <label class="flex flex-col gap-2">
-        <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+        <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
           t('setting.dailyCap')
         }}</span>
         <input
@@ -101,7 +101,7 @@ onMounted(() => settings.reload())
       </label>
 
       <fieldset class="flex flex-col gap-3 border-0 p-0">
-        <legend class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+        <legend class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('setting.whenCapFalls') }}
         </legend>
         <label
@@ -113,7 +113,7 @@ onMounted(() => settings.reload())
           <input v-model="draft.conduct" type="radio" :value="conduct" class="mt-1" />
           <span>
             <span class="display-italic block text-sm">{{ t(`conduct.${conduct}.label`) }}</span>
-            <span class="mt-1 block text-xs text-txt-mid">{{
+            <span class="mt-1 block text-[13px] text-txt-mid">{{
               t(`conduct.${conduct}.explanation`)
             }}</span>
           </span>
@@ -121,7 +121,7 @@ onMounted(() => settings.reload())
       </fieldset>
 
       <label v-if="draft.conduct === 'downgrade'" class="flex flex-col gap-2">
-        <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+        <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
           t('setting.fallbackModel')
         }}</span>
         <input
@@ -132,7 +132,7 @@ onMounted(() => settings.reload())
       </label>
 
       <label v-if="draft.conduct === 'reroute'" class="flex flex-col gap-2">
-        <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{
+        <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
           t('setting.fallbackGateway')
         }}</span>
         <input
@@ -141,21 +141,21 @@ onMounted(() => settings.reload())
           :placeholder="t('setting.gatewayPlaceholder')"
           class="rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
         />
-        <span class="text-xs text-txt-low">{{ t('setting.httpsOnly') }}</span>
+        <span class="text-[13px] text-txt-low">{{ t('setting.httpsOnly') }}</span>
       </label>
 
       <div class="flex items-center gap-3">
         <button
           type="submit"
           :disabled="busy"
-          class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+          class="rounded-lg border border-acc bg-acc px-4 py-2 text-[13px] font-bold text-ink uppercase disabled:opacity-40"
         >
           {{ t('common.save') }}
         </button>
-        <span v-if="saved" class="text-xs text-green">{{ t('setting.conductSaved') }}</span>
+        <span v-if="saved" class="text-[13px] text-green">{{ t('setting.conductSaved') }}</span>
       </div>
 
-      <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</p>
+      <p v-if="refusal !== null" class="text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
     </form>
   </section>
 </template>

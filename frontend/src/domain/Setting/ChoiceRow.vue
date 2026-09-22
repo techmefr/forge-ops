@@ -11,7 +11,7 @@ const emit = defineEmits<{ select: [T] }>()
 
 <template>
   <div class="flex flex-col gap-2">
-    <span class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">{{ label }}</span>
+    <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{ label }}</span>
     <div class="flex flex-wrap gap-2">
       <button
         v-for="option in options"
@@ -29,6 +29,6 @@ const emit = defineEmits<{ select: [T] }>()
         {{ option.label }}
       </button>
     </div>
-    <span v-if="hint !== undefined" class="text-xs text-txt-low">{{ hint }}</span>
+    <span v-if="hint !== undefined" class="text-[13px] text-txt-low">{{ hint }}</span>
   </div>
 </template>

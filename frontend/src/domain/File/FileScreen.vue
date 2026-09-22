@@ -124,7 +124,7 @@ onMounted(async () => {
   <div class="flex h-full min-h-0 flex-col overflow-auto p-8">
     <div class="flex flex-none flex-wrap items-end gap-4">
       <label class="flex flex-col gap-1">
-        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">
+        <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('common.project') }}
         </span>
         <select
@@ -144,8 +144,8 @@ onMounted(async () => {
       <FileBrowser :project-id="chosenProject" />
     </div>
 
-    <details class="mt-4 max-h-[40vh] flex-none overflow-auto rounded-2xl border border-line bg-bg/40 p-4">
-      <summary class="cursor-pointer font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+    <details class="mt-6 max-h-[40vh] flex-none overflow-auto border-t border-line pt-4">
+      <summary class="cursor-pointer font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('project.zonesSummary') }}
       </summary>
 
@@ -174,20 +174,20 @@ onMounted(async () => {
         <button
           type="submit"
           :disabled="busy"
-          class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
+          class="rounded-lg border border-line bg-card px-4 py-2 text-[13px] font-bold text-txt-mid uppercase disabled:opacity-40"
         >
           {{ t('project.declareZone') }}
         </button>
       </form>
     </div>
 
-    <p v-if="refusal !== null" class="mt-3 text-xs text-red" role="alert">{{ say(refusal) }}</p>
+    <p v-if="refusal !== null" class="mt-3 text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
 
     <section class="mt-6 rounded-2xl border border-line bg-card p-4" data-tour="scope-reservation">
-      <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+      <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('project.scopeReservation') }}
       </p>
-      <p class="mt-1 text-xs text-txt-low">{{ t('project.scopeHint') }}</p>
+      <p class="mt-1 text-[13px] text-txt-low">{{ t('project.scopeHint') }}</p>
       <form class="mt-3 flex flex-wrap items-end gap-2" @submit.prevent="reserveScope">
         <select
           v-model="claimStoryId"
@@ -216,30 +216,30 @@ onMounted(async () => {
         <button
           type="submit"
           :disabled="busy || claimPath === ''"
-          class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+          class="rounded-lg border border-acc bg-acc px-4 py-2 text-[13px] font-bold text-ink uppercase disabled:opacity-40"
         >
           {{ t('project.reserve') }}
         </button>
       </form>
 
-      <p v-if="(reservations.data.value ?? []).length === 0" class="mt-3 text-xs text-txt-low">
+      <p v-if="(reservations.data.value ?? []).length === 0" class="mt-3 text-[13px] text-txt-low">
         {{ t('project.noReservation') }}
       </p>
       <ul class="mt-3 flex flex-col gap-1.5">
         <li
           v-for="reservation in reservations.data.value ?? []"
           :key="reservation.id"
-          class="flex flex-wrap items-center gap-2 text-xs"
+          class="flex flex-wrap items-center gap-2 text-[13px]"
         >
-          <span class="font-mono text-[10px] text-acc">{{ reservation.storyReference }}</span>
+          <span class="font-mono text-[11px] text-acc">{{ reservation.storyReference }}</span>
           <span class="font-mono text-[11px] text-txt-hi">{{ reservation.pathPrefix }}</span>
-          <span v-if="reservation.symbols.length > 0" class="font-mono text-[10px] text-violet">{{
+          <span v-if="reservation.symbols.length > 0" class="font-mono text-[11px] text-violet">{{
             reservation.symbols.join(', ')
           }}</span>
           <button
             type="button"
             :disabled="busy"
-            class="ml-auto rounded-lg border border-line bg-elev px-2 py-1 text-[10px] font-bold text-txt-mid uppercase disabled:opacity-40"
+            class="ml-auto rounded-lg border border-line bg-elev px-2 py-1 text-[11px] font-bold text-txt-mid uppercase disabled:opacity-40"
             @click="releaseScope(reservation.storyId)"
           >
             {{ t('common.release') }}
@@ -251,7 +251,7 @@ onMounted(async () => {
         <li
           v-for="collision in collisions.data.value ?? []"
           :key="collision.reason"
-          class="text-xs text-orange"
+          class="text-[13px] text-orange"
         >
           {{
             t('project.collision', {
@@ -264,11 +264,11 @@ onMounted(async () => {
     </section>
 
     <section v-if="(conflicts.data.value ?? []).length > 0" class="mt-6 rounded-2xl border border-red bg-red-soft/10 p-4">
-      <p class="font-mono text-[10px] tracking-[0.18em] text-red uppercase">
+      <p class="font-mono text-[11px] tracking-[0.18em] text-red uppercase">
         {{ t('project.disputedFiles') }}
       </p>
       <ul class="mt-2 flex flex-col gap-1">
-        <li v-for="conflict in conflicts.data.value ?? []" :key="conflict.path" class="text-xs text-txt-hi">
+        <li v-for="conflict in conflicts.data.value ?? []" :key="conflict.path" class="text-[13px] text-txt-hi">
           <span class="font-mono text-[11px]">{{ conflict.path }}</span>
           <span class="ml-2 text-txt-low">{{
             t('project.storiesTouch', { count: conflict.storyIds.length }, conflict.storyIds.length)
@@ -297,16 +297,16 @@ onMounted(async () => {
                 :style="{ background: overview.zone.colour }"
                 aria-hidden="true"
               />
-              <h2 class="display-italic text-base">{{ overview.zone.name }}</h2>
-              <span class="ml-auto font-mono text-[10px] text-txt-low">{{
+              <h2 class="display-italic text-[13px]">{{ overview.zone.name }}</h2>
+              <span class="ml-auto font-mono text-[11px] text-txt-low">{{
                 t('project.zoneStoryCount', { count: overview.storyCount }, overview.storyCount)
               }}</span>
             </div>
             <p class="mt-1 font-mono text-[11px] text-txt-low">{{ overview.zone.pathPrefix }}</p>
-            <p v-if="overview.zone.summary !== null" class="mt-2 text-xs text-txt-mid">
+            <p v-if="overview.zone.summary !== null" class="mt-2 text-[13px] text-txt-mid">
               {{ overview.zone.summary }}
             </p>
-            <p v-else class="mt-2 text-xs text-txt-low">{{ t('project.noSummary') }}</p>
+            <p v-else class="mt-2 text-[13px] text-txt-low">{{ t('project.noSummary') }}</p>
 
             <ul class="mt-3 flex max-h-[30vh] flex-col gap-1 overflow-y-auto">
               <li
@@ -315,8 +315,8 @@ onMounted(async () => {
                 class="flex items-center gap-2 text-[11px]"
               >
                 <span class="font-mono text-txt-hi">{{ file.path }}</span>
-                <span class="ml-auto font-mono text-[10px] text-acc">{{ file.storyReference }}</span>
-                <span v-if="file.agentName !== null" class="font-mono text-[10px] text-txt-low">{{
+                <span class="ml-auto font-mono text-[11px] text-acc">{{ file.storyReference }}</span>
+                <span v-if="file.agentName !== null" class="font-mono text-[11px] text-txt-low">{{
                   file.agentName
                 }}</span>
               </li>
