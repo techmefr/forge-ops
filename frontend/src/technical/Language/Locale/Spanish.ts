@@ -486,6 +486,7 @@ export const SPANISH: Message = {
     widen: 'Ampliar la tarjeta',
     collapse: 'Plegar la tarjeta',
     expand: 'Desplegar la tarjeta',
+    noHighlight: 'Sin coloreado para este tipo de archivo.',
   },
   view: {
     sessionsToWatch: 'Sesiones que mirar',
