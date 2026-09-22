@@ -112,7 +112,7 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
               }}</span>
               <button
                 type="button"
-                class="rounded-md border border-line px-1.5 py-0.5 font-mono text-[9.5px] text-txt-low uppercase hover:border-acc hover:text-txt-hi"
+                class="rounded-md border border-line px-2.5 py-1.5 font-mono text-[11px] text-txt-low uppercase hover:border-acc hover:text-txt-hi"
                 :aria-expanded="settled === column.key"
                 :aria-label="t('template.openPanel', { column: column.label })"
                 @click="settled = settled === column.key ? null : column.key"
@@ -131,15 +131,15 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
             />
             <div
               v-if="column.key === 'backlog'"
-              class="flex flex-wrap items-center gap-2 border-b border-line px-4 py-2"
+              class="flex flex-wrap items-center gap-3 border-b border-line px-4 py-2.5"
             >
-              <span class="font-mono text-[10px] text-txt-low uppercase">{{
+              <span class="font-mono text-[11px] text-txt-low uppercase">{{
                 t('backlog.chosenCount', { count: chosen.size }, chosen.size)
               }}</span>
               <button
                 type="button"
                 :disabled="busy || chosen.size === 0"
-                class="ml-auto rounded-lg border border-acc bg-acc px-3 py-1.5 font-mono text-[10px] font-bold text-ink uppercase disabled:opacity-40"
+                class="ml-auto rounded-lg border border-acc bg-acc px-4 py-2.5 font-mono text-[11px] font-bold text-ink uppercase disabled:opacity-40"
                 @click="sendToArchitecture()"
               >
                 {{ t('backlog.sendToArchitecture') }}
@@ -151,27 +151,27 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
               </ul>
             </div>
 
-            <div class="flex flex-col gap-2 overflow-auto p-3">
+            <div class="flex flex-col gap-3 overflow-auto p-3">
               <button
                 v-for="story in byColumn.get(column.key) ?? []"
                 :key="story.id"
                 type="button"
                 :aria-label="`${story.projectSlug} ${story.reference} ${story.title}`"
                 data-tour="kanban-card"
-                class="w-full rounded-xl border bg-card p-3 text-left hover:border-acc"
-                :class="story.attention === null ? 'border-line' : 'border-orange'"
+                class="w-full rounded-xl border bg-card p-4 text-left hover:border-acc"
+                :class="story.attention === null ? 'border-transparent' : 'border-orange'"
                 @click="drawerId = story.id"
               >
                 <div class="flex items-center gap-2">
                   <span
-                    class="rounded-md px-1.5 py-0.5 font-mono text-[10px] font-semibold text-deep"
+                    class="rounded-md px-2.5 py-1.5 font-mono text-[11px] font-semibold text-deep"
                     :style="{ background: tintOf(story.projectColour) }"
                     >{{ story.projectSlug }}</span
                   >
-                  <span class="font-mono text-[10px] font-semibold text-acc">{{ story.reference }}</span>
+                  <span class="font-mono text-[11px] font-semibold text-acc">{{ story.reference }}</span>
                   <label
                     v-if="column.key === 'backlog'"
-                    class="ml-auto flex cursor-pointer items-center gap-1.5 rounded-lg px-1.5 py-1 font-mono text-[9.5px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
+                    class="ml-auto flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-mono text-[11px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
                     @click.stop
                   >
                     <input
@@ -185,12 +185,12 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
                   </label>
                   <span
                     v-if="story.attention !== null"
-                    class="rounded-md border border-orange px-1.5 py-0.5 font-mono text-[9.5px] text-orange uppercase"
+                    class="rounded-md border border-orange px-2.5 py-1.5 font-mono text-[11px] text-orange uppercase"
                     >{{ t(`attention.${story.attention}`) }}</span
                   >
                 </div>
                 <span class="mt-1.5 block text-sm text-txt-hi">{{ story.title }}</span>
-                <p class="mt-2 flex flex-wrap items-center gap-x-2 font-mono text-[10px] text-txt-low">
+                <p class="mt-2 flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-txt-low">
                   <span>{{ story.holder ?? t('kanban.nobody') }}</span>
                   <span>{{ t('common.money', { amount: story.usage.costUsd.toFixed(2) }) }}</span>
                   <span v-if="story.milestone !== null" class="ml-auto" :class="lateness(story)">
