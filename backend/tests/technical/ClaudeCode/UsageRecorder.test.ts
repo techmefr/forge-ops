@@ -73,6 +73,23 @@ describe('recordUsageFromEvent', () => {
     expect(sessions.sumUsage(storyId)).toEqual({ costUsd: 0, inputTokens: 7, outputTokens: 3 })
   })
 
+  it('reporte la fenetre de contexte quand l evenement la porte', () => {
+    recordUsageFromEvent(sessions, {
+      name: 'session.result',
+      payload: {
+        claudeSessionId: 'une',
+        costUsd: 0.4,
+        inputTokens: 500,
+        outputTokens: 100,
+        contextTokens: 8000,
+        contextWindow: 200000,
+      },
+    })
+
+    expect(sessions.findByClaudeSessionId('une')?.contextTokens).toBe(8000)
+    expect(sessions.findByClaudeSessionId('une')?.contextWindow).toBe(200000)
+  })
+
   it('ne fait pas exploser le flux quand la mesure est du bruit', () => {
     expect(
       recordUsageFromEvent(sessions, {

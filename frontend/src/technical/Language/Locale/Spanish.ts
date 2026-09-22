@@ -328,6 +328,16 @@ export const SPANISH: Message = {
     drawerAria: 'Ficha de la historia',
     tabsAria: 'Ficha',
   },
+  contextGauge: {
+    title: 'Contexto',
+    aria: 'Consumo de la ventana de contexto',
+    known: '{tokens} tokens de {window} ({percent}%)',
+    unknown: '{tokens} tokens, ventana desconocida',
+  },
+  sessionActivity: {
+    title: 'Actividad',
+    aria: 'Actividad reciente de la sesión',
+  },
   storyTab: {
     story: 'Historia',
     nothingWritten: 'Nada escrito por ahora.',

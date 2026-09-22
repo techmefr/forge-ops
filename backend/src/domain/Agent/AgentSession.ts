@@ -16,6 +16,8 @@ export type AgentSession = {
   lifecycle: AgentLifecycle
   claudeCodeVersion: string
   costUsd: number
+  contextTokens: number | null
+  contextWindow: number | null
 }
 
 export type AgentSessionDraft = {

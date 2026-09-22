@@ -18,6 +18,8 @@ const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'project', column: 'checkout_path', declaration: 'TEXT' },
   { table: 'scope_reservation', column: 'renewed_at', declaration: 'TEXT' },
   { table: 'agent_session', column: 'last_heartbeat_at', declaration: 'TEXT' },
+  { table: 'agent_session', column: 'context_tokens', declaration: 'INTEGER' },
+  { table: 'agent_session', column: 'context_window', declaration: 'INTEGER' },
 ]
 
 const CHECKED_TABLES: readonly string[] = [

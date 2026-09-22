@@ -222,3 +222,110 @@ describe('abandonRunningSessions', () => {
     expect(repository.findByClaudeSessionId('sess-waiting')?.lifecycle).toBe('interrupted')
   })
 })
+
+describe('recordUsage', () => {
+  it('stores the context window alongside the token counts', () => {
+    repository.registerSession({
+      storyId,
+      claudeSessionId: 'sess-context',
+      phase: 'code',
+      agentName: 'trinity',
+      claudeCodeVersion: '2.1.218',
+    })
+
+    const session = repository.recordUsage('sess-context', {
+      costUsd: 0.3,
+      inputTokens: 500,
+      outputTokens: 100,
+      contextTokens: 12000,
+      contextWindow: 200000,
+    })
+
+    expect(session.contextTokens).toBe(12000)
+    expect(session.contextWindow).toBe(200000)
+  })
+
+  it('keeps the last known context reading when a later event carries none', () => {
+    repository.registerSession({
+      storyId,
+      claudeSessionId: 'sess-context-2',
+      phase: 'code',
+      agentName: 'trinity',
+      claudeCodeVersion: '2.1.218',
+    })
+    repository.recordUsage('sess-context-2', {
+      costUsd: 0.1,
+      inputTokens: 10,
+      outputTokens: 5,
+      contextTokens: 4000,
+      contextWindow: 200000,
+    })
+
+    repository.recordUsage('sess-context-2', { costUsd: 0.2, inputTokens: 20, outputTokens: 8 })
+
+    const session = repository.findByClaudeSessionId('sess-context-2')
+    expect(session?.contextTokens).toBe(4000)
+    expect(session?.contextWindow).toBe(200000)
+  })
+
+  it('leaves the context reading empty when no event ever carried one', () => {
+    repository.registerSession({
+      storyId,
+      claudeSessionId: 'sess-no-context',
+      phase: 'code',
+      agentName: 'trinity',
+      claudeCodeVersion: '2.1.218',
+    })
+
+    repository.recordUsage('sess-no-context', { costUsd: 0.1, inputTokens: 10, outputTokens: 5 })
+
+    const session = repository.findByClaudeSessionId('sess-no-context')
+    expect(session?.contextTokens).toBeNull()
+    expect(session?.contextWindow).toBeNull()
+  })
+})
+
+describe('listRecentActivity', () => {
+  it('lists the story sessions most recent first', () => {
+    repository.registerSession({
+      storyId,
+      claudeSessionId: 'sess-first',
+      phase: 'spec',
+      agentName: 'architecte',
+      claudeCodeVersion: '2.1.218',
+    })
+    repository.closeSession('sess-first', { exitCode: 0 })
+    repository.registerSession({
+      storyId,
+      claudeSessionId: 'sess-second',
+      phase: 'code',
+      agentName: 'trinity',
+      claudeCodeVersion: '2.1.218',
+    })
+
+    const activity = repository.listRecentActivity(storyId)
+
+    expect(activity.map((entry) => entry.claudeSessionId)).toEqual(['sess-second', 'sess-first'])
+    expect(activity[1]?.outcome).toBe('succeeded')
+    expect(activity[0]?.outcome).toBeNull()
+  })
+
+  it('caps the list at the given limit', () => {
+    repository.registerSession({
+      storyId,
+      claudeSessionId: 'sess-a',
+      phase: 'spec',
+      agentName: 'architecte',
+      claudeCodeVersion: '2.1.218',
+    })
+    repository.registerSession({
+      storyId,
+      claudeSessionId: 'sess-b',
+      phase: 'code',
+      agentName: 'trinity',
+      claudeCodeVersion: '2.1.218',
+    })
+
+    expect(repository.listRecentActivity(storyId, 1)).toHaveLength(1)
+  })
+})

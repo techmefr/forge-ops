@@ -322,6 +322,16 @@ export const ENGLISH = {
     drawerAria: 'Story sheet',
     tabsAria: 'Sheet',
   },
+  contextGauge: {
+    title: 'Context',
+    aria: 'Context window usage',
+    known: '{tokens} tokens of {window} ({percent}%)',
+    unknown: '{tokens} tokens, window unknown',
+  },
+  sessionActivity: {
+    title: 'Activity',
+    aria: 'Recent session activity',
+  },
   storyTab: {
     story: 'Story',
     nothingWritten: 'Nothing written yet.',
