@@ -9,6 +9,7 @@ import BudgetSection from './BudgetSection.vue'
 import OrganisationSection from './OrganisationSection.vue'
 import DeliverySection from './DeliverySection.vue'
 import TemplateSection from './TemplateSection.vue'
+import WorkflowSection from './WorkflowSection.vue'
 import { keepsTheOrganisation } from './SettingSection'
 
 const { t } = useI18n()
@@ -47,6 +48,7 @@ onMounted(() => void look())
       <h2 class="display-italic m-0 text-[22px]">{{ t('settingHalf.organisation') }}</h2>
       <p class="text-[13px] text-txt-low">{{ t('settingHalf.organisationSub') }}</p>
       <TemplateSection />
+      <WorkflowSection />
       <BudgetSection />
       <OrganisationSection />
       <DeliverySection />

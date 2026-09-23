@@ -673,10 +673,18 @@ export const ITALIAN: Message = {
     imported: 'Importato come nuova versione',
     jsonl: 'JSONL - un record per riga, l’intestazione poi una riga per colonna',
   },
+  workflow: {
+    whatItControls: 'Il workflow decide, per ogni fase, quale agente la lavora, quale comando segue e un prepromt libero da inserire prima della story. E condiviso da tutti i progetti.',
+    agentName: 'Agente',
+    command: 'Comando',
+    preprompt: 'Prepromt',
+    saved: 'Workflow salvato',
+  },
   setting: {
     organisation: 'Organizzazione',
     delivery: 'Consegna',
     templates: 'Modelli di colonne',
+    workflow: 'Workflow delle fasi',
     appearance: 'Aspetto',
     palette: 'Tavolozza',
     lightOrDark: 'Chiaro o scuro',
