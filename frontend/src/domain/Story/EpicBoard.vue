@@ -96,7 +96,7 @@ onMounted(async () => {
   <div class="flex h-full min-h-0 flex-col gap-5 p-8">
     <div class="flex flex-none flex-wrap items-end gap-4">
       <label class="flex flex-col gap-1">
-        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">{{
+        <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">{{
           t('common.project')
         }}</span>
         <select
@@ -111,7 +111,7 @@ onMounted(async () => {
       </label>
 
       <div class="flex flex-col gap-1">
-        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">{{
+        <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">{{
           t('epic.ownership')
         }}</span>
         <div class="flex gap-2">
@@ -120,7 +120,7 @@ onMounted(async () => {
             :key="name"
             type="button"
             :aria-pressed="name === ownership"
-            class="rounded-lg border px-3 py-2 text-[11px] font-semibold uppercase"
+            class="rounded-md border px-3 py-2 text-[11px] font-semibold uppercase"
             :class="
               name === ownership
                 ? 'border-acc bg-acc text-ink'
@@ -139,15 +139,15 @@ onMounted(async () => {
       <button
         type="button"
         :disabled="busy || picked.length === 0 || mixed"
-        class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+        class="rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink uppercase disabled:opacity-40"
         @click="write()"
       >
         {{ t('epic.writeStories', picked.length) }}
       </button>
     </div>
 
-    <p v-if="mixed" class="text-xs text-orange" role="alert">{{ t('epic.mixedProjects') }}</p>
-    <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</p>
+    <p v-if="mixed" class="text-sm text-orange" role="alert">{{ t('epic.mixedProjects') }}</p>
+    <p v-if="refusal !== null" class="text-sm text-red" role="alert">{{ say(refusal) }}</p>
 
     <div class="min-h-0 flex-1 overflow-auto pr-1">
     <ScreenState
@@ -161,7 +161,7 @@ onMounted(async () => {
         <article
           v-for="epic in shown"
           :key="epic.id"
-          class="flex flex-col rounded-2xl border bg-card p-4 transition-colors"
+          class="flex flex-col rounded-lg border bg-card p-4 transition-colors"
           :class="picked.includes(epic.id) ? 'border-acc' : 'border-line'"
         >
           <div class="flex items-center gap-2">
@@ -174,7 +174,7 @@ onMounted(async () => {
               projectOf(epic.projectId)?.name ?? t('epic.unknownProject')
             }}</span>
             <label
-              class="ml-auto flex min-h-[32px] cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[10px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
+              class="ml-auto flex min-h-[32px] cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
             >
               <input
                 type="checkbox"
@@ -188,16 +188,16 @@ onMounted(async () => {
           </div>
 
           <button type="button" class="mt-2 text-left" @click="toggle(epic.id)">
-            <h2 class="display-italic text-base">{{ epic.title }}</h2>
-            <p class="mt-2 line-clamp-3 text-xs text-txt-mid">{{ epic.businessIntent }}</p>
+            <h2 class="display-italic text-[22px]">{{ epic.title }}</h2>
+            <p class="mt-2 line-clamp-3 text-sm text-txt-mid">{{ epic.businessIntent }}</p>
           </button>
 
           <div class="mt-3 flex items-center gap-3 border-t border-line pt-3">
-            <span class="font-mono text-[10px] text-txt-low">{{
+            <span class="font-mono text-[11px] text-txt-low">{{
               t('epic.storyCount', { count: epic.storyCount }, epic.storyCount)
             }}</span>
             <span
-              class="font-mono text-[10px] uppercase"
+              class="font-mono text-[11px] uppercase"
               :class="epic.assignee === null ? 'text-green' : 'text-violet'"
               >{{ epic.assignee ?? t('epic.free') }}</span
             >
@@ -205,7 +205,7 @@ onMounted(async () => {
               v-if="epic.assignee === null"
               type="button"
               :disabled="busy"
-              class="ml-auto font-mono text-[10px] text-acc uppercase hover:underline disabled:opacity-40"
+              class="ml-auto font-mono text-[11px] text-acc uppercase hover:underline disabled:opacity-40"
               @click="claim(epic.id)"
             >
               {{ t('epic.claim') }}
@@ -214,7 +214,7 @@ onMounted(async () => {
               v-else-if="epic.assignee === self.data.value?.login"
               type="button"
               :disabled="busy"
-              class="ml-auto font-mono text-[10px] text-txt-low uppercase hover:underline disabled:opacity-40"
+              class="ml-auto font-mono text-[11px] text-txt-low uppercase hover:underline disabled:opacity-40"
               @click="release(epic.id)"
             >
               {{ t('common.release') }}
