@@ -26,6 +26,7 @@ export const PARAMETERLESS_PATHS: readonly string[] = [
   '/api/sessions/stale',
   '/api/settings/budget',
   '/api/settings/workflow',
+  '/api/settings/workflow-columns',
   '/api/statistics',
   '/api/stories/backlog',
   '/api/worktrees',
