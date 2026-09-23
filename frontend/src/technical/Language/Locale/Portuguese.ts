@@ -755,6 +755,22 @@ export const PORTUGUESE: Message = {
     createAccount: 'Criar a conta',
     enter: 'Entrar',
   },
+  emptyState: {
+    title: 'Ainda nenhum projeto',
+    body: 'Crie o teu primeiro projeto para começar a distribuir stories, ou verifica primeiro a configuração do workflow.',
+    createProject: 'Criar um projeto',
+    reviewWorkflow: 'Verificar o workflow',
+  },
+  projectCreate: {
+    name: 'Nome',
+    slug: 'Identificador',
+    slugHint: 'Apenas letras minúsculas, dígitos e traços.',
+    repositoryUrl: 'URL do repositório',
+    integrationBranch: 'Branch de integração',
+    colour: 'Cor',
+    create: 'Criar',
+    cancel: 'Cancelar',
+  },
   visit: {
     title: 'Visita congelada',
     body: 'Estes números vêm do quadro de demonstração, capturados uma única vez. Aqui nada é escrito e nenhum agente corre. Instale o board para o executar a sério.',

@@ -743,6 +743,22 @@ export const ENGLISH = {
     createAccount: 'Create the account',
     enter: 'Enter',
   },
+  emptyState: {
+    title: 'No project yet',
+    body: 'Create your first project to start dispatching stories, or check the workflow configuration first.',
+    createProject: 'Create a project',
+    reviewWorkflow: 'Review the workflow',
+  },
+  projectCreate: {
+    name: 'Name',
+    slug: 'Slug',
+    slugHint: 'Lowercase letters, digits and dashes only.',
+    repositoryUrl: 'Repository URL',
+    integrationBranch: 'Integration branch',
+    colour: 'Colour',
+    create: 'Create',
+    cancel: 'Cancel',
+  },
   visit: {
     title: 'Frozen visit',
     body: 'These figures come from the demonstration board, captured once. Nothing is written here and no agent runs. Install the board to run it for real.',
