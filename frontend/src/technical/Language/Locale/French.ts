@@ -670,10 +670,18 @@ export const FRENCH: Message = {
     imported: 'Importé comme nouvelle version',
     jsonl: 'JSONL - un enregistrement par ligne, l’entête puis une ligne par colonne',
   },
+  workflow: {
+    whatItControls: 'Le workflow decide, pour chaque phase, quel agent la travaille, quelle commande il suit et un prepromt libre a lui glisser avant la story. Il est partage par tous les projets.',
+    agentName: 'Agent',
+    command: 'Commande',
+    preprompt: 'Prepromt',
+    saved: 'Workflow enregistre',
+  },
   setting: {
     organisation: 'Organisation',
     delivery: 'Livraison',
     templates: 'Modèles de colonnes',
+    workflow: 'Workflow des phases',
     appearance: 'Apparence',
     palette: 'Palette',
     lightOrDark: 'Clair ou sombre',

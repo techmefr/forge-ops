@@ -106,6 +106,7 @@ export type {
   OutcomeTally,
   PhaseTally,
   SessionHistoryEntry,
+  WorkflowPhaseEntry,
 } from '@contract/OperationContract'
 
 export { ACCOUNT_ROLE_SEQUENCE } from '@contract/IdentityContract'
