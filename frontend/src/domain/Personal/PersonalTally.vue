@@ -31,10 +31,10 @@ onMounted(() => Promise.all([self.reload(), cards.reload()]))
     <article
       v-for="figure in figures"
       :key="figure.key"
-      class="min-w-[150px] flex-1 rounded-xl border bg-card px-4 py-3"
+      class="min-w-[150px] flex-1 rounded-lg border bg-card px-4 py-3"
       :class="figure.warn ? 'border-orange' : 'border-line'"
     >
-      <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+      <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t(`personal.${figure.key}`) }}
       </p>
       <p

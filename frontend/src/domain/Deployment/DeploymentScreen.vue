@@ -102,7 +102,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
   <div class="flex h-full min-h-0 flex-col p-8">
     <div class="flex flex-none flex-wrap items-end gap-3">
       <label class="flex flex-col gap-1">
-        <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">{{
+        <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">{{
           t('deployment.integrationBranch')
         }}</span>
         <input
@@ -116,18 +116,18 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
       </p>
     </div>
 
-    <section v-if="conflicted.length > 0" class="mt-6 rounded-2xl border border-red bg-red-soft/10 p-4">
-      <p class="font-mono text-[10px] tracking-[0.18em] text-red uppercase">
+    <section v-if="conflicted.length > 0" class="mt-6 rounded-lg border border-red bg-red-soft/10 p-4">
+      <p class="font-mono text-[11px] tracking-[0.18em] text-red uppercase">
         {{ t('deployment.mergeConflicts') }}
       </p>
       <ul class="mt-2 flex flex-col gap-2">
-        <li v-for="story in conflicted" :key="story.id" class="flex items-center gap-3 text-xs">
+        <li v-for="story in conflicted" :key="story.id" class="flex items-center gap-3 text-sm">
           <span class="font-mono text-[11px] text-red">{{ story.reference }}</span>
           <span class="text-txt-hi">{{ story.title }}</span>
           <button
             type="button"
             :disabled="busy"
-            class="ml-auto rounded-lg border border-line bg-elev px-3 py-1.5 text-[10px] font-bold text-txt-mid uppercase disabled:opacity-40"
+            class="ml-auto rounded-lg border border-line bg-elev px-3 py-1.5 text-[11px] font-bold text-txt-mid uppercase disabled:opacity-40"
             @click="clearConflict(story)"
           >
             {{ t('deployment.conflictResolved') }}
@@ -138,7 +138,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
 
     <p
       v-if="lastCleanUp !== null"
-      class="mt-6 rounded-2xl border border-green bg-green-soft/10 p-4 text-xs text-txt-hi"
+      class="mt-6 rounded-lg border border-green bg-green-soft/10 p-4 text-sm text-txt-hi"
       role="status"
     >
       {{ doneNotice }}
@@ -156,19 +156,19 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
           <article
             v-for="story in shipping"
             :key="story.id"
-            class="rounded-2xl border border-line bg-card p-4"
+            class="rounded-lg border border-line bg-card p-4"
           >
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
               <span class="font-mono text-[11px] font-semibold text-acc">{{ story.reference }}</span>
-              <span class="ml-auto font-mono text-[10px] text-txt-low uppercase">{{
+              <span class="ml-auto font-mono text-[11px] text-txt-low uppercase">{{
                 t(`state.${story.state}`)
               }}</span>
             </div>
-            <h2 class="display-italic mt-1 text-base">{{ story.title }}</h2>
+            <h2 class="display-italic mt-1 text-[22px]">{{ story.title }}</h2>
 
-            <div v-if="worktreeOf(story.id) !== null" class="mt-3 rounded-xl border border-line bg-elev p-3">
+            <div v-if="worktreeOf(story.id) !== null" class="mt-3 rounded-lg border border-line bg-elev p-3">
               <p class="font-mono text-[11px] text-txt-hi">{{ worktreeOf(story.id)?.branch }}</p>
-              <p class="mt-1 font-mono text-[10px] text-txt-low">
+              <p class="mt-1 font-mono text-[11px] text-txt-low">
                 {{
                   t('deployment.worktreeMeta', {
                     port: worktreeOf(story.id)?.port ?? '',
@@ -177,11 +177,11 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
                   })
                 }}
               </p>
-              <div class="mt-2 flex gap-2">
+              <div class="mt-2 flex gap-3">
                 <button
                   type="button"
                   :disabled="busy"
-                  class="rounded-lg border border-line bg-card px-2 py-1 text-[10px] font-bold text-txt-mid uppercase disabled:opacity-40"
+                  class="rounded-lg border border-line bg-card px-2.5 py-1.5 text-[11px] font-bold text-txt-mid uppercase disabled:opacity-40"
                   @click="closeWorktree(story, false)"
                 >
                   {{ t('common.close') }}
@@ -189,7 +189,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
                 <button
                   type="button"
                   :disabled="busy"
-                  class="rounded-lg border border-red bg-card px-2 py-1 text-[10px] font-bold text-red uppercase disabled:opacity-40"
+                  class="rounded-lg border border-red bg-card px-2.5 py-1.5 text-[11px] font-bold text-red uppercase disabled:opacity-40"
                   @click="closeWorktree(story, true)"
                 >
                   {{ t('deployment.forceClose') }}
@@ -200,14 +200,14 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
               v-else
               type="button"
               :disabled="busy"
-              class="mt-3 w-full rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
+              class="mt-3 w-full rounded-lg border border-line bg-elev px-3 py-2 text-[11px] font-bold text-txt-mid uppercase disabled:opacity-40"
               @click="openWorktree(story)"
             >
               {{ t('deployment.openBranch') }}
             </button>
 
             <div class="mt-4">
-              <p class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">
+              <p class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
                 {{ t('deployment.featureFlag', { percent: story.rolloutPercent ?? 0 }) }}
               </p>
               <div class="mt-2 h-1.5 rounded bg-elev">
@@ -216,7 +216,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
                   :style="{ width: `${story.rolloutPercent ?? 0}%` }"
                 />
               </div>
-              <div class="mt-3 flex items-center gap-2">
+              <div class="mt-3 flex items-center gap-3">
                 <input
                   type="range"
                   min="0"
@@ -229,7 +229,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
                 <button
                   type="button"
                   :disabled="busy"
-                  class="rounded-lg border border-line bg-elev px-3 py-1.5 text-[10px] font-bold text-txt-mid uppercase disabled:opacity-40"
+                  class="rounded-lg border border-line bg-elev px-3 py-1.5 text-[11px] font-bold text-txt-mid uppercase disabled:opacity-40"
                   @click="rollOut(story)"
                 >
                   {{ t('deployment.deploy') }}
@@ -241,7 +241,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
               v-if="story.state !== 'done'"
               type="button"
               :disabled="busy"
-              class="mt-4 w-full rounded-lg border border-green bg-green-soft/20 px-3 py-2 text-xs font-bold text-green uppercase disabled:opacity-40"
+              class="mt-4 w-full rounded-lg border border-green bg-green-soft/20 px-3 py-2 text-[11px] font-bold text-green uppercase disabled:opacity-40"
               @click="markDone(story)"
             >
               {{ t('deployment.inProductionUnblock') }}
@@ -251,6 +251,6 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
       </ScreenState>
     </div>
 
-    <p v-if="refusal !== null" class="mt-4 text-xs text-red" role="alert">{{ say(refusal) }}</p>
+    <p v-if="refusal !== null" class="mt-4 text-[11px] text-red" role="alert">{{ say(refusal) }}</p>
   </div>
 </template>
