@@ -10,6 +10,8 @@ import { createZoneRepository } from '../domain/Zone/ZoneRepository.js'
 import { createCriterionRepository } from '../domain/Criterion/CriterionRepository.js'
 import { createDispatcher } from '../domain/Dispatch/Dispatcher.js'
 import { createBudgetRepository } from '../domain/Budget/BudgetRepository.js'
+import { createWorkflowRepository } from '../domain/Workflow/WorkflowRepository.js'
+import { createWorkflowApi } from '../domain/Workflow/WorkflowApi.js'
 import { DEFAULT_DISPATCH_RATE } from '../domain/Dispatch/DispatchRate.js'
 import { censusOfTree } from '../technical/Tamper/TestTreeCensus.js'
 import { createEvidenceFileReader } from '../technical/Evidence/EvidenceFileReader.js'
@@ -172,6 +174,7 @@ export function startBoardServer({
   const foremerge = createForemergeRepository(db, { stories })
   const live = createLiveSessions<SdkUserTurn>()
   const budget = createBudgetRepository(db)
+  const workflow = createWorkflowRepository(db)
   const onSessionEvent = (event: BoardEvent): void => {
     recordUsageFromEvent(sessions, event)
     recordHeartbeatFromEvent(sessions, event)
@@ -228,6 +231,7 @@ export function startBoardServer({
     sessions,
     budget,
     foremerge,
+    workflow,
     runner: createDrivenRunner({
       drivers,
       columnAgentOf: (order) =>
@@ -333,6 +337,14 @@ export function startBoardServer({
     '/',
     createTemplateApi({
       templates,
+      maySettle: (context) =>
+        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
+    }),
+  )
+  guarded.route(
+    '/',
+    createWorkflowApi({
+      workflow,
       maySettle: (context) =>
         mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
     }),

@@ -11,6 +11,8 @@ import {
 } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { createDispatcher, type Dispatcher } from '../../../src/domain/Dispatch/Dispatcher.js'
 import { createBudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
+import { createWorkflowRepository } from '../../../src/domain/Workflow/WorkflowRepository.js'
+import { SEED_WORKFLOW } from '../../../src/domain/Workflow/Workflow.js'
 import type { LaunchOrder, SessionRunner } from '../../../src/domain/Dispatch/Dispatch.js'
 import {
   FleetSaturatedError,
@@ -107,6 +109,39 @@ describe('dispatch', () => {
       phase: 'spec',
       lifecycle: 'starting',
     })
+  })
+
+  it('follows the persisted workflow for the agent, command and preprompt', async () => {
+    const workflow = createWorkflowRepository(db)
+    workflow.writePhases(
+      SEED_WORKFLOW.map((entry) =>
+        entry.phase === 'spec'
+          ? { ...entry, agentName: 'oxydis', command: 'CUSTOM.md', preprompt: 'ecris court' }
+          : entry,
+      ),
+    )
+    const configured = createDispatcher({
+      database: db,
+      stories,
+      checkpoints: createCheckpointRepository(db, {
+        ...PERMISSIVE_CHECKPOINT_GATES,
+        takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
+      }),
+      criteria: createCriterionRepository(db),
+      sessions,
+      budget: createBudgetRepository(db),
+      foremerge: createForemergeRepository(db, { stories }),
+      runner: fakeRunner(),
+      concurrencyCap: 3,
+      claudeCodeVersion: '2.1.224',
+      workflow,
+    })
+
+    const dispatched = await configured.dispatch({ storyId, phase: 'spec' })
+
+    expect(dispatched.agentName).toBe('oxydis')
+    expect(dispatched.prompt).toContain('ecris court')
+    expect(dispatched.prompt).toContain('CUSTOM.md')
   })
 
   it('hands the runner the story reference and a prompt that names the phase', async () => {

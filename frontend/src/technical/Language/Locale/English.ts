@@ -661,10 +661,18 @@ export const ENGLISH = {
     imported: 'Imported as a new version',
     jsonl: 'JSONL - one record per line, the header then one line per column',
   },
+  workflow: {
+    whatItControls: 'The workflow decides, for each phase, which agent works it, which command it follows and a free preprompt to slip in before the story. It is shared by every project.',
+    agentName: 'Agent',
+    command: 'Command',
+    preprompt: 'Preprompt',
+    saved: 'Workflow saved',
+  },
   setting: {
     organisation: 'Organisation',
     delivery: 'Delivery',
     templates: 'Column templates',
+    workflow: 'Phase workflow',
     appearance: 'Appearance',
     palette: 'Palette',
     lightOrDark: 'Light or dark',
