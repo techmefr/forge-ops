@@ -115,17 +115,17 @@ onBeforeUnmount(() => {
     role="dialog"
     aria-modal="false"
     :aria-label="t('tour.label')"
-    class="fixed right-5 bottom-5 z-50 flex w-[min(380px,calc(100vw-2.5rem))] flex-col gap-3 rounded-2xl border border-acc bg-panel p-5 shadow-2xl"
+    class="fixed right-5 bottom-5 z-50 flex w-[min(380px,calc(100vw-2.5rem))] flex-col gap-3 rounded-lg border border-acc bg-panel p-6 shadow-2xl"
   >
-    <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase" role="status">
+    <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase" role="status">
       {{ t('tour.progress', { current: tour.index.value + 1, total: tour.total }) }}
     </p>
 
-    <h2 ref="heading" tabindex="-1" class="display-italic m-0 text-lg text-txt-hi outline-none">
+    <h2 ref="heading" tabindex="-1" class="display-italic m-0 text-[22px] text-txt-hi outline-none">
       {{ title }}
     </h2>
 
-    <p class="text-[13px] leading-relaxed text-txt-mid">{{ say }}</p>
+    <p class="text-sm leading-relaxed text-txt-mid">{{ say }}</p>
 
     <div class="mt-1 flex flex-wrap items-center gap-2">
       <button
