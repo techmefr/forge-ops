@@ -87,3 +87,29 @@ describe('createSessionApi', () => {
     expect(sessions.isOpen(minted)).toBe(false)
   })
 })
+
+describe('createSessionApi, local autologin route', () => {
+  it('opens a browser session without any token, the guard having already vetted the caller', async () => {
+    const response = await api.request('/api/auth/session/local', { method: 'POST' })
+
+    expect(response.status).toBe(201)
+    expect(sessions.count()).toBe(1)
+  })
+
+  it('hands the session back as an http-only cookie, same as the token exchange', async () => {
+    const response = await api.request('/api/auth/session/local', { method: 'POST' })
+
+    const cookie = response.headers.get('set-cookie') ?? ''
+    expect(cookie).toContain('forge_token=')
+    expect(cookie).toContain('HttpOnly')
+    expect(cookie).toContain('SameSite=Strict')
+  })
+
+  it('mints a session the store then recognises', async () => {
+    const response = await api.request('/api/auth/session/local', { method: 'POST' })
+
+    const minted = /forge_token=([0-9a-f]+)/.exec(response.headers.get('set-cookie') ?? '')
+    expect(minted).not.toBe(null)
+    expect(sessions.isOpen(minted?.[1] ?? '')).toBe(true)
+  })
+})

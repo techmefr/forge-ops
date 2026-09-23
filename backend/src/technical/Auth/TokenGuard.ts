@@ -9,6 +9,8 @@ export const IDENTITY_COOKIE = 'forge_identity'
 
 export const SESSION_EXCHANGE_PATH = '/api/auth/session'
 
+export const LOCAL_SESSION_PATH = '/api/auth/session/local'
+
 export const BOARD_MODE_PATH = '/api/board/mode'
 
 export const OPEN_PATHS: readonly string[] = [
@@ -26,6 +28,8 @@ export type TokenGuardInput = {
   readIdentity?: (sessionToken: string) => { login: string } | null
   readBrowserSession?: (sessionToken: string) => boolean
   allowSessionExchange?: boolean
+  allowLocalAutologin?: boolean
+  isLocalOrigin?: (origin: string | undefined) => boolean
 }
 
 export function sameSecret(offered: string, expected: string): boolean {
@@ -59,6 +63,8 @@ export function createTokenGuard({
   readIdentity,
   readBrowserSession,
   allowSessionExchange = false,
+  allowLocalAutologin = false,
+  isLocalOrigin,
 }: TokenGuardInput): MiddlewareHandler {
   return async (context, next) => {
     const origin = context.req.header('origin')
@@ -72,6 +78,11 @@ export function createTokenGuard({
     }
 
     if (allowSessionExchange && context.req.path === SESSION_EXCHANGE_PATH) {
+      await next()
+      return undefined
+    }
+
+    if (allowLocalAutologin && context.req.path === LOCAL_SESSION_PATH && (isLocalOrigin?.(origin) ?? false)) {
       await next()
       return undefined
     }

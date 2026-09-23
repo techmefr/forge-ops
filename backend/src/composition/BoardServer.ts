@@ -66,7 +66,7 @@ import { createTokenGuard } from '../technical/Auth/TokenGuard.js'
 import { createBrowserSessions } from '../technical/Auth/BrowserSession.js'
 import { createSessionApi } from '../technical/Http/SessionApi.js'
 import { deriveHookToken, resolveBoardToken } from '../technical/Auth/BoardToken.js'
-import { boardOrigins } from '../technical/Auth/BoardOrigin.js'
+import { boardOrigins, isLocalOrigin } from '../technical/Auth/BoardOrigin.js'
 
 const DEFAULT_SESSION_CAP = 5
 
@@ -292,6 +292,8 @@ export function startBoardServer({
       readIdentity: (sessionToken) => identities.readSession(sessionToken),
       readBrowserSession: (sessionToken) => browserSessions.isOpen(sessionToken),
       allowSessionExchange: mode === 'local',
+      allowLocalAutologin: mode === 'local',
+      isLocalOrigin: (origin) => isLocalOrigin(origin, host, port),
     }),
   )
   guarded.get('/api/auth/whoami', (context) => context.json({ authenticated: true }))
@@ -336,7 +338,11 @@ export function startBoardServer({
     }),
   )
   guarded.get('/api/board/mode', (context) =>
-    context.json({ mode, environment: environmentMode }),
+    context.json({
+      mode,
+      environment: environmentMode,
+      localTrusted: mode === 'local' && isLocalOrigin(context.req.header('origin'), host, port),
+    }),
   )
   guarded.route(
     '/',
