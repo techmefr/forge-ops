@@ -29,6 +29,7 @@ export const INSTANCE_HELD: readonly string[] = [
   'incident',
   'board_session',
   'board_setting',
+  'workflow_column',
   'scope_reservation',
   'worktree',
   'port_reservation',
