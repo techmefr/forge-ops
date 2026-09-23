@@ -64,12 +64,12 @@ onMounted(() => settings.reload())
 </script>
 
 <template>
-  <section class="flex flex-col gap-6 rounded-2xl border border-line bg-card p-4">
+  <section class="flex flex-col gap-6 rounded-lg border border-line bg-card p-4">
     <div class="flex flex-wrap items-center gap-3">
       <h2 class="display-italic m-0 text-[22px]">{{ t('setting.budget') }}</h2>
       <EffectBadge section="budget" />
     </div>
-    <div class="rounded-2xl bg-panel p-4">
+    <div class="rounded-lg bg-panel p-4">
       <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('setting.spentToday') }}
       </p>
@@ -107,7 +107,7 @@ onMounted(() => settings.reload())
         <label
           v-for="conduct in COST_CAP_CONDUCT_SEQUENCE"
           :key="conduct"
-          class="flex cursor-pointer gap-3 rounded-xl border p-3"
+          class="flex cursor-pointer gap-3 rounded-lg border p-3"
           :class="draft.conduct === conduct ? 'border-acc bg-acc-soft/10' : 'border-line bg-card'"
         >
           <input v-model="draft.conduct" type="radio" :value="conduct" class="mt-1" />

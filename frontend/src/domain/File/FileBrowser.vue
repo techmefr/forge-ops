@@ -150,7 +150,7 @@ watch(here, () => void look())
   <div class="flex h-full min-h-0 flex-col gap-4">
     <form
       v-if="tree !== null && !tree.available && tree.reason === 'CheckoutUnknown'"
-      class="rounded-2xl border border-line bg-card p-4"
+      class="rounded-lg border border-line bg-card p-4"
       @submit.prevent="pointCheckout"
     >
       <p class="display-italic text-sm text-txt-mid">{{ t('browser.noCheckout') }}</p>
@@ -175,7 +175,7 @@ watch(here, () => void look())
 
     <section
       v-if="clashes !== null && clashes.clashes.length > 0"
-      class="rounded-2xl border border-orange bg-card p-4"
+      class="rounded-lg border border-orange bg-card p-4"
     >
       <p class="font-mono text-[11px] tracking-[0.18em] text-orange uppercase">
         {{ t('browser.closeNames') }}
@@ -199,7 +199,7 @@ watch(here, () => void look())
     >
       <section
         v-if="wide !== 'code'"
-        class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-card"
+        class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-line bg-card"
         :class="treeShown ? '' : 'self-start'"
       >
         <CardHead
@@ -243,7 +243,7 @@ watch(here, () => void look())
                 <Glyph
                   :name="entry.kind === 'directory' ? 'folder' : 'file'"
                   :size="14"
-                  :class="entry.kind === 'directory' ? 'text-acc' : 'text-txt-low'"
+                  :class="entry.kind === 'directory' ? 'text-txt-hi' : 'text-txt-low'"
                 />
                 <span class="min-w-0 flex-1">
                   <span class="flex items-center gap-2">
@@ -275,7 +275,7 @@ watch(here, () => void look())
 
       <section
         v-if="wide !== 'tree'"
-        class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-card"
+        class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-line bg-card"
         :class="codeShown ? '' : 'self-start'"
       >
         <CardHead

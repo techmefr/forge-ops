@@ -98,7 +98,7 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
           <section
             v-for="column in columns.data.value ?? []"
             :key="column.key"
-            class="flex w-[280px] flex-none flex-col rounded-2xl border border-line bg-panel"
+            class="flex w-[280px] flex-none flex-col rounded-lg border border-line bg-panel"
           >
             <header class="flex items-center gap-2 border-b border-line px-4 py-3">
               <span
@@ -158,7 +158,7 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
                 type="button"
                 :aria-label="`${story.projectSlug} ${story.reference} ${story.title}`"
                 data-tour="kanban-card"
-                class="w-full rounded-xl border bg-card p-4 text-left hover:border-acc"
+                class="w-full rounded-lg border bg-card p-4 text-left hover:border-acc"
                 :class="story.attention === null ? 'border-transparent' : 'border-orange'"
                 @click="drawerId = story.id"
               >
@@ -168,7 +168,7 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
                     :style="{ background: tintOf(story.projectColour) }"
                     >{{ story.projectSlug }}</span
                   >
-                  <span class="font-mono text-[11px] font-semibold text-acc">{{ story.reference }}</span>
+                  <span class="font-mono text-[11px] font-semibold text-txt-mid">{{ story.reference }}</span>
                   <label
                     v-if="column.key === 'backlog'"
                     class="ml-auto flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-mono text-[11px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"

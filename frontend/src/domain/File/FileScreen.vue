@@ -183,7 +183,7 @@ onMounted(async () => {
 
     <p v-if="refusal !== null" class="mt-3 text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
 
-    <section class="mt-6 rounded-2xl border border-line bg-card p-4" data-tour="scope-reservation">
+    <section class="mt-6 rounded-lg border border-line bg-card p-4" data-tour="scope-reservation">
       <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('project.scopeReservation') }}
       </p>
@@ -231,7 +231,7 @@ onMounted(async () => {
           :key="reservation.id"
           class="flex flex-wrap items-center gap-2 text-[13px]"
         >
-          <span class="font-mono text-[11px] text-acc">{{ reservation.storyReference }}</span>
+          <span class="font-mono text-[11px] text-txt-mid">{{ reservation.storyReference }}</span>
           <span class="font-mono text-[11px] text-txt-hi">{{ reservation.pathPrefix }}</span>
           <span v-if="reservation.symbols.length > 0" class="font-mono text-[11px] text-violet">{{
             reservation.symbols.join(', ')
@@ -263,7 +263,7 @@ onMounted(async () => {
       </ul>
     </section>
 
-    <section v-if="(conflicts.data.value ?? []).length > 0" class="mt-6 rounded-2xl border border-red bg-red-soft/10 p-4">
+    <section v-if="(conflicts.data.value ?? []).length > 0" class="mt-6 rounded-lg border border-red bg-red-soft/10 p-4">
       <p class="font-mono text-[11px] tracking-[0.18em] text-red uppercase">
         {{ t('project.disputedFiles') }}
       </p>
@@ -289,7 +289,7 @@ onMounted(async () => {
           <article
             v-for="overview in zones.data.value ?? []"
             :key="overview.zone.id"
-            class="rounded-2xl border border-line bg-card p-4"
+            class="rounded-lg border border-line bg-card p-4"
           >
             <div class="flex items-center gap-2">
               <span
@@ -315,7 +315,7 @@ onMounted(async () => {
                 class="flex items-center gap-2 text-[11px]"
               >
                 <span class="font-mono text-txt-hi">{{ file.path }}</span>
-                <span class="ml-auto font-mono text-[11px] text-acc">{{ file.storyReference }}</span>
+                <span class="ml-auto font-mono text-[11px] text-txt-mid">{{ file.storyReference }}</span>
                 <span v-if="file.agentName !== null" class="font-mono text-[11px] text-txt-low">{{
                   file.agentName
                 }}</span>
