@@ -125,6 +125,19 @@ CREATE TABLE IF NOT EXISTS worktree (
   removed_at TEXT
 );
 
+CREATE TABLE IF NOT EXISTS forge_card (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  reference TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  closed_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS forge_card_story (
+  forge_card_id INTEGER NOT NULL REFERENCES forge_card(id),
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  PRIMARY KEY (forge_card_id, story_id)
+);
+
 CREATE TABLE IF NOT EXISTS port_reservation (
   port INTEGER PRIMARY KEY,
   worktree_id INTEGER NOT NULL UNIQUE REFERENCES worktree(id),
