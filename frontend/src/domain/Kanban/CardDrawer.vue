@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'reka-ui'
 import type { ProjectCard, StoryHold } from '@/domain/Board/BoardModel'
 import { DRAWER_TABS, tabOfState, type DrawerTab } from './DrawerTab'
 import ContextGauge from './ContextGauge.vue'
@@ -93,32 +94,45 @@ watch(
       </p>
     </div>
 
-    <nav
-      class="flex flex-none gap-0.5 overflow-x-auto border-b border-line px-3"
-      :aria-label="t('kanban.tabsAria')"
-    >
-      <button
-        v-for="name in DRAWER_TABS"
-        :key="name"
-        type="button"
-        :aria-current="name === tab ? 'page' : undefined"
-        class="border-b-[3px] px-4 py-2.5 display-italic text-sm whitespace-nowrap uppercase transition-colors"
-        :class="
-          name === tab ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'
-        "
-        @click="tab = name"
+    <TabsRoot v-model="tab" as="div" class="contents">
+      <TabsList
+        as="nav"
+        class="flex flex-none gap-0.5 overflow-x-auto border-b border-line px-3"
+        :aria-label="t('kanban.tabsAria')"
       >
-        {{ t(`drawerTab.${name}`) }}
-      </button>
-    </nav>
+        <TabsTrigger
+          v-for="name in DRAWER_TABS"
+          :key="name"
+          :value="name"
+          class="border-b-[3px] px-4 py-2.5 display-italic text-sm whitespace-nowrap uppercase transition-colors"
+          :class="
+            name === tab ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'
+          "
+        >
+          {{ t(`drawerTab.${name}`) }}
+        </TabsTrigger>
+      </TabsList>
 
-    <div class="min-h-0 flex-1 overflow-auto p-6">
-      <ThreadTab v-if="tab === 'thread'" :story="story" @moved="emit('moved')" />
-      <StoryTab v-else-if="tab === 'story'" :story="story" />
-      <PlanTab v-else-if="tab === 'plan'" :story="story" @moved="emit('moved')" />
-      <ReviewTab v-else-if="tab === 'review'" :story="story" @moved="emit('moved')" />
-      <DeliveryTab v-else-if="tab === 'delivery'" :story="story" @moved="emit('moved')" />
-      <DiscussionTab v-else :story="story" @freed="emit('moved')" />
-    </div>
+      <div class="min-h-0 flex-1 overflow-auto p-6">
+        <TabsContent value="thread">
+          <ThreadTab :story="story" @moved="emit('moved')" />
+        </TabsContent>
+        <TabsContent value="story">
+          <StoryTab :story="story" />
+        </TabsContent>
+        <TabsContent value="plan">
+          <PlanTab :story="story" @moved="emit('moved')" />
+        </TabsContent>
+        <TabsContent value="review">
+          <ReviewTab :story="story" @moved="emit('moved')" />
+        </TabsContent>
+        <TabsContent value="delivery">
+          <DeliveryTab :story="story" @moved="emit('moved')" />
+        </TabsContent>
+        <TabsContent value="discussion">
+          <DiscussionTab :story="story" @freed="emit('moved')" />
+        </TabsContent>
+      </div>
+    </TabsRoot>
   </aside>
 </template>
