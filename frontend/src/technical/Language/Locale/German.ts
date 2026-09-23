@@ -757,6 +757,22 @@ export const GERMAN: Message = {
     createAccount: 'Das Konto anlegen',
     enter: 'Eintreten',
   },
+  emptyState: {
+    title: 'Noch kein Projekt',
+    body: 'Lege dein erstes Projekt an, um Stories zu verteilen, oder pruefe zuerst die Workflow-Konfiguration.',
+    createProject: 'Projekt anlegen',
+    reviewWorkflow: 'Workflow pruefen',
+  },
+  projectCreate: {
+    name: 'Name',
+    slug: 'Kennung',
+    slugHint: 'Nur Kleinbuchstaben, Ziffern und Bindestriche.',
+    repositoryUrl: 'Repository-URL',
+    integrationBranch: 'Integrationsbranch',
+    colour: 'Farbe',
+    create: 'Erstellen',
+    cancel: 'Abbrechen',
+  },
   visit: {
     title: 'Eingefrorener Rundgang',
     body: 'Diese Zahlen stammen vom Demo-Board und wurden einmalig erfasst. Hier wird nichts geschrieben und kein Agent läuft. Installieren Sie das Board, um es wirklich zu betreiben.',

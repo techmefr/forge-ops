@@ -756,6 +756,22 @@ export const ITALIAN: Message = {
     createAccount: 'Creare l’account',
     enter: 'Entrare',
   },
+  emptyState: {
+    title: 'Ancora nessun progetto',
+    body: 'Crea il tuo primo progetto per iniziare a smistare le story, oppure controlla prima la configurazione del workflow.',
+    createProject: 'Crea un progetto',
+    reviewWorkflow: 'Controlla il workflow',
+  },
+  projectCreate: {
+    name: 'Nome',
+    slug: 'Identificativo',
+    slugHint: 'Solo lettere minuscole, cifre e trattini.',
+    repositoryUrl: 'URL del repository',
+    integrationBranch: 'Branch di integrazione',
+    colour: 'Colore',
+    create: 'Crea',
+    cancel: 'Annulla',
+  },
   visit: {
     title: 'Visita congelata',
     body: 'Questi dati vengono dalla bacheca dimostrativa, catturati una volta sola. Qui non si scrive nulla e nessun agente gira. Installa il board per usarlo davvero.',

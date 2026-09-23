@@ -754,6 +754,22 @@ export const FRENCH: Message = {
     createAccount: 'Créer le compte',
     enter: 'Entrer',
   },
+  emptyState: {
+    title: 'Aucun projet pour l’instant',
+    body: 'Crée ton premier projet pour commencer à répartir les stories, ou vérifie d’abord la configuration du workflow.',
+    createProject: 'Créer un projet',
+    reviewWorkflow: 'Vérifier le workflow',
+  },
+  projectCreate: {
+    name: 'Nom',
+    slug: 'Identifiant',
+    slugHint: 'Lettres minuscules, chiffres et tirets uniquement.',
+    repositoryUrl: 'URL du dépôt',
+    integrationBranch: 'Branche d’intégration',
+    colour: 'Couleur',
+    create: 'Créer',
+    cancel: 'Annuler',
+  },
   visit: {
     title: 'Visite figée',
     body: 'Ces chiffres viennent du board de démonstration, capturés une fois. Rien ne s’écrit ici et aucun agent ne tourne. Installez le board pour le lancer pour de vrai.',
