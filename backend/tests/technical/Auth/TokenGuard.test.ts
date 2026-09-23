@@ -265,3 +265,62 @@ describe('l echange de session', () => {
     expect(response.status).toBe(401)
   })
 })
+
+describe("l'auto-connexion locale", () => {
+  beforeEach(() => {
+    api = new Hono()
+    api.use(
+      '/api/*',
+      createTokenGuard({
+        token: TOKEN,
+        hookToken: HOOK_TOKEN,
+        allowedOrigins: ['http://localhost:8830', 'http://localhost:8832'],
+        allowLocalAutologin: true,
+        isLocalOrigin: (origin) => origin === undefined || origin === 'http://localhost:8830',
+      }),
+    )
+    api.post('/api/auth/session/local', (context) => context.json({ opened: true }, 201))
+  })
+
+  it('lets a local caller through without any token', async () => {
+    const response = await api.request('/api/auth/session/local', { method: 'POST' })
+
+    expect(response.status).toBe(201)
+  })
+
+  it('lets a caller from the board own local origin through', async () => {
+    const response = await api.request('/api/auth/session/local', {
+      method: 'POST',
+      headers: { origin: 'http://localhost:8830' },
+    })
+
+    expect(response.status).toBe(201)
+  })
+
+  it('refuses a caller whose origin is not local, even in local mode', async () => {
+    const response = await api.request('/api/auth/session/local', {
+      method: 'POST',
+      headers: { origin: 'http://localhost:8832' },
+    })
+
+    expect(response.status).toBe(401)
+  })
+
+  it('refuses the local autologin route when the board did not enable it, as in hub mode', async () => {
+    api = new Hono()
+    api.use(
+      '/api/*',
+      createTokenGuard({
+        token: TOKEN,
+        hookToken: HOOK_TOKEN,
+        allowedOrigins: ['http://localhost:8830'],
+        isLocalOrigin: () => true,
+      }),
+    )
+    api.post('/api/auth/session/local', (context) => context.json({ opened: true }, 201))
+
+    const response = await api.request('/api/auth/session/local', { method: 'POST' })
+
+    expect(response.status).toBe(401)
+  })
+})
