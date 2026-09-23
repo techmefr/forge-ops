@@ -10,7 +10,7 @@ const MODE_STORAGE_KEY = 'forge.mode'
 
 const DARK_QUERY = '(prefers-color-scheme: dark)'
 
-const theme = ref<ThemeName>('volt')
+const theme = ref<ThemeName>('dracula')
 
 const choice = ref<ModeChoice>('dark')
 
@@ -45,7 +45,7 @@ export function useTheme(): ThemeDesk {
 
   if (!started) {
     started = true
-    theme.value = readPreference(THEME_STORAGE_KEY, THEME_NAMES, 'volt')
+    theme.value = readPreference(THEME_STORAGE_KEY, THEME_NAMES, 'dracula')
     choice.value = readPreference(MODE_STORAGE_KEY, MODE_CHOICES, 'dark')
     watchSystem()
     watchEffect(() => {
