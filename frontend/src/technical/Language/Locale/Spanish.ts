@@ -756,6 +756,22 @@ export const SPANISH: Message = {
     createAccount: 'Crear la cuenta',
     enter: 'Entrar',
   },
+  emptyState: {
+    title: 'Todavía ningún proyecto',
+    body: 'Crea tu primer proyecto para empezar a repartir historias, o revisa antes la configuración del workflow.',
+    createProject: 'Crear un proyecto',
+    reviewWorkflow: 'Revisar el workflow',
+  },
+  projectCreate: {
+    name: 'Nombre',
+    slug: 'Identificador',
+    slugHint: 'Solo letras minúsculas, dígitos y guiones.',
+    repositoryUrl: 'URL del repositorio',
+    integrationBranch: 'Rama de integración',
+    colour: 'Color',
+    create: 'Crear',
+    cancel: 'Cancelar',
+  },
   visit: {
     title: 'Visita congelada',
     body: 'Estas cifras vienen del tablero de demostración, capturadas una sola vez. Aquí no se escribe nada y ningún agente se ejecuta. Instala el board para usarlo de verdad.',

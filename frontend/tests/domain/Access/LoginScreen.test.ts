@@ -27,9 +27,12 @@ function mounted() {
   })
 }
 
+const responses = new Map<string, unknown>()
+
 function onPath(path: string, response: unknown): void {
+  responses.set(path, response)
   read.mockImplementation((requested: string) =>
-    requested === path ? Promise.resolve(response) : Promise.resolve({}),
+    responses.has(requested) ? Promise.resolve(responses.get(requested)) : Promise.resolve({}),
   )
 }
 
@@ -38,6 +41,7 @@ describe("l'ecran de connexion saute le jeton en local quand l'origine est local
     read.mockReset()
     send.mockReset()
     push.mockReset()
+    responses.clear()
   })
 
   it("ouvre la session toute seule et part sans jamais montrer le champ jeton", async () => {
@@ -83,5 +87,16 @@ describe("l'ecran de connexion saute le jeton en local quand l'origine est local
     expect(send).not.toHaveBeenCalled()
     expect(push).not.toHaveBeenCalled()
     expect(screen.text()).toBeTruthy()
+  })
+
+  it("part vers ma forge quand la connexion locale reussit sans aucun projet", async () => {
+    onPath('/api/board/mode', { mode: 'local', localTrusted: true })
+    onPath('/api/projects', [])
+    send.mockResolvedValue({ expiresAt: new Date().toISOString() })
+
+    mounted()
+    await flushPromises()
+
+    expect(push).toHaveBeenCalledWith('/me')
   })
 })

@@ -7,7 +7,7 @@ import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import type { Phrase } from '@/technical/Language/Phrase'
 import { ACCOUNT_ROLE_SEQUENCE, type AccountRole } from '@/domain/Board/BoardModel'
-import { HOME_PATH } from '@/technical/Router/Screen'
+import { resolveLandingPath } from '@/technical/Router/Landing'
 
 const { t } = useI18n()
 const say = usePhrase()
@@ -39,11 +39,15 @@ async function guard(action: () => Promise<void>): Promise<void> {
   }
 }
 
+async function pushToLanding(): Promise<void> {
+  await router.push(await resolveLandingPath(() => board.read('/api/projects')))
+}
+
 function signIn(): Promise<void> {
   return guard(async () => {
     await board.send('/api/auth/login', 'POST', { login: login.value, password: password.value })
     password.value = ''
-    await router.push(HOME_PATH)
+    await pushToLanding()
   })
 }
 
@@ -51,7 +55,7 @@ function openBoardSession(): Promise<void> {
   return guard(async () => {
     await board.send('/api/auth/session', 'POST', { token: boardToken.value })
     boardToken.value = ''
-    await router.push(HOME_PATH)
+    await pushToLanding()
   })
 }
 
@@ -70,7 +74,7 @@ function enrol(): Promise<void> {
 async function attemptLocalAutologin(): Promise<void> {
   try {
     await board.send('/api/auth/session/local', 'POST')
-    await router.push(HOME_PATH)
+    await pushToLanding()
   } catch {
     autologinFailed.value = true
   }
