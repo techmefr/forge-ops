@@ -46,13 +46,13 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
       class="grid flex-none gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]"
       data-tour="statistic-tally"
     >
-      <article class="rounded-2xl border border-line bg-card p-4">
+      <article class="rounded-lg border border-line bg-card p-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.sessions') }}
         </p>
         <p class="display-italic mt-1 text-[28px]">{{ summary.data.value?.sessions ?? 0 }}</p>
       </article>
-      <article class="rounded-2xl border border-line bg-card p-4">
+      <article class="rounded-lg border border-line bg-card p-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.totalCost') }}
         </p>
@@ -60,7 +60,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
           {{ t('common.money', { amount: (summary.data.value?.totalCostUsd ?? 0).toFixed(2) }) }}
         </p>
       </article>
-      <article class="rounded-2xl border border-line bg-card p-4">
+      <article class="rounded-lg border border-line bg-card p-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.machineTime') }}
         </p>
@@ -72,7 +72,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
 
     <div class="mt-2 min-h-0 flex-1 overflow-auto pr-1">
     <div class="mt-4 grid gap-4 lg:grid-cols-2">
-      <section class="rounded-2xl border border-line bg-card p-4">
+      <section class="rounded-lg border border-line bg-card p-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.busiestAgents') }}
         </p>
@@ -100,7 +100,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
         </ul>
       </section>
 
-      <section class="rounded-2xl border border-line bg-card p-4">
+      <section class="rounded-lg border border-line bg-card p-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.timePerPhase') }}
         </p>
@@ -136,7 +136,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
       </section>
     </div>
 
-    <section class="mt-6 rounded-2xl border border-line bg-card p-4">
+    <section class="mt-6 rounded-lg border border-line bg-card p-4">
       <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('statistic.timePerStory') }}
       </p>
@@ -148,7 +148,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
           <div class="flex items-center gap-1.5">
             <RouterLink
               :to="`/me/stories/${story.storyId}`"
-              class="font-mono text-[11px] text-acc"
+              class="font-mono text-[11px] text-txt-mid hover:text-txt-hi"
               >{{ story.storyReference }}</RouterLink
             >
             <span class="ml-auto font-mono text-[11px] text-txt-low"
@@ -208,7 +208,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
               <tbody>
                 <tr v-for="entry in history.data.value ?? []" :key="entry.id" class="border-b border-line/60">
                   <td class="py-2">
-                    <RouterLink :to="`/me/stories/${entry.storyId}`" class="font-mono text-[11px] text-acc">{{
+                    <RouterLink :to="`/me/stories/${entry.storyId}`" class="font-mono text-[11px] text-txt-mid hover:text-txt-hi">{{
                       entry.storyReference
                     }}</RouterLink>
                   </td>
