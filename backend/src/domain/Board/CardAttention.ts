@@ -27,7 +27,7 @@ export function attentionOf(facts: CardFacts): Attention | null {
   if (facts.story.state === 'done') {
     return null
   }
-  if (facts.held || facts.blockers.length > 0) {
+  if (facts.held || facts.blockers.length > 0 || facts.story.blockedReason !== null) {
     return 'blocked'
   }
   if (facts.story.mergeConflict) {

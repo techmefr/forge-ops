@@ -16,6 +16,7 @@ function card(over: Partial<ProjectCard>): ProjectCard {
     rolloutPercent: null,
     mergeConflict: false,
     escalationReason: null,
+    blockedReason: null,
     usage: { costUsd: 0, inputTokens: 0, outputTokens: 0 },
     blockers: [],
     context: null,

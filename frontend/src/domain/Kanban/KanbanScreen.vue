@@ -64,6 +64,10 @@ function lateness(story: ProjectCard): string {
   return story.daysLeft !== null && story.daysLeft < 0 ? 'text-orange' : 'text-txt-low'
 }
 
+function blockedReasonOf(story: ProjectCard): string | null {
+  return story.blockedReason ?? heldStory.value(story.id)?.reason ?? null
+}
+
 const byColumn = computed(() => {
   const grouped = new Map<string, ProjectCard[]>()
   for (const story of stories.data.value ?? []) {
@@ -190,6 +194,11 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
                   >
                 </div>
                 <span class="mt-1.5 block text-sm text-txt-hi">{{ story.title }}</span>
+                <span
+                  v-if="blockedReasonOf(story) !== null"
+                  class="mt-1.5 block truncate text-[11px] text-orange"
+                  >{{ blockedReasonOf(story) }}</span
+                >
                 <p class="mt-2 flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-txt-low">
                   <span>{{ story.holder ?? t('kanban.nobody') }}</span>
                   <span>{{ t('common.money', { amount: story.usage.costUsd.toFixed(2) }) }}</span>

@@ -43,6 +43,8 @@ const twinDraftSchema = z.object({
 
 const dependencySchema = z.object({ blockingStoryId: z.number().int().positive() })
 
+const blockSchema = z.object({ reason: z.string().trim().min(1).max(500) })
+
 const stepBackSchema = z.object({
   state: z.enum(STEP_BACK_TARGETS),
   reason: z.string(),
@@ -299,6 +301,30 @@ export function createStoryApi({
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
     return context.json(repository.clearMergeConflict(storyId.data))
+  })
+
+  api.post('/api/stories/:id/block', async (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const body = blockSchema.safeParse(await context.req.json().catch(() => null))
+    if (!body.success) {
+      return context.json({ error: 'InvalidBlockedReason', issues: body.error.issues }, 422)
+    }
+    const story = repository.blockStory(storyId.data, body.data.reason)
+    events.publish({ name: 'story.blocked', payload: { ...story } })
+    return context.json(story)
+  })
+
+  api.delete('/api/stories/:id/block', (context) => {
+    const storyId = identifierSchema.safeParse(context.req.param('id'))
+    if (!storyId.success) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    const story = repository.unblockStory(storyId.data)
+    events.publish({ name: 'story.unblocked', payload: { ...story } })
+    return context.json(story)
   })
 
   api.post('/api/stories/:id/dispatch', async (context) => {
