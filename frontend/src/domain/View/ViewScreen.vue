@@ -65,18 +65,18 @@ onMounted(() => stories.reload())
         empty-key="view.empty"
         @retry="stories.reload()"
       >
-        <div class="mt-3 flex flex-col gap-2">
+        <div class="mt-3 flex flex-col gap-1.5">
           <button
             v-for="story in running"
             :key="story.id"
             type="button"
-            class="rounded-xl border bg-card p-3 text-left"
+            class="rounded-lg border bg-card p-3 text-left"
             :class="openStoryId === story.id ? 'border-acc' : 'border-line hover:border-acc'"
             @click="choose(story.id)"
           >
-            <span class="font-mono text-[10px] text-acc">{{ story.reference }}</span>
+            <span class="font-mono text-[11px] text-acc">{{ story.reference }}</span>
             <span class="mt-1 block text-sm text-txt-hi">{{ story.title }}</span>
-            <span class="mt-1 block font-mono text-[10px] text-txt-low uppercase">{{
+            <span class="mt-1 block font-mono text-[11px] text-txt-low uppercase">{{
               t(`state.${story.state}`)
             }}</span>
           </button>
@@ -88,7 +88,7 @@ onMounted(() => stories.reload())
       <p v-if="openStoryId === null" class="text-sm text-txt-low">{{ t('view.chooseSession') }}</p>
 
       <template v-else>
-        <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+        <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('view.renderOf', { reference: openStory?.reference ?? '' }) }}
         </p>
 
@@ -96,27 +96,27 @@ onMounted(() => stories.reload())
           <PilotPanel :story-id="openStoryId" @proven="evidencePath = $event.evidencePath" />
         </div>
 
-        <form class="mt-5 rounded-2xl border border-line bg-card p-4" @submit.prevent="prove">
+        <form class="mt-5 rounded-lg border border-line bg-card p-4" @submit.prevent="prove">
           <p class="display-italic text-sm text-txt-mid">{{ t('view.keepScreenshot') }}</p>
-          <div class="mt-3 flex flex-wrap gap-2">
+          <div class="mt-3 flex flex-wrap gap-3">
             <input
               v-model="evidencePath"
               type="text"
               :placeholder="t('view.evidencePlaceholder')"
-              class="min-w-[280px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 font-mono text-xs text-txt-hi"
+              class="min-w-[280px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 font-mono text-sm text-txt-hi"
             />
             <button
               type="submit"
               :disabled="busy || evidencePath === ''"
-              class="rounded-lg bg-acc px-3 py-2 text-[10px] font-bold text-bg uppercase disabled:opacity-40"
+              class="rounded-lg bg-acc px-3 py-2 text-[11px] font-bold text-bg uppercase disabled:opacity-40"
             >
               {{ t('view.dropEvidence') }}
             </button>
           </div>
-          <p v-if="deposited !== null" class="mt-2 font-mono text-[10px] text-green">
+          <p v-if="deposited !== null" class="mt-2 font-mono text-[11px] text-green">
             {{ t('view.provenBy', { path: deposited }) }}
           </p>
-          <p v-if="refusal !== null" class="mt-2 text-xs text-red">{{ say(refusal) }}</p>
+          <p v-if="refusal !== null" class="mt-2 text-[11px] text-red">{{ say(refusal) }}</p>
         </form>
       </template>
     </section>

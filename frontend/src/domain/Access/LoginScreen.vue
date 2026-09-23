@@ -74,13 +74,13 @@ onMounted(async () => {
 
 <template>
   <div class="mx-auto max-w-md p-8">
-    <section v-if="mode.data.value?.mode === 'local'" class="rounded-2xl border border-line bg-card p-6">
-      <p class="display-italic text-lg">{{ t('access.enterBoard') }}</p>
-      <p class="mt-1 text-xs text-txt-low">{{ t('access.tokenHint') }}</p>
+    <section v-if="mode.data.value?.mode === 'local'" class="rounded-lg border border-line bg-card p-6">
+      <p class="display-italic text-[22px]">{{ t('access.enterBoard') }}</p>
+      <p class="mt-1 text-[11px] text-txt-low">{{ t('access.tokenHint') }}</p>
 
       <form class="mt-5 flex flex-col gap-3" @submit.prevent="openBoardSession()">
         <label class="flex flex-col gap-1">
-          <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">
+          <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
             {{ t('access.boardToken') }}
           </span>
           <input
@@ -94,24 +94,24 @@ onMounted(async () => {
         <button
           type="submit"
           :disabled="busy || boardToken === ''"
-          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2.5 text-[11px] font-bold text-ink uppercase disabled:opacity-40"
         >
           {{ t('access.openSession') }}
         </button>
 
-        <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</p>
+        <p v-if="refusal !== null" class="text-[11px] text-red" role="alert">{{ say(refusal) }}</p>
       </form>
     </section>
 
-    <section v-else class="rounded-2xl border border-line bg-card p-6">
-      <p class="display-italic text-lg">
+    <section v-else class="rounded-lg border border-line bg-card p-6">
+      <p class="display-italic text-[22px]">
         {{
           state.data.value?.enrolmentOpen === true
             ? t('access.firstAccount')
             : t('access.openASession')
         }}
       </p>
-      <p class="mt-1 text-xs text-txt-low">
+      <p class="mt-1 text-[11px] text-txt-low">
         {{
           state.data.value?.enrolmentOpen === true
             ? t('access.firstAccountHint')
@@ -124,7 +124,7 @@ onMounted(async () => {
         @submit.prevent="state.data.value?.enrolmentOpen === true ? enrol() : signIn()"
       >
         <label class="flex flex-col gap-1">
-          <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">
+          <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
             {{ t('access.loginName') }}
           </span>
           <input
@@ -137,7 +137,7 @@ onMounted(async () => {
 
         <template v-if="state.data.value?.enrolmentOpen === true">
           <label class="flex flex-col gap-1">
-            <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">
+            <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
               {{ t('access.displayName') }}
             </span>
             <input
@@ -147,7 +147,7 @@ onMounted(async () => {
             />
           </label>
           <label class="flex flex-col gap-1">
-            <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">
+            <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
               {{ t('access.role') }}
             </span>
             <select
@@ -162,7 +162,7 @@ onMounted(async () => {
         </template>
 
         <label class="flex flex-col gap-1">
-          <span class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">
+          <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
             {{ t('access.password') }}
           </span>
           <input
@@ -177,14 +177,14 @@ onMounted(async () => {
         <button
           type="submit"
           :disabled="busy || login === '' || password === ''"
-          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2.5 text-[11px] font-bold text-ink uppercase disabled:opacity-40"
         >
           {{
             state.data.value?.enrolmentOpen === true ? t('access.createAccount') : t('access.enter')
           }}
         </button>
 
-        <p v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</p>
+        <p v-if="refusal !== null" class="text-[11px] text-red" role="alert">{{ say(refusal) }}</p>
       </form>
     </section>
   </div>
