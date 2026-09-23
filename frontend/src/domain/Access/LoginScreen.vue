@@ -13,7 +13,9 @@ const { t } = useI18n()
 const say = usePhrase()
 const router = useRouter()
 
-const mode = useResource<{ mode: 'local' | 'hub' }>(() => board.read('/api/board/mode'))
+const mode = useResource<{ mode: 'local' | 'hub'; localTrusted?: boolean }>(() =>
+  board.read('/api/board/mode'),
+)
 const state = useResource<{ users: number; enrolmentOpen: boolean }>(() => board.read('/api/auth/state'))
 
 const boardToken = ref('')
@@ -23,6 +25,7 @@ const displayName = ref('')
 const role = ref<AccountRole>('architect')
 const refusal = ref<Phrase | null>(null)
 const busy = ref(false)
+const autologinFailed = ref(false)
 
 async function guard(action: () => Promise<void>): Promise<void> {
   busy.value = true
@@ -64,17 +67,33 @@ function enrol(): Promise<void> {
   })
 }
 
+async function attemptLocalAutologin(): Promise<void> {
+  try {
+    await board.send('/api/auth/session/local', 'POST')
+    await router.push(HOME_PATH)
+  } catch {
+    autologinFailed.value = true
+  }
+}
+
 onMounted(async () => {
   await mode.reload()
   if (mode.data.value?.mode !== 'local') {
     await state.reload()
+    return
+  }
+  if (mode.data.value?.localTrusted === true) {
+    await attemptLocalAutologin()
   }
 })
 </script>
 
 <template>
   <div class="mx-auto max-w-md p-8">
-    <section v-if="mode.data.value?.mode === 'local'" class="rounded-lg border border-line bg-card p-6">
+    <section
+      v-if="mode.data.value?.mode === 'local' && (mode.data.value?.localTrusted !== true || autologinFailed)"
+      class="rounded-lg border border-line bg-card p-6"
+    >
       <p class="display-italic text-[22px]">{{ t('access.enterBoard') }}</p>
       <p class="mt-1 text-[11px] text-txt-low">{{ t('access.tokenHint') }}</p>
 
@@ -103,7 +122,10 @@ onMounted(async () => {
       </form>
     </section>
 
-    <section v-else class="rounded-lg border border-line bg-card p-6">
+    <section
+      v-else-if="mode.data.value?.mode !== 'local'"
+      class="rounded-lg border border-line bg-card p-6"
+    >
       <p class="display-italic text-[22px]">
         {{
           state.data.value?.enrolmentOpen === true

@@ -676,10 +676,18 @@ export const PORTUGUESE: Message = {
     imported: 'Importado como nova versão',
     jsonl: 'JSONL - um registo por linha, o cabeçalho e depois uma linha por coluna',
   },
+  workflow: {
+    whatItControls: 'O workflow decide, para cada fase, qual agente a trabalha, qual comando segue e um prepromt livre para deslizar antes da história. É partilhado por todos os projetos.',
+    agentName: 'Agente',
+    command: 'Comando',
+    preprompt: 'Prepromt',
+    saved: 'Workflow guardado',
+  },
   setting: {
     organisation: 'Organização',
     delivery: 'Entrega',
     templates: 'Modelos de colunas',
+    workflow: 'Workflow das fases',
     appearance: 'Aspeto',
     palette: 'Paleta',
     lightOrDark: 'Claro ou escuro',

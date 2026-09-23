@@ -13,3 +13,10 @@ export function boardOrigins(host: string, port: number, publicOrigin: string | 
   ]
   return [...new Set(origins)]
 }
+
+export function isLocalOrigin(origin: string | null | undefined, host: string, port: number): boolean {
+  if (origin === null || origin === undefined) {
+    return true
+  }
+  return boardOrigins(host, port).includes(origin)
+}

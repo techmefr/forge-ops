@@ -678,10 +678,18 @@ export const GERMAN: Message = {
     imported: 'Als neue Version importiert',
     jsonl: 'JSONL - ein Datensatz pro Zeile, der Kopf dann eine Zeile pro Spalte',
   },
+  workflow: {
+    whatItControls: 'Der Workflow entscheidet fur jede Phase, welcher Agent sie bearbeitet, welchem Befehl er folgt und einen freien Prepromt, der vor die Story geschoben wird. Er wird von allen Projekten geteilt.',
+    agentName: 'Agent',
+    command: 'Befehl',
+    preprompt: 'Prepromt',
+    saved: 'Workflow gespeichert',
+  },
   setting: {
     organisation: 'Organisation',
     delivery: 'Lieferung',
     templates: 'Spaltenvorlagen',
+    workflow: 'Phasen-Workflow',
     appearance: 'Erscheinungsbild',
     palette: 'Farbpalette',
     lightOrDark: 'Hell oder dunkel',

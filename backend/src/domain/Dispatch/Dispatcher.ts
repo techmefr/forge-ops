@@ -10,6 +10,8 @@ import type { ForemergeRepository } from '../Foremerge/ForemergeRepository.js'
 import { ScopeTakenError } from '../Foremerge/ForemergeViolation.js'
 import { collisionsBetween } from '../Foremerge/Scope.js'
 import type { Story } from '../Story/Story.js'
+import type { WorkflowRepository } from '../Workflow/WorkflowRepository.js'
+import { createWorkflowRepository } from '../Workflow/WorkflowRepository.js'
 import {
   contractOfPhase,
   type Dispatched,
@@ -46,6 +48,7 @@ export type DispatcherInput = {
   claudeCodeVersion: string
   rate?: DispatchRate
   clock?: Clock
+  workflow?: WorkflowRepository
 }
 
 export type Dispatcher = {
@@ -53,7 +56,12 @@ export type Dispatcher = {
   countRunning: () => number
 }
 
-function promptFor(story: Story, contract: PhaseContract, lens: string | undefined): string {
+function promptFor(
+  story: Story,
+  contract: PhaseContract,
+  lens: string | undefined,
+  preprompt: string,
+): string {
   const doctrine = `Suis la doctrine de .claude/commands/${contract.command}.`
   const sections =
     contract.proves === null
@@ -62,6 +70,7 @@ function promptFor(story: Story, contract: PhaseContract, lens: string | undefin
           `Prouve ${contract.proves} par un fichier sous .claude/evidence/${story.reference}/ dont les titres de section portent : ${EVIDENCE_SHAPE[contract.proves].join(', ')}.`,
         ]
   return [
+    ...(preprompt.trim() === '' ? [] : [preprompt, ``]),
     `Story ${story.reference} — ${story.title}`,
     ``,
     story.body,
@@ -86,6 +95,7 @@ export function createDispatcher({
   claudeCodeVersion,
   rate = DEFAULT_DISPATCH_RATE,
   clock = Date.now,
+  workflow = createWorkflowRepository(database),
 }: DispatcherInput): Dispatcher {
   const bucket = createRateBucket(rate)
   const placeholders = RUNNING_LIFECYCLES.map(() => '?').join(', ')
@@ -111,7 +121,12 @@ export function createDispatcher({
   return {
     dispatch: async (order) => {
       const story = stories.findStory(order.storyId)
-      const contract = contractOfPhase(order.phase)
+      const staticContract = contractOfPhase(order.phase)
+      const configured = workflow.readPhases().find((entry) => entry.phase === order.phase)
+      const contract: PhaseContract =
+        configured === undefined
+          ? staticContract
+          : { ...staticContract, agentName: configured.agentName, command: configured.command }
       if (order.lens !== undefined && order.phase !== 'review') {
         throw new LensOutsideReviewError(order.phase)
       }
@@ -180,7 +195,7 @@ export function createDispatcher({
         throw new BudgetExhaustedError(decision.spentUsd, decision.capUsd)
       }
 
-      const prompt = promptFor(story, contract, order.lens)
+      const prompt = promptFor(story, contract, order.lens, configured?.preprompt ?? '')
       const { claudeSessionId } = await runner.launch({
         storyId: order.storyId,
         reference: story.reference,

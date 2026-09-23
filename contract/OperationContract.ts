@@ -1,5 +1,12 @@
 import type { AgentLifecycle, AgentPhase, OutcomeClass } from './AgentContract.js'
 
+export type WorkflowPhaseEntry = {
+  phase: AgentPhase
+  agentName: string
+  command: string
+  preprompt: string
+}
+
 export const COST_CAP_CONDUCT_SEQUENCE = ['stop', 'downgrade', 'reroute'] as const
 
 export type CostCapConduct = (typeof COST_CAP_CONDUCT_SEQUENCE)[number]

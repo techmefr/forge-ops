@@ -10,6 +10,8 @@ import { createZoneRepository } from '../domain/Zone/ZoneRepository.js'
 import { createCriterionRepository } from '../domain/Criterion/CriterionRepository.js'
 import { createDispatcher } from '../domain/Dispatch/Dispatcher.js'
 import { createBudgetRepository } from '../domain/Budget/BudgetRepository.js'
+import { createWorkflowRepository } from '../domain/Workflow/WorkflowRepository.js'
+import { createWorkflowApi } from '../domain/Workflow/WorkflowApi.js'
 import { DEFAULT_DISPATCH_RATE } from '../domain/Dispatch/DispatchRate.js'
 import { censusOfTree } from '../technical/Tamper/TestTreeCensus.js'
 import { createEvidenceFileReader } from '../technical/Evidence/EvidenceFileReader.js'
@@ -66,7 +68,7 @@ import { createTokenGuard } from '../technical/Auth/TokenGuard.js'
 import { createBrowserSessions } from '../technical/Auth/BrowserSession.js'
 import { createSessionApi } from '../technical/Http/SessionApi.js'
 import { deriveHookToken, resolveBoardToken } from '../technical/Auth/BoardToken.js'
-import { boardOrigins } from '../technical/Auth/BoardOrigin.js'
+import { boardOrigins, isLocalOrigin } from '../technical/Auth/BoardOrigin.js'
 
 const DEFAULT_SESSION_CAP = 5
 
@@ -172,6 +174,7 @@ export function startBoardServer({
   const foremerge = createForemergeRepository(db, { stories })
   const live = createLiveSessions<SdkUserTurn>()
   const budget = createBudgetRepository(db)
+  const workflow = createWorkflowRepository(db)
   const onSessionEvent = (event: BoardEvent): void => {
     recordUsageFromEvent(sessions, event)
     recordHeartbeatFromEvent(sessions, event)
@@ -228,6 +231,7 @@ export function startBoardServer({
     sessions,
     budget,
     foremerge,
+    workflow,
     runner: createDrivenRunner({
       drivers,
       columnAgentOf: (order) =>
@@ -292,6 +296,8 @@ export function startBoardServer({
       readIdentity: (sessionToken) => identities.readSession(sessionToken),
       readBrowserSession: (sessionToken) => browserSessions.isOpen(sessionToken),
       allowSessionExchange: mode === 'local',
+      allowLocalAutologin: mode === 'local',
+      isLocalOrigin: (origin) => isLocalOrigin(origin, host, port),
     }),
   )
   guarded.get('/api/auth/whoami', (context) => context.json({ authenticated: true }))
@@ -335,8 +341,20 @@ export function startBoardServer({
         mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
     }),
   )
+  guarded.route(
+    '/',
+    createWorkflowApi({
+      workflow,
+      maySettle: (context) =>
+        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
+    }),
+  )
   guarded.get('/api/board/mode', (context) =>
-    context.json({ mode, environment: environmentMode }),
+    context.json({
+      mode,
+      environment: environmentMode,
+      localTrusted: mode === 'local' && isLocalOrigin(context.req.header('origin'), host, port),
+    }),
   )
   guarded.route(
     '/',
