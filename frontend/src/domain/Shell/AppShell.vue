@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import { TabsList, TabsRoot, TabsTrigger } from 'reka-ui'
 import { SCREENS, screenOfPath } from '@/technical/Router/Screen'
 import { screenOfArrow } from '@/technical/Router/TabRing'
 import { ARMED, IDLE, resolveStroke, type Phase } from '@/technical/Router/Shortcut'
@@ -22,7 +23,7 @@ const { working } = useFleet()
 
 const current = computed(() => screenOfPath(route.path))
 
-const strip = ref<HTMLElement | null>(null)
+const strip = ref<InstanceType<typeof TabsList> | null>(null)
 
 function editing(target: EventTarget | null): boolean {
   const node = target instanceof HTMLElement ? target : null
@@ -55,7 +56,9 @@ async function ride(event: KeyboardEvent): Promise<void> {
   }
   event.preventDefault()
   await router.push(wanted.path)
-  const open = strip.value?.querySelector<HTMLElement>('[aria-selected="true"]')
+  const open = (strip.value?.$el as HTMLElement | undefined)?.querySelector<HTMLElement>(
+    '[aria-selected="true"]',
+  )
   open?.focus()
 }
 
@@ -65,7 +68,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', jump))
 watch(
   current,
   () => {
-    const open = strip.value?.querySelector('[aria-selected="true"]')
+    const open = (strip.value?.$el as HTMLElement | undefined)?.querySelector('[aria-selected="true"]')
     open?.scrollIntoView?.({ inline: 'center', block: 'nearest' })
   },
   { flush: 'post' },
@@ -89,43 +92,47 @@ const heading = computed(() => {
       <div class="flex flex-none items-center gap-3 py-4">
         <p class="display-italic text-[22px] leading-none">Forge<span class="text-acc">.</span>ops</p>
       </div>
-      <nav
-        ref="strip"
-        role="tablist"
-        data-tour="shell-pipeline"
-        class="flex items-stretch gap-0.5"
-        :aria-label="t('shell.pipeline')"
-        @keydown="ride"
-      >
-        <RouterLink
-          v-for="screen in SCREENS"
-          :key="screen.key"
-          :to="screen.path"
-          role="tab"
-          :aria-selected="current?.key === screen.key"
-          :tabindex="current?.key === screen.key ? 0 : -1"
-          :aria-keyshortcuts="`Alt+Shift+${screen.digit}`"
-          :title="t('shell.shortcut', { digit: screen.digit })"
-          class="flex flex-col justify-center gap-[3px] border-b-[3px] px-4 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc"
-          :class="
-            current?.key === screen.key
-              ? 'border-acc text-txt-hi'
-              : 'border-transparent text-txt-mid hover:text-txt-hi'
-          "
+      <TabsRoot :model-value="current?.key" activation-mode="manual" as="div" class="contents">
+        <TabsList
+          ref="strip"
+          as="nav"
+          data-tour="shell-pipeline"
+          class="flex items-stretch gap-0.5"
+          :aria-label="t('shell.pipeline')"
+          @keydown="ride"
         >
-          <span
-            class="font-mono text-[11px]"
-            :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
-            >{{ screen.digit }}</span
+          <TabsTrigger
+            v-for="screen in SCREENS"
+            :key="screen.key"
+            :value="screen.key"
+            as-child
           >
-          <span class="flex items-center gap-1.5 whitespace-nowrap">
-            <Glyph :name="screen.key" :size="14" />
-            <span class="display-italic text-sm uppercase">{{
-              t(`screen.${screen.key}.label`)
-            }}</span>
-          </span>
-        </RouterLink>
-      </nav>
+            <RouterLink
+              :to="screen.path"
+              :aria-keyshortcuts="`Alt+Shift+${screen.digit}`"
+              :title="t('shell.shortcut', { digit: screen.digit })"
+              class="flex flex-col justify-center gap-[3px] border-b-[3px] px-4 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc"
+              :class="
+                current?.key === screen.key
+                  ? 'border-acc text-txt-hi'
+                  : 'border-transparent text-txt-mid hover:text-txt-hi'
+              "
+            >
+              <span
+                class="font-mono text-[11px]"
+                :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
+                >{{ screen.digit }}</span
+              >
+              <span class="flex items-center gap-1.5 whitespace-nowrap">
+                <Glyph :name="screen.key" :size="14" />
+                <span class="display-italic text-sm uppercase">{{
+                  t(`screen.${screen.key}.label`)
+                }}</span>
+              </span>
+            </RouterLink>
+          </TabsTrigger>
+        </TabsList>
+      </TabsRoot>
     </header>
 
     <header
