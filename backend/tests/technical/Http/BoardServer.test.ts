@@ -138,7 +138,7 @@ describe('startBoardServer', () => {
       headers: { authorization: `Bearer ${booted.token}` },
     })
 
-    await expect(response.json()).resolves.toEqual({ mode: 'local', environment: 'demo' })
+    await expect(response.json()).resolves.toEqual({ mode: 'local', environment: 'demo', localTrusted: true })
   })
 
   it('declares a real environment unless the demo runner says otherwise', async () => {
@@ -149,8 +149,80 @@ describe('startBoardServer', () => {
       headers: { authorization: `Bearer ${booted.token}` },
     })
 
-    await expect(response.json()).resolves.toEqual({ mode: 'local', environment: 'real' })
+    await expect(response.json()).resolves.toEqual({ mode: 'local', environment: 'real', localTrusted: true })
     expect(defaultBoardServerInput().environmentMode).toBe('real')
+  })
+
+  it('opens a browser session locally, without any token, when a local caller asks for it', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/auth/session/local`, {
+      method: 'POST',
+    })
+
+    expect(response.status).toBe(201)
+    const cookie = response.headers.get('set-cookie') ?? ''
+    expect(cookie).toContain('forge_token=')
+    expect(cookie).not.toContain(booted.token)
+  })
+
+  it('refuses the local autologin route to a caller whose origin is not local', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/auth/session/local`, {
+      method: 'POST',
+      headers: { origin: 'https://site-malveillant.example' },
+    })
+
+    expect(response.status).toBe(403)
+  })
+
+  it('lets that locally opened session through the api, the way the served page will', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const opened = await fetch(`http://127.0.0.1:${board.port}/api/auth/session/local`, {
+      method: 'POST',
+    })
+    const session = /forge_token=([0-9a-f]+)/.exec(opened.headers.get('set-cookie') ?? '')?.[1] ?? ''
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/fleet`, {
+      headers: { cookie: `forge_token=${session}` },
+    })
+
+    expect(response.status).toBe(200)
+  })
+
+  it('never offers the local autologin route in hub mode', async () => {
+    claudeHome = mkdtempSync(join(tmpdir(), 'forge-claude-home-'))
+    const tokenPath = join(claudeHome, '.forge-token')
+    const distDir = join(claudeHome, 'dist')
+    mkdirSync(distDir)
+    writeFileSync(join(distDir, 'index.html'), '<div id="board"></div>')
+    board = await startBoardServer({
+      port: 0,
+      dbPath: ':memory:',
+      claudeHome,
+      host: '127.0.0.1',
+      publicOrigin: null,
+      worktreeRoot: join(claudeHome, 'worktrees'),
+      checkoutRoots: [claudeHome],
+      shotDir: join(claudeHome, 'shots'),
+      headedPilot: false,
+      metricsUrl: null,
+      tokenPath,
+      testsDir: join(claudeHome, 'tests'),
+      mode: 'hub',
+      environmentMode: 'real',
+      distDir,
+    })
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/auth/session/local`, {
+      method: 'POST',
+    })
+
+    expect(response.status).toBe(401)
   })
 
   it('binds the loopback interface by default, never every interface', () => {
