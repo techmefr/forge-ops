@@ -49,15 +49,15 @@ function addDraft(): void {
 </script>
 
 <template>
-  <section class="rounded-2xl border border-line bg-card p-4">
+  <section class="rounded-lg border border-line bg-card p-4">
     <div class="flex flex-wrap items-baseline gap-3">
-      <p class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+      <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('pilot.title') }}
       </p>
-      <span v-if="desk.run.value !== null" class="font-mono text-[10px] text-acc uppercase">{{
+      <span v-if="desk.run.value !== null" class="font-mono text-[11px] text-acc uppercase">{{
         t(`pilotRunState.${desk.run.value.state}`)
       }}</span>
-      <span v-if="desk.run.value !== null" class="font-mono text-[10px] text-txt-low">
+      <span v-if="desk.run.value !== null" class="font-mono text-[11px] text-txt-low">
         {{
           t('pilot.progress', {
             done: desk.progress.value.done,
@@ -70,13 +70,13 @@ function addDraft(): void {
     <template v-if="!live">
       <div
         v-if="desk.suggestion.value !== null"
-        class="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-elev p-3"
+        class="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-line bg-elev p-3"
       >
-        <p class="flex-1 text-xs text-txt-mid">{{ suggestionReason(desk.suggestion.value) }}</p>
+        <p class="flex-1 text-sm text-txt-mid">{{ suggestionReason(desk.suggestion.value) }}</p>
         <button
           type="button"
           :disabled="desk.suggestion.value.script.length === 0"
-          class="rounded-lg border border-acc px-3 py-1.5 text-[10px] font-bold text-acc uppercase disabled:opacity-40"
+          class="rounded-md border border-acc px-3 py-1.5 text-[11px] font-bold text-acc uppercase disabled:opacity-40"
           @click="desk.takeSuggestion()"
         >
           {{ t('pilot.takeSuggestion') }}
@@ -130,7 +130,7 @@ function addDraft(): void {
         />
         <button
           type="button"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-[10px] font-bold text-txt-mid uppercase"
+          class="rounded-lg border border-line bg-elev px-3 py-2 text-[11px] font-bold text-txt-mid uppercase"
           @click="addDraft"
         >
           {{ t('pilot.addStep') }}
@@ -141,13 +141,13 @@ function addDraft(): void {
         <li
           v-for="(step, index) in desk.script.value"
           :key="index"
-          class="flex items-center gap-2 text-xs text-txt-hi"
+          class="flex items-center gap-2 text-sm text-txt-hi"
         >
-          <span class="font-mono text-[10px] text-txt-low">{{ index + 1 }}</span>
+          <span class="font-mono text-[11px] text-txt-low">{{ index + 1 }}</span>
           <span>{{ say(describeStep(step)) }}</span>
           <button
             type="button"
-            class="ml-auto font-mono text-[10px] text-red uppercase"
+            class="ml-auto font-mono text-[11px] text-red uppercase"
             @click="desk.dropStep(index)"
           >
             {{ t('common.remove') }}
@@ -158,7 +158,7 @@ function addDraft(): void {
       <button
         type="button"
         :disabled="desk.busy.value || desk.script.value.length === 0 || desk.url.value === ''"
-        class="mt-3 rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+        class="mt-3 rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink uppercase disabled:opacity-40"
         @click="desk.start()"
       >
         {{ t('pilot.startWalk') }}
@@ -174,7 +174,7 @@ function addDraft(): void {
         <button
           type="button"
           :disabled="desk.busy.value || desk.run.value?.state !== 'running'"
-          class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+          class="rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink uppercase disabled:opacity-40"
           @click="desk.advance()"
         >
           {{ t('pilot.advance') }}
@@ -183,7 +183,7 @@ function addDraft(): void {
           v-if="desk.run.value?.state === 'running'"
           type="button"
           :disabled="desk.busy.value"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
+          class="rounded-lg border border-line bg-elev px-3 py-2 text-sm font-bold text-txt-mid uppercase disabled:opacity-40"
           @click="desk.pause()"
         >
           {{ t('pilot.pause') }}
@@ -192,7 +192,7 @@ function addDraft(): void {
           v-else
           type="button"
           :disabled="desk.busy.value"
-          class="rounded-lg border border-green bg-elev px-3 py-2 text-xs font-bold text-green uppercase disabled:opacity-40"
+          class="rounded-lg border border-green bg-elev px-3 py-2 text-sm font-bold text-green uppercase disabled:opacity-40"
           @click="desk.resume()"
         >
           {{ t('pilot.resume') }}
@@ -200,7 +200,7 @@ function addDraft(): void {
         <button
           type="button"
           :disabled="desk.busy.value"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
+          class="rounded-lg border border-line bg-elev px-3 py-2 text-sm font-bold text-txt-mid uppercase disabled:opacity-40"
           @click="desk.inspect()"
         >
           {{ t('pilot.inspect') }}
@@ -208,7 +208,7 @@ function addDraft(): void {
         <button
           type="button"
           :disabled="desk.busy.value"
-          class="rounded-lg border border-red bg-elev px-3 py-2 text-xs font-bold text-red uppercase disabled:opacity-40"
+          class="rounded-lg border border-red bg-elev px-3 py-2 text-sm font-bold text-red uppercase disabled:opacity-40"
           @click="desk.abandon()"
         >
           {{ t('pilot.abandon') }}
@@ -218,7 +218,7 @@ function addDraft(): void {
 
     <pre
       v-if="desk.sight.value !== null"
-      class="mt-3 max-h-48 overflow-auto rounded-xl border border-line bg-elev p-3 font-mono text-[11px] whitespace-pre-wrap text-txt-mid"
+      class="mt-3 max-h-48 overflow-auto rounded-lg border border-line bg-elev p-3 font-mono text-[11px] whitespace-pre-wrap text-txt-mid"
       >{{ desk.sight.value.detail }}</pre
     >
 
@@ -226,7 +226,7 @@ function addDraft(): void {
       <li
         v-for="act in desk.run.value?.acts ?? []"
         :key="act.id"
-        class="flex items-center gap-2 text-xs"
+        class="flex items-center gap-2 text-sm"
       >
         <span
           class="h-2 w-2 flex-none rounded-full"
@@ -238,13 +238,13 @@ function addDraft(): void {
           :href="shotUrlOf(act.screenshotPath)"
           target="_blank"
           rel="noreferrer"
-          class="ml-auto font-mono text-[10px] text-acc uppercase"
+          class="ml-auto font-mono text-[11px] text-acc uppercase"
           >{{ t('pilot.seeScreenshot') }}</a
         >
         <button
           v-if="act.screenshotPath !== null"
           type="button"
-          class="font-mono text-[10px] text-green uppercase"
+          class="font-mono text-[11px] text-green uppercase"
           @click="emit('proven', { evidencePath: act.screenshotPath })"
         >
           {{ t('pilot.makeEvidence') }}
@@ -252,11 +252,11 @@ function addDraft(): void {
       </li>
     </ul>
 
-    <p v-if="desk.history.value.length > 0" class="mt-3 font-mono text-[10px] text-txt-low uppercase">
+    <p v-if="desk.history.value.length > 0" class="mt-3 font-mono text-[11px] text-txt-low uppercase">
       {{ t('pilot.historyCount', { count: desk.history.value.length }, desk.history.value.length) }}
     </p>
 
-    <p v-if="desk.refusal.value !== null" class="mt-3 text-xs text-red" role="alert">
+    <p v-if="desk.refusal.value !== null" class="mt-3 text-sm text-red" role="alert">
       {{ say(desk.refusal.value) }}
     </p>
   </section>

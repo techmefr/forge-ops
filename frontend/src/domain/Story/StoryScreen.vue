@@ -201,7 +201,7 @@ onMounted(async () => {
       "
       @click="desk = bench"
     >
-      <span class="block font-mono text-[10px] font-bold uppercase">
+      <span class="block font-mono text-[11px] font-bold uppercase">
         {{ t(`desk.${bench}.label`) }}
         <span v-if="bench === 'reports' && reported > 0" class="ml-1 text-acc">{{ reported }}</span>
       </span>
@@ -222,7 +222,7 @@ onMounted(async () => {
     <section class="min-h-0 border-b border-line p-5 lg:overflow-auto lg:border-r lg:border-b-0">
       <button
         type="button"
-        class="rounded-lg border border-line bg-card px-3 py-2 font-mono text-[10px] font-bold text-txt-mid uppercase hover:border-acc"
+        class="rounded-lg border border-line bg-card px-3 py-2 font-mono text-[11px] font-bold text-txt-mid uppercase hover:border-acc"
         @click="backToEpics()"
       >
         {{ t('story.backToEpics') }}
@@ -233,7 +233,7 @@ onMounted(async () => {
         <p class="mt-1 text-[11px] text-txt-low">{{ t('story.batchHint') }}</p>
 
         <div v-for="epic in queueEpics" :key="epic.id" class="mt-4">
-          <p class="font-mono text-[10px] tracking-[0.16em] text-acc uppercase">{{ epic.title }}</p>
+          <p class="font-mono text-[11px] tracking-[0.16em] text-acc uppercase">{{ epic.title }}</p>
 
           <ol class="mt-1.5 flex flex-col gap-1">
             <li v-for="story in storiesOf(epic.id)" :key="story.id">
@@ -241,7 +241,7 @@ onMounted(async () => {
                 type="button"
                 :disabled="busy"
                 :aria-current="story.id === openId ? 'true' : undefined"
-                class="w-full rounded-lg border px-3 py-2 text-left text-xs disabled:opacity-40"
+                class="w-full rounded-lg border px-3 py-2 text-left text-sm disabled:opacity-40"
                 :class="
                   story.id === openId
                     ? 'border-acc bg-card text-txt-hi'
@@ -249,7 +249,7 @@ onMounted(async () => {
                 "
                 @click="openWritten(story.id)"
               >
-                <span class="font-mono text-[10px] text-txt-low">{{ story.reference }}</span>
+                <span class="font-mono text-[11px] text-txt-low">{{ story.reference }}</span>
                 <span class="mt-0.5 block">{{ story.title }}</span>
               </button>
             </li>
@@ -258,7 +258,7 @@ onMounted(async () => {
           <button
             type="button"
             :disabled="busy"
-            class="mt-1.5 w-full rounded-lg border border-dashed border-line px-3 py-2 font-mono text-[10px] text-txt-mid uppercase hover:border-acc disabled:opacity-40"
+            class="mt-1.5 w-full rounded-lg border border-dashed border-line px-3 py-2 font-mono text-[11px] text-txt-mid uppercase hover:border-acc disabled:opacity-40"
             @click="newStory(epic)"
           >
             {{ storiesOf(epic.id).length === 0 ? t('story.firstStory') : t('story.oneMoreStory') }}
@@ -268,15 +268,15 @@ onMounted(async () => {
     </section>
 
     <section class="flex min-h-0 min-w-0 flex-col border-b border-line p-6 lg:border-r lg:border-b-0">
-      <h2 class="display-italic text-lg">{{ t('story.writeWithClaude') }}</h2>
-      <p class="mt-1 text-xs text-txt-low">{{ t('story.writeWithClaudeHint') }}</p>
+      <h2 class="display-italic text-[22px]">{{ t('story.writeWithClaude') }}</h2>
+      <p class="mt-1 text-sm text-txt-low">{{ t('story.writeWithClaudeHint') }}</p>
 
-      <p v-if="refusal !== null" class="mt-3 text-xs text-red" role="alert">{{ say(refusal) }}</p>
+      <p v-if="refusal !== null" class="mt-3 text-sm text-red" role="alert">{{ say(refusal) }}</p>
 
-      <p v-if="transcript.broken.value" class="mt-3 text-xs text-orange">
+      <p v-if="transcript.broken.value" class="mt-3 text-sm text-orange">
         {{ t('story.streamBroken') }}
       </p>
-      <p v-else-if="said.length === 0" class="mt-3 text-xs text-txt-low">
+      <p v-else-if="said.length === 0" class="mt-3 text-sm text-txt-low">
         {{ t('story.batchStarting') }}
       </p>
 
@@ -284,14 +284,14 @@ onMounted(async () => {
         <article
           v-for="(utterance, index) in said"
           :key="index"
-          class="rounded-xl border p-3"
+          class="rounded-lg border p-3"
           :class="
             utterance.name === 'session.human'
               ? 'ml-8 border-acc bg-acc-soft/10'
               : 'mr-8 border-line bg-card'
           "
         >
-          <p class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase">
+          <p class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
             {{ utterance.name === 'session.human' ? t('story.you') : t('story.claude') }}
             <span v-if="utterance.phase !== null"> · {{ t(`phase.${utterance.phase}`) }}</span>
           </p>
@@ -317,13 +317,13 @@ onMounted(async () => {
         <button
           type="submit"
           :disabled="busy || turn.trim() === '' || ticket.data.value === null"
-          class="flex-none self-end rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+          class="flex-none self-end rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink uppercase disabled:opacity-40"
         >
           {{ t('common.send') }}
         </button>
       </form>
 
-      <p v-if="ticket.data.value !== null && !complete" class="mt-3 text-xs text-orange">
+      <p v-if="ticket.data.value !== null && !complete" class="mt-3 text-sm text-orange">
         {{ t('story.bothPartsFirst') }}
       </p>
 
@@ -331,7 +331,7 @@ onMounted(async () => {
         <button
           type="button"
           :disabled="busy || !complete"
-          class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
+          class="rounded-lg border border-line bg-card px-4 py-2 text-sm font-bold text-txt-mid uppercase disabled:opacity-40"
           @click="toBacklog()"
         >
           {{ t('story.sendToStore') }}
@@ -340,7 +340,7 @@ onMounted(async () => {
           v-if="queue.length > 0"
           type="button"
           :disabled="busy"
-          class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
+          class="rounded-lg border border-line bg-card px-4 py-2 text-sm font-bold text-txt-mid uppercase disabled:opacity-40"
           @click="backToEpics()"
         >
           {{ t('story.finishBatch') }}
@@ -355,7 +355,7 @@ onMounted(async () => {
           :key="name"
           type="button"
           :aria-current="name === part ? 'page' : undefined"
-          class="border-b-[3px] px-3 py-2.5 font-mono text-[10px] font-bold whitespace-nowrap uppercase"
+          class="border-b-[3px] px-3 py-2.5 font-mono text-[11px] font-bold whitespace-nowrap uppercase"
           :class="
             name === part ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'
           "
@@ -371,11 +371,11 @@ onMounted(async () => {
 
         <form
           v-if="part === 'functional' && ticket.data.value !== null"
-          class="mt-6 flex flex-col gap-2 rounded-2xl border border-line bg-card p-4"
+          class="mt-6 flex flex-col gap-2 rounded-lg border border-line bg-card p-4"
           @submit.prevent="linkBlocker"
         >
           <label
-            class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase"
+            class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase"
             for="blocker"
           >
             {{ t('story.blockerLabel') }}
@@ -393,7 +393,7 @@ onMounted(async () => {
           <button
             type="submit"
             :disabled="busy || blockingStoryId === null"
-            class="self-start rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid uppercase disabled:opacity-40"
+            class="self-start rounded-lg border border-line bg-elev px-3 py-2 text-sm font-bold text-txt-mid uppercase disabled:opacity-40"
           >
             {{ t('common.link') }}
           </button>
@@ -401,7 +401,7 @@ onMounted(async () => {
 
         <form
           v-if="part === 'tests' && ticket.data.value?.tests === null"
-          class="mt-6 flex flex-col gap-2 rounded-2xl border border-violet bg-card p-4"
+          class="mt-6 flex flex-col gap-2 rounded-lg border border-violet bg-card p-4"
           @submit.prevent="submitTwin"
         >
           <p class="display-italic text-sm text-violet">{{ t('story.twinTitle') }}</p>
@@ -420,7 +420,7 @@ onMounted(async () => {
           <button
             type="submit"
             :disabled="busy"
-            class="rounded-lg border border-violet bg-violet-soft/20 px-3 py-2 text-xs font-bold text-violet uppercase disabled:opacity-50"
+            class="rounded-lg border border-violet bg-violet-soft/20 px-3 py-2 text-sm font-bold text-violet uppercase disabled:opacity-50"
           >
             {{ t('story.writeTwin') }}
           </button>
