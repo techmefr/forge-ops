@@ -30,15 +30,30 @@ void board
     sheets.value = []
   })
 
+const COLUMN_COLOURS = ['acc', 'info', 'violet', 'green', 'orange', 'warn', 'red', 'line'] as const
+
+const label = ref('')
+const colour = ref('acc')
 const agent = ref('')
 const prompt = ref('')
 const delayHours = ref('')
 const refusal = ref<Phrase | null>(null)
 const busy = ref(false)
 
+const columnIndex = computed(
+  () => props.template?.columns.findIndex((one) => one.state === props.stage) ?? -1,
+)
+const mayMoveUp = computed(() => columnIndex.value > 0)
+const mayMoveDown = computed(() => {
+  const total = props.template?.columns.length ?? 0
+  return columnIndex.value !== -1 && columnIndex.value < total - 1
+})
+
 watch(
   column,
   (found) => {
+    label.value = found?.label ?? ''
+    colour.value = found?.colour ?? 'acc'
     agent.value = found?.agent ?? ''
     prompt.value = found?.prompt ?? ''
     delayHours.value = found?.delayHours === null || found?.delayHours === undefined ? '' : String(found.delayHours)
@@ -46,10 +61,29 @@ watch(
   { immediate: true },
 )
 
-async function write(): Promise<void> {
+function writtenColumns(): TemplateColumn[] {
   const template = props.template
   if (template === null) {
-    return
+    return []
+  }
+  return template.columns.map((one) =>
+    one.state === props.stage
+      ? {
+          ...one,
+          label: label.value.trim() === '' ? one.label : label.value.trim(),
+          colour: colour.value,
+          agent: agent.value.trim() === '' ? null : agent.value.trim(),
+          prompt: prompt.value.trim() === '' ? null : prompt.value.trim(),
+          delayHours: delayHours.value.trim() === '' ? null : Number(delayHours.value),
+        }
+      : one,
+  )
+}
+
+async function send(columns: readonly TemplateColumn[]): Promise<boolean> {
+  const template = props.template
+  if (template === null) {
+    return false
   }
   busy.value = true
   refusal.value = null
@@ -58,24 +92,46 @@ async function write(): Promise<void> {
       slug: template.slug,
       name: template.name,
       isDefault: template.isDefault,
-      columns: template.columns.map((one) =>
-        one.state === props.stage
-          ? {
-              ...one,
-              agent: agent.value.trim() === '' ? null : agent.value.trim(),
-              prompt: prompt.value.trim() === '' ? null : prompt.value.trim(),
-              delayHours: delayHours.value.trim() === '' ? null : Number(delayHours.value),
-            }
-          : one,
-      ),
+      columns,
     })
     emit('written')
-    emit('close')
+    return true
   } catch (error) {
     refusal.value = reasonOf(error)
+    return false
   } finally {
     busy.value = false
   }
+}
+
+async function write(): Promise<void> {
+  if (await send(writtenColumns())) {
+    emit('close')
+  }
+}
+
+async function move(offset: number): Promise<void> {
+  const template = props.template
+  const index = columnIndex.value
+  const swapIndex = index + offset
+  if (template === null || index === -1 || swapIndex < 0 || swapIndex >= template.columns.length) {
+    return
+  }
+  const current = template.columns[index]
+  const swapped = template.columns[swapIndex]
+  if (current === undefined || swapped === undefined) {
+    return
+  }
+  const reordered = template.columns.map((one, position) => {
+    if (position === index) {
+      return swapped
+    }
+    if (position === swapIndex) {
+      return current
+    }
+    return one
+  })
+  await send(reordered)
 }
 </script>
 
@@ -85,9 +141,30 @@ async function write(): Promise<void> {
       <p class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
         {{ t('template.whoWorksIt') }}
       </p>
+      <template v-if="maySettle">
+        <button
+          type="button"
+          :disabled="busy || !mayMoveUp"
+          :aria-label="t('template.moveUp')"
+          class="ml-auto rounded-md border border-line px-2 py-1 font-mono text-[11px] text-txt-low hover:border-acc hover:text-txt-hi disabled:opacity-40"
+          @click="move(-1)"
+        >
+          ◀
+        </button>
+        <button
+          type="button"
+          :disabled="busy || !mayMoveDown"
+          :aria-label="t('template.moveDown')"
+          class="rounded-md border border-line px-2 py-1 font-mono text-[11px] text-txt-low hover:border-acc hover:text-txt-hi disabled:opacity-40"
+          @click="move(1)"
+        >
+          ▶
+        </button>
+      </template>
       <button
         type="button"
-        class="ml-auto font-mono text-[11px] text-txt-low uppercase hover:text-txt-hi"
+        class="font-mono text-[11px] text-txt-low uppercase hover:text-txt-hi"
+        :class="maySettle ? '' : 'ml-auto'"
         @click="emit('close')"
       >
         {{ t('common.close') }}
@@ -106,6 +183,28 @@ async function write(): Promise<void> {
     </p>
 
     <template v-if="maySettle">
+      <label class="flex flex-col gap-1 text-[11px] text-txt-mid">
+        {{ t('template.label') }}
+        <input
+          v-model="label"
+          type="text"
+          class="rounded-lg border border-line bg-card px-2 py-1.5 font-mono text-[11px] text-txt-hi"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-[11px] text-txt-mid">
+        {{ t('template.colour') }}
+        <select
+          v-model="colour"
+          class="w-40 rounded-lg border border-line bg-card px-2 py-1.5 font-mono text-[11px] text-txt-hi"
+        >
+          <option v-for="tone in COLUMN_COLOURS" :key="tone" :value="tone">{{ tone }}</option>
+        </select>
+        <span
+          class="mt-1 inline-block h-2 w-8 rounded-full"
+          :style="{ background: `var(--forge-${colour})` }"
+          aria-hidden="true"
+        />
+      </label>
       <label class="flex flex-col gap-1 text-[11px] text-txt-mid">
         {{ t('template.agent') }}
         <input
