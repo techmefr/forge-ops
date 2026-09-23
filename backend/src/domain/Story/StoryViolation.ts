@@ -151,3 +151,9 @@ export class EmptyCardError extends StoryViolationError {
     super(`La carte ${reference} a besoin d un titre et d un corps`, 'EmptyCardError')
   }
 }
+
+export class EmptyBlockedReasonError extends StoryViolationError {
+  constructor(reference: string) {
+    super(`Bloquer la story ${reference} exige une raison ecrite`, 'EmptyBlockedReasonError')
+  }
+}

@@ -18,6 +18,7 @@ import {
   PointsOutOfRangeError,
   RolloutOutOfRangeError,
   DependencyCycleError,
+  EmptyBlockedReasonError,
   EmptyCardError,
   EpicNotFoundError,
   EpicTakenError,
@@ -59,6 +60,7 @@ type StoryRow = {
   rollout_percent: number | null
   merge_conflict: number
   escalation_reason: string | null
+  blocked_reason: string | null
 }
 
 export type StoryRepository = {
@@ -95,6 +97,8 @@ export type StoryRepository = {
   rollOut: (storyId: number, percent: number) => Story
   markMergeConflict: (storyId: number) => Story
   clearMergeConflict: (storyId: number) => Story
+  blockStory: (storyId: number, reason: string) => Story
+  unblockStory: (storyId: number) => Story
 }
 
 function toStepBack(row: StepBackRow): StepBackRecord {
@@ -153,6 +157,7 @@ function toStory(row: StoryRow): Story {
     rolloutPercent: row.rollout_percent,
     mergeConflict: row.merge_conflict === 1,
     escalationReason: row.escalation_reason,
+    blockedReason: row.blocked_reason,
   }
 }
 
@@ -301,6 +306,9 @@ export function createStoryRepository(
   )
   const updateMergeConflict = db.prepare<[number, number]>(
     "UPDATE story SET merge_conflict = ?, updated_at = datetime('now') WHERE id = ?",
+  )
+  const updateBlockedReason = db.prepare<[string | null, number]>(
+    "UPDATE story SET blocked_reason = ?, updated_at = datetime('now') WHERE id = ?",
   )
   const selectFullEpic = db.prepare<
     [number],
@@ -649,6 +657,22 @@ export function createStoryRepository(
     clearMergeConflict: (storyId) => {
       const story = findStory(storyId)
       updateMergeConflict.run(0, story.id)
+      return findStory(story.id)
+    },
+
+    blockStory: (storyId, reason) => {
+      const story = findStory(storyId)
+      const trimmed = reason.trim()
+      if (trimmed === '') {
+        throw new EmptyBlockedReasonError(story.reference)
+      }
+      updateBlockedReason.run(trimmed, story.id)
+      return findStory(story.id)
+    },
+
+    unblockStory: (storyId) => {
+      const story = findStory(storyId)
+      updateBlockedReason.run(null, story.id)
       return findStory(story.id)
     },
   }

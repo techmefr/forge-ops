@@ -2,6 +2,10 @@
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'reka-ui'
+import { board } from '@/technical/Api/Board'
+import { reasonOf } from '@/technical/Api/UseResource'
+import { usePhrase } from '@/technical/Language/UsePhrase'
+import type { Phrase } from '@/technical/Language/Phrase'
 import type { ProjectCard, StoryHold } from '@/domain/Board/BoardModel'
 import { DRAWER_TABS, tabOfState, type DrawerTab } from './DrawerTab'
 import ContextGauge from './ContextGauge.vue'
@@ -17,15 +21,50 @@ const props = defineProps<{ story: ProjectCard; hold: StoryHold | null }>()
 const emit = defineEmits<{ close: []; moved: [] }>()
 
 const { t } = useI18n()
+const say = usePhrase()
 const tab = ref<DrawerTab>('story')
+const blockedReason = ref('')
+const blocking = ref(false)
+const blockRefusal = ref<Phrase | null>(null)
 
 watch(
   () => props.story.id,
   () => {
     tab.value = tabOfState(props.story.state)
+    blockedReason.value = ''
+    blockRefusal.value = null
   },
   { immediate: true },
 )
+
+async function blockStory(): Promise<void> {
+  blocking.value = true
+  blockRefusal.value = null
+  try {
+    await board.send(`/api/stories/${props.story.id}/block`, 'POST', {
+      reason: blockedReason.value,
+    })
+    blockedReason.value = ''
+    emit('moved')
+  } catch (error) {
+    blockRefusal.value = reasonOf(error)
+  } finally {
+    blocking.value = false
+  }
+}
+
+async function unblockStory(): Promise<void> {
+  blocking.value = true
+  blockRefusal.value = null
+  try {
+    await board.send(`/api/stories/${props.story.id}/block`, 'DELETE')
+    emit('moved')
+  } catch (error) {
+    blockRefusal.value = reasonOf(error)
+  } finally {
+    blocking.value = false
+  }
+}
 </script>
 
 <template>
@@ -92,6 +131,43 @@ watch(
           blocker
         }}</span>
       </p>
+
+      <p v-if="blockRefusal !== null" class="text-[11px] text-red" role="alert">{{ say(blockRefusal) }}</p>
+
+      <div v-if="story.blockedReason !== null" class="flex flex-col gap-1.5 rounded-lg border border-orange bg-orange/10 p-2.5">
+        <p class="text-[11px] text-orange">
+          <span class="font-mono text-[11px] font-bold uppercase">{{ t('kanban.blockedManually') }}</span>
+          · {{ story.blockedReason }}
+        </p>
+        <button
+          type="button"
+          :disabled="blocking"
+          class="self-start rounded-lg border border-orange bg-card px-2.5 py-1.5 font-mono text-[11px] font-bold text-orange uppercase disabled:opacity-40"
+          @click="unblockStory()"
+        >
+          {{ t('kanban.unblock') }}
+        </button>
+      </div>
+      <form v-else class="flex flex-col gap-1.5" @submit.prevent="blockStory()">
+        <label class="font-mono text-[10px] tracking-[0.16em] text-txt-low uppercase" for="blocked-reason">
+          {{ t('kanban.blockReasonLabel') }}
+        </label>
+        <div class="flex gap-1.5">
+          <input
+            id="blocked-reason"
+            v-model="blockedReason"
+            type="text"
+            class="min-w-0 flex-1 rounded-lg border border-line bg-card px-2.5 py-1.5 text-[11px] text-txt-hi"
+          />
+          <button
+            type="submit"
+            :disabled="blocking || blockedReason.trim() === ''"
+            class="flex-none rounded-lg border border-orange bg-card px-2.5 py-1.5 font-mono text-[11px] font-bold text-orange uppercase disabled:opacity-40"
+          >
+            {{ t('kanban.block') }}
+          </button>
+        </div>
+      </form>
     </div>
 
     <TabsRoot v-model="tab" as="div" class="contents">

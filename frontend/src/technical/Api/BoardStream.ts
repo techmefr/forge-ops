@@ -18,6 +18,7 @@ export type StreamInput = {
 
 const WATCHED_EVENTS = [
   'story.written',
+  'story.blocked',
   'story.unblocked',
   'checkpoint.proven',
   'project.created',

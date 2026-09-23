@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { attentionOf, daysLeft } from '../../../src/domain/Board/CardAttention.js'
 import type { Milestone, Story, StoryState } from '../../../../contract/StoryContract.js'
 
-function story(state: StoryState, mergeConflict = false): Story {
+function story(state: StoryState, mergeConflict = false, blockedReason: string | null = null): Story {
   return {
     id: 1,
     epicId: 1,
@@ -16,6 +16,7 @@ function story(state: StoryState, mergeConflict = false): Story {
     rolloutPercent: null,
     mergeConflict,
     escalationReason: null,
+    blockedReason,
   }
 }
 
@@ -61,6 +62,10 @@ describe('attentionOf', () => {
 
   it('signale une story mise en attente a la main', () => {
     expect(attentionOf(facts({ held: true }))).toBe('blocked')
+  })
+
+  it('signale une story bloquee explicitement avec une raison', () => {
+    expect(attentionOf(facts({ story: story('building', false, 'attente client') }))).toBe('blocked')
   })
 
   it('signale un conflit de fusion', () => {
