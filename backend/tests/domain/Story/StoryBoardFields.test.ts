@@ -7,6 +7,7 @@ import { KANBAN_COLUMNS, columnOfState } from '../../../src/domain/Story/Story.j
 import type { StoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import { createStoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import {
+  EmptyBlockedReasonError,
   PointsOutOfRangeError,
   RolloutOutOfRangeError,
 } from '../../../src/domain/Story/StoryViolation.js'
@@ -75,6 +76,24 @@ describe('story board fields', () => {
   it('flags and clears a merge conflict on the card', () => {
     expect(repository.markMergeConflict(storyId).mergeConflict).toBe(true)
     expect(repository.clearMergeConflict(storyId).mergeConflict).toBe(false)
+  })
+
+  it('bloque une story a la main avec une raison, puis la debloque', () => {
+    expect(repository.findStory(storyId).blockedReason).toBeNull()
+
+    const blocked = repository.blockStory(storyId, 'on attend une decision client')
+    expect(blocked.blockedReason).toBe('on attend une decision client')
+
+    const unblocked = repository.unblockStory(storyId)
+    expect(unblocked.blockedReason).toBeNull()
+  })
+
+  it('coupe les espaces autour de la raison de blocage', () => {
+    expect(repository.blockStory(storyId, '  on attend  ').blockedReason).toBe('on attend')
+  })
+
+  it('refuse de bloquer une story sans raison ecrite', () => {
+    expect(() => repository.blockStory(storyId, '   ')).toThrow(EmptyBlockedReasonError)
   })
 })
 

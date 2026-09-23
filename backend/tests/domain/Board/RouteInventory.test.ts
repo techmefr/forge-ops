@@ -5,6 +5,7 @@ import { buildTestBoard } from './TestBoard.js'
 
 const EXPECTED_ROUTES = [
   'DELETE /api/epics/:id/claim',
+  'DELETE /api/stories/:id/block',
   'DELETE /api/stories/:id/merge-conflict',
   'GET /api/board/columns',
   'GET /api/board/human-gates',
@@ -33,6 +34,7 @@ const EXPECTED_ROUTES = [
   'POST /api/projects',
   'POST /api/stories',
   'POST /api/stories/:id/backlog',
+  'POST /api/stories/:id/block',
   'POST /api/stories/:id/checkpoints',
   'POST /api/stories/:id/criteria',
   'POST /api/stories/:id/dependencies',

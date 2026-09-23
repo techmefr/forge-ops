@@ -124,4 +124,51 @@ describe('GET /api/board/projects', () => {
 
     expect(card?.attention).toBe('blocked')
   })
+
+  it('signale une story bloquee explicitement, en dehors de toute dependance', async () => {
+    stories.blockStory(storyId, 'on attend une decision produit')
+
+    const [card] = await cards()
+
+    expect(card?.attention).toBe('blocked')
+    expect(card?.blockedReason).toBe('on attend une decision produit')
+  })
+})
+
+describe('POST /api/stories/:id/block', () => {
+  it('bloque la story avec une raison', async () => {
+    const answer = (await api.request(`/api/stories/${storyId}/block`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ reason: 'on attend une decision produit' }),
+    })) as Response
+
+    expect(answer.status).toBe(200)
+    const body = (await answer.json()) as { blockedReason: string | null }
+    expect(body.blockedReason).toBe('on attend une decision produit')
+  })
+
+  it('refuse une raison vide', async () => {
+    const answer = (await api.request(`/api/stories/${storyId}/block`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ reason: '   ' }),
+    })) as Response
+
+    expect(answer.status).toBe(422)
+  })
+})
+
+describe('DELETE /api/stories/:id/block', () => {
+  it('debloque la story et efface la raison', async () => {
+    stories.blockStory(storyId, 'on attend une decision produit')
+
+    const answer = (await api.request(`/api/stories/${storyId}/block`, {
+      method: 'DELETE',
+    })) as Response
+
+    expect(answer.status).toBe(200)
+    const body = (await answer.json()) as { blockedReason: string | null }
+    expect(body.blockedReason).toBeNull()
+  })
 })

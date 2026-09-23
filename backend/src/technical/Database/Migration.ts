@@ -20,6 +20,7 @@ const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'agent_session', column: 'last_heartbeat_at', declaration: 'TEXT' },
   { table: 'agent_session', column: 'context_tokens', declaration: 'INTEGER' },
   { table: 'agent_session', column: 'context_window', declaration: 'INTEGER' },
+  { table: 'story', column: 'blocked_reason', declaration: 'TEXT' },
 ]
 
 const CHECKED_TABLES: readonly string[] = [

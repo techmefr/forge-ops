@@ -103,6 +103,7 @@ export type Story = {
   rolloutPercent: number | null
   mergeConflict: boolean
   escalationReason: string | null
+  blockedReason: string | null
 }
 
 export type Criterion = {

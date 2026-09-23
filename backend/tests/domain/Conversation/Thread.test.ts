@@ -28,6 +28,7 @@ function story(state: Story['state'] = 'drafting'): Story {
     rolloutPercent: null,
     mergeConflict: false,
     escalationReason: null,
+    blockedReason: null,
   }
 }
 
