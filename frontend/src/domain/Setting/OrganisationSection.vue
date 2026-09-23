@@ -74,7 +74,7 @@ void tokens.reload()
 </script>
 
 <template>
-  <section class="flex flex-col gap-6 rounded-2xl border border-line bg-card p-4">
+  <section class="flex flex-col gap-6 rounded-lg border border-line bg-card p-4">
     <div class="flex flex-wrap items-center gap-3">
       <h2 class="display-italic m-0 text-[22px]">{{ t('setting.organisation') }}</h2>
       <EffectBadge section="organisation" />
@@ -90,7 +90,7 @@ void tokens.reload()
         <li
           v-for="provider in sheet.data.value?.providers ?? []"
           :key="provider.kind"
-          class="flex items-center gap-3 rounded-xl bg-panel px-3 py-2"
+          class="flex items-center gap-3 rounded-lg bg-panel px-3 py-2"
         >
           <span class="text-[13px] text-txt-hi">{{ t(`provider.${provider.kind}`) }}</span>
           <span
@@ -119,8 +119,8 @@ void tokens.reload()
       </h3>
       <p class="text-[13px] text-txt-mid">{{ t('organisation.instanceSaid') }}</p>
 
-      <p v-if="minted !== null" class="rounded-xl border border-acc bg-acc-soft/10 p-3">
-        <span class="font-mono text-[11px] text-acc uppercase">{{ t('organisation.shownOnce') }}</span>
+      <p v-if="minted !== null" class="rounded-lg border border-line bg-elev p-3">
+        <span class="font-mono text-[11px] text-txt-hi uppercase">{{ t('organisation.shownOnce') }}</span>
         <code class="mt-1 block font-mono text-[11px] break-all text-txt-hi">{{ minted }}</code>
       </p>
 
@@ -128,7 +128,7 @@ void tokens.reload()
         <li
           v-for="token in tokens.data.value ?? []"
           :key="token.id"
-          class="flex items-center gap-3 rounded-xl bg-panel px-3 py-2"
+          class="flex items-center gap-3 rounded-lg bg-panel px-3 py-2"
         >
           <span class="text-[13px] text-txt-hi">{{ token.name }}</span>
           <span v-if="token.revokedAt !== null" class="font-mono text-[11px] text-txt-low uppercase">{{

@@ -133,7 +133,7 @@ const heading = computed(() => {
     >
       <div class="min-w-0 flex-[1_1_240px]" data-tour="shell-heading">
         <div class="flex items-baseline gap-2.5">
-          <span class="font-mono text-[11px] font-semibold text-acc">{{ heading.digit }}</span>
+          <span class="font-mono text-[11px] font-semibold text-txt-low">{{ heading.digit }}</span>
           <h1 class="display-italic m-0 text-[28px] leading-none">{{ heading.label }}</h1>
         </div>
         <p class="mt-1 text-[13px] text-txt-low">{{ heading.sub }}</p>

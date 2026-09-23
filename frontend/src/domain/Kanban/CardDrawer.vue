@@ -34,7 +34,7 @@ watch(
   >
     <header class="flex items-start gap-3 border-b border-line px-6 py-4">
       <div class="min-w-0">
-        <span class="font-mono text-[11px] font-semibold text-acc">{{ story.reference }}</span>
+        <span class="font-mono text-[11px] font-semibold text-txt-mid">{{ story.reference }}</span>
         <h2 class="display-italic mt-1 text-[22px] leading-tight">{{ story.title }}</h2>
       </div>
       <RouterLink
