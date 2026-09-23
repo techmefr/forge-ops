@@ -1,6 +1,23 @@
 # Visual direction
 
-Reference for the Vercel/Linear-inspired pass tracked in issue #146. This is slice 1: the scale below, applied first to the shared shell chrome (`AppShell.vue`). It states what to use going forward; it does not retire any colour token or theme variant - `--forge-*` stays exactly as defined in `frontend/src/style.css` and `frontend/src/technical/Appearance`.
+Reference for the visual-direction pass tracked in issue #146. The direction is **Linear**, specifically - not a Vercel/Linear blend. Where the two disagree, Linear wins: a tighter corner radius, a more restrained/near-monochrome surface (colour reserved for the one active/accent signal, not decoration), flat surfaces instead of soft shadow-heavy cards, and density closer to a keyboard-driven product than a marketing site. It states what to use going forward; it does not retire any colour token or theme variant - `--forge-*` stays exactly as defined in `frontend/src/style.css` and `frontend/src/technical/Appearance`.
+
+## Corner radius
+
+Two steps only. `rounded-2xl` and `rounded-xl` are the pre-Linear-decision legacy (Vercel-leaning, too soft for the direction we've settled on) and get collapsed to `rounded-lg` wherever a component is touched - they are not reused on new markup.
+
+| Step | Class | Use |
+|---|---|---|
+| control | `rounded-md` | Small interactive elements: buttons, inputs, pills, badges |
+| surface | `rounded-lg` | Cards, panels, drawers, any bordered content region |
+
+## Colour restraint
+
+Linear's calm comes from colour being informational, not decorative. On any touched component:
+
+- The accent colour (`text-acc`/`border-acc`/`bg-acc`) marks exactly one thing per view: the active tab, the selected row, the one primary action. It does not also tint a background, a border and an icon simultaneously for the same piece of state - pick one carrier.
+- Status colours (`green`/`red`/`orange`/`warn`/`violet`) are reserved for actual status meaning (an outcome, a warning, a blocker) - never used decoratively to add visual variety to a screen that has no real status to show.
+- Default text is `text-txt-hi`/`text-txt-mid`/`text-txt-low` - reach for a status or accent colour only when the colour itself is carrying meaning, not to make a heading "pop".
 
 ## Type scale
 
