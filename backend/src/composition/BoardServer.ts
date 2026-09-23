@@ -12,6 +12,8 @@ import { createDispatcher } from '../domain/Dispatch/Dispatcher.js'
 import { createBudgetRepository } from '../domain/Budget/BudgetRepository.js'
 import { createWorkflowRepository } from '../domain/Workflow/WorkflowRepository.js'
 import { createWorkflowApi } from '../domain/Workflow/WorkflowApi.js'
+import { createWorkflowColumnRepository } from '../domain/Workflow/WorkflowColumnRepository.js'
+import { createWorkflowColumnApi } from '../domain/Workflow/WorkflowColumnApi.js'
 import { DEFAULT_DISPATCH_RATE } from '../domain/Dispatch/DispatchRate.js'
 import { censusOfTree } from '../technical/Tamper/TestTreeCensus.js'
 import { createEvidenceFileReader } from '../technical/Evidence/EvidenceFileReader.js'
@@ -175,6 +177,7 @@ export function startBoardServer({
   const live = createLiveSessions<SdkUserTurn>()
   const budget = createBudgetRepository(db)
   const workflow = createWorkflowRepository(db)
+  const workflowColumns = createWorkflowColumnRepository(db)
   const onSessionEvent = (event: BoardEvent): void => {
     recordUsageFromEvent(sessions, event)
     recordHeartbeatFromEvent(sessions, event)
@@ -345,6 +348,14 @@ export function startBoardServer({
     '/',
     createWorkflowApi({
       workflow,
+      maySettle: (context) =>
+        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
+    }),
+  )
+  guarded.route(
+    '/',
+    createWorkflowColumnApi({
+      columns: workflowColumns,
       maySettle: (context) =>
         mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
     }),

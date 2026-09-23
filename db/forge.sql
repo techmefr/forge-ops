@@ -294,6 +294,24 @@ CREATE TABLE IF NOT EXISTS board_setting (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS workflow_column (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT NOT NULL UNIQUE,
+  label TEXT NOT NULL,
+  colour TEXT NOT NULL,
+  position INTEGER NOT NULL UNIQUE,
+  agent_name TEXT NOT NULL,
+  command TEXT NOT NULL,
+  preprompt TEXT NOT NULL DEFAULT '',
+  behavioural_kind TEXT NOT NULL DEFAULT 'ordinary' CHECK (behavioural_kind IN (
+    'ordinary',
+    'human_wait',
+    'review_gate',
+    'ship'
+  )),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS scope_reservation (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   story_id INTEGER NOT NULL REFERENCES story(id),
