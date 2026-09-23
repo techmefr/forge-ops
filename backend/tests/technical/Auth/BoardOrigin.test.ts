@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { boardOrigins } from '../../../src/technical/Auth/BoardOrigin.js'
+import { boardOrigins, isLocalOrigin } from '../../../src/technical/Auth/BoardOrigin.js'
 
 describe('boardOrigins', () => {
   it('allows the address the board is bound to', () => {
@@ -58,5 +58,39 @@ describe('boardOrigins', () => {
     expect(boardOrigins('0.0.0.0', 4311).some((origin) => origin === 'http://forge.localhost')).toBe(
       false,
     )
+  })
+})
+
+describe('isLocalOrigin', () => {
+  it('trusts a caller sending no origin header at all', () => {
+    expect(isLocalOrigin(undefined, '127.0.0.1', 8830)).toBe(true)
+  })
+
+  it('trusts localhost at the board own port', () => {
+    expect(isLocalOrigin('http://localhost:8830', '127.0.0.1', 8830)).toBe(true)
+  })
+
+  it('trusts forge.localhost at the board own port', () => {
+    expect(isLocalOrigin('http://forge.localhost:8830', '127.0.0.1', 8830)).toBe(true)
+  })
+
+  it('trusts 127.0.0.1 at the board own port', () => {
+    expect(isLocalOrigin('http://127.0.0.1:8830', '127.0.0.1', 8830)).toBe(true)
+  })
+
+  it('trusts the dev server origin, which proxies the api locally', () => {
+    expect(isLocalOrigin('http://localhost:8832', '127.0.0.1', 8830)).toBe(true)
+  })
+
+  it('refuses a foreign origin', () => {
+    expect(isLocalOrigin('https://site-malveillant.example', '127.0.0.1', 8830)).toBe(false)
+  })
+
+  it('refuses a declared public origin, which is not a local caller', () => {
+    expect(isLocalOrigin('http://forge.localhost', '0.0.0.0', 4311)).toBe(false)
+  })
+
+  it('refuses another port on a loopback host', () => {
+    expect(isLocalOrigin('http://127.0.0.1:9999', '127.0.0.1', 8830)).toBe(false)
   })
 })
