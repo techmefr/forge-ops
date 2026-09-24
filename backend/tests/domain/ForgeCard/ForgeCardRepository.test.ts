@@ -6,6 +6,7 @@ import { createForgeCardRepository, type ForgeCardRepository } from '../../../sr
 import {
   DuplicateStoryIdError,
   EmptySelectionError,
+  ForgeCardNotFoundError,
   ForgeStoryNotFoundError,
   StoryAlreadyOnOpenCardError,
   StoryNotInBacklogError,
@@ -91,5 +92,40 @@ describe('openCardOfStory', () => {
 
   it('rend null quand la story n est portee par aucune forge', () => {
     expect(cards.openCardOfStory(firstStoryId)).toBeNull()
+  })
+})
+
+describe('createForgeCard sans session', () => {
+  it('nait sans session claude ni phase courante', () => {
+    const card = cards.createForgeCard({ storyIds: [firstStoryId] })
+    expect(card.claudeSessionId).toBeNull()
+    expect(card.currentPhase).toBeNull()
+  })
+})
+
+describe('recordDispatch', () => {
+  it('memorise la session claude et la phase courante', () => {
+    const card = cards.createForgeCard({ storyIds: [firstStoryId] })
+
+    const updated = cards.recordDispatch(card.id, { claudeSessionId: 'sess-1', phase: 'spec' })
+
+    expect(updated.claudeSessionId).toBe('sess-1')
+    expect(updated.currentPhase).toBe('spec')
+  })
+
+  it('ecrase la session precedente quand la carte avance de colonne', () => {
+    const card = cards.createForgeCard({ storyIds: [firstStoryId] })
+    cards.recordDispatch(card.id, { claudeSessionId: 'sess-1', phase: 'spec' })
+
+    const updated = cards.recordDispatch(card.id, { claudeSessionId: 'sess-1', phase: 'architecture' })
+
+    expect(updated.claudeSessionId).toBe('sess-1')
+    expect(updated.currentPhase).toBe('architecture')
+  })
+
+  it('refuse une forge introuvable', () => {
+    expect(() => cards.recordDispatch(999, { claudeSessionId: 'sess-1', phase: 'spec' })).toThrow(
+      ForgeCardNotFoundError,
+    )
   })
 })

@@ -129,6 +129,8 @@ CREATE TABLE IF NOT EXISTS worktree (
 CREATE TABLE IF NOT EXISTS forge_card (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   reference TEXT NOT NULL UNIQUE,
+  claude_session_id TEXT,
+  current_phase TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   closed_at TEXT
 );

@@ -1,4 +1,5 @@
 import type Database from 'better-sqlite3'
+import type { AgentPhase } from '../../../../contract/AgentContract.js'
 import type { ForgeCard, ForgeCardDraft } from '../../../../contract/ForgeCardContract.js'
 import { refusalOfSelection } from './ForgeCard.js'
 import {
@@ -13,6 +14,8 @@ import {
 type ForgeCardRow = {
   id: number
   reference: string
+  claude_session_id: string | null
+  current_phase: AgentPhase | null
   created_at: string
   closed_at: string | null
 }
@@ -23,11 +26,17 @@ type StoryLookupRow = {
   state: string
 }
 
+export type ForgeCardDispatchProgress = {
+  claudeSessionId: string
+  phase: AgentPhase
+}
+
 export type ForgeCardRepository = {
   createForgeCard: (draft: ForgeCardDraft) => ForgeCard
   closeForgeCard: (forgeCardId: number) => void
   openCardOfStory: (storyId: number) => ForgeCard | null
   findForgeCard: (forgeCardId: number) => ForgeCard
+  recordDispatch: (forgeCardId: number, progress: ForgeCardDispatchProgress) => ForgeCard
 }
 
 export function createForgeCardRepository(db: Database.Database): ForgeCardRepository {
@@ -37,6 +46,9 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
     'INSERT INTO forge_card_story (forge_card_id, story_id) VALUES (?, ?)',
   )
   const closeCard = db.prepare<[number]>('UPDATE forge_card SET closed_at = CURRENT_TIMESTAMP WHERE id = ?')
+  const updateDispatchProgress = db.prepare<[string, AgentPhase, number]>(
+    'UPDATE forge_card SET claude_session_id = ?, current_phase = ? WHERE id = ?',
+  )
   const selectStory = db.prepare<[number], StoryLookupRow>('SELECT id, reference, state FROM story WHERE id = ?')
   const selectOpenCardIdForStory = db.prepare<[number], { forge_card_id: number }>(`
     SELECT fcs.forge_card_id AS forge_card_id
@@ -45,7 +57,7 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
     WHERE fcs.story_id = ? AND fc.closed_at IS NULL
   `)
   const selectCard = db.prepare<[number], ForgeCardRow>(
-    'SELECT id, reference, created_at, closed_at FROM forge_card WHERE id = ?',
+    'SELECT id, reference, claude_session_id, current_phase, created_at, closed_at FROM forge_card WHERE id = ?',
   )
   const selectStoryIdsOfCard = db.prepare<[number], { story_id: number }>(
     'SELECT story_id FROM forge_card_story WHERE forge_card_id = ? ORDER BY story_id',
@@ -56,6 +68,8 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
       id: row.id,
       reference: row.reference,
       storyIds: selectStoryIdsOfCard.all(row.id).map((link) => link.story_id),
+      claudeSessionId: row.claude_session_id,
+      currentPhase: row.current_phase,
       createdAt: row.created_at,
       closedAt: row.closed_at,
     }
@@ -116,6 +130,15 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
         throw new ForgeCardNotFoundError(forgeCardId)
       }
       return hydrate(row)
+    },
+
+    recordDispatch: (forgeCardId, progress) => {
+      const existing = selectCard.get(forgeCardId)
+      if (existing === undefined) {
+        throw new ForgeCardNotFoundError(forgeCardId)
+      }
+      updateDispatchProgress.run(progress.claudeSessionId, progress.phase, forgeCardId)
+      return findCard(forgeCardId)
     },
   }
 }
