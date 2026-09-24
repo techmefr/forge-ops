@@ -29,6 +29,7 @@ type WorktreeRow = {
   id: number
   story_id: number
   reference: string
+  forge_card_id: number | null
   path: string
   branch: string
   base_ref: string
@@ -39,8 +40,8 @@ type WorktreeRow = {
 }
 
 const LIVE_SELECTION = `
-  SELECT worktree.id, worktree.story_id, story.reference, worktree.path, worktree.branch,
-         worktree.base_ref, worktree.base_sha, reservation.port, reservation.subdomain,
+  SELECT worktree.id, worktree.story_id, story.reference, worktree.forge_card_id, worktree.path,
+         worktree.branch, worktree.base_ref, worktree.base_sha, reservation.port, reservation.subdomain,
          worktree.created_at
   FROM worktree
   JOIN story ON story.id = worktree.story_id
@@ -62,12 +63,12 @@ export function createWorktreeRepository(
     'SELECT id, path FROM worktree WHERE story_id = ?',
   )
 
-  const insertWorktree = db.prepare<[number, string, string, string, string]>(
-    'INSERT INTO worktree (story_id, path, branch, base_ref, base_sha) VALUES (?, ?, ?, ?, ?)',
+  const insertWorktree = db.prepare<[number, number | null, string, string, string, string]>(
+    'INSERT INTO worktree (story_id, forge_card_id, path, branch, base_ref, base_sha) VALUES (?, ?, ?, ?, ?, ?)',
   )
 
-  const reopenWorktree = db.prepare<[string, string, string, number]>(
-    'UPDATE worktree SET removed_at = NULL, path = ?, branch = ?, base_sha = ?, created_at = CURRENT_TIMESTAMP WHERE id = ?',
+  const reopenWorktree = db.prepare<[string, string, string, number | null, number]>(
+    'UPDATE worktree SET removed_at = NULL, path = ?, branch = ?, base_sha = ?, forge_card_id = ?, created_at = CURRENT_TIMESTAMP WHERE id = ?',
   )
 
   const takenPort = db.prepare<[number], { port: number }>(
@@ -97,6 +98,7 @@ export function createWorktreeRepository(
       id: row.id,
       storyId: row.story_id,
       storyReference: row.reference,
+      forgeCardId: row.forge_card_id,
       path: row.path,
       branch: row.branch,
       baseRef: row.base_ref,
@@ -135,9 +137,9 @@ export function createWorktreeRepository(
 
       const existing = selectRowForStory.get(order.storyId)
       if (existing === undefined) {
-        insertWorktree.run(order.storyId, path, branch, order.baseRef, baseSha)
+        insertWorktree.run(order.storyId, order.forgeCardId ?? null, path, branch, order.baseRef, baseSha)
       } else {
-        reopenWorktree.run(path, branch, baseSha, existing.id)
+        reopenWorktree.run(path, branch, baseSha, order.forgeCardId ?? null, existing.id)
       }
       const written = selectRowForStory.get(order.storyId)
       if (written === undefined) {
