@@ -28,6 +28,7 @@ export type Worktree = {
   id: number
   storyId: number
   storyReference: string
+  forgeCardId: number | null
   path: string
   branch: string
   baseRef: string
