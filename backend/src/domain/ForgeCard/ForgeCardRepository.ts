@@ -4,6 +4,7 @@ import { refusalOfSelection } from './ForgeCard.js'
 import {
   DuplicateStoryIdError,
   EmptySelectionError,
+  ForgeCardNotFoundError,
   ForgeStoryNotFoundError,
   StoryAlreadyOnOpenCardError,
   StoryNotInBacklogError,
@@ -26,6 +27,7 @@ export type ForgeCardRepository = {
   createForgeCard: (draft: ForgeCardDraft) => ForgeCard
   closeForgeCard: (forgeCardId: number) => void
   openCardOfStory: (storyId: number) => ForgeCard | null
+  findForgeCard: (forgeCardId: number) => ForgeCard
 }
 
 export function createForgeCardRepository(db: Database.Database): ForgeCardRepository {
@@ -106,6 +108,14 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
     openCardOfStory: (storyId) => {
       const link = selectOpenCardIdForStory.get(storyId)
       return link === undefined ? null : findCard(link.forge_card_id)
+    },
+
+    findForgeCard: (forgeCardId) => {
+      const row = selectCard.get(forgeCardId)
+      if (row === undefined) {
+        throw new ForgeCardNotFoundError(forgeCardId)
+      }
+      return hydrate(row)
     },
   }
 }
