@@ -58,7 +58,7 @@ describe('createSdkSessionRunner', () => {
   it('declares the settings sources it relies on instead of inheriting the sdk default', async () => {
     queried.mockReturnValue(conversationOf(SPOKEN))
     const runner = createSdkSessionRunner({
-      cwd: '/tmp',
+      cwdFor: () => '/tmp',
       live: createLiveSessions<SdkUserTurn>(),
       onEvent: () => undefined,
     })
@@ -72,11 +72,28 @@ describe('createSdkSessionRunner', () => {
     )
   })
 
+  it('resolves cwd per order instead of a fixed directory', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    const cwdFor = vi.fn(() => '/worktrees/forge-7')
+    const runner = createSdkSessionRunner({
+      cwdFor,
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: () => undefined,
+    })
+
+    await runner.launch(ORDER)
+
+    expect(cwdFor).toHaveBeenCalledWith(ORDER)
+    expect(queried).toHaveBeenCalledWith(
+      expect.objectContaining({ options: expect.objectContaining({ cwd: '/worktrees/forge-7' }) }),
+    )
+  })
+
   it('refuses to open a session when the guardrail is not registered', async () => {
     queried.mockReturnValue(conversationOf(SPOKEN))
     resolved.mockResolvedValue({ effective: {} })
     const runner = createSdkSessionRunner({
-      cwd: '/tmp',
+      cwdFor: () => '/tmp',
       live: createLiveSessions<SdkUserTurn>(),
       onEvent: () => undefined,
     })
@@ -88,7 +105,7 @@ describe('createSdkSessionRunner', () => {
   it('hands back the session identifier the sdk announced', async () => {
     queried.mockReturnValue(conversationOf(SPOKEN))
     const runner = createSdkSessionRunner({
-      cwd: '/tmp',
+      cwdFor: () => '/tmp',
       live: createLiveSessions<SdkUserTurn>(),
       onEvent: () => undefined,
     })
@@ -100,7 +117,7 @@ describe('createSdkSessionRunner', () => {
     queried.mockReturnValue(conversationOf(SPOKEN))
     const seen: { name: string; payload: Record<string, unknown> }[] = []
     const runner = createSdkSessionRunner({
-      cwd: '/tmp',
+      cwdFor: () => '/tmp',
       live: createLiveSessions<SdkUserTurn>(),
       onEvent: (event) => seen.push(event),
     })
@@ -117,7 +134,7 @@ describe('createSdkSessionRunner', () => {
     queried.mockReturnValue(conversationOf(SPOKEN))
     const seen: { name: string; payload: Record<string, unknown> }[] = []
     const runner = createSdkSessionRunner({
-      cwd: '/tmp',
+      cwdFor: () => '/tmp',
       live: createLiveSessions<SdkUserTurn>(),
       onEvent: (event) => seen.push(event),
     })
@@ -161,7 +178,7 @@ describe('createSdkSessionRunner', () => {
     queried.mockReturnValue(conversationOf(spoken))
     const seen: { name: string; payload: Record<string, unknown> }[] = []
     const runner = createSdkSessionRunner({
-      cwd: '/tmp',
+      cwdFor: () => '/tmp',
       live: createLiveSessions<SdkUserTurn>(),
       onEvent: (event) => seen.push(event),
     })
@@ -177,7 +194,7 @@ describe('createSdkSessionRunner', () => {
     queried.mockReturnValue(conversationOf(SPOKEN))
     const seen: { name: string; payload: Record<string, unknown> }[] = []
     const runner = createSdkSessionRunner({
-      cwd: '/tmp',
+      cwdFor: () => '/tmp',
       live: createLiveSessions<SdkUserTurn>(),
       onEvent: (event) => seen.push(event),
     })
@@ -192,7 +209,7 @@ describe('createSdkSessionRunner', () => {
   it('refuses a conversation that never announced an identifier', async () => {
     queried.mockReturnValue(conversationOf([{ type: 'system' }]))
     const runner = createSdkSessionRunner({
-      cwd: '/tmp',
+      cwdFor: () => '/tmp',
       live: createLiveSessions<SdkUserTurn>(),
       onEvent: () => undefined,
     })
@@ -203,7 +220,7 @@ describe('createSdkSessionRunner', () => {
   it('frees the live channel once the conversation is drained', async () => {
     queried.mockReturnValue(conversationOf(SPOKEN))
     const live = createLiveSessions<SdkUserTurn>()
-    const runner = createSdkSessionRunner({ cwd: '/tmp', live, onEvent: () => undefined })
+    const runner = createSdkSessionRunner({ cwdFor: () => '/tmp', live, onEvent: () => undefined })
 
     await runner.launch(ORDER)
     await new Promise((resolve) => setTimeout(resolve, 0))
