@@ -6,7 +6,7 @@ import { deliverTurn, userTurn, type SdkUserTurn } from './TurnDelivery.js'
 import { assertGuardrailRegistered, forgeSettingSources } from '../Guardrail/GuardrailRegistration.js'
 
 export type SdkSessionRunnerInput = {
-  cwd: string
+  cwdFor: (order: LaunchOrder) => string
   onEvent: (event: { name: string; payload: Record<string, unknown> }) => void
   live: LiveSessions<SdkUserTurn>
 }
@@ -18,9 +18,10 @@ export class SessionIdentifierMissingError extends Error {
   }
 }
 
-export function createSdkSessionRunner({ cwd, onEvent, live }: SdkSessionRunnerInput): SessionRunner {
+export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunnerInput): SessionRunner {
   return {
     launch: async (order: LaunchOrder) => {
+      const cwd = cwdFor(order)
       await assertGuardrailRegistered(cwd)
       const started = live.start()
       started.channel.push(userTurn(order.prompt))

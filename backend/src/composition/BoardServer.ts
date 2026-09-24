@@ -225,8 +225,19 @@ export function startBoardServer({
   const templates = createTemplateRepository(db)
   const outbox = createOutboxRepository(db)
   const organisations = createOrganisationRepository(db)
+  function cwdForStory(storyId: number): string {
+    const worktree = worktrees.findForStory(storyId)
+    if (worktree !== null) {
+      return worktree.path
+    }
+    const projectId = stories.projectOfStory(storyId)
+    const project = stories.listProjects().find((candidate) => candidate.id === projectId)
+    return project?.checkoutPath ?? process.cwd()
+  }
   const drivers = [
-    claudeCodeDriver(createSdkSessionRunner({ cwd: process.cwd(), live, onEvent: onSessionEvent })),
+    claudeCodeDriver(
+      createSdkSessionRunner({ cwdFor: (order) => cwdForStory(order.storyId), live, onEvent: onSessionEvent }),
+    ),
   ]
   const dispatcher = createDispatcher({
     database: db,
