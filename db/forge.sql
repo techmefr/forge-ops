@@ -117,6 +117,7 @@ CREATE INDEX IF NOT EXISTS idx_story_step_back_story ON story_step_back(story_id
 CREATE TABLE IF NOT EXISTS worktree (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   story_id INTEGER NOT NULL UNIQUE REFERENCES story(id),
+  forge_card_id INTEGER REFERENCES forge_card(id),
   path TEXT NOT NULL UNIQUE,
   branch TEXT NOT NULL UNIQUE,
   base_ref TEXT NOT NULL,

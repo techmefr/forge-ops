@@ -405,7 +405,7 @@ export function startBoardServer({
     createForemergeApi({ foremerge, events }),
   )
   guarded.route('/', createWorktreeApi({ worktrees, events }))
-  guarded.route('/', createForgeCardApi({ forgeCards: createForgeCardRepository(db) }))
+  guarded.route('/', createForgeCardApi({ forgeCards: createForgeCardRepository(db), worktrees }))
   const pilots = createPilotRepository(db, {
     stories,
     openDriver: () => createPlaywrightPilot({ shotDir, headless: !headedPilot }),
