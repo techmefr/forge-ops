@@ -1,7 +1,12 @@
 import type Database from 'better-sqlite3'
 import type { AgentPhase } from '../../../../contract/AgentContract.js'
-import type { ForgeCard, ForgeCardDraft } from '../../../../contract/ForgeCardContract.js'
-import { refusalOfSelection } from './ForgeCard.js'
+import {
+  DEFAULT_FORGE_CARD_PROVIDER,
+  type ForgeCard,
+  type ForgeCardDraft,
+  type ForgeCardProvider,
+} from '../../../../contract/ForgeCardContract.js'
+import { refusalOfProvider, refusalOfSelection } from './ForgeCard.js'
 import {
   DuplicateStoryIdError,
   EmptySelectionError,
@@ -9,11 +14,13 @@ import {
   ForgeStoryNotFoundError,
   StoryAlreadyOnOpenCardError,
   StoryNotInBacklogError,
+  UnknownForgeCardProviderError,
 } from './ForgeCardViolation.js'
 
 type ForgeCardRow = {
   id: number
   reference: string
+  provider: ForgeCardProvider
   claude_session_id: string | null
   current_phase: AgentPhase | null
   created_at: string
@@ -41,7 +48,9 @@ export type ForgeCardRepository = {
 
 export function createForgeCardRepository(db: Database.Database): ForgeCardRepository {
   const countCards = db.prepare<[], { total: number }>('SELECT COUNT(*) AS total FROM forge_card')
-  const insertCard = db.prepare<[string]>('INSERT INTO forge_card (reference) VALUES (?)')
+  const insertCard = db.prepare<[string, ForgeCardProvider]>(
+    'INSERT INTO forge_card (reference, provider) VALUES (?, ?)',
+  )
   const linkStory = db.prepare<[number, number]>(
     'INSERT INTO forge_card_story (forge_card_id, story_id) VALUES (?, ?)',
   )
@@ -57,7 +66,7 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
     WHERE fcs.story_id = ? AND fc.closed_at IS NULL
   `)
   const selectCard = db.prepare<[number], ForgeCardRow>(
-    'SELECT id, reference, claude_session_id, current_phase, created_at, closed_at FROM forge_card WHERE id = ?',
+    'SELECT id, reference, provider, claude_session_id, current_phase, created_at, closed_at FROM forge_card WHERE id = ?',
   )
   const selectStoryIdsOfCard = db.prepare<[number], { story_id: number }>(
     'SELECT story_id FROM forge_card_story WHERE forge_card_id = ? ORDER BY story_id',
@@ -68,6 +77,7 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
       id: row.id,
       reference: row.reference,
       storyIds: selectStoryIdsOfCard.all(row.id).map((link) => link.story_id),
+      provider: row.provider,
       claudeSessionId: row.claude_session_id,
       currentPhase: row.current_phase,
       createdAt: row.created_at,
@@ -92,6 +102,11 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
         }
         throw new DuplicateStoryIdError(refusal.storyId)
       }
+      const provider = draft.provider ?? DEFAULT_FORGE_CARD_PROVIDER
+      const providerRefusal = refusalOfProvider(provider)
+      if (providerRefusal !== null) {
+        throw new UnknownForgeCardProviderError(providerRefusal.provider)
+      }
       for (const storyId of draft.storyIds) {
         const story = selectStory.get(storyId)
         if (story === undefined) {
@@ -107,7 +122,7 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
         }
       }
       const reference = `FORGE-${(countCards.get()?.total ?? 0) + 1}`
-      const info = insertCard.run(reference)
+      const info = insertCard.run(reference, provider)
       const forgeCardId = Number(info.lastInsertRowid)
       for (const storyId of draft.storyIds) {
         linkStory.run(forgeCardId, storyId)

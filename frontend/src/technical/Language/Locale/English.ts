@@ -404,9 +404,6 @@ export const ENGLISH = {
     hint: 'Grouping stays an option: a story can always be pulled out of a session in flight.',
     said: 'A session carries one story, its own worktree and its own merge request. The proof stays attached to the story, never to the session.',
   },
-  driver: {
-    driven: 'driven by {name}',
-  },
   degradation: {
     threadWaitsForTheEnd: 'the thread waits for the end',
     costUnknown: 'cost unknown',

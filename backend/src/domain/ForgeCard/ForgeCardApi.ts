@@ -1,11 +1,13 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { mapApiError } from '../Board/ApiErrorMap.js'
+import { FORGE_CARD_PROVIDERS } from '../../../../contract/ForgeCardContract.js'
 import type { ForgeCardRepository } from './ForgeCardRepository.js'
 import type { WorktreeRepository } from '../Worktree/WorktreeRepository.js'
 
 const draftSchema = z.object({
   storyIds: z.array(z.number().int().positive()),
+  provider: z.enum(FORGE_CARD_PROVIDERS).optional(),
 })
 
 const identifierSchema = z.coerce.number().int().positive()

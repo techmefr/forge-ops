@@ -411,9 +411,6 @@ export const SPANISH: Message = {
     hint: 'El agrupamiento sigue siendo una opción: una historia siempre se puede sacar de una sesión en vuelo.',
     said: 'Una sesión lleva una historia, su propio worktree y su propia solicitud de fusión. La prueba queda unida a la historia, nunca a la sesión.',
   },
-  driver: {
-    driven: 'pilotado por {name}',
-  },
   degradation: {
     threadWaitsForTheEnd: 'el hilo espera al final',
     costUnknown: 'coste desconocido',

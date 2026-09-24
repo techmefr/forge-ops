@@ -73,6 +73,23 @@ describe('POST /api/forge-cards', () => {
     const response = await ask('/api/forge-cards', 'POST', { storyIds: 'pas-un-tableau' })
     expect(response.status).toBe(422)
   })
+
+  it('nait pilotee par claude quand rien n est precise, comme avant le multi-provider', async () => {
+    const response = await ask('/api/forge-cards', 'POST', { storyIds: [storyId] })
+    const card = (await response.json()) as { provider: string }
+    expect(card.provider).toBe('claude')
+  })
+
+  it('retient le provider choisi a Lancer une forge', async () => {
+    const response = await ask('/api/forge-cards', 'POST', { storyIds: [storyId], provider: 'codex' })
+    const card = (await response.json()) as { provider: string }
+    expect(card.provider).toBe('codex')
+  })
+
+  it('refuse un provider inconnu avec un statut 422', async () => {
+    const response = await ask('/api/forge-cards', 'POST', { storyIds: [storyId], provider: 'opencode' })
+    expect(response.status).toBe(422)
+  })
 })
 
 describe('POST /api/forge-cards/:id/worktree', () => {

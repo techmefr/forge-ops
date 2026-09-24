@@ -33,27 +33,6 @@ export function degradationsOf(card: DriverCard): readonly Degradation[] {
   )
 }
 
-export function driverNameOf(columnAgent: string | null): string | null {
-  if (columnAgent === null) {
-    return null
-  }
-  const [driver, agent] = columnAgent.split(':')
-  return agent === undefined || driver === undefined || driver.trim() === '' ? null : driver.trim()
-}
-
-export function agentNameOf(columnAgent: string | null, fallback: string): string {
-  if (columnAgent === null || columnAgent.trim() === '') {
-    return fallback
-  }
-  const parts = columnAgent.split(':')
-  const agent = (parts.length > 1 ? parts.slice(1).join(':') : parts[0]) ?? ''
-  return agent.trim() === '' ? fallback : agent.trim()
-}
-
-export function sheetOfColumn(
-  sheets: readonly DriverSheet[],
-  columnAgent: string | null,
-): DriverSheet | null {
-  const wanted = driverNameOf(columnAgent)
-  return (wanted === null ? sheets[0] : sheets.find((sheet) => sheet.name === wanted)) ?? null
+export function sheetOfProvider(sheets: readonly DriverSheet[], provider: string): DriverSheet | null {
+  return sheets.find((sheet) => sheet.name === provider) ?? null
 }

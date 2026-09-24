@@ -10,6 +10,7 @@ import {
   ForgeStoryNotFoundError,
   StoryAlreadyOnOpenCardError,
   StoryNotInBacklogError,
+  UnknownForgeCardProviderError,
 } from '../../../src/domain/ForgeCard/ForgeCardViolation.js'
 
 let db: Database.Database
@@ -81,6 +82,25 @@ describe('createForgeCard', () => {
     const card = cards.createForgeCard({ storyIds: [firstStoryId] })
     cards.closeForgeCard(card.id)
     expect(() => cards.createForgeCard({ storyIds: [firstStoryId] })).not.toThrow()
+  })
+})
+
+describe('provider de la forge', () => {
+  it('nait pilotee par claude quand rien n est precise, comme avant le multi-provider', () => {
+    const card = cards.createForgeCard({ storyIds: [firstStoryId] })
+    expect(card.provider).toBe('claude')
+  })
+
+  it('retient le provider choisi une seule fois a la creation', () => {
+    const card = cards.createForgeCard({ storyIds: [firstStoryId], provider: 'codex' })
+    expect(card.provider).toBe('codex')
+    expect(cards.findForgeCard(card.id).provider).toBe('codex')
+  })
+
+  it('refuse un provider que personne ne reconnait', () => {
+    expect(() =>
+      cards.createForgeCard({ storyIds: [firstStoryId], provider: 'gpt5' as never }),
+    ).toThrow(UnknownForgeCardProviderError)
   })
 })
 

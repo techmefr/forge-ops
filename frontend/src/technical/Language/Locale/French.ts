@@ -409,9 +409,6 @@ export const FRENCH: Message = {
     hint: 'Le groupage reste une option : une story peut toujours être sortie d\'une session en vol.',
     said: 'Une session porte une story, son propre worktree et sa propre demande de fusion. La preuve reste attachée à la story, jamais à la session.',
   },
-  driver: {
-    driven: 'piloté par {name}',
-  },
   degradation: {
     threadWaitsForTheEnd: 'le fil attend la fin',
     costUnknown: 'coût inconnu',

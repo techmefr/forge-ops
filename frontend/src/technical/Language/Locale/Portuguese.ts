@@ -410,9 +410,6 @@ export const PORTUGUESE: Message = {
     hint: 'O agrupamento continua uma opção: uma história pode sempre ser retirada de uma sessão em voo.',
     said: 'Uma sessão leva uma história, o seu worktree e o seu pedido de merge. A prova fica presa à história, nunca à sessão.',
   },
-  driver: {
-    driven: 'pilotado por {name}',
-  },
   degradation: {
     threadWaitsForTheEnd: 'o fio espera pelo fim',
     costUnknown: 'custo desconhecido',
