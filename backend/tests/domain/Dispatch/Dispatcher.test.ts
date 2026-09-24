@@ -1,4 +1,5 @@
 import { createForemergeRepository } from '../../../src/domain/Foremerge/ForemergeRepository.js'
+import { createForgeCardRepository, type ForgeCardRepository } from '../../../src/domain/ForgeCard/ForgeCardRepository.js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type Database from 'better-sqlite3'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
@@ -209,6 +210,101 @@ describe('dispatch', () => {
 
     await expect(failing.dispatch({ storyId, phase: 'spec' })).rejects.toThrow('daemon absent')
     expect(failing.countRunning()).toBe(0)
+  })
+})
+
+describe('dispatch avec une forge card', () => {
+  let cards: ForgeCardRepository
+
+  function buildDispatcherWithCards(): Dispatcher {
+    return createDispatcher({
+      database: db,
+      stories,
+      checkpoints: createCheckpointRepository(db, {
+        ...PERMISSIVE_CHECKPOINT_GATES,
+        takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
+      }),
+      criteria: createCriterionRepository(db),
+      sessions,
+      budget: createBudgetRepository(db),
+      foremerge: createForemergeRepository(db, { stories }),
+      runner: fakeRunner(),
+      concurrencyCap: 3,
+      claudeCodeVersion: '2.1.224',
+      forgeCards: cards,
+    })
+  }
+
+  beforeEach(() => {
+    cards = createForgeCardRepository(db)
+  })
+
+  it('nomme la reference de la carte et les stories qu elle porte', async () => {
+    const second = writeReadyStory('creer un mail')
+    stories.sendToBacklog(storyId)
+    stories.sendToBacklog(second)
+    const card = cards.createForgeCard({ storyIds: [storyId, second] })
+    const withCards = buildDispatcherWithCards()
+
+    await withCards.dispatch({ storyId, phase: 'spec' })
+
+    const storyReference = stories.findStory(storyId).reference
+    const secondReference = stories.findStory(second).reference
+    expect(launched.at(-1)).toMatchObject({
+      reference: `${card.reference} (${storyReference}, ${secondReference})`,
+      forgeCardId: card.id,
+    })
+  })
+
+  it('ne demande pas de reprise lors du tout premier lancement de la carte', async () => {
+    stories.sendToBacklog(storyId)
+    cards.createForgeCard({ storyIds: [storyId] })
+    const withCards = buildDispatcherWithCards()
+
+    await withCards.dispatch({ storyId, phase: 'spec' })
+
+    expect(launched.at(-1)?.resumeSessionId).toBeUndefined()
+  })
+
+  it('reprend la session claude enregistree sur la carte au tour suivant', async () => {
+    stories.sendToBacklog(storyId)
+    const card = cards.createForgeCard({ storyIds: [storyId] })
+    const withCards = buildDispatcherWithCards()
+
+    const first = await withCards.dispatch({ storyId, phase: 'spec' })
+    sessions.updateLifecycle(first.claudeSessionId, 'finished')
+
+    const second = await withCards.dispatch({ storyId, phase: 'spec' })
+
+    expect(launched.at(-1)?.resumeSessionId).toBe(first.claudeSessionId)
+    expect(cards.findForgeCard(card.id)).toMatchObject({
+      claudeSessionId: second.claudeSessionId,
+      currentPhase: 'spec',
+    })
+  })
+
+  it('bloque un dispatch sur une story soeur portee par la meme carte ouverte', async () => {
+    const second = writeReadyStory('creer un mail')
+    stories.sendToBacklog(storyId)
+    stories.sendToBacklog(second)
+    cards.createForgeCard({ storyIds: [storyId, second] })
+    const withCards = buildDispatcherWithCards()
+
+    await withCards.dispatch({ storyId, phase: 'spec' })
+
+    await expect(withCards.dispatch({ storyId: second, phase: 'spec' })).rejects.toThrow(
+      SessionAlreadyRunningError,
+    )
+  })
+
+  it('garde le comportement par story quand aucune carte ne porte encore la story', async () => {
+    const withCards = buildDispatcherWithCards()
+
+    const dispatched = await withCards.dispatch({ storyId, phase: 'spec' })
+
+    expect(dispatched).toMatchObject({ phase: 'spec', storyId })
+    expect(launched.at(-1)).toMatchObject({ reference: stories.findStory(storyId).reference })
+    expect(launched.at(-1)?.forgeCardId).toBeUndefined()
   })
 })
 
