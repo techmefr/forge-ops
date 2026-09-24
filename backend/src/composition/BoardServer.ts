@@ -25,6 +25,8 @@ import { createIdentityRepository } from '../domain/Identity/IdentityRepository.
 import { createIdentityApi } from '../domain/Identity/IdentityApi.js'
 import { createWorktreeRepository } from '../domain/Worktree/WorktreeRepository.js'
 import { createWorktreeApi } from '../domain/Worktree/WorktreeApi.js'
+import { createForgeCardRepository } from '../domain/ForgeCard/ForgeCardRepository.js'
+import { createForgeCardApi } from '../domain/ForgeCard/ForgeCardApi.js'
 import { cleanUpAfterMerge } from '../domain/Deployment/MergeCleanup.js'
 import { createGitWorktree } from '../technical/Git/GitWorktree.js'
 import { createForemergeRepository } from '../domain/Foremerge/ForemergeRepository.js'
@@ -392,6 +394,7 @@ export function startBoardServer({
     createForemergeApi({ foremerge, events }),
   )
   guarded.route('/', createWorktreeApi({ worktrees, events }))
+  guarded.route('/', createForgeCardApi({ forgeCards: createForgeCardRepository(db) }))
   const pilots = createPilotRepository(db, {
     stories,
     openDriver: () => createPlaywrightPilot({ shotDir, headless: !headedPilot }),
