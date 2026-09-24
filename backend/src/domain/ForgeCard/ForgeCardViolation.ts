@@ -34,3 +34,9 @@ export class StoryAlreadyOnOpenCardError extends ForgeCardViolationError {
     super(`La story ${reference} est deja portee par la forge ${forgeCardReference}`, 'StoryAlreadyOnOpenCardError')
   }
 }
+
+export class ForgeCardNotFoundError extends ForgeCardViolationError {
+  constructor(forgeCardId: number) {
+    super(`Forge ${forgeCardId} introuvable`, 'ForgeCardNotFoundError')
+  }
+}

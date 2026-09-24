@@ -89,6 +89,17 @@ describe('open', () => {
     )
   })
 
+  it('has no forge card by default', () => {
+    expect(worktrees.open({ storyId: first, baseRef: 'forge' }).forgeCardId).toBeNull()
+  })
+
+  it('records the forge card it was opened for', () => {
+    const forgeCardId = Number(
+      db.prepare("INSERT INTO forge_card (reference) VALUES ('FORGE-1')").run().lastInsertRowid,
+    )
+    expect(worktrees.open({ storyId: first, baseRef: 'forge', forgeCardId }).forgeCardId).toBe(forgeCardId)
+  })
+
   it('actually asks git to create it', () => {
     worktrees.open({ storyId: first, baseRef: 'forge' })
 

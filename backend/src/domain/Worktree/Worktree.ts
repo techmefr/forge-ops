@@ -3,6 +3,7 @@ export type { Worktree } from '../../../../contract/WorkspaceContract.js'
 export type WorktreeOrder = {
   storyId: number
   baseRef: string
+  forgeCardId?: number
 }
 
 export type WorktreeAddition = {
