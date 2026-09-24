@@ -32,6 +32,7 @@ export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunn
           settingSources: [...forgeSettingSources],
           permissionMode: 'default',
           ...(order.model === undefined ? {} : { model: order.model }),
+          ...(order.resumeSessionId === undefined ? {} : { resume: order.resumeSessionId }),
           env: {
             ...process.env,
             FORGE_STORY_REFERENCE: order.reference,

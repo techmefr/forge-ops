@@ -12,6 +12,8 @@ import { collisionsBetween } from '../Foremerge/Scope.js'
 import type { Story } from '../Story/Story.js'
 import type { WorkflowRepository } from '../Workflow/WorkflowRepository.js'
 import { createWorkflowRepository } from '../Workflow/WorkflowRepository.js'
+import type { ForgeCardRepository } from '../ForgeCard/ForgeCardRepository.js'
+import { createForgeCardRepository } from '../ForgeCard/ForgeCardRepository.js'
 import {
   contractOfPhase,
   type Dispatched,
@@ -49,6 +51,7 @@ export type DispatcherInput = {
   rate?: DispatchRate
   clock?: Clock
   workflow?: WorkflowRepository
+  forgeCards?: ForgeCardRepository
 }
 
 export type Dispatcher = {
@@ -96,6 +99,7 @@ export function createDispatcher({
   rate = DEFAULT_DISPATCH_RATE,
   clock = Date.now,
   workflow = createWorkflowRepository(database),
+  forgeCards = createForgeCardRepository(database),
 }: DispatcherInput): Dispatcher {
   const bucket = createRateBucket(rate)
   const placeholders = RUNNING_LIFECYCLES.map(() => '?').join(', ')
@@ -164,7 +168,13 @@ export function createDispatcher({
         throw new PhaseNotReadyError(order.phase, missing)
       }
 
-      if ((countRunningOnStory.get(order.storyId, ...RUNNING_LIFECYCLES)?.total ?? 0) > 0) {
+      const forgeCard = forgeCards.openCardOfStory(order.storyId)
+      const cardStoryIds = forgeCard === null ? [order.storyId] : forgeCard.storyIds
+      const runningOnCard = cardStoryIds.reduce(
+        (total, cardStoryId) => total + (countRunningOnStory.get(cardStoryId, ...RUNNING_LIFECYCLES)?.total ?? 0),
+        0,
+      )
+      if (runningOnCard > 0) {
         throw new SessionAlreadyRunningError(story.reference, order.phase)
       }
 
@@ -195,15 +205,23 @@ export function createDispatcher({
         throw new BudgetExhaustedError(decision.spentUsd, decision.capUsd)
       }
 
+      const reference =
+        forgeCard === null
+          ? story.reference
+          : `${forgeCard.reference} (${forgeCard.storyIds.map((cardStoryId) => stories.findStory(cardStoryId).reference).join(', ')})`
+      const resumeSessionId = forgeCard?.claudeSessionId ?? undefined
+
       const prompt = promptFor(story, contract, order.lens, configured?.preprompt ?? '')
       const { claudeSessionId } = await runner.launch({
         storyId: order.storyId,
-        reference: story.reference,
+        reference,
         phase: order.phase,
         agentName,
         prompt,
         ...(decision.model === undefined ? {} : { model: decision.model }),
         ...(decision.baseUrl === undefined ? {} : { baseUrl: decision.baseUrl }),
+        ...(forgeCard === null ? {} : { forgeCardId: forgeCard.id }),
+        ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
       })
 
       sessions.registerSession({
@@ -213,6 +231,10 @@ export function createDispatcher({
         agentName,
         claudeCodeVersion,
       })
+
+      if (forgeCard !== null) {
+        forgeCards.recordDispatch(forgeCard.id, { claudeSessionId, phase: order.phase })
+      }
 
       if (order.lens !== undefined) {
         checkpoints.startLens(order.storyId, order.lens, claudeSessionId)
