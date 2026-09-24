@@ -59,6 +59,9 @@ import { createOrganisationApi } from '../domain/Organisation/OrganisationApi.js
 import { createBatchRepository } from '../domain/Delivery/BatchRepository.js'
 import { createBatchApi } from '../domain/Delivery/BatchApi.js'
 import { columnAgentOfPhase, createDrivenRunner } from '../domain/Driver/Driver.js'
+import { DEFAULT_FORGE_CARD_PROVIDER } from '../../../contract/ForgeCardContract.js'
+import { createCodexSessionRunner } from '../technical/Codex/CodexSessionRunner.js'
+import { codexDriver } from './CodexDriver.js'
 import { createDriverApi } from '../domain/Driver/DriverApi.js'
 import { claudeCodeDriver } from './ClaudeCodeDriver.js'
 import type { SdkUserTurn } from '../technical/ClaudeCode/TurnDelivery.js'
@@ -225,6 +228,7 @@ export function startBoardServer({
   const templates = createTemplateRepository(db)
   const outbox = createOutboxRepository(db)
   const organisations = createOrganisationRepository(db)
+  const forgeCards = createForgeCardRepository(db)
   function cwdForStory(storyId: number): string {
     const worktree = worktrees.findForStory(storyId)
     if (worktree !== null) {
@@ -238,6 +242,9 @@ export function startBoardServer({
     claudeCodeDriver(
       createSdkSessionRunner({ cwdFor: (order) => cwdForStory(order.storyId), live, onEvent: onSessionEvent }),
     ),
+    codexDriver(
+      createCodexSessionRunner({ cwdFor: (order) => cwdForStory(order.storyId), onEvent: onSessionEvent }),
+    ),
   ]
   const dispatcher = createDispatcher({
     database: db,
@@ -248,8 +255,13 @@ export function startBoardServer({
     budget,
     foremerge,
     workflow,
+    forgeCards,
     runner: createDrivenRunner({
       drivers,
+      providerOf: (order) =>
+        order.forgeCardId === undefined
+          ? DEFAULT_FORGE_CARD_PROVIDER
+          : forgeCards.findForgeCard(order.forgeCardId).provider,
       columnAgentOf: (order) =>
         columnAgentOfPhase(templates.templateOfProject(stories.projectOfStory(order.storyId)).columns, order.phase),
     }),
@@ -405,7 +417,7 @@ export function startBoardServer({
     createForemergeApi({ foremerge, events }),
   )
   guarded.route('/', createWorktreeApi({ worktrees, events }))
-  guarded.route('/', createForgeCardApi({ forgeCards: createForgeCardRepository(db), worktrees }))
+  guarded.route('/', createForgeCardApi({ forgeCards, worktrees }))
   const pilots = createPilotRepository(db, {
     stories,
     openDriver: () => createPlaywrightPilot({ shotDir, headless: !headedPilot }),

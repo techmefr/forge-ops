@@ -22,6 +22,7 @@ const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'agent_session', column: 'context_window', declaration: 'INTEGER' },
   { table: 'story', column: 'blocked_reason', declaration: 'TEXT' },
   { table: 'worktree', column: 'forge_card_id', declaration: 'INTEGER' },
+  { table: 'forge_card', column: 'provider', declaration: "TEXT NOT NULL DEFAULT 'claude'" },
 ]
 
 const CHECKED_TABLES: readonly string[] = [

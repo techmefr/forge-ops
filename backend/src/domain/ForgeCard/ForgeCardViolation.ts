@@ -40,3 +40,9 @@ export class ForgeCardNotFoundError extends ForgeCardViolationError {
     super(`Forge ${forgeCardId} introuvable`, 'ForgeCardNotFoundError')
   }
 }
+
+export class UnknownForgeCardProviderError extends ForgeCardViolationError {
+  constructor(provider: string) {
+    super(`Le provider ${provider} n est pas reconnu`, 'UnknownForgeCardProviderError')
+  }
+}

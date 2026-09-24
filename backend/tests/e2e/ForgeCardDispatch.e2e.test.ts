@@ -161,6 +161,8 @@ function bootBoard(repositoryRoot: string, worktreeRoot: string): Board {
     foremerge,
     runner: createDrivenRunner({
       drivers,
+      providerOf: (order) =>
+        order.forgeCardId === undefined ? 'claude' : forgeCards.findForgeCard(order.forgeCardId).provider,
       columnAgentOf: (order) =>
         columnAgentOfPhase(templates.templateOfProject(stories.projectOfStory(order.storyId)).columns, order.phase),
     }),
