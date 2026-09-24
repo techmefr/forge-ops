@@ -53,10 +53,24 @@ No standalone `UNIQUE` on `story_id`: a story that came back to the backlog beca
 Run: `cd backend && npx vitest run tests/technical/Database/Migration.test.ts`
 Expected: PASS (this exercises `openDatabase`, which execs the full `forge.sql` - confirms no SQL syntax error)
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 3: Place the new tables on the instance side**
+
+`backend/tests/domain/Boundary/Boundary.test.ts` requires every table declared in `db/forge.sql` to be listed in either `SERVER_HELD` or `INSTANCE_HELD` (`contract/BoundaryContract.ts`). A forge card is the running work session - worktree, conversation - so it's instance-held, next to `worktree` and `agent_session`. Add both new tables there:
+
+```typescript
+  'worktree',
+  'forge_card',
+  'forge_card_story',
+  'port_reservation',
+```
+
+Run: `npx vitest run backend/tests/domain/Boundary/`
+Expected: PASS (12 tests)
+
+- [ ] **Step 4: Commit**
 
 ```bash
-git add db/forge.sql
+git add db/forge.sql contract/BoundaryContract.ts
 git commit -m "feat(schema): add forge_card and forge_card_story tables"
 ```
 
