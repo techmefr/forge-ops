@@ -92,4 +92,6 @@ export type LaunchOrder = {
   prompt: string
   model?: string
   baseUrl?: string
+  forgeCardId?: number
+  resumeSessionId?: string
 }

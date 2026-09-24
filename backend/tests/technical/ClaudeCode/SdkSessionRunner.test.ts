@@ -206,6 +206,52 @@ describe('createSdkSessionRunner', () => {
     expect(seen.at(-1)?.payload.contextTokens).toBeUndefined()
   })
 
+  it('resumes the claude agent sdk session when the order carries one to continue', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    const runner = createSdkSessionRunner({
+      cwdFor: () => '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: () => undefined,
+    })
+
+    await runner.launch({ ...ORDER, resumeSessionId: 'sess-old' })
+
+    expect(queried).toHaveBeenCalledWith(
+      expect.objectContaining({ options: expect.objectContaining({ resume: 'sess-old' }) }),
+    )
+  })
+
+  it('opens a bare session when the order carries no session to continue', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    const runner = createSdkSessionRunner({
+      cwdFor: () => '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: () => undefined,
+    })
+
+    await runner.launch(ORDER)
+
+    const call = queried.mock.calls[0]?.[0] as { options: Record<string, unknown> }
+    expect(call.options.resume).toBeUndefined()
+  })
+
+  it('still applies the turn model even while resuming a session', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    const runner = createSdkSessionRunner({
+      cwdFor: () => '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: () => undefined,
+    })
+
+    await runner.launch({ ...ORDER, resumeSessionId: 'sess-old', model: 'claude-haiku-4-5' })
+
+    expect(queried).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({ resume: 'sess-old', model: 'claude-haiku-4-5' }),
+      }),
+    )
+  })
+
   it('refuses a conversation that never announced an identifier', async () => {
     queried.mockReturnValue(conversationOf([{ type: 'system' }]))
     const runner = createSdkSessionRunner({
