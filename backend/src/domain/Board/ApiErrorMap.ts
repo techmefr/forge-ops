@@ -13,6 +13,7 @@ import { EvidencePathRefusedError } from '../Evidence/EvidencePath.js'
 import { EvidenceShapeRefusedError } from '../Evidence/EvidenceShape.js'
 import { EvidenceUnreadableError } from '../Evidence/EvidenceRead.js'
 import { BudgetViolationError } from '../Budget/BudgetViolation.js'
+import { ForgeCardViolationError } from '../ForgeCard/ForgeCardViolation.js'
 
 export const mapApiError: ErrorHandler = (error, context) => {
   if (error instanceof StoryNotFoundError || error instanceof EpicNotFoundError) {
@@ -35,6 +36,7 @@ export const mapApiError: ErrorHandler = (error, context) => {
     error instanceof CriterionViolationError ||
     error instanceof DispatchViolationError ||
     error instanceof BudgetViolationError ||
+    error instanceof ForgeCardViolationError ||
     error instanceof EvidencePathRefusedError ||
     error instanceof EvidenceShapeRefusedError ||
     error instanceof EvidenceUnreadableError
