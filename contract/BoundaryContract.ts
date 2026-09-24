@@ -32,6 +32,8 @@ export const INSTANCE_HELD: readonly string[] = [
   'workflow_column',
   'scope_reservation',
   'worktree',
+  'forge_card',
+  'forge_card_story',
   'port_reservation',
   'file_touch',
   'checkpoint',
