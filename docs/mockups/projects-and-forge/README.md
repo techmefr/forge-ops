@@ -20,16 +20,17 @@ A clickable mockup of the Projects screen and My forge, built from the analysis 
 
 | Issue | Scope | Depends on |
 |---|---|---|
+| #195 | Super admin flag, bootstrapped from the deployment configuration (priority) | — |
 | #186 | Epic data: priority, dates, status note, tags, links, dependencies, state history | — |
-| #191 | Settings: projects (admin, links), tags, users (capacity) | #186 |
+| #191 | Settings: projects (admin, links), tags, users (capacity) | #195, #186 |
 | #187 | Projects › Subjects: people on the left, load chip, late and blocked, take and release | #186, #191 |
 | #188 | Create and edit subjects and projects in place | #186, #187 |
 | #189 | Projects › Roadmap: grouped by project, events and minutes | #186 |
 | #190 | Project weather and follow-up: risks, decisions, minutes | #186, #189 |
-| #192 | Per-project workflow set by the admin: provider, model, effort, agent, skill, base prompt | #185, #191 |
+| #192 | Per-project workflow set by the admin: provider, model, effort, agent, skill, base prompt | #195, #185, #191 |
 | #193 | My forge: Kanban or Pipeline, the card is the conversation, resources always visible | #192 |
 
-Build order: #186, #191, then #187 / #189 / #192 in parallel, then #188, #190, #193. One PR per issue, on main.
+Build order: #195 first (priority), then #186, #191, then #187 / #189 / #192 in parallel, then #188, #190, #193. One PR per issue, on main.
 
 ## Rules for every issue
 
