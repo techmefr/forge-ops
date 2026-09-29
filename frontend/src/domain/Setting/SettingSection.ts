@@ -4,7 +4,7 @@ export const SETTING_EFFECTS = ['immediate', 'restart'] as const
 
 export type SettingEffect = (typeof SETTING_EFFECTS)[number]
 
-export const SETTING_HALVES = ['mine', 'organisation'] as const
+export const SETTING_HALVES = ['mine', 'team', 'organisation'] as const
 
 export type SettingHalf = (typeof SETTING_HALVES)[number]
 
@@ -17,6 +17,9 @@ export type SettingSection = {
 export const SETTING_SECTIONS: readonly SettingSection[] = [
   { key: 'appearance', half: 'mine', effect: 'immediate' },
   { key: 'account', half: 'mine', effect: 'immediate' },
+  { key: 'projects', half: 'team', effect: 'immediate' },
+  { key: 'tags', half: 'team', effect: 'immediate' },
+  { key: 'users', half: 'team', effect: 'immediate' },
   { key: 'templates', half: 'organisation', effect: 'immediate' },
   { key: 'workflow', half: 'organisation', effect: 'immediate' },
   { key: 'budget', half: 'organisation', effect: 'immediate' },

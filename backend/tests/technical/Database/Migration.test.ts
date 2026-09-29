@@ -464,3 +464,61 @@ describe('opening a base written before the roadmap events', () => {
     db.close()
   })
 })
+
+const OLD_PROJECT = `CREATE TABLE project (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  repository_url TEXT NOT NULL,
+  integration_branch TEXT NOT NULL,
+  colour TEXT NOT NULL,
+  checkout_path TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+)`
+
+const INSERT_PROJECT =
+  "INSERT INTO project (slug, name, repository_url, integration_branch, colour) VALUES (?, ?, 'u', 'main', '#ffffff')"
+
+describe('opening a base written before the project admin, position and user capacity', () => {
+  it('adds the columns, keeps the rows and orders the projects by name', () => {
+    const older = new Database(path)
+    older.exec(OLD_BOARD_USER)
+    older.exec(OLD_PROJECT)
+    const insert = older.prepare(INSERT_PROJECT)
+    insert.run('zeta', 'Zeta')
+    insert.run('alpha', 'Alpha')
+    older.close()
+
+    const db = openDatabase(path)
+
+    expect(columnsOf(db, 'project')).toEqual(expect.arrayContaining(['admin_user_id', 'position']))
+    expect(columnsOf(db, 'board_user')).toContain('capacity')
+    expect(
+      db
+        .prepare<[], { name: string; position: number; admin_user_id: number | null }>(
+          'SELECT name, position, admin_user_id FROM project ORDER BY position',
+        )
+        .all(),
+    ).toEqual([
+      { name: 'Alpha', position: 0, admin_user_id: null },
+      { name: 'Zeta', position: 1, admin_user_id: null },
+    ])
+    db.close()
+  })
+
+  it('does not renumber the projects on the next opening', () => {
+    const older = new Database(path)
+    older.exec(OLD_BOARD_USER)
+    older.exec(OLD_PROJECT)
+    older.prepare(INSERT_PROJECT).run('a', 'Alpha')
+    older.close()
+    const first = openDatabase(path)
+    first.prepare('UPDATE project SET position = 7').run()
+    first.close()
+
+    const second = openDatabase(path)
+
+    expect(second.prepare<[], { position: number }>('SELECT position FROM project').get()?.position).toBe(7)
+    second.close()
+  })
+})

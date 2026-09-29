@@ -7,6 +7,8 @@ export type BoardUser = {
   role: UserRole
   email: string | null
   superAdmin: boolean
+  active: boolean
+  capacity: number | null
 }
 
 export type SuperAdminSeed = {

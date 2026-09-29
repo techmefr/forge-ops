@@ -33,6 +33,10 @@ describe('les sections de reglages', () => {
     ])
   })
 
+  it('rangent les projets, les etiquettes et les utilisateurs dans la moitie equipe', () => {
+    expect(sectionsOf('team').map((section) => section.key)).toEqual(['projects', 'tags', 'users'])
+  })
+
   it('donnent l effet d une section connue, et rien d une section inconnue', () => {
     expect(effectOf('appearance')).toBe('immediate')
     expect(effectOf('nawak')).toBeNull()

@@ -21,6 +21,7 @@ import { createBudgetApi } from '../Budget/BudgetApi.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
 import { createEpicApi } from '../Epic/EpicApi.js'
 import { createEventApi } from '../Event/EventApi.js'
+import { createProjectApi } from '../Project/ProjectApi.js'
 import { createStoryApi } from '../Story/StoryApi.js'
 import { createHumanGateApi } from '../Story/HumanGateApi.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
@@ -176,6 +177,7 @@ export function createBoardApi({
 
   api.route('/', createEpicApi({ epics: repository.epics, events, today }))
   api.route('/', createEventApi({ agenda: repository.agenda, events }))
+  api.route('/', createProjectApi({ projects: repository.projects, events, isSuperAdmin }))
 
   api.route(
     '/',

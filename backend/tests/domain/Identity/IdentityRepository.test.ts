@@ -44,6 +44,8 @@ describe('enrolUser', () => {
       role: 'director',
       email: null,
       superAdmin: false,
+      active: true,
+      capacity: null,
     })
   })
 

@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS project (
   integration_branch TEXT NOT NULL,
   colour TEXT NOT NULL,
   checkout_path TEXT,
+  admin_user_id INTEGER REFERENCES board_user(id),
+  position INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -287,6 +289,7 @@ CREATE TABLE IF NOT EXISTS board_user (
   external_subject TEXT UNIQUE,
   email TEXT,
   super_admin INTEGER NOT NULL DEFAULT 0 CHECK (super_admin IN (0, 1)),
+  capacity INTEGER CHECK (capacity IS NULL OR capacity >= 1),
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   disabled_at TEXT
 );
