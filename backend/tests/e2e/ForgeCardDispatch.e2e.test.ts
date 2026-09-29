@@ -43,6 +43,7 @@ const { createGitWorktree } = await import('../../src/technical/Git/GitWorktree.
 const { createDiscussionRepository } = await import('../../src/domain/Discussion/DiscussionRepository.js')
 const { createEventBus } = await import('../../src/technical/Http/EventBus.js')
 const { createConversationApi } = await import('../../src/domain/Conversation/ConversationApi.js')
+const { createMessageRepository } = await import('../../src/domain/Conversation/MessageRepository.js')
 const { createSdkSessionTalker } = await import('../../src/technical/ClaudeCode/SdkSessionRunner.js')
 const { recordUsageFromEvent } = await import('../../src/technical/ClaudeCode/UsageRecorder.js')
 const { recordLifecycleFromEvent } = await import('../../src/technical/ClaudeCode/LifecycleRecorder.js')
@@ -179,6 +180,7 @@ function bootBoard(repositoryRoot: string, worktreeRoot: string): Board {
     discussion,
     checkpoints,
     templates,
+    messages: createMessageRepository(db),
   })
 
   const project = stories.createProject({

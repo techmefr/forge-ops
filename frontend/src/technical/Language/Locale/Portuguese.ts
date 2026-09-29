@@ -703,6 +703,7 @@ export const PORTUGUESE: Message = {
   threadEntry: {
     testimony: 'Dito',
     proof: 'Prova',
+    message: 'Mensagem',
   },
   thread: {
     empty: 'Ainda nada foi dito sobre este cartão.',

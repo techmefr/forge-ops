@@ -11,6 +11,7 @@ import { openingOf, threadOf, validationRefusalOf, voiceOf } from './Thread.js'
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
 import type { DiscussionRepository } from '../Discussion/DiscussionRepository.js'
 import type { TemplateRepository } from '../Template/TemplateRepository.js'
+import type { MessageRepository } from './MessageRepository.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -26,6 +27,7 @@ export type ConversationApiInput = {
   discussion: DiscussionRepository
   checkpoints: CheckpointRepository
   templates: TemplateRepository
+  messages: MessageRepository
 }
 
 export function createConversationApi({
@@ -36,6 +38,7 @@ export function createConversationApi({
   discussion,
   checkpoints,
   templates,
+  messages,
 }: ConversationApiInput): Hono {
   const api = new Hono()
 
@@ -67,6 +70,13 @@ export function createConversationApi({
     if (!talker.isLive(session.claudeSessionId)) {
       return context.json({ error: 'ConversationClosed', reference: story.reference }, 409)
     }
+    messages.record({
+      storyId: story.id,
+      claudeSessionId: session.claudeSessionId,
+      voice: 'human',
+      author: operatorOf(context),
+      body: turn.data.message,
+    })
     events.publish({
       name: 'session.human',
       payload: {
@@ -121,6 +131,7 @@ export function createConversationApi({
           sessions: sessions.listSessionsOf(story.id),
           remarks: discussion.listRemarks(story.id),
           proofs: checkpoints.listProofs(story.id),
+          messages: messages.listOfStory(story.id),
         },
         openingOf(templates.templateOfProject(stories.projectOfStory(story.id)).columns, story),
       ),

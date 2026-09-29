@@ -31,10 +31,18 @@ export type ThreadProof = {
   evidencePath: string
 }
 
+export type ThreadMessage = {
+  voice: ThreadVoice
+  author: string
+  body: string
+  writtenAt: string
+}
+
 export type ThreadBody = {
   sessions: readonly ThreadSession[]
   remarks: readonly StoryRemark[]
   proofs: readonly ThreadProof[]
+  messages?: readonly ThreadMessage[]
 }
 
 const WRITING_PHASE = 'spec'
@@ -76,6 +84,17 @@ function testimonyOf(remark: StoryRemark): ThreadEntry {
   }
 }
 
+function messageEntryOf(message: ThreadMessage): ThreadEntry {
+  return {
+    kind: 'message',
+    at: message.writtenAt,
+    author: message.author,
+    voice: message.voice,
+    body: message.body,
+    evidencePath: null,
+  }
+}
+
 function proofEntryOf(proof: ThreadProof): ThreadEntry {
   return {
     kind: 'proof',
@@ -97,7 +116,7 @@ function chapterOf(chapters: readonly ThreadChapter[], at: string): number {
   return index
 }
 
-export function chaptersOf({ sessions, remarks, proofs }: ThreadBody): readonly ThreadChapter[] {
+export function chaptersOf({ sessions, remarks, proofs, messages = [] }: ThreadBody): readonly ThreadChapter[] {
   const ordered = [...sessions].sort((left, right) => left.startedAt.localeCompare(right.startedAt))
   const shells: ThreadChapter[] = [
     {
@@ -118,7 +137,7 @@ export function chaptersOf({ sessions, remarks, proofs }: ThreadBody): readonly 
     })),
   ]
   const filed: ThreadEntry[][] = shells.map(() => [])
-  const entries = [...remarks.map(testimonyOf), ...proofs.map(proofEntryOf)].sort((left, right) =>
+  const entries = [...remarks.map(testimonyOf), ...proofs.map(proofEntryOf), ...messages.map(messageEntryOf)].sort((left, right) =>
     left.at.localeCompare(right.at),
   )
   entries.forEach((entry) => {

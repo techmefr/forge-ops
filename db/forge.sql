@@ -398,6 +398,18 @@ CREATE TABLE IF NOT EXISTS story_remark (
 
 CREATE INDEX IF NOT EXISTS idx_story_remark_story ON story_remark(story_id, id);
 
+CREATE TABLE IF NOT EXISTS story_message (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  claude_session_id TEXT NOT NULL,
+  voice TEXT NOT NULL CHECK (voice IN ('human', 'agent')),
+  author TEXT NOT NULL,
+  body TEXT NOT NULL,
+  written_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_story_message_story ON story_message(story_id, id);
+
 CREATE TABLE IF NOT EXISTS story_hold (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   story_id INTEGER NOT NULL REFERENCES story(id),

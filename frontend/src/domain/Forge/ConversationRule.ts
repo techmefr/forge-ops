@@ -36,6 +36,16 @@ export function itemsOfThread(thread: StoryThread): readonly ThreadItem[] {
   ])
 }
 
+export function withoutPersisted(
+  live: readonly ThreadItem[],
+  history: readonly ThreadItem[],
+): readonly ThreadItem[] {
+  const saved = new Set(
+    history.flatMap((item) => (item.kind === 'message' ? [`${item.voice}|${item.body.trim()}`] : [])),
+  )
+  return live.filter((item) => item.kind !== 'message' || !saved.has(`${item.voice}|${item.body.trim()}`))
+}
+
 export function concernsStory(eventReference: unknown, storyReference: string): boolean {
   if (typeof eventReference !== 'string') {
     return false

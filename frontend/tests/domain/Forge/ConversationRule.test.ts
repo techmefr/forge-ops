@@ -6,6 +6,7 @@ import {
   itemsOfThread,
   replyRouteOf,
   submitsOn,
+  withoutPersisted,
   type ThreadItem,
 } from '@/domain/Forge/ConversationRule'
 
@@ -118,5 +119,22 @@ describe('the reply box', () => {
     expect(submitsOn('Enter', true, false)).toBe(false)
     expect(submitsOn('Enter', false, true)).toBe(false)
     expect(submitsOn('a', false, false)).toBe(false)
+  })
+})
+
+describe('withoutPersisted', () => {
+  const saved: ThreadItem = { kind: 'message', id: 'a', voice: 'agent', author: 'architect', body: 'Done reading', at: '2026-09-29 10:00:00', proof: false, evidencePath: null }
+  const echoed: ThreadItem = { ...saved, id: 'live-1', at: null, body: ' Done reading ' }
+  const fresh: ThreadItem = { ...saved, id: 'live-2', at: null, body: 'Next question' }
+  const tool: ThreadItem = { kind: 'tool', id: 't1', name: 'Read', outcome: 'ok' }
+
+  it('drops the live lines the board already saved and keeps the rest', () => {
+    expect(withoutPersisted([echoed, fresh, tool], [saved])).toEqual([fresh, tool])
+  })
+
+  it('does not merge a human line with an agent line of the same words', () => {
+    const human: ThreadItem = { ...echoed, voice: 'human' }
+
+    expect(withoutPersisted([human], [saved])).toEqual([human])
   })
 })

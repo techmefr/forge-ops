@@ -5,6 +5,7 @@ import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { createStoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import { createConversationApi } from '../../../src/domain/Conversation/ConversationApi.js'
+import { createMessageRepository } from '../../../src/domain/Conversation/MessageRepository.js'
 import { framedTurn, type SpokenTurn } from '../../../src/domain/Conversation/Conversation.js'
 import { createEventBus } from '../../../src/technical/Http/EventBus.js'
 import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
@@ -49,7 +50,7 @@ beforeAll(() => {
 
 afterEach(() => {
   db.exec(
-    'DELETE FROM agent_session; DELETE FROM story_remark; DELETE FROM acceptance_criterion;' +
+    'DELETE FROM agent_session; DELETE FROM story_message; DELETE FROM story_remark; DELETE FROM acceptance_criterion;' +
       ' DELETE FROM checkpoint; DELETE FROM story; DELETE FROM epic_state_history; DELETE FROM epic; DELETE FROM project;' +
       ' DELETE FROM sqlite_sequence',
   )
@@ -85,6 +86,7 @@ beforeEach(() => {
     discussion,
     checkpoints,
     templates,
+    messages: createMessageRepository(db),
     talker: {
       say: (turn) => {
         said.push(turn)

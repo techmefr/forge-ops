@@ -18,6 +18,7 @@ let stories: StoryRepository
 let api: Hono
 let projectId: number
 let epicId: number
+let storyId: number
 
 function erase(login: string, as: string): Promise<Response> {
   const token = identities.openSession(as, PASSWORD).token
@@ -44,6 +45,7 @@ beforeEach(() => {
     colour: '#112233',
   }).id
   epicId = stories.createEpic({ projectId, title: 'Sujet', businessIntent: 'x' }).id
+  storyId = stories.writeStory({ epicId, title: 'a title long enough', body: 'body' }).id
 })
 
 describe('erasing an account', () => {
@@ -52,6 +54,7 @@ describe('erasing an account', () => {
     stories.assignEpic(epicId, 'ana')
     db.prepare("UPDATE epic SET requested_by = 'Ana Martin' WHERE id = ?").run(epicId)
     db.prepare("INSERT INTO project_decision (project_id, decided_on, text, decided_by) VALUES (?, '2026-09-01', 'Go', 'ana')").run(projectId)
+    db.prepare("INSERT INTO story_message (story_id, claude_session_id, voice, author, body) VALUES (?, 's', 'human', 'ana', 'hello')").run(storyId)
     const session = identities.openSession('ana', PASSWORD).token
 
     const response = await erase('ana', 'root')
@@ -66,6 +69,7 @@ describe('erasing an account', () => {
       assignee: `erased-${anaId}`,
       requested_by: `erased-${anaId}`,
     })
+    expect(db.prepare('SELECT author FROM story_message').get()).toEqual({ author: `erased-${anaId}` })
     expect(db.prepare('SELECT decided_by FROM project_decision').get()).toEqual({ decided_by: `erased-${anaId}` })
     expect(JSON.stringify(db.prepare('SELECT * FROM board_user WHERE id = ?').get(anaId))).not.toContain('Ana')
   })

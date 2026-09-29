@@ -704,6 +704,7 @@ export const ITALIAN: Message = {
   threadEntry: {
     testimony: 'Detto',
     proof: 'Prova',
+    message: 'Messaggio',
   },
   thread: {
     empty: 'Su questa carta non è stato ancora detto nulla.',

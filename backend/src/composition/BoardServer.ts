@@ -72,6 +72,8 @@ import { createDriverApi } from '../domain/Driver/DriverApi.js'
 import { claudeCodeDriver } from './ClaudeCodeDriver.js'
 import type { SdkUserTurn } from '../technical/ClaudeCode/TurnDelivery.js'
 import { createConversationApi } from '../domain/Conversation/ConversationApi.js'
+import { createMessageRepository } from '../domain/Conversation/MessageRepository.js'
+import { recordMessageFromEvent } from '../domain/Conversation/MessageRecorder.js'
 import { recordUsageFromEvent } from '../technical/ClaudeCode/UsageRecorder.js'
 import { recordLifecycleFromEvent } from '../technical/ClaudeCode/LifecycleRecorder.js'
 import { recordHeartbeatFromEvent } from '../technical/ClaudeCode/HeartbeatRecorder.js'
@@ -197,10 +199,12 @@ export function startBoardServer({
   const budget = createBudgetRepository(db)
   const workflow = createWorkflowRepository(db)
   const workflowColumns = createWorkflowColumnRepository(db)
+  const messages = createMessageRepository(db)
   const onSessionEvent = (event: BoardEvent): void => {
     recordUsageFromEvent(sessions, event)
     recordHeartbeatFromEvent(sessions, event)
     recordLifecycleFromEvent(sessions, event)
+    recordMessageFromEvent({ sessions, messages }, event)
     const { claudeSessionId } = event.payload
     if (typeof claudeSessionId === 'string' && claudeSessionId !== '') {
       stopRunOverCap(
@@ -438,6 +442,7 @@ export function startBoardServer({
       discussion,
       checkpoints: cascadeCheckpoints,
       templates,
+      messages,
     }),
   )
   guarded.route(
