@@ -3,6 +3,24 @@ import type { DemoEnvironment, DemoReply } from './Demo/DemoModel.js'
 
 export type DemoSnapshot = Record<string, unknown>
 
+export const DEMO_SESSION_KEY = 'forge.demo.session'
+
+function savedSession(): string | null {
+  try {
+    return window.sessionStorage.getItem(DEMO_SESSION_KEY)
+  } catch {
+    return null
+  }
+}
+
+function keepSession(store: DemoStore): void {
+  try {
+    window.sessionStorage.setItem(DEMO_SESSION_KEY, store.save())
+  } catch {
+    return
+  }
+}
+
 export { DEMO_REFUSAL }
 
 function respond({ status, body }: DemoReply): Response {
@@ -31,8 +49,16 @@ export function createDemoFetcher(load: () => Promise<DemoSnapshot>, env: DemoEn
 
   return async (input, init) => {
     const path = typeof input === 'string' ? input : input instanceof URL ? input.pathname + input.search : input.url
-    loading = loading ?? load().then((snapshot) => createDemoStore(snapshot, env))
+    loading = loading ?? load().then((snapshot) => createDemoStore(snapshot, env, savedSession()))
     const store = await loading
-    return respond(store.handle(init?.method ?? 'GET', path, bodyOf(init)))
+    const method = init?.method ?? 'GET'
+    const answer = store.handle(method, path, bodyOf(init))
+    if (method !== 'GET' && answer.status < 400) {
+      keepSession(store)
+    }
+    if (answer.status === 409 && (answer.body as { error?: string }).error === DEMO_REFUSAL.error) {
+      env.emit({ name: 'demo.readonly', payload: {} })
+    }
+    return respond(answer)
   }
 }

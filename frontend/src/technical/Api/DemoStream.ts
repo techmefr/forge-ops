@@ -12,6 +12,16 @@ export function listenToDemoStream(listener: Listener): () => void {
   }
 }
 
+export function resetDemo(): void {
+  try {
+    window.sessionStorage.removeItem('forge.demo.session')
+  } catch {
+    return
+  } finally {
+    window.location.reload()
+  }
+}
+
 export const demoEnvironment: DemoEnvironment = {
   emit: (event) => {
     for (const listener of [...listeners]) {

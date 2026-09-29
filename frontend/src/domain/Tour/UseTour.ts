@@ -77,7 +77,7 @@ export function useTour(): TourDesk {
     optIn.value = storedOptIn()
     open.value = shouldOpen({ environment: environment.value, optIn: optIn.value, memory })
     if (open.value) {
-      remember('running')
+      remember('closed')
     }
   }
 

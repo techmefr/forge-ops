@@ -1346,7 +1346,9 @@ export const PORTUGUESE: Message = {
   },
   visit: {
     title: 'Demonstração interativa',
-    body: 'Este é um quadro de demonstração com dados de exemplo. As suas alterações ficam neste separador e desaparecem ao recarregar, os agentes são simulados. Instale o board para o executar a sério.',
+    body: 'Este é um quadro de demonstração com dados de exemplo. As suas alterações ficam neste separador e mantêm-se ao recarregar até repor a demonstração, os agentes são simulados. Instale o board para o executar a sério.',
+    reset: 'Repor demonstração',
+    readOnly: 'Esta ação é só de leitura na demonstração. Instale o board para a usar a sério.',
     source: 'O repositório',
   },
   tour: {

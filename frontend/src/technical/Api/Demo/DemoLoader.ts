@@ -90,6 +90,7 @@ export function createDemoState(source: Record<string, unknown>): DemoState {
     threads,
     failedOnce: new Set(),
     generation: new Map(),
+    touched: new Set(),
     sequence:
       RESERVED_IDENTIFIER_SPACE +
       highest([

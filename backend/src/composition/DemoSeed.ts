@@ -3,6 +3,7 @@ import type { EventType } from '../../../contract/EventContract.js'
 import type { Milestone, MilestoneKind } from '../../../contract/StoryContract.js'
 import type Database from 'better-sqlite3'
 import { randomBytes } from 'node:crypto'
+import { createIncidentRepository } from '../domain/Incident/IncidentRepository.js'
 import { createIdentityRepository } from '../domain/Identity/IdentityRepository.js'
 import { createStoryRepository } from '../domain/Story/StoryRepository.js'
 import { createCheckpointRepository } from '../domain/Checkpoint/CheckpointRepository.js'
@@ -1514,6 +1515,32 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
       voice: plan.voice,
       body: plan.body,
     })
+  }
+
+  const incidents = createIncidentRepository(db, { stories })
+  incidents.declareOrigin({ slug: 'sentry', name: 'Sentry', kind: 'sentry' })
+  incidents.declareOrigin({ slug: 'support', name: 'Support desk', kind: 'user_report' })
+  incidents.declareOrigin({ slug: 'ideas', name: 'Idea box', kind: 'idea' })
+  const reported = [
+    { originSlug: 'sentry', fingerprint: 'sentry-a1', title: 'Payment webhook times out', detail: 'POST /webhooks/payment exceeded 10 s for 14 requests in the last hour.', repeats: 13 },
+    { originSlug: 'sentry', fingerprint: 'sentry-b2', title: 'Undefined subject in the roadmap export', detail: 'TypeError: cannot read title of undefined in RoadmapExport.', repeats: 3 },
+    { originSlug: 'support', fingerprint: 'support-c3', title: 'Customer cannot download an invoice', detail: 'The invoice archive returns an empty file for orders before March.', repeats: 1 },
+    { originSlug: 'ideas', fingerprint: 'ideas-d4', title: 'Let the board notify me on Slack', detail: 'When a session waits for validation, ping me in a channel.', repeats: 0 },
+    { originSlug: 'support', fingerprint: 'support-e5', title: 'Typo on the login page', detail: 'The word "password" is misspelled in French.', repeats: 0 },
+  ]
+  const written = reported.map((draft) => {
+    let incident = incidents.reportIncident(draft)
+    for (let again = 0; again < draft.repeats; again += 1) {
+      incident = incidents.reportIncident(draft)
+    }
+    return incident
+  })
+  const firstEpic = stories.listEpics(projectIds.get('forge') ?? 0)[0]
+  if (written[3] !== undefined && firstEpic !== undefined) {
+    incidents.acceptIncident(written[3].id, firstEpic.id)
+  }
+  if (written[4] !== undefined) {
+    incidents.refuseIncident(written[4].id, 'Already fixed in the next release')
   }
 
   budget.writePolicy({ capUsd: 25, conduct: 'downgrade', downgradeModel: 'claude-haiku-4-5-20251001', rerouteBaseUrl: null })
