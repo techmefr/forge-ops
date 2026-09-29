@@ -1,9 +1,11 @@
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { z } from 'zod'
-import { epicQuerySchema } from '../../../../contract/EpicContract.js'
+import { projectCreateSchema } from '../../../../contract/ProjectContract.js'
+import { epicAssignmentSchema, epicCreateSchema, epicQuerySchema } from '../../../../contract/EpicContract.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
+import { ProjectSlugTakenError } from '../Story/StoryViolation.js'
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
 import { reapStaleSessions, STALE_AFTER_SECONDS } from '../Agent/Heartbeat.js'
@@ -46,11 +48,25 @@ const projectDraftSchema = z.object({
   colour: z.string().min(1),
 })
 
-const epicDraftSchema = z.object({
-  projectId: z.number().int().positive(),
-  title: z.string().min(1),
-  businessIntent: z.string().min(1),
-})
+const DEFAULT_INTEGRATION_BRANCH = 'main'
+
+function slugOf(name: string): string {
+  const slug = name
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return slug === '' ? 'project' : slug
+}
+
+function freeSlug(base: string, taken: ReadonlySet<string>): string {
+  let candidate = base
+  for (let attempt = 2; taken.has(candidate); attempt += 1) {
+    candidate = `${base}-${attempt}`
+  }
+  return candidate
+}
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -120,11 +136,28 @@ export function createBoardApi({
   api.route('/', createBudgetApi({ budget, events }))
 
   api.post('/api/projects', async (context) => {
-    const draft = projectDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await context.req.json().catch(() => null)
+    const legacy = projectDraftSchema.safeParse(body)
+    if (legacy.success) {
+      const project = repository.createProject(legacy.data)
+      events.publish({ name: 'project.created', payload: { ...project } })
+      return context.json(project, 201)
+    }
+    const draft = projectCreateSchema.safeParse(body)
     if (!draft.success) {
       return context.json({ error: 'InvalidProjectDraft', issues: draft.error.issues }, 422)
     }
-    const project = repository.createProject(draft.data)
+    const existing = repository.listProjects()
+    if (existing.some((project) => project.name.toLowerCase() === draft.data.name.toLowerCase())) {
+      throw new ProjectSlugTakenError(draft.data.name)
+    }
+    const project = repository.createProject({
+      slug: freeSlug(slugOf(draft.data.name), new Set(existing.map((entry) => entry.slug))),
+      name: draft.data.name,
+      repositoryUrl: draft.data.repository,
+      integrationBranch: DEFAULT_INTEGRATION_BRANCH,
+      colour: draft.data.colour,
+    })
     events.publish({ name: 'project.created', payload: { ...project } })
     return context.json(project, 201)
   })
@@ -132,13 +165,24 @@ export function createBoardApi({
   api.get('/api/projects', (context) => context.json(repository.listProjects()))
 
   api.post('/api/epics', async (context) => {
-    const draft = epicDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = epicCreateSchema.safeParse(await context.req.json().catch(() => null))
     if (!draft.success) {
       return context.json({ error: 'InvalidEpicDraft', issues: draft.error.issues }, 422)
     }
-    const epic = repository.createEpic(draft.data)
+    const epic = repository.createSubject(draft.data, operatorOf(context))
     events.publish({ name: 'epic.created', payload: { ...epic } })
     return context.json(epic, 201)
+  })
+
+  api.put('/api/epics/:id/assignee', async (context) => {
+    const epicId = identifierSchema.safeParse(context.req.param('id'))
+    const body = epicAssignmentSchema.safeParse(await context.req.json().catch(() => null))
+    if (!epicId.success || !body.success) {
+      return context.json({ error: 'InvalidEpicAssignment' }, 422)
+    }
+    repository.assignEpic(epicId.data, body.data.login)
+    events.publish({ name: 'epic.updated', payload: { id: epicId.data } })
+    return context.json({ id: epicId.data, assignee: body.data.login })
   })
 
   api.get('/api/board/self', (context) => {

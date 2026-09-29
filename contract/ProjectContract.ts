@@ -30,6 +30,16 @@ export const projectUpdateSchema = z
   .strict()
   .refine((patch) => Object.keys(patch).length > 0)
 
+export const projectCreateSchema = z
+  .object({
+    name: z.string().trim().min(1).max(80),
+    colour: z.string().trim().min(1).max(40),
+    repository: z.string().trim().max(300).default(''),
+  })
+  .strict()
+
+export type ProjectCreate = z.infer<typeof projectCreateSchema>
+
 export type ProjectUpdate = z.infer<typeof projectUpdateSchema>
 
 export type BoardUserSheet = {

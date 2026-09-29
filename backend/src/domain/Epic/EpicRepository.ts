@@ -217,6 +217,7 @@ export function createEpicRepository(
   )
 
   const scalarColumns = {
+    title: 'title',
     priority: 'priority',
     startedOn: 'started_on',
     statusNote: 'status_note',

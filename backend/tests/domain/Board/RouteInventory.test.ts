@@ -69,6 +69,7 @@ const EXPECTED_ROUTES = [
   'POST /api/tags',
   'POST /api/zones',
   'POST /api/zones/summary',
+  'PUT /api/epics/:id/assignee',
   'PUT /api/projects/:id',
   'PUT /api/projects/:id/links',
   'PUT /api/projects/:id/weather',

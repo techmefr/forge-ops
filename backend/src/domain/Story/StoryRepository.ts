@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3'
-import type { EpicQuery } from '../../../../contract/EpicContract.js'
+import type { EpicCreate, EpicPatch, EpicQuery } from '../../../../contract/EpicContract.js'
 import { matchesQuery } from '../../../../contract/SubjectQuery.js'
 import type {
   Dependency,
@@ -75,6 +75,8 @@ export type StoryRepository = {
   listProjects: () => readonly Project[]
   setCheckoutPath: (projectId: number, checkoutPath: string) => Project
   createEpic: (draft: EpicDraft) => Epic
+  createSubject: (draft: EpicCreate, by: string) => Epic
+  assignEpic: (epicId: number, login: string | null) => void
   epics: EpicRepository
   agenda: EventRepository
   projects: ProjectRepository
@@ -452,6 +454,36 @@ export function createStoryRepository(
     }))
   }
 
+  function assertAssignable(login: string): void {
+    if ((selectDisabledAt.get(login)?.disabled_at ?? null) !== null) {
+      throw new InactiveAssigneeError(login)
+    }
+  }
+
+  const createSubjectAtomically = db.transaction(
+    (
+      input: { assignee: string | null; businessIntent: string; planning: Omit<EpicCreate, 'assignee' | 'businessIntent'> },
+      by: string,
+    ): Epic => {
+      const { projectId, title, ...fields } = input.planning
+      if (selectProjectById.get(projectId) === undefined) {
+        throw new ProjectNotFoundError(projectId)
+      }
+      if (input.assignee !== null) {
+        assertAssignable(input.assignee)
+      }
+      const info = insertEpic.run(projectId, title, input.businessIntent)
+      const id = Number(info.lastInsertRowid)
+      epics.recordState(id, by)
+      const patch: EpicPatch = { ...fields, ...(input.assignee === null ? {} : { state: 'doing' as const }) }
+      epics.plan(id, patch, by)
+      if (input.assignee !== null) {
+        updateEpicAssignee.run(input.assignee, id)
+      }
+      return { id, projectId, title, businessIntent: input.businessIntent }
+    },
+  )
+
   return {
     createProject: (draft) => {
       if (selectProjectBySlug.get(draft.slug) !== undefined) {
@@ -484,6 +516,24 @@ export function createStoryRepository(
         throw new ProjectNotFoundError(projectId)
       }
       return found
+    },
+
+    createSubject: (draft, by) => {
+      const { assignee = null, businessIntent, ...planning } = draft
+      return createSubjectAtomically(
+        { assignee, businessIntent: businessIntent === undefined || businessIntent === '' ? draft.title : businessIntent, planning },
+        by,
+      )
+    },
+
+    assignEpic: (epicId, login) => {
+      if (selectEpicById.get(epicId) === undefined) {
+        throw new EpicNotFoundError(epicId)
+      }
+      if (login !== null) {
+        assertAssignable(login)
+      }
+      updateEpicAssignee.run(login, epicId)
     },
 
     createEpic: (draft) => {
@@ -556,10 +606,7 @@ export function createStoryRepository(
       if (epic.assignee !== null && epic.assignee !== login) {
         throw new EpicTakenError(epicId, epic.assignee)
       }
-      const deactivatedAt = selectDisabledAt.get(login)?.disabled_at ?? null
-      if (deactivatedAt !== null) {
-        throw new InactiveAssigneeError(login)
-      }
+      assertAssignable(login)
       updateEpicAssignee.run(login, epicId)
     },
 

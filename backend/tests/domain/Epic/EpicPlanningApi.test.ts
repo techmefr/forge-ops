@@ -74,7 +74,7 @@ describe('PATCH /api/epics/:id', () => {
   })
 
   it('refuses a field it does not know', async () => {
-    expect((await call(`/api/epics/${epicId}`, 'PATCH', { title: 'x' })).status).toBe(422)
+    expect((await call(`/api/epics/${epicId}`, 'PATCH', { colour: 'x' })).status).toBe(422)
   })
 
   it('refuses a link that is not a web address', async () => {

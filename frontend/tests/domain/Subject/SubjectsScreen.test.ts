@@ -289,7 +289,8 @@ describe('SubjectsScreen counts and lists', () => {
     await screen.find('[data-test-id="subjects-tag"]').setValue('7')
     expect(titlesOf(screen)).toEqual(['Cloudmail'])
     await screen.find('[data-test-id="subjects-tag"]').setValue('all')
-    await screen.find('[data-test-id="subjects-project"]').setValue('2')
+    await screen.find('[data-test-id="subjects-project"]').trigger('keydown', { key: 'ArrowDown' })
+    await screen.find('[data-test-id="project-option-project-2"]').trigger('click')
     expect(titlesOf(screen)).toEqual(['Billing'])
     expect(window.localStorage.getItem('forge.subjects.project')).toBe('2')
   })
@@ -349,27 +350,41 @@ describe('SubjectsScreen actions', () => {
     expect(screen.find('[data-test-id="subjects-refusal"]').text()).toContain('Already taken')
   })
 
-  it('creates a subject from the toolbar', async () => {
+  it('creates a subject from the toolbar and shows it without a reload', async () => {
     serve({ live: [] })
-    send.mockResolvedValue({ id: 9 })
+    send.mockImplementation((path: string) => Promise.resolve(path === '/api/epics' ? { id: 9 } : {}))
     const screen = await mounted()
     await screen.find('[data-test-id="subjects-new"]').trigger('click')
     await flushPromises()
-    const title = document.body.querySelector<HTMLInputElement>('[data-test-id="new-subject-title"]')
-    const intent = document.body.querySelector<HTMLTextAreaElement>('[data-test-id="new-subject-intent"]')
+    const title = document.body.querySelector<HTMLInputElement>('[data-test-id="subject-form-title"]')
     expect(title).not.toBeNull()
     title!.value = 'Cloudmail'
     title!.dispatchEvent(new Event('input'))
-    intent!.value = 'Mail'
-    intent!.dispatchEvent(new Event('input'))
     await flushPromises()
-    document.body.querySelector<HTMLButtonElement>('[data-test-id="new-subject-create"]')!.click()
+    serve({ live: [epic({ id: 9, title: 'Cloudmail' })] })
+    document.body.querySelector<HTMLButtonElement>('[data-test-id="subject-form-submit"]')!.click()
     await flushPromises()
-    expect(send).toHaveBeenCalledWith('/api/epics', 'POST', {
-      projectId: 1,
-      title: 'Cloudmail',
-      businessIntent: 'Mail',
-    })
+    expect(send).toHaveBeenCalledWith(
+      '/api/epics',
+      'POST',
+      expect.objectContaining({ projectId: 1, title: 'Cloudmail', assignee: null }),
+    )
+    expect(document.body.querySelector('[data-test-id="subject-form-dialog"]')).toBeNull()
+    expect(titlesOf(screen)).toEqual(['Cloudmail'])
+  })
+
+  it('opens the same form prefilled from the drawer', async () => {
+    serve({ live: [epic({ id: 4, title: 'Cloudmail', assignee: 'anna', state: 'doing', requestedBy: 'Anthony' })] })
+    const screen = await mounted()
+    await screen.find('[data-test-id="subject-open"]').trigger('click')
+    await flushPromises()
+    document.body.querySelector<HTMLButtonElement>('[data-test-id="drawer-edit"]')!.click()
+    await flushPromises()
+    expect(document.body.querySelector<HTMLInputElement>('[data-test-id="subject-form-title"]')!.value).toBe('Cloudmail')
+    expect(document.body.querySelector<HTMLSelectElement>('[data-test-id="subject-form-owner"]')!.value).toBe('anna')
+    expect(document.body.querySelector<HTMLInputElement>('[data-test-id="subject-form-requested-by"]')!.value).toBe(
+      'Anthony',
+    )
   })
 })
 

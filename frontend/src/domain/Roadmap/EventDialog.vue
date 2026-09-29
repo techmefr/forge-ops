@@ -9,7 +9,9 @@ import {
   DialogRoot,
   DialogTitle,
 } from 'reka-ui'
+import ProjectPicker from '@/domain/Project/ProjectPicker.vue'
 import { board } from '@/technical/Api/Board'
+import { keepDialogWhileListboxOpen } from '@/technical/Ui/ListboxEscape'
 import { reasonOf } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import type { Phrase } from '@/technical/Language/Phrase'
@@ -30,7 +32,7 @@ const props = defineProps<{
   epicId: number | null
   today: string
 }>()
-const emit = defineEmits<{ close: []; saved: [] }>()
+const emit = defineEmits<{ close: []; saved: []; changed: [] }>()
 
 const { t } = useI18n()
 const say = usePhrase()
@@ -47,6 +49,7 @@ const busy = ref(false)
 const confirmingRemoval = ref(false)
 
 const editing = computed(() => props.event !== null)
+const pickable = computed(() => props.projects.map((entry) => entry.project))
 
 const subjects = computed(
   () => props.projects.find((entry) => entry.project.id === chosenProject.value)?.subjects ?? [],
@@ -133,7 +136,8 @@ function closeWhenClosed(open: boolean): void {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-40 bg-deep/70" />
       <DialogContent
-        class="fixed top-1/2 left-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[min(560px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-line bg-panel p-6"
+        class="fixed top-1/2 left-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[min(560px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-line bg-panel p-6"
+        @escape-key-down="keepDialogWhileListboxOpen"
       >
         <DialogTitle class="display-italic text-lg text-txt-hi uppercase">
           {{ t(editing ? 'roadmap.form.editTitle' : 'roadmap.form.newTitle') }}
@@ -175,18 +179,18 @@ function closeWhenClosed(open: boolean): void {
             />
           </label>
 
-          <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
-            {{ t('roadmap.form.project') }}
-            <select
-              v-model="chosenProject"
+          <div class="flex flex-col gap-1 text-[13px] text-txt-mid">
+            <label for="event-form-project">{{ t('roadmap.form.project') }}</label>
+            <ProjectPicker
+              id="event-form-project"
+              :model-value="chosenProject"
+              :projects="pickable"
               :disabled="editing"
-              class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi disabled:opacity-60"
-            >
-              <option v-for="entry in projects" :key="entry.project.id" :value="entry.project.id">
-                {{ entry.project.name }}
-              </option>
-            </select>
-          </label>
+              test-id="event-form-project"
+              @update:model-value="chosenProject = $event ?? 0"
+              @created="emit('changed')"
+            />
+          </div>
 
           <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
             {{ t('roadmap.form.subject') }}
