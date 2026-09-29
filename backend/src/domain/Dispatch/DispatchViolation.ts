@@ -52,3 +52,15 @@ export class LensOutsideReviewError extends DispatchViolationError {
     super(`une lentille de review ne se lit pas en phase ${phase}`, 'LensOutsideReviewError')
   }
 }
+
+export class HumanStepError extends DispatchViolationError {
+  constructor(label: string) {
+    super(`Le pas ${label} attend une validation humaine, aucun agent ne demarre`, 'HumanStepError')
+  }
+}
+
+export class UnknownStepError extends DispatchViolationError {
+  constructor(columnId: number) {
+    super(`Le pas ${columnId} n'existe pas dans le projet de la story`, 'UnknownStepError')
+  }
+}

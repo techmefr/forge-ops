@@ -3,7 +3,13 @@ import type { LaunchOrder, SessionRunner } from '../../domain/Dispatch/Dispatch.
 import type { SessionTalker, SpokenTurn } from '../../domain/Conversation/Conversation.js'
 import type { LiveSessions } from './LiveSessions.js'
 import { deliverTurn, userTurn, type SdkUserTurn } from './TurnDelivery.js'
+import { WORKFLOW_EFFORTS, type WorkflowEffort } from '../../../../contract/WorkflowColumnContract.js'
 import { assertGuardrailRegistered, forgeSettingSources } from '../Guardrail/GuardrailRegistration.js'
+
+function effortOptionOf(order: LaunchOrder): { effort?: WorkflowEffort } {
+  const effort = WORKFLOW_EFFORTS.find((candidate) => candidate === order.effort)
+  return effort === undefined ? {} : { effort }
+}
 
 export type SdkSessionRunnerInput = {
   cwdFor: (order: LaunchOrder) => string
@@ -32,6 +38,7 @@ export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunn
           settingSources: [...forgeSettingSources],
           permissionMode: 'default',
           ...(order.model === undefined ? {} : { model: order.model }),
+          ...effortOptionOf(order),
           ...(order.resumeSessionId === undefined ? {} : { resume: order.resumeSessionId }),
           env: {
             ...process.env,

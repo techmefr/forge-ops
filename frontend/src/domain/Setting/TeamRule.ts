@@ -48,7 +48,3 @@ export function initialsOf(displayName: string): string {
     .map((word) => word.charAt(0).toUpperCase())
     .join('')
 }
-
-export function ownsTheWorkflow(sheet: ProjectSheet, self: TeamSelf | null): boolean {
-  return self !== null && sheet.adminLogin !== null && sheet.adminLogin === self.login
-}

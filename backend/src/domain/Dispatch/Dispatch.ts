@@ -67,6 +67,13 @@ export type DispatchOrder = {
   storyId: number
   phase: AgentPhase
   lens?: ReviewLens
+  columnId?: number
+}
+
+export type StepEntry = {
+  storyId: number
+  columnId: number
+  phase: AgentPhase
 }
 
 export type Dispatched = {
@@ -78,6 +85,8 @@ export type Dispatched = {
   prompt: string
   model?: string
   baseUrl?: string
+  provider?: string
+  effort?: string
 }
 
 export type SessionRunner = {
@@ -92,6 +101,8 @@ export type LaunchOrder = {
   prompt: string
   model?: string
   baseUrl?: string
+  provider?: string
+  effort?: string
   forgeCardId?: number
   resumeSessionId?: string
 }

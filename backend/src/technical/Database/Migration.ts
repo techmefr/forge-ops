@@ -183,11 +183,72 @@ function numberProjectsByName(db: Database.Database): void {
   )
 }
 
+const FIXED_STEP_KEYS: readonly string[] = ['backlog', 'done']
+
+type GlobalStepRow = {
+  key: string
+  label: string
+  colour: string
+  agent_name: string
+  command: string
+  preprompt: string
+  behavioural_kind: string
+}
+
+function scopeWorkflowColumnsToProjects(schema: string): (db: Database.Database) => void {
+  return (db) => {
+    if (!tableExists(db, 'workflow_column') || columnExists(db, 'workflow_column', 'project_id')) {
+      return
+    }
+    const statement = createStatementOf(schema, 'workflow_column')
+    if (statement === null) {
+      return
+    }
+    db.exec('ALTER TABLE workflow_column RENAME TO workflow_column_global')
+    db.exec(statement)
+    if (tableExists(db, 'project')) {
+      const projects = db.prepare<[], { id: number }>('SELECT id FROM project ORDER BY id').all()
+      const steps = db
+        .prepare<[], GlobalStepRow>('SELECT * FROM workflow_column_global ORDER BY position')
+        .all()
+        .filter((step) => !FIXED_STEP_KEYS.includes(step.key))
+      const insert = db.prepare<
+        [number, string, string, string, number, string, string, string, string, string, string, string]
+      >(
+        `INSERT INTO workflow_column
+           (project_id, key, label, colour, position, provider, model, effort, agent_name, command, preprompt, behavioural_kind)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      for (const project of projects) {
+        steps.forEach((step, index) => {
+          const human = step.behavioural_kind === 'human_wait'
+          insert.run(
+            project.id,
+            step.key,
+            step.label,
+            step.colour,
+            index + 1,
+            human ? 'human' : 'claude',
+            human ? '' : 'claude-sonnet-5',
+            human ? '' : 'high',
+            step.agent_name,
+            step.command,
+            step.preprompt,
+            step.behavioural_kind,
+          )
+        })
+      }
+    }
+    db.exec('DROP TABLE workflow_column_global')
+  }
+}
+
 export function migrationSteps(schema: string): readonly MigrationStep[] {
   return [
     { name: 'zone/keyed-on-project', apply: rekeyZoneOnProject },
     { name: 'epic-milestone/project', apply: placeMilestonesOnTheirProject },
     { name: 'project/position-by-name', apply: numberProjectsByName },
+    { name: 'workflow-column/per-project', apply: scopeWorkflowColumnsToProjects(schema) },
     ...checkedTableSteps(schema),
   ]
 }

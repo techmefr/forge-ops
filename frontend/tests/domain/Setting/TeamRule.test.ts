@@ -4,7 +4,6 @@ import {
   capacityFrom,
   initialsOf,
   mayChangeAdmin,
-  ownsTheWorkflow,
   positionAfterMove,
   usedBy,
 } from '@/domain/Setting/TeamRule'
@@ -80,13 +79,5 @@ describe('initialsOf', () => {
   it('keeps the first letters of the first two words', () => {
     expect(initialsOf('ana maria da silva')).toBe('AM')
     expect(initialsOf('Bob')).toBe('B')
-  })
-})
-
-describe('ownsTheWorkflow', () => {
-  it('belongs to the admin of the project alone', () => {
-    expect(ownsTheWorkflow(sheet(), { login: 'ana', superAdmin: false })).toBe(true)
-    expect(ownsTheWorkflow(sheet(), { login: 'bob', superAdmin: true })).toBe(false)
-    expect(ownsTheWorkflow(sheet({ adminLogin: null }), { login: 'ana', superAdmin: false })).toBe(false)
   })
 })

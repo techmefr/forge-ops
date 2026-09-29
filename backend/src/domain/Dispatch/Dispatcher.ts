@@ -14,6 +14,10 @@ import type { WorkflowRepository } from '../Workflow/WorkflowRepository.js'
 import { createWorkflowRepository } from '../Workflow/WorkflowRepository.js'
 import type { ForgeCardRepository } from '../ForgeCard/ForgeCardRepository.js'
 import { createForgeCardRepository } from '../ForgeCard/ForgeCardRepository.js'
+import type { WorkflowColumnRepository } from '../Workflow/WorkflowColumnRepository.js'
+import { createWorkflowColumnRepository } from '../Workflow/WorkflowColumnRepository.js'
+import { COLUMN_OF_PHASE } from '../Driver/Driver.js'
+import type { WorkflowColumn } from '../../../../contract/WorkflowColumnContract.js'
 import {
   contractOfPhase,
   type Dispatched,
@@ -28,11 +32,13 @@ import { LensOutOfOrderError } from '../Checkpoint/CheckpointViolation.js'
 import {
   DispatchTooFastError,
   FleetSaturatedError,
+  HumanStepError,
   LensOutsideReviewError,
   PhaseNotReadyError,
   SessionAlreadyRunningError,
   StoryBlockedError,
   StoryTooThinError,
+  UnknownStepError,
 } from './DispatchViolation.js'
 
 const RUNNING_LIFECYCLES = ['starting', 'working', 'awaiting_human'] as const
@@ -52,6 +58,7 @@ export type DispatcherInput = {
   clock?: Clock
   workflow?: WorkflowRepository
   forgeCards?: ForgeCardRepository
+  workflowColumns?: WorkflowColumnRepository
 }
 
 export type Dispatcher = {
@@ -65,7 +72,9 @@ function promptFor(
   lens: string | undefined,
   preprompt: string,
 ): string {
-  const doctrine = `Suis la doctrine de .claude/commands/${contract.command}.`
+  const doctrine = contract.command.endsWith('.md')
+    ? `Suis la doctrine de .claude/commands/${contract.command}.`
+    : `Utilise la commande ${contract.command}.`
   const sections =
     contract.proves === null
       ? []
@@ -100,6 +109,7 @@ export function createDispatcher({
   clock = Date.now,
   workflow = createWorkflowRepository(database),
   forgeCards = createForgeCardRepository(database),
+  workflowColumns = createWorkflowColumnRepository(database),
 }: DispatcherInput): Dispatcher {
   const bucket = createRateBucket(rate)
   const placeholders = RUNNING_LIFECYCLES.map(() => '?').join(', ')
@@ -122,15 +132,39 @@ export function createDispatcher({
     return countRunningSessions.get(...RUNNING_LIFECYCLES)?.total ?? 0
   }
 
-  return {
-    dispatch: async (order) => {
+  function stepOf(order: DispatchOrder): WorkflowColumn | null {
+    const projectId = stories.projectOfStory(order.storyId)
+    if (order.columnId !== undefined) {
+      const column = workflowColumns.find(order.columnId)
+      if (column === null || column.projectId !== projectId) {
+        throw new UnknownStepError(order.columnId)
+      }
+      return column
+    }
+    const key = COLUMN_OF_PHASE[order.phase]
+    return workflowColumns.list(projectId).find((column) => column.key === key) ?? null
+  }
+
+  async function dispatch(order: DispatchOrder): Promise<Dispatched> {
       const story = stories.findStory(order.storyId)
+      const step = stepOf(order)
+      if (step !== null && step.provider === 'human') {
+        throw new HumanStepError(step.label)
+      }
       const staticContract = contractOfPhase(order.phase)
       const configured = workflow.readPhases().find((entry) => entry.phase === order.phase)
-      const contract: PhaseContract =
+      const phaseContract: PhaseContract =
         configured === undefined
           ? staticContract
           : { ...staticContract, agentName: configured.agentName, command: configured.command }
+      const contract: PhaseContract =
+        step === null
+          ? phaseContract
+          : {
+              ...phaseContract,
+              agentName: step.agentName === '' ? phaseContract.agentName : step.agentName,
+              command: step.command === '' ? phaseContract.command : step.command,
+            }
       if (order.lens !== undefined && order.phase !== 'review') {
         throw new LensOutsideReviewError(order.phase)
       }
@@ -211,15 +245,21 @@ export function createDispatcher({
           : `${forgeCard.reference} (${forgeCard.storyIds.map((cardStoryId) => stories.findStory(cardStoryId).reference).join(', ')})`
       const resumeSessionId = forgeCard?.claudeSessionId ?? undefined
 
-      const prompt = promptFor(story, contract, order.lens, configured?.preprompt ?? '')
+      const prompt = promptFor(story, contract, order.lens, step === null ? (configured?.preprompt ?? '') : step.preprompt)
+      const model = decision.model ?? (step === null || step.model === '' ? undefined : step.model)
+      const stepSettings = {
+        ...(step === null ? {} : { provider: step.provider }),
+        ...(step === null || step.effort === '' ? {} : { effort: step.effort }),
+      }
       const { claudeSessionId } = await runner.launch({
         storyId: order.storyId,
         reference,
         phase: order.phase,
         agentName,
         prompt,
-        ...(decision.model === undefined ? {} : { model: decision.model }),
+        ...(model === undefined ? {} : { model }),
         ...(decision.baseUrl === undefined ? {} : { baseUrl: decision.baseUrl }),
+        ...stepSettings,
         ...(forgeCard === null ? {} : { forgeCardId: forgeCard.id }),
         ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
       })
@@ -247,10 +287,14 @@ export function createDispatcher({
         ...(order.lens === undefined ? {} : { lens: order.lens }),
         agentName,
         prompt,
-        ...(decision.model === undefined ? {} : { model: decision.model }),
+        ...(model === undefined ? {} : { model }),
         ...(decision.baseUrl === undefined ? {} : { baseUrl: decision.baseUrl }),
+        ...stepSettings,
       }
-    },
+  }
+
+  return {
+    dispatch,
 
     countRunning,
   }

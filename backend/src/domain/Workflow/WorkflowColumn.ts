@@ -1,43 +1,72 @@
-import type { BehaviouralKind, WorkflowColumnDraft } from '../../../../contract/WorkflowColumnContract.js'
-import { BEHAVIOURAL_KIND_SEQUENCE } from '../../../../contract/WorkflowColumnContract.js'
-
-export const SEED_WORKFLOW_COLUMNS: readonly WorkflowColumnDraft[] = [
-  { key: 'backlog', label: 'Reserve', colour: 'line', agentName: 'architecte', command: 'SPEC.md', preprompt: '', behaviouralKind: 'ordinary' },
-  { key: 'architecture', label: 'Plan', colour: 'info', agentName: 'architecte', command: 'PLAN.md', preprompt: '', behaviouralKind: 'ordinary' },
-  { key: 'plan_review', label: 'Plan a valider', colour: 'warn', agentName: '', command: '', preprompt: '', behaviouralKind: 'human_wait' },
-  { key: 'building', label: 'Dev', colour: 'acc', agentName: 'trinity', command: 'BUILD.md', preprompt: '', behaviouralKind: 'ordinary' },
-  { key: 'gating', label: 'Test', colour: 'info', agentName: 'galadriel', command: 'VERIFY.md', preprompt: '', behaviouralKind: 'ordinary' },
-  { key: 'reviewing', label: 'Review', colour: 'violet', agentName: 'elrond', command: 'REVIEW.md', preprompt: '', behaviouralKind: 'review_gate' },
-  { key: 'shipping', label: 'Merge', colour: 'orange', agentName: 'gandalf', command: 'SHIP.md', preprompt: '', behaviouralKind: 'ship' },
-  { key: 'flagged', label: 'Feature flag', colour: 'violet', agentName: '', command: '', preprompt: '', behaviouralKind: 'human_wait' },
-  { key: 'done', label: 'Prod', colour: 'green', agentName: '', command: '', preprompt: '', behaviouralKind: 'human_wait' },
-]
+import {
+  acceptsEffort,
+  modelsOfProvider,
+  RESERVED_STEP_LABELS,
+  WORKFLOW_EFFORTS,
+  type BehaviouralKind,
+  type WorkflowColumnDraft,
+  type WorkflowEffort,
+} from '../../../../contract/WorkflowColumnContract.js'
 
 export type WorkflowColumnRefusal =
   | { reason: 'EmptyLabel' }
-  | { reason: 'EmptyKey' }
-  | { reason: 'DuplicateKey'; key: string }
-  | { reason: 'UnknownBehaviouralKind'; behaviouralKind: string }
-  | { reason: 'MissingAgentForOrdinaryColumn'; key: string }
+  | { reason: 'ReservedLabel'; label: string }
+  | { reason: 'DuplicateLabel'; label: string }
+  | { reason: 'ModelNotOfProvider'; provider: string; model: string }
+  | { reason: 'EffortNotOfProvider'; provider: string; effort: string }
+  | { reason: 'HumanStepCannotAutoStart' }
+  | { reason: 'OrderMismatch' }
 
 export function refusalOfDraft(
   draft: WorkflowColumnDraft,
-  existingKeys: readonly string[],
+  otherLabels: readonly string[],
 ): WorkflowColumnRefusal | null {
-  if (draft.key.trim() === '') {
-    return { reason: 'EmptyKey' }
-  }
-  if (draft.label.trim() === '') {
+  const label = draft.label.trim()
+  if (label === '') {
     return { reason: 'EmptyLabel' }
   }
-  if (existingKeys.includes(draft.key)) {
-    return { reason: 'DuplicateKey', key: draft.key }
+  if (RESERVED_STEP_LABELS.includes(label.toLowerCase())) {
+    return { reason: 'ReservedLabel', label }
   }
-  if (!BEHAVIOURAL_KIND_SEQUENCE.includes(draft.behaviouralKind as BehaviouralKind)) {
-    return { reason: 'UnknownBehaviouralKind', behaviouralKind: draft.behaviouralKind }
+  if (otherLabels.some((other) => other.trim().toLowerCase() === label.toLowerCase())) {
+    return { reason: 'DuplicateLabel', label }
   }
-  if (draft.behaviouralKind !== 'human_wait' && draft.agentName.trim() === '') {
-    return { reason: 'MissingAgentForOrdinaryColumn', key: draft.key }
+  if (!modelsOfProvider(draft.provider).includes(draft.model)) {
+    return { reason: 'ModelNotOfProvider', provider: draft.provider, model: draft.model }
+  }
+  const effortAllowed = acceptsEffort(draft.provider)
+    ? WORKFLOW_EFFORTS.includes(draft.effort as WorkflowEffort)
+    : draft.effort === ''
+  if (!effortAllowed) {
+    return { reason: 'EffortNotOfProvider', provider: draft.provider, effort: draft.effort }
+  }
+  if (draft.provider === 'human' && draft.autoStart) {
+    return { reason: 'HumanStepCannotAutoStart' }
   }
   return null
+}
+
+export function behaviouralKindOf(draft: WorkflowColumnDraft): BehaviouralKind {
+  return draft.provider === 'human' ? 'human_wait' : 'ordinary'
+}
+
+const SLUG_FALLBACK = 'step'
+
+export function keyOfLabel(label: string, takenKeys: readonly string[]): string {
+  const slug =
+    label
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || SLUG_FALLBACK
+  if (!takenKeys.includes(slug)) {
+    return slug
+  }
+  let suffix = 2
+  while (takenKeys.includes(`${slug}_${suffix}`)) {
+    suffix += 1
+  }
+  return `${slug}_${suffix}`
 }

@@ -53,7 +53,19 @@ const TAGS = [
   { id: 2, label: 'later', colour: '#00ff00', usage: 0 },
 ]
 
+const WORKFLOW_OF_ALPHA = {
+  columns: [
+    { id: 1, projectId: 1, key: 'spec', label: 'Spec', colour: '#7C3AED', position: 1, provider: 'claude', model: 'claude-opus-5-5', effort: 'high', agentName: '', command: '', preprompt: '', autoStart: true, behaviouralKind: 'ordinary' },
+  ],
+  maySettle: true,
+  admin: { login: 'ana', name: 'Ana' },
+}
+
+const WORKFLOW_OF_BETA = { columns: [], maySettle: false, admin: null }
+
 const ROUTES: Record<string, unknown> = {
+  '/api/projects/1/workflow-columns': WORKFLOW_OF_ALPHA,
+  '/api/projects/2/workflow-columns': WORKFLOW_OF_BETA,
   '/api/projects/sheets': SHEETS,
   '/api/board-users': USERS,
   '/api/tags': TAGS,
@@ -77,7 +89,7 @@ describe('ProjectsSection', () => {
   const self = { login: 'ana', superAdmin: false }
 
   it('disables the delete button of a used project and says why', async () => {
-    const section = mountWith(ProjectsSection, { self, workflowReachable: true })
+    const section = mountWith(ProjectsSection, { self })
     await flushPromises()
 
     const rows = section.findAll('li.rounded-lg')
@@ -90,7 +102,7 @@ describe('ProjectsSection', () => {
   })
 
   it('deletes an unused project', async () => {
-    const section = mountWith(ProjectsSection, { self, workflowReachable: true })
+    const section = mountWith(ProjectsSection, { self })
     await flushPromises()
 
     const beta = section.findAll('li.rounded-lg')[1]
@@ -101,7 +113,7 @@ describe('ProjectsSection', () => {
   })
 
   it('moves a project down with the order the server keeps', async () => {
-    const section = mountWith(ProjectsSection, { self, workflowReachable: true })
+    const section = mountWith(ProjectsSection, { self })
     await flushPromises()
 
     await section.find('button[aria-label="Move Alpha down"]').trigger('click')
@@ -113,7 +125,6 @@ describe('ProjectsSection', () => {
   it('locks the admin select for anyone but the admin or a super admin', async () => {
     const section = mountWith(ProjectsSection, {
       self: { login: 'bob', superAdmin: false },
-      workflowReachable: false,
     })
     await flushPromises()
 
@@ -122,15 +133,33 @@ describe('ProjectsSection', () => {
     expect(selects[1]?.attributes('disabled')).toBeUndefined()
   })
 
-  it('offers the workflow only to the admin of the project', async () => {
-    const section = mountWith(ProjectsSection, { self, workflowReachable: true })
+  it('offers the workflow settings only where the project says the caller may settle', async () => {
+    const section = mountWith(ProjectsSection, { self })
     await flushPromises()
 
-    expect(section.findAll('button').filter((button) => button.text() === 'Workflow settings')).toHaveLength(1)
+    const gears = section.findAll('button').filter((button) => button.text().includes('Workflow settings'))
+    expect(gears).toHaveLength(1)
+    expect(gears[0]?.text()).toContain('1 step')
+    expect(gears[0]?.attributes('aria-label')).toBe('Workflow settings of Alpha')
+  })
+
+  it('tells a member who set the workflow, and shows no gear', async () => {
+    read.mockImplementation((path: string) =>
+      Promise.resolve(
+        path === '/api/projects/1/workflow-columns'
+          ? { ...WORKFLOW_OF_ALPHA, maySettle: false }
+          : (ROUTES[path] ?? []),
+      ),
+    )
+    const section = mountWith(ProjectsSection, { self: { login: 'bob', superAdmin: false } })
+    await flushPromises()
+
+    expect(section.text()).toContain('Workflow set by Ana')
+    expect(section.findAll('button').filter((button) => button.text().includes('Workflow settings'))).toHaveLength(0)
   })
 
   it('sends the new admin', async () => {
-    const section = mountWith(ProjectsSection, { self, workflowReachable: false })
+    const section = mountWith(ProjectsSection, { self })
     await flushPromises()
 
     const select = section.findAll('select').filter((element) => element.text().includes('No admin'))[1]
@@ -141,7 +170,7 @@ describe('ProjectsSection', () => {
   })
 
   it('adds a link to a project', async () => {
-    const section = mountWith(ProjectsSection, { self, workflowReachable: false })
+    const section = mountWith(ProjectsSection, { self })
     await flushPromises()
 
     await section.find('#link-url-2').setValue('https://example.com/beta')

@@ -28,7 +28,6 @@ export const PARAMETERLESS_PATHS: readonly string[] = [
   '/api/sessions/stale',
   '/api/settings/budget',
   '/api/settings/workflow',
-  '/api/settings/workflow-columns',
   '/api/statistics',
   '/api/stories/backlog',
   '/api/tags',
@@ -43,6 +42,7 @@ export const PROJECT_PATHS: readonly string[] = [
   '/api/projects/:id/follow-up',
   '/api/projects/:id/links',
   '/api/projects/:id/template',
+  '/api/projects/:id/workflow-columns',
   '/api/projects/:id/tree',
   '/api/projects/:id/zones',
 ]

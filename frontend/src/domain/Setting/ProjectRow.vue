@@ -4,7 +4,8 @@ import { useI18n } from 'vue-i18n'
 import type { SubjectLink } from '@contract/EpicContract'
 import type { BoardUserSheet, ProjectSheet, ProjectUpdate } from '@contract/ProjectContract'
 import ProjectLinks from './ProjectLinks.vue'
-import { mayChangeAdmin, ownsTheWorkflow, usedBy, type TeamSelf } from './TeamRule'
+import WorkflowBar from '@/domain/Workflow/WorkflowBar.vue'
+import { mayChangeAdmin, usedBy, type TeamSelf } from './TeamRule'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 
 const props = defineProps<{
@@ -13,14 +14,12 @@ const props = defineProps<{
   total: number
   users: readonly BoardUserSheet[]
   self: TeamSelf | null
-  workflowReachable: boolean
 }>()
 
 const emit = defineEmits<{
   change: [patch: ProjectUpdate]
   move: [direction: -1 | 1]
   remove: []
-  workflow: []
 }>()
 
 const { t } = useI18n()
@@ -31,7 +30,6 @@ const adminLocked = computed(() => !mayChangeAdmin(props.sheet, props.self))
 const candidates = computed(() =>
   props.users.filter((user) => user.active || user.id === props.sheet.adminUserId),
 )
-const workflowOpen = computed(() => props.workflowReachable && ownsTheWorkflow(props.sheet, props.self))
 
 function pickAdmin(event: Event): void {
   const value = (event.target as HTMLSelectElement).value
@@ -87,14 +85,7 @@ function relink(links: readonly SubjectLink[]): void {
         </select>
       </label>
 
-      <button
-        v-if="workflowOpen"
-        type="button"
-        class="rounded-lg border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
-        @click="emit('workflow')"
-      >
-        {{ t('team.workflow') }}
-      </button>
+      <WorkflowBar :project-id="sheet.id" :project-name="sheet.name" />
 
       <div class="flex items-center gap-1">
         <button

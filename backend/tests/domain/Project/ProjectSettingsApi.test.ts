@@ -198,6 +198,14 @@ describe('DELETE /api/projects/:id', () => {
     expect(db.prepare('SELECT COUNT(*) AS total FROM project_link').get()).toEqual({ total: 0 })
   })
 
+  it('deletes the workflow steps of the project with it', async () => {
+    db.prepare("INSERT INTO workflow_column (project_id, key, label, colour, position) VALUES (?, 'spec', 'Spec', 'acc', 1)").run(betaId)
+
+    expect((await call('DELETE', `/api/projects/${betaId}`)).status).toBe(200)
+
+    expect(db.prepare('SELECT COUNT(*) AS total FROM workflow_column').get()).toEqual({ total: 0 })
+  })
+
   it('answers 409 with the reason while subjects use it', async () => {
     stories.createEpic({ projectId: alphaId, title: 'A', businessIntent: 'x' })
     stories.createEpic({ projectId: alphaId, title: 'B', businessIntent: 'x' })

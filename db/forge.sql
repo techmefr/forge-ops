@@ -324,20 +324,22 @@ CREATE TABLE IF NOT EXISTS board_setting (
 
 CREATE TABLE IF NOT EXISTS workflow_column (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  key TEXT NOT NULL UNIQUE,
+  project_id INTEGER NOT NULL REFERENCES project(id),
+  key TEXT NOT NULL,
   label TEXT NOT NULL,
   colour TEXT NOT NULL,
-  position INTEGER NOT NULL UNIQUE,
-  agent_name TEXT NOT NULL,
-  command TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  provider TEXT NOT NULL DEFAULT 'claude',
+  model TEXT NOT NULL DEFAULT '',
+  effort TEXT NOT NULL DEFAULT '',
+  agent_name TEXT NOT NULL DEFAULT '',
+  command TEXT NOT NULL DEFAULT '',
   preprompt TEXT NOT NULL DEFAULT '',
-  behavioural_kind TEXT NOT NULL DEFAULT 'ordinary' CHECK (behavioural_kind IN (
-    'ordinary',
-    'human_wait',
-    'review_gate',
-    'ship'
-  )),
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  auto_start INTEGER NOT NULL DEFAULT 0,
+  behavioural_kind TEXT NOT NULL DEFAULT 'ordinary',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (project_id, key),
+  UNIQUE (project_id, position)
 );
 
 CREATE TABLE IF NOT EXISTS scope_reservation (
