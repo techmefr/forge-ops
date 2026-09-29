@@ -1,0 +1,1 @@
+window.forgeAddresses = { instanceUrl: '', serverUrl: '' }
