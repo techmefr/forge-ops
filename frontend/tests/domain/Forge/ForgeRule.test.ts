@@ -10,6 +10,7 @@ import {
   dotsOf,
   filterBySubject,
   firstStepKey,
+  referenceLabel,
   pipelineOrder,
   primaryActionOf,
 } from '@/domain/Forge/ForgeRule'
@@ -197,5 +198,10 @@ describe('project choice', () => {
   it('names the first step a card of the backlog enters', () => {
     expect(firstStepKey(STEPS)).toBe('spec')
     expect(firstStepKey(boardSteps([], LABELS))).toBeNull()
+  })
+
+  it('shows a single reference when the card and its story share it', () => {
+    expect(referenceLabel({ storyReference: 'FORGE-8', reference: 'FORGE-8' })).toBe('FORGE-8')
+    expect(referenceLabel({ storyReference: 'FORGE-8', reference: 'FORGE-8-2' })).toBe('FORGE-8 · FORGE-8-2')
   })
 })

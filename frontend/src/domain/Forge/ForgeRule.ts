@@ -211,3 +211,9 @@ export function activeProjectOf(
   const wanted = Number(remembered)
   return projects.find((project) => project.id === wanted)?.id ?? projects[0]?.id ?? null
 }
+
+export function referenceLabel(card: { storyReference: string; reference: string }): string {
+  return card.storyReference === card.reference
+    ? card.reference
+    : `${card.storyReference} · ${card.reference}`
+}

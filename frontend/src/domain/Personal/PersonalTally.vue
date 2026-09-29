@@ -25,20 +25,20 @@ onMounted(() => Promise.all([self.reload(), cards.reload()]))
 
 <template>
   <section
-    class="flex flex-none flex-wrap gap-3 border-b border-line bg-panel px-6 py-4"
+    class="grid flex-none grid-cols-2 gap-x-4 gap-y-3 border-b border-line bg-panel px-4 py-3 sm:px-6 min-[760px]:grid-cols-4"
     :aria-label="t('personal.aria')"
   >
     <article
       v-for="figure in figures"
       :key="figure.key"
-      class="min-w-[150px] flex-1 rounded-lg border bg-card px-4 py-3"
+      class="min-w-0 border-l-2 pl-3"
       :class="figure.warn ? 'border-orange' : 'border-line'"
     >
       <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t(`personal.${figure.key}`) }}
       </p>
       <p
-        class="display-italic mt-1 text-[28px] leading-none"
+        class="display-italic mt-1 text-[22px] leading-none"
         :class="figure.warn ? 'text-orange' : 'text-txt-hi'"
       >
         {{ figure.value }}

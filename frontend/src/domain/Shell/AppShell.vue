@@ -88,8 +88,8 @@ const heading = computed(() => {
 
 <template>
   <div class="flex h-dvh flex-col overflow-hidden bg-deep text-txt-hi">
-    <header class="flex flex-none items-stretch gap-6 overflow-x-auto border-b border-line bg-panel px-6">
-      <div class="flex flex-none items-center gap-3 py-4">
+    <header class="flex flex-none items-stretch gap-3 border-b border-line bg-panel px-4 sm:gap-6 sm:px-6">
+      <div class="flex flex-none items-center gap-3 py-3 sm:py-4">
         <p class="display-italic text-[22px] leading-none">Forge<span class="text-acc">.</span>ops</p>
       </div>
       <TabsRoot :model-value="current?.key" activation-mode="manual" as="div" class="contents">
@@ -97,7 +97,7 @@ const heading = computed(() => {
           ref="strip"
           as="nav"
           data-tour="shell-pipeline"
-          class="flex items-stretch gap-0.5"
+          class="flex min-w-0 items-stretch gap-0.5 overflow-x-auto"
           :aria-label="t('shell.pipeline')"
           @keydown="ride"
         >
@@ -111,7 +111,7 @@ const heading = computed(() => {
               :to="screen.path"
               :aria-keyshortcuts="`Alt+Shift+${screen.digit}`"
               :title="t('shell.shortcut', { digit: screen.digit })"
-              class="flex flex-col justify-center gap-[3px] border-b-[3px] px-4 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc"
+              class="flex flex-col justify-center gap-[3px] border-b-2 px-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc"
               :class="
                 current?.key === screen.key
                   ? 'border-acc text-txt-hi'
@@ -136,19 +136,19 @@ const heading = computed(() => {
     </header>
 
     <header
-      class="sticky top-0 z-40 flex min-h-[92px] flex-wrap items-center gap-4 border-b border-line bg-panel/80 px-8 py-4 backdrop-blur"
+      class="sticky top-0 z-40 flex flex-wrap items-center gap-3 border-b border-line bg-panel/80 px-4 py-3 backdrop-blur sm:min-h-[92px] sm:gap-4 sm:px-8 sm:py-4"
     >
       <div class="min-w-0 flex-[1_1_240px]" data-tour="shell-heading">
         <div class="flex items-baseline gap-2.5">
           <span class="font-mono text-[11px] font-semibold text-txt-low">{{ heading.digit }}</span>
-          <h1 class="display-italic m-0 text-[28px] leading-none">{{ heading.label }}</h1>
+          <h1 class="display-italic m-0 text-[22px] leading-none sm:text-[28px]">{{ heading.label }}</h1>
         </div>
         <p class="mt-1 text-[13px] text-txt-low">{{ heading.sub }}</p>
       </div>
 
       <div class="ml-auto flex flex-wrap items-center gap-3">
         <LanguageSwitch />
-        <MachineBadge />
+        <MachineBadge class="hidden sm:flex" />
         <span class="flex items-center gap-2 font-mono text-[11px] text-txt-low uppercase">
           <span
             class="h-1.5 w-1.5 flex-none rounded-full"

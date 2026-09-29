@@ -148,7 +148,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
           <div class="flex items-center gap-1.5">
             <RouterLink
               :to="`/me/stories/${story.storyId}`"
-              class="font-mono text-[11px] text-txt-mid hover:text-txt-hi"
+              class="inline-flex min-h-10 items-center font-mono text-[11px] text-txt-mid hover:text-txt-hi sm:min-h-0"
               >{{ story.storyReference }}</RouterLink
             >
             <span class="ml-auto font-mono text-[11px] text-txt-low"
@@ -208,7 +208,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
               <tbody>
                 <tr v-for="entry in history.data.value ?? []" :key="entry.id" class="border-b border-line/60">
                   <td class="py-2">
-                    <RouterLink :to="`/me/stories/${entry.storyId}`" class="font-mono text-[11px] text-txt-mid hover:text-txt-hi">{{
+                    <RouterLink :to="`/me/stories/${entry.storyId}`" class="inline-flex min-h-10 items-center font-mono text-[11px] text-txt-mid hover:text-txt-hi sm:min-h-0">{{
                       entry.storyReference
                     }}</RouterLink>
                   </td>
