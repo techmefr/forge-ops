@@ -1,3 +1,4 @@
+import type { EpicPatch } from '../../../contract/EpicContract.js'
 import type { Milestone, MilestoneKind } from '../../../contract/StoryContract.js'
 import type Database from 'better-sqlite3'
 import { createStoryRepository } from '../domain/Story/StoryRepository.js'
@@ -84,6 +85,8 @@ type SpareEpicPlan = {
   title: string
   intent: string
   assignee: string | null
+  planning?: EpicPatch
+  lateByDays?: number
 }
 
 const SPARE_EPICS: readonly SpareEpicPlan[] = [
@@ -98,18 +101,22 @@ const SPARE_EPICS: readonly SpareEpicPlan[] = [
     title: 'Passerelle GitLab',
     intent: 'suivre les merge requests du travail lance depuis le board',
     assignee: 'local',
+    planning: { state: 'doing', priority: 'high', statusNote: 'Webhook received, the merge request list is next.' },
   },
   {
     project: 'mailer',
     title: 'Recherche dans les mails',
     intent: 'retrouver un mail par son sujet, son expediteur ou son contenu',
     assignee: null,
+    planning: { priority: 'max', requestedBy: 'Support team' },
   },
   {
     project: 'mailer',
     title: 'Signature par compte',
     intent: 'laisser chaque compte porter sa propre signature',
     assignee: 'seraph',
+    planning: { state: 'blocked', statusNote: 'Waiting for the mail vendor to open the API.' },
+    lateByDays: 4,
   },
   {
     project: 'atlas',
@@ -585,6 +592,12 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
     })
     if (spare.assignee !== null) {
       stories.claimEpic(epic.id, spare.assignee)
+    }
+    if (spare.planning !== undefined) {
+      stories.epics.plan(epic.id, spare.planning)
+    }
+    if (spare.lateByDays !== undefined) {
+      stories.writeMilestone({ epicId: epic.id, kind: 'demo', dueOn: dayFromNow(-spare.lateByDays) })
     }
   }
   for (const projectId of projectIds.values()) {

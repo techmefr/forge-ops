@@ -103,7 +103,7 @@ void tags.reload()
           </p>
         </div>
         <RouterLink
-          :to="{ path: '/projects/board', query: { tag: String(tag.id) } }"
+          :to="{ path: '/projects/subjects', query: { tag: String(tag.id) } }"
           class="rounded-lg border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
           >{{ t('team.seeSubjects') }}<span class="sr-only"> #{{ tag.label }}</span></RouterLink
         >

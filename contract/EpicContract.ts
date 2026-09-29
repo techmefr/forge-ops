@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { MilestoneKind } from './StoryContract.js'
 
 export const EPIC_PRIORITIES = ['max', 'high', 'normal', 'low'] as const
 
@@ -56,6 +57,12 @@ export type EpicWaitingOn = {
   title: string
 }
 
+export type EpicNextEvent = {
+  type: MilestoneKind
+  date: string
+  title: string
+}
+
 export type EpicPlanning = {
   priority: EpicPriority
   startedOn: string | null
@@ -67,6 +74,8 @@ export type EpicPlanning = {
   state: EpicState
   progress: EpicProgress
   lateDays: number | null
+  dueOn: string | null
+  nextEvent: EpicNextEvent | null
   blockedSince: string | null
   waitingOn: readonly EpicWaitingOn[]
   deletedAt: string | null

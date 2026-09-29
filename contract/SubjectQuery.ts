@@ -1,5 +1,5 @@
-import { inSubjectFilter, UNASSIGNED, type EpicQuery } from '../../../../contract/EpicContract.js'
-import type { EpicOverview } from '../../../../contract/StoryContract.js'
+import { inSubjectFilter, UNASSIGNED, type EpicQuery } from './EpicContract.js'
+import type { EpicOverview } from './StoryContract.js'
 
 function haystackOf(epic: EpicOverview): string {
   return [epic.title, epic.businessIntent, epic.statusNote ?? '', epic.requestedBy ?? ''].join('\n').toLowerCase()

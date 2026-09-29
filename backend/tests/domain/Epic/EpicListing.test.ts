@@ -166,3 +166,40 @@ describe('the state of a subject without stories', () => {
     expect(await titles('?state=todo')).toContain('Search')
   })
 })
+
+describe('the dates a row shows', () => {
+  async function summary(target: number): Promise<{ dueOn: string | null; nextEvent: Record<string, unknown> | null }> {
+    const all = (await (await call('/api/epics')).json()) as {
+      id: number
+      dueOn: string | null
+      nextEvent: Record<string, unknown> | null
+    }[]
+    const found = all.find((epic) => epic.id === target)
+    if (found === undefined) {
+      throw new Error('epic missing')
+    }
+    return found
+  }
+
+  it('has neither a due date nor a next event without milestones', async () => {
+    expect(await summary(search)).toMatchObject({ dueOn: null, nextEvent: null })
+  })
+
+  it('gives the next deadline as the due date', async () => {
+    stories.writeMilestone({ epicId: search, kind: 'demo', dueOn: '2999-03-01' })
+    stories.writeMilestone({ epicId: search, kind: 'production', dueOn: '2999-05-01' })
+    expect((await summary(search)).dueOn).toBe('2999-03-01')
+  })
+
+  it('keeps the last passed deadline as the due date once all are behind', async () => {
+    stories.writeMilestone({ epicId: search, kind: 'demo', dueOn: '2020-03-01' })
+    expect((await summary(search)).dueOn).toBe('2020-03-01')
+  })
+
+  it('names the next upcoming event of any type, and forgets the past ones', async () => {
+    await call('/api/events', 'POST', { type: 'client', date: '2020-01-01', title: 'Old', projectId: skera, epicId: search })
+    await call('/api/events', 'POST', { type: 'steering', date: '2999-06-01', title: 'Committee', projectId: skera, epicId: search })
+    await call('/api/events', 'POST', { type: 'other', date: '2999-07-01', title: 'Later', projectId: skera, epicId: search })
+    expect((await summary(search)).nextEvent).toEqual({ type: 'steering', date: '2999-06-01', title: 'Committee' })
+  })
+})

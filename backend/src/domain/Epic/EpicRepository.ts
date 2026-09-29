@@ -13,6 +13,7 @@ import {
   type TagDraft,
 } from '../../../../contract/EpicContract.js'
 import type { Milestone, MilestoneKind } from '../../../../contract/StoryContract.js'
+import { nextMilestone } from '../Board/CardAttention.js'
 import { closesLoop, deriveEpicState, lateDaysOf, type StoryCensus } from './EpicPlan.js'
 import {
   EpicDependencyLoopError,
@@ -71,6 +72,7 @@ type EpicTagRow = TagRow & { epic_id: number }
 type LinkRow = { owner_id: number; kind: LinkKind; url: string }
 type DependencyRow = { epic_id: number; depends_on_epic_id: number }
 type MilestoneRow = { epic_id: number; kind: MilestoneKind; due_on: string }
+type EventRow = { epic_id: number; kind: MilestoneKind; due_on: string; title: string }
 type HistoryRow = { epic_id: number; state: EpicState; at: string; by: string }
 
 const EMPTY_CENSUS: StoryCensus = { total: 0, delivered: 0, started: 0, blocked: 0 }
@@ -87,6 +89,11 @@ function groupBy<Row, Key>(rows: readonly Row[], keyOf: (row: Row) => Key): Map<
     grouped.set(key, [...(grouped.get(key) ?? []), row])
   }
   return grouped
+}
+
+function nextEventOf(rows: readonly EventRow[]): EpicPlanning['nextEvent'] {
+  const first = rows[0]
+  return first === undefined ? null : { type: first.kind, date: first.due_on, title: first.title }
 }
 
 function todayOf(now: string): string {
@@ -145,6 +152,12 @@ export function createEpicRepository(
     `SELECT epic_milestone.epic_id, epic_milestone.kind, epic_milestone.due_on
        FROM epic_milestone JOIN epic ON epic.id = epic_milestone.epic_id
       WHERE epic.project_id = ? AND epic_milestone.kind IN ('demo', 'production', 'everyone')`,
+  )
+  const selectEventsOfProject = db.prepare<[number, string], EventRow>(
+    `SELECT epic_milestone.epic_id, epic_milestone.kind, epic_milestone.due_on, epic_milestone.title
+       FROM epic_milestone JOIN epic ON epic.id = epic_milestone.epic_id
+      WHERE epic.project_id = ? AND epic_milestone.due_on >= ?
+      ORDER BY epic_milestone.due_on, epic_milestone.id`,
   )
   const selectHistoryOfProject = db.prepare<[number], HistoryRow>(
     `SELECT epic_state_history.epic_id, epic_state_history.state, epic_state_history.at, epic_state_history.by
@@ -250,6 +263,7 @@ export function createEpicRepository(
     const dependencies = groupBy(selectDependenciesOfProject.all(projectId), (row) => row.epic_id)
     const milestones = groupBy(selectMilestonesOfProject.all(projectId), (row) => row.epic_id)
     const history = groupBy(selectHistoryOfProject.all(projectId), (row) => row.epic_id)
+    const upcoming = groupBy(selectEventsOfProject.all(projectId, today), (row) => row.epic_id)
     const planning = new Map<number, EpicPlanning>()
     for (const epic of epics) {
       const counts = census.get(epic.id) ?? { epic_id: epic.id, ...EMPTY_CENSUS }
@@ -273,6 +287,8 @@ export function createEpicRepository(
         state,
         progress: { delivered: counts.delivered, total: counts.total },
         lateDays: lateDaysOf(dated, state, today),
+        dueOn: nextMilestone(dated, today)?.dueOn ?? null,
+        nextEvent: nextEventOf(upcoming.get(epic.id) ?? []),
         blockedSince: state === 'blocked' ? (blockedRow?.at ?? null) : null,
         waitingOn: dependsOn.flatMap((dependencyId) => {
           const dependency = selectEpic.get(dependencyId)

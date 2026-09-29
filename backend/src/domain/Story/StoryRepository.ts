@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3'
 import type { EpicQuery } from '../../../../contract/EpicContract.js'
-import { matchesQuery } from '../Epic/EpicQuery.js'
+import { matchesQuery } from '../../../../contract/SubjectQuery.js'
 import type {
   Dependency,
   Epic,
