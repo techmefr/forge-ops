@@ -50,6 +50,7 @@ const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'agent_session', column: 'context_tokens', declaration: 'INTEGER' },
   { table: 'agent_session', column: 'context_window', declaration: 'INTEGER' },
   { table: 'story', column: 'blocked_reason', declaration: 'TEXT' },
+  { table: 'story', column: 'workflow_column_id', declaration: 'INTEGER REFERENCES workflow_column(id)' },
   { table: 'worktree', column: 'forge_card_id', declaration: 'INTEGER' },
   { table: 'forge_card', column: 'provider', declaration: "TEXT NOT NULL DEFAULT 'claude'" },
 ]
@@ -248,12 +249,32 @@ function scopeWorkflowColumnsToProjects(schema: string): (db: Database.Database)
   }
 }
 
+function placeStoriesOnTheirStep(db: Database.Database): void {
+  if (
+    !tableExists(db, 'workflow_column') ||
+    !tableExists(db, 'story') ||
+    !columnExists(db, 'story', 'workflow_column_id')
+  ) {
+    return
+  }
+  db.exec(
+    `UPDATE story
+        SET workflow_column_id = (
+          SELECT workflow_column.id FROM workflow_column
+            JOIN epic ON epic.project_id = workflow_column.project_id
+           WHERE epic.id = story.epic_id AND workflow_column.key = story.state
+        )
+      WHERE workflow_column_id IS NULL`,
+  )
+}
+
 export function migrationSteps(schema: string): readonly MigrationStep[] {
   return [
     { name: 'zone/keyed-on-project', apply: rekeyZoneOnProject },
     { name: 'epic-milestone/project', apply: placeMilestonesOnTheirProject },
     { name: 'project/position-by-name', apply: numberProjectsByName },
     { name: 'workflow-column/per-project', apply: scopeWorkflowColumnsToProjects(schema) },
+    { name: 'story/workflow-column', apply: placeStoriesOnTheirStep },
     ...checkedTableSteps(schema),
   ]
 }

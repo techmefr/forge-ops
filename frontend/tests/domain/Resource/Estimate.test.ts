@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { COST_PER_STORY_USD, estimateRun } from '../../../src/domain/Resource/Estimate.js'
+import { COST_PER_STORY_USD, estimateRun, roomForSessions } from '../../../src/domain/Resource/Estimate.js'
 
 describe('estimateRun', () => {
   it('ne coute rien sans story', () => {
@@ -33,5 +33,23 @@ describe('estimateRun', () => {
 
   it('refuse un lot qui depasse d un cheveu', () => {
     expect(estimateRun({ stories: 2, capUsd: 20, spentUsd: 17.21 }).affordable).toBe(false)
+  })
+})
+
+describe("roomForSessions", () => {
+  it("is limited by the memory left when the budget is wide", () => {
+    expect(roomForSessions({ capUsd: 100, spentUsd: 0, memoryFreeMb: 2000 })).toBe(2)
+  })
+
+  it("is limited by the budget left when the memory is wide", () => {
+    expect(roomForSessions({ capUsd: 20, spentUsd: 17.2, memoryFreeMb: 64000 })).toBe(2)
+  })
+
+  it("counts on the budget alone when the machine cannot be read", () => {
+    expect(roomForSessions({ capUsd: 14, spentUsd: 0, memoryFreeMb: null })).toBe(10)
+  })
+
+  it("is zero once the cap is burst", () => {
+    expect(roomForSessions({ capUsd: 20, spentUsd: 25, memoryFreeMb: 64000 })).toBe(0)
   })
 })

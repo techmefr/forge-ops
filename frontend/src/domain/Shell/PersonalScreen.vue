@@ -3,6 +3,7 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { board } from '@/technical/Api/Board'
 import { useResource } from '@/technical/Api/UseResource'
+import ForgeScreen from '@/domain/Forge/ForgeScreen.vue'
 import FileScreen from '@/domain/File/FileScreen.vue'
 import ResourceScreen from '@/domain/Resource/ResourceScreen.vue'
 import StoryScreen from '@/domain/Story/StoryScreen.vue'
@@ -46,7 +47,8 @@ onMounted(() => projects.reload())
       group="personalTab"
     />
     <div class="min-h-0 min-w-0 flex-1 overflow-auto lg:overflow-hidden">
-      <StoryScreen v-if="current === `stories`" />
+      <ForgeScreen v-if="current === `forge`" />
+      <StoryScreen v-else-if="current === `stories`" />
       <FileScreen v-else-if="current === `files`" />
       <ViewScreen v-else-if="current === `view`" />
       <ResourceScreen v-else />

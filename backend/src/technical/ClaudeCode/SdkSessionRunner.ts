@@ -110,6 +110,39 @@ export function textOf(message: unknown): string | null {
   return spoken.length === 0 ? null : spoken.join('\n\n')
 }
 
+export type ToolStep = {
+  id: string
+  name: string
+  outcome: 'started' | 'ok' | 'failed'
+}
+
+function contentBlocksOf(message: unknown): readonly Record<string, unknown>[] {
+  if (typeof message !== 'object' || message === null) {
+    return []
+  }
+  const inner = (message as Record<string, unknown>).message
+  if (typeof inner !== 'object' || inner === null) {
+    return []
+  }
+  const content = (inner as Record<string, unknown>).content
+  return Array.isArray(content)
+    ? content.filter((block): block is Record<string, unknown> => typeof block === 'object' && block !== null)
+    : []
+}
+
+export function toolsOf(message: unknown): readonly ToolStep[] {
+  const steps: ToolStep[] = []
+  for (const block of contentBlocksOf(message)) {
+    if (block.type === 'tool_use' && typeof block.id === 'string') {
+      steps.push({ id: block.id, name: typeof block.name === 'string' ? block.name : '', outcome: 'started' })
+    }
+    if (block.type === 'tool_result' && typeof block.tool_use_id === 'string') {
+      steps.push({ id: block.tool_use_id, name: '', outcome: block.is_error === true ? 'failed' : 'ok' })
+    }
+  }
+  return steps
+}
+
 type ModelUsageLike = {
   contextWindow: number
   inputTokens: number
@@ -185,6 +218,7 @@ async function drain(
           claudeSessionId: order.claudeSessionId,
           ...usageOf(message),
           ...(textOf(message) === null ? {} : { text: textOf(message) }),
+          ...(toolsOf(message).length === 0 ? {} : { tools: toolsOf(message) }),
         },
       })
     }

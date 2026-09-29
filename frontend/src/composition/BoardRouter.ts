@@ -25,7 +25,7 @@ export const ROUTES: readonly RouteRecordRaw[] = [
     name: 'projects',
     component: () => import('@/domain/Shell/ProjectsScreen.vue'),
   },
-  { path: '/me', redirect: '/me/stories' },
+  { path: '/me', redirect: '/me/forge' },
   {
     path: '/me/stories/:id',
     name: 'personal.story',

@@ -43,6 +43,7 @@ export type ForgeCardRepository = {
   closeForgeCard: (forgeCardId: number) => void
   openCardOfStory: (storyId: number) => ForgeCard | null
   findForgeCard: (forgeCardId: number) => ForgeCard
+  attachCardToStory: (storyId: number) => ForgeCard
   recordDispatch: (forgeCardId: number, progress: ForgeCardDispatchProgress) => ForgeCard
 }
 
@@ -64,6 +65,14 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
     FROM forge_card_story fcs
     JOIN forge_card fc ON fc.id = fcs.forge_card_id
     WHERE fcs.story_id = ? AND fc.closed_at IS NULL
+  `)
+  const selectAnyCardIdForStory = db.prepare<[number], { forge_card_id: number }>(`
+    SELECT fcs.forge_card_id AS forge_card_id
+    FROM forge_card_story fcs
+    JOIN forge_card fc ON fc.id = fcs.forge_card_id
+    WHERE fcs.story_id = ?
+    ORDER BY (fc.closed_at IS NULL) DESC, fc.id DESC
+    LIMIT 1
   `)
   const selectCard = db.prepare<[number], ForgeCardRow>(
     'SELECT id, reference, provider, claude_session_id, current_phase, created_at, closed_at FROM forge_card WHERE id = ?',
@@ -132,6 +141,25 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
 
     closeForgeCard: (forgeCardId) => {
       closeCard.run(forgeCardId)
+    },
+
+    attachCardToStory: (storyId) => {
+      const story = selectStory.get(storyId)
+      if (story === undefined) {
+        throw new ForgeStoryNotFoundError(storyId)
+      }
+      const existing = selectAnyCardIdForStory.get(storyId)
+      if (existing !== undefined) {
+        return findCard(existing.forge_card_id)
+      }
+      const reference = `FORGE-${(countCards.get()?.total ?? 0) + 1}`
+      const info = insertCard.run(reference, DEFAULT_FORGE_CARD_PROVIDER)
+      const forgeCardId = Number(info.lastInsertRowid)
+      linkStory.run(forgeCardId, storyId)
+      if (story.state === 'done') {
+        closeCard.run(forgeCardId)
+      }
+      return findCard(forgeCardId)
     },
 
     openCardOfStory: (storyId) => {

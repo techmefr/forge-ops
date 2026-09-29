@@ -97,6 +97,7 @@ export type StoryRepository = {
   markDoneAndUnblock: (storyId: number) => readonly Story[]
   startBuilding: (storyId: number) => Story
   moveToState: (storyId: number, state: StoryState) => Story
+  setPlacement: (storyId: number, placement: StoryPlacement) => Story
   stepBack: (draft: StepBackDraft) => StepBackRecord
   listStepBacks: (storyId: number) => readonly StepBackRecord[]
   listBacklog: () => readonly Story[]
@@ -125,6 +126,11 @@ function toStepBack(row: StepBackRow): StepBackRecord {
       row.revoked_checkpoints === '' ? [] : (row.revoked_checkpoints.split(',') as CheckpointName[]),
     steppedBackAt: row.stepped_back_at,
   }
+}
+
+export type StoryPlacement = {
+  state: StoryState
+  workflowColumnId: number | null
 }
 
 export type CardContext = {
@@ -274,8 +280,19 @@ export function createStoryRepository(
         AND story.state <> 'done'
       ORDER BY story.reference`,
   )
-  const updateState = db.prepare<[StoryState, number]>(
-    "UPDATE story SET state = ?, updated_at = datetime('now') WHERE id = ?",
+  const updateState = db.prepare<[StoryState, StoryState, number]>(
+    `UPDATE story
+        SET state = ?,
+            workflow_column_id = (
+              SELECT workflow_column.id FROM workflow_column
+                JOIN epic ON epic.project_id = workflow_column.project_id
+               WHERE epic.id = story.epic_id AND workflow_column.key = ?
+            ),
+            updated_at = datetime('now')
+      WHERE id = ?`,
+  )
+  const updatePlacement = db.prepare<[StoryState, number | null, number]>(
+    "UPDATE story SET state = ?, workflow_column_id = ?, updated_at = datetime('now') WHERE id = ?",
   )
   const selectBacklog = db.prepare<[], StoryRow>(
     "SELECT * FROM story WHERE kind = 'functional' AND state = 'backlog' ORDER BY id",
@@ -399,7 +416,7 @@ export function createStoryRepository(
   }
 
   function moveTo(storyId: number, state: StoryState): Story {
-    updateState.run(state, storyId)
+    updateState.run(state, state, storyId)
     return settle(findStory(storyId))
   }
 
@@ -628,6 +645,12 @@ export function createStoryRepository(
     },
 
     moveToState: (storyId, state) => moveTo(findStory(storyId).id, state),
+
+    setPlacement: (storyId, placement) => {
+      const story = findStory(storyId)
+      updatePlacement.run(placement.state, placement.workflowColumnId, story.id)
+      return findStory(story.id)
+    },
 
     stepBack: (draft) => {
       const story = findStory(draft.storyId)

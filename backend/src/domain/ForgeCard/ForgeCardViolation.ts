@@ -46,3 +46,33 @@ export class UnknownForgeCardProviderError extends ForgeCardViolationError {
     super(`Le provider ${provider} n est pas reconnu`, 'UnknownForgeCardProviderError')
   }
 }
+
+export class UnknownStepKeyError extends ForgeCardViolationError {
+  constructor(stepKey: string) {
+    super(`The step ${stepKey} does not exist in this project`, 'UnknownStepKeyError')
+  }
+}
+
+export class DoneIsEarnedError extends ForgeCardViolationError {
+  constructor(reference: string) {
+    super(`${reference} reaches Done through its definition of done, not by a drop`, 'DoneIsEarnedError')
+  }
+}
+
+export class DoneIsFinalError extends ForgeCardViolationError {
+  constructor(reference: string) {
+    super(`${reference} is done and stays there`, 'DoneIsFinalError')
+  }
+}
+
+export class StepBusyError extends ForgeCardViolationError {
+  constructor(reference: string) {
+    super(`${reference} has a session in progress: stop it first`, 'StepBusyError')
+  }
+}
+
+export class LaunchNeedsAStepError extends ForgeCardViolationError {
+  constructor(reference: string) {
+    super(`${reference} is not in a step: move it into one first`, 'LaunchNeedsAStepError')
+  }
+}

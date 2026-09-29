@@ -15,7 +15,42 @@ import { REVIEW_LENS_SEQUENCE } from '../domain/Checkpoint/Checkpoint.js'
 import type { CheckpointName } from '../domain/Checkpoint/Checkpoint.js'
 import type { StoryState } from '../domain/Story/Story.js'
 import type { AgentPhase } from '../domain/Agent/AgentSession.js'
+import { createWorkflowColumnRepository } from '../domain/Workflow/WorkflowColumnRepository.js'
+import type { WorkflowColumnDraft } from '../../../contract/WorkflowColumnContract.js'
 import type { SessionExit } from '../domain/Agent/SessionOutcome.js'
+
+function agentStep(label: string, colour: string, autoStart: boolean): WorkflowColumnDraft {
+  return {
+    label,
+    colour,
+    provider: 'claude',
+    model: 'claude-sonnet-5',
+    effort: 'high',
+    agentName: '',
+    command: '',
+    preprompt: '',
+    autoStart,
+  }
+}
+
+const DEMO_STEPS: readonly WorkflowColumnDraft[] = [
+  agentStep('Architecture', 'acc', true),
+  {
+    label: 'Plan review',
+    colour: 'warn',
+    provider: 'human',
+    model: '',
+    effort: '',
+    agentName: '',
+    command: '',
+    preprompt: '',
+    autoStart: false,
+  },
+  agentStep('Building', 'blue', false),
+  agentStep('Gating', 'orange', false),
+  agentStep('Reviewing', 'green', false),
+  agentStep('Shipping', 'red', false),
+]
 
 const MILESTONE_SPREAD: readonly { kind: MilestoneKind; inDays: number }[] = [
   { kind: 'demo', inDays: 4 },
@@ -496,7 +531,17 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
   const budget = createBudgetRepository(db)
   const discussion = createDiscussionRepository(db, { stories })
 
-  const setState = db.prepare<[StoryState, number]>('UPDATE story SET state = ? WHERE id = ?')
+  const setState = db.prepare<[StoryState, StoryState, number]>(
+    `UPDATE story
+        SET state = ?,
+            workflow_column_id = (
+              SELECT workflow_column.id FROM workflow_column
+                JOIN epic ON epic.project_id = workflow_column.project_id
+               WHERE epic.id = story.epic_id AND workflow_column.key = ?
+            )
+      WHERE id = ?`,
+  )
+  const workflowColumns = createWorkflowColumnRepository(db)
   const setEscalation = db.prepare<[string, number]>('UPDATE story SET escalation_reason = ? WHERE id = ?')
   const backdateSession = db.prepare<[number, number, number, string]>(
     `UPDATE agent_session
@@ -536,6 +581,9 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
       checkoutPath: project.slug === 'forge' ? process.cwd() : null,
     })
     projectIds.set(project.slug, written.id)
+    for (const step of DEMO_STEPS) {
+      workflowColumns.create(written.id, step)
+    }
     const epic = stories.createEpic({
       projectId: written.id,
       title: project.epicTitle,
@@ -867,7 +915,7 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
   }
 
   if (orphanStory !== undefined) {
-    setState.run('escalated', orphanStory)
+    setState.run('escalated', 'escalated', orphanStory)
     setEscalation.run(
       "la session a repete deux fois la meme erreur de compilation, le board a coupe et attend une decision",
       orphanStory,
@@ -884,7 +932,7 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
         stories.rollOut(storyId, 25)
         continue
       }
-      setState.run(plan.state, storyId)
+      setState.run(plan.state, plan.state, storyId)
     }
   }
 

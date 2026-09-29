@@ -33,6 +33,8 @@ const WATCHED_EVENTS = [
   'session.user',
   'session.result',
   'session.failed',
+  'session.human',
+  'session.hung_up',
   'scope.reserved',
   'scope.released',
   'worktree.opened',

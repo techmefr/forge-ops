@@ -27,6 +27,10 @@ import { createWorktreeRepository } from '../domain/Worktree/WorktreeRepository.
 import { createWorktreeApi } from '../domain/Worktree/WorktreeApi.js'
 import { createForgeCardRepository } from '../domain/ForgeCard/ForgeCardRepository.js'
 import { createForgeCardApi } from '../domain/ForgeCard/ForgeCardApi.js'
+import { createForgeBoardRepository } from '../domain/ForgeCard/ForgeBoardRepository.js'
+import { createForgeCardMover } from '../domain/ForgeCard/ForgeCardMover.js'
+import { createForgeBoardApi } from '../domain/ForgeCard/ForgeBoardApi.js'
+import { createStepEntry } from '../domain/Dispatch/StepEntry.js'
 import { cleanUpAfterMerge } from '../domain/Deployment/MergeCleanup.js'
 import { createGitWorktree } from '../technical/Git/GitWorktree.js'
 import { createForemergeRepository } from '../domain/Foremerge/ForemergeRepository.js'
@@ -445,6 +449,24 @@ export function startBoardServer({
   )
   guarded.route('/', createWorktreeApi({ worktrees, events }))
   guarded.route('/', createForgeCardApi({ forgeCards, worktrees }))
+  const forgeBoard = createForgeBoardRepository(db, { forgeCards, columns: workflowColumns })
+  guarded.route(
+    '/',
+    createForgeBoardApi({
+      board: forgeBoard,
+      forgeCards,
+      stories,
+      events,
+      mover: createForgeCardMover({
+        board: forgeBoard,
+        forgeCards,
+        stories,
+        columns: workflowColumns,
+        enterStep: createStepEntry({ dispatcher, columns: workflowColumns }),
+        launchStep: (entry) => dispatcher.dispatch(entry),
+      }),
+    }),
+  )
   const pilots = createPilotRepository(db, {
     stories,
     openDriver: () => createPlaywrightPilot({ shotDir, headless: !headedPilot }),

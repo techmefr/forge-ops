@@ -650,3 +650,38 @@ describe("opening a base whose workflow columns were global", () => {
     db.close()
   })
 })
+
+describe("opening a base whose stories were placed by their state alone", () => {
+  function seedPlacedByState(): void {
+    const db = openDatabase(path)
+    db.prepare(
+      "INSERT INTO project (slug, name, repository_url, integration_branch, colour) VALUES ('p', 'P', 'url', 'main', '#112233')",
+    ).run()
+    db.prepare(
+      "INSERT INTO workflow_column (project_id, key, label, colour, position, behavioural_kind) VALUES (1, 'building', 'Building', 'acc', 1, 'ordinary')",
+    ).run()
+    db.prepare("INSERT INTO epic (project_id, title, business_intent) VALUES (1, 'E', 'i')").run()
+    const insert = db.prepare(
+      "INSERT INTO story (epic_id, reference, title, body, kind, state) VALUES (1, ?, 't', 'b', 'functional', ?)",
+    )
+    insert.run("S-1", "building")
+    insert.run("S-2", "backlog")
+    insert.run("S-3", "gating")
+    db.prepare("DELETE FROM schema_step WHERE name = 'story/workflow-column'").run()
+    db.close()
+  }
+
+  it("points each story at the step its state names, and leaves the others alone", () => {
+    seedPlacedByState()
+    const db = openDatabase(path)
+    const placed = db
+      .prepare<[], { reference: string; workflow_column_id: number | null }>("SELECT reference, workflow_column_id FROM story ORDER BY reference")
+      .all()
+    expect(placed).toEqual([
+      { reference: "S-1", workflow_column_id: 1 },
+      { reference: "S-2", workflow_column_id: null },
+      { reference: "S-3", workflow_column_id: null },
+    ])
+    db.close()
+  })
+})
