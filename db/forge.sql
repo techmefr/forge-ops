@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS epic (
   status_note TEXT,
   requested_by TEXT,
   deleted_at TEXT,
+  manual_state TEXT CHECK (manual_state IN ('todo', 'doing', 'blocked', 'done')),
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

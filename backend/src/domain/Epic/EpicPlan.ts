@@ -1,4 +1,4 @@
-import type { EpicState } from '../../../../contract/EpicContract.js'
+import type { EpicState, ManualEpicState } from '../../../../contract/EpicContract.js'
 import type { Milestone } from '../../../../contract/StoryContract.js'
 import { daysLeft, nextMilestone } from '../Board/CardAttention.js'
 
@@ -9,12 +9,16 @@ export type StoryCensus = {
   blocked: number
 }
 
-export function deriveEpicState(census: StoryCensus, deleted: boolean): EpicState {
+export function deriveEpicState(
+  census: StoryCensus,
+  deleted: boolean,
+  manual: ManualEpicState | null = null,
+): EpicState {
   if (deleted) {
     return 'trash'
   }
   if (census.total === 0) {
-    return 'todo'
+    return manual ?? 'todo'
   }
   if (census.delivered === census.total) {
     return 'done'

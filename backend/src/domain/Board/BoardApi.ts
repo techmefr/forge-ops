@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { z } from 'zod'
+import { epicQuerySchema } from '../../../../contract/EpicContract.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
@@ -161,6 +162,14 @@ export function createBoardApi({
     }
     repository.releaseEpic(epicId.data, operatorOf(context))
     return context.json({ released: true })
+  })
+
+  api.get('/api/epics', (context) => {
+    const query = epicQuerySchema.safeParse(context.req.query())
+    if (!query.success) {
+      return context.json({ error: 'InvalidEpicQuery', issues: query.error.issues }, 422)
+    }
+    return context.json(repository.listEveryEpic(query.data, today()))
   })
 
   api.get('/api/projects/:id/epics', (context) => {

@@ -25,6 +25,11 @@ const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'epic', column: 'status_note', declaration: 'TEXT' },
   { table: 'epic', column: 'requested_by', declaration: 'TEXT' },
   { table: 'epic', column: 'deleted_at', declaration: 'TEXT' },
+  {
+    table: 'epic',
+    column: 'manual_state',
+    declaration: "TEXT CHECK (manual_state IN ('todo', 'doing', 'blocked', 'done'))",
+  },
   { table: 'epic_milestone', column: 'project_id', declaration: 'INTEGER REFERENCES project(id)' },
   { table: 'epic_milestone', column: 'title', declaration: "TEXT NOT NULL DEFAULT ''" },
   { table: 'epic_milestone', column: 'note', declaration: 'TEXT' },

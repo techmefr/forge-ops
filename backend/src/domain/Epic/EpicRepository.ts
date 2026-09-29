@@ -6,6 +6,7 @@ import {
   type EpicPlanning,
   type EpicState,
   type EpicStateChange,
+  type ManualEpicState,
   type LinkKind,
   type SubjectLink,
   type Tag,
@@ -17,6 +18,7 @@ import {
   EpicDependencyLoopError,
   EpicNotDeletedError,
   EpicSelfDependencyError,
+  EpicStateDerivedError,
   TagInUseError,
   TagLabelTakenError,
   TagNotFoundError,
@@ -34,7 +36,7 @@ export type EpicRepository = {
   recordState: (epicId: number, by?: string) => void
   planningOf: (projectId: number, options?: OverviewOptions) => ReadonlyMap<number, EpicPlanning>
   planningOfEpic: (epicId: number, today?: string) => EpicPlanning
-  plan: (epicId: number, patch: EpicPatch) => void
+  plan: (epicId: number, patch: EpicPatch, by?: string) => void
   history: (epicId: number) => readonly EpicStateChange[]
   softDelete: (epicId: number, login: string) => void
   restore: (epicId: number, login: string) => void
@@ -60,6 +62,7 @@ type EpicRow = {
   status_note: string | null
   requested_by: string | null
   deleted_at: string | null
+  manual_state: ManualEpicState | null
 }
 
 type CensusRow = { epic_id: number; total: number; delivered: number; started: number; blocked: number }
@@ -95,11 +98,11 @@ export function createEpicRepository(
   { now = () => new Date().toISOString() }: EpicRepositoryOptions = {},
 ): EpicRepository {
   const selectEpic = db.prepare<[number], EpicRow>(
-    `SELECT id, project_id, title, priority, started_on, status_note, requested_by, deleted_at
+    `SELECT id, project_id, title, priority, started_on, status_note, requested_by, deleted_at, manual_state
        FROM epic WHERE id = ?`,
   )
   const selectEpicsOfProject = db.prepare<[number, number], EpicRow>(
-    `SELECT id, project_id, title, priority, started_on, status_note, requested_by, deleted_at
+    `SELECT id, project_id, title, priority, started_on, status_note, requested_by, deleted_at, manual_state
        FROM epic WHERE project_id = ? AND (deleted_at IS NOT NULL) = ? ORDER BY id`,
   )
   const selectCensusOfProject = db.prepare<[number], CensusRow>(
@@ -190,6 +193,9 @@ export function createEpicRepository(
   const insertDependency = db.prepare<[number, number]>(
     'INSERT INTO epic_dependency (epic_id, depends_on_epic_id) VALUES (?, ?)',
   )
+  const updateManualState = db.prepare<[ManualEpicState, number]>(
+    'UPDATE epic SET manual_state = ? WHERE id = ?',
+  )
   const markDeleted = db.prepare<[string | null, number]>('UPDATE epic SET deleted_at = ? WHERE id = ?')
   const selectExpired = db.prepare<[string], { id: number }>(
     `SELECT epic.id FROM epic
@@ -226,7 +232,7 @@ export function createEpicRepository(
       return
     }
     const census = selectCensusOfEpic.get(epicId) ?? { epic_id: epicId, ...EMPTY_CENSUS }
-    const state = deriveEpicState(census, epic.deleted_at !== null)
+    const state = deriveEpicState(census, epic.deleted_at !== null, epic.manual_state)
     if (selectLastState.get(epicId)?.state === state) {
       return
     }
@@ -247,7 +253,7 @@ export function createEpicRepository(
     const planning = new Map<number, EpicPlanning>()
     for (const epic of epics) {
       const counts = census.get(epic.id) ?? { epic_id: epic.id, ...EMPTY_CENSUS }
-      const state = deriveEpicState(counts, epic.deleted_at !== null)
+      const state = deriveEpicState(counts, epic.deleted_at !== null, epic.manual_state)
       const dated: Milestone[] = (milestones.get(epic.id) ?? []).map((row) => ({
         epicId: row.epic_id,
         kind: row.kind,
@@ -274,7 +280,7 @@ export function createEpicRepository(
             return []
           }
           const dependencyCensus = selectCensusOfEpic.get(dependencyId) ?? { epic_id: dependencyId, ...EMPTY_CENSUS }
-          return deriveEpicState(dependencyCensus, false) === 'done'
+          return deriveEpicState(dependencyCensus, false, dependency.manual_state) === 'done'
             ? []
             : [{ id: dependency.id, title: dependency.title }]
         }),
@@ -319,8 +325,11 @@ export function createEpicRepository(
     }
   }
 
-  const writePlan = db.transaction((epicId: number, patch: EpicPatch) => {
+  const writePlan = db.transaction((epicId: number, patch: EpicPatch, by: string) => {
     liveEpic(epicId)
+    if (patch.state !== undefined && (selectCensusOfEpic.get(epicId)?.total ?? 0) > 0) {
+      throw new EpicStateDerivedError(epicId)
+    }
     const tagIds = [...new Set(patch.tagIds ?? [])]
     for (const tagId of tagIds) {
       if (selectTag.get(tagId) === undefined) {
@@ -332,6 +341,10 @@ export function createEpicRepository(
       assertDependencies(epicId, dependsOn)
     }
     writeScalars(epicId, patch)
+    if (patch.state !== undefined) {
+      updateManualState.run(patch.state, epicId)
+      recordState(epicId, by)
+    }
     if (patch.tagIds !== undefined) {
       deleteEpicTags.run(epicId)
       tagIds.forEach((tagId) => insertEpicTag.run(epicId, tagId))
@@ -387,7 +400,7 @@ export function createEpicRepository(
       return found
     },
 
-    plan: (epicId, patch) => writePlan(epicId, patch),
+    plan: (epicId, patch, by = SYSTEM_AUTHOR) => writePlan(epicId, patch, by),
 
     history: (epicId) => {
       anyEpic(epicId)
