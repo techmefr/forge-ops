@@ -63,7 +63,7 @@ beforeEach(() => {
     stories,
     columns,
     enterStep,
-    launchStep: async () => ({ claudeSessionId: 'session' }),
+    launchStep: () => Promise.reject(new Error('unused')),
   })
   app = new Hono()
   app.use('*', async (context, next) => {
