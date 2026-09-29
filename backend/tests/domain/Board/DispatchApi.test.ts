@@ -120,6 +120,27 @@ describe('POST /api/stories/:id/dispatch', () => {
     await expect(response.json()).resolves.toMatchObject({ error: 'PhaseNotReadyError' })
   })
 
+  it('answers 409 and starts nothing when the named step is a human step', async () => {
+    const projectId = stories.projectOfStory(storyId)
+    const step = Number(
+      db
+        .prepare(
+          "INSERT INTO workflow_column (project_id, key, label, colour, position, provider, behavioural_kind) VALUES (?, 'validation', 'Validation', 'warn', 1, 'human', 'human_wait')",
+        )
+        .run(projectId).lastInsertRowid,
+    )
+
+    const response = await dispatch(storyId, { phase: 'spec', columnId: step })
+
+    expect(response.status).toBe(409)
+    await expect(response.json()).resolves.toMatchObject({ error: 'HumanStepError' })
+    expect(db.prepare('SELECT COUNT(*) AS total FROM agent_session').get()).toEqual({ total: 0 })
+  })
+
+  it('refuses a step identifier that is not a positive integer', async () => {
+    expect((await dispatch(storyId, { phase: 'spec', columnId: 0 })).status).toBe(422)
+  })
+
   it('refuses an unknown phase on the contract', async () => {
     const response = await dispatch(storyId, { phase: 'deployer' })
 

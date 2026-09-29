@@ -63,6 +63,7 @@ const rolloutSchema = z.object({ percent: z.number() })
 
 const dispatchSchema = z.object({
   phase: z.enum(AGENT_PHASE_SEQUENCE),
+  columnId: z.number().int().positive().optional(),
 })
 
 export type StoryApiInput = {
@@ -336,7 +337,11 @@ export function createStoryApi({
     if (!body.success) {
       return context.json({ error: 'InvalidDispatchOrder', issues: body.error.issues }, 422)
     }
-    const dispatched = await dispatcher.dispatch({ storyId: storyId.data, phase: body.data.phase })
+    const dispatched = await dispatcher.dispatch({
+      storyId: storyId.data,
+      phase: body.data.phase,
+      ...(body.data.columnId === undefined ? {} : { columnId: body.data.columnId }),
+    })
     events.publish({
       name: 'session.dispatched',
       payload: {

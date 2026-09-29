@@ -50,6 +50,7 @@ import { createLiveSessions } from '../technical/ClaudeCode/LiveSessions.js'
 import { createDiscussionApi } from '../domain/Discussion/DiscussionApi.js'
 import { createDiscussionRepository } from '../domain/Discussion/DiscussionRepository.js'
 import { operatorOf } from '../technical/Auth/BoardIdentity.js'
+import { mayAdministerWorkflow } from '../domain/Workflow/WorkflowAuthority.js'
 import { readSuperAdminConfiguration } from '../technical/Auth/SuperAdminConfiguration.js'
 import { createTemplateRepository } from '../domain/Template/TemplateRepository.js'
 import { createTemplateApi } from '../domain/Template/TemplateApi.js'
@@ -260,12 +261,14 @@ export function startBoardServer({
     foremerge,
     workflow,
     forgeCards,
+    workflowColumns,
     runner: createDrivenRunner({
       drivers,
       providerOf: (order) =>
-        order.forgeCardId === undefined
+        order.provider ??
+        (order.forgeCardId === undefined
           ? DEFAULT_FORGE_CARD_PROVIDER
-          : forgeCards.findForgeCard(order.forgeCardId).provider,
+          : forgeCards.findForgeCard(order.forgeCardId).provider),
       columnAgentOf: (order) =>
         columnAgentOfPhase(templates.templateOfProject(stories.projectOfStory(order.storyId)).columns, order.phase),
     }),
@@ -394,8 +397,19 @@ export function startBoardServer({
     '/',
     createWorkflowColumnApi({
       columns: workflowColumns,
-      maySettle: (context) =>
-        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
+      projectExists: (projectId) => stories.projects.find(projectId) !== null,
+      mayAdminister: (projectId, context) =>
+        mayAdministerWorkflow({
+          login: operatorOf(context),
+          adminLogin: stories.projects.find(projectId)?.adminLogin ?? null,
+          isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
+        }),
+      adminOf: (projectId) => {
+        const sheet = stories.projects.find(projectId)
+        return sheet === null || sheet.adminLogin === null
+          ? null
+          : { login: sheet.adminLogin, name: sheet.adminName ?? sheet.adminLogin }
+      },
     }),
   )
   guarded.get('/api/board/mode', (context) =>

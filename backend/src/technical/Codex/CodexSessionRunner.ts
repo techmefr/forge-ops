@@ -10,6 +10,7 @@ export type CodexLaunchOrder = {
   prompt: string
   model?: string
   baseUrl?: string
+  effort?: string
   forgeCardId?: number
   resumeSessionId?: string
 }
@@ -61,6 +62,19 @@ function promptWithFallback(order: CodexLaunchOrder, transcripts: CodexTranscrip
     : `${priorTranscript}\n\n## Tour actuel\n${order.prompt}`
 }
 
+const CODEX_REASONING: Readonly<Record<string, string>> = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  xhigh: 'high',
+  max: 'high',
+}
+
+function reasoningOf(effort: string | undefined): readonly string[] {
+  const level = effort === undefined ? undefined : CODEX_REASONING[effort]
+  return level === undefined ? [] : ['-c', `model_reasoning_effort="${level}"`]
+}
+
 export function createCodexSessionRunner({
   cwdFor,
   onEvent,
@@ -73,7 +87,7 @@ export function createCodexSessionRunner({
       const prompt = promptWithFallback(order, transcripts)
       const claudeSessionId = randomUUID()
 
-      const child = spawnCodex(['exec', '--json', '--cd', cwd, prompt], {
+      const child = spawnCodex(['exec', '--json', ...reasoningOf(order.effort), '--cd', cwd, prompt], {
         cwd,
         env: {
           ...process.env,

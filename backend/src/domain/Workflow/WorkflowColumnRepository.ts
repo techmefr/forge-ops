@@ -1,157 +1,199 @@
 import type Database from 'better-sqlite3'
-import type { WorkflowColumn, WorkflowColumnDraft } from '../../../../contract/WorkflowColumnContract.js'
-import { refusalOfDraft, SEED_WORKFLOW_COLUMNS } from './WorkflowColumn.js'
-import { WorkflowColumnRefusedError } from './WorkflowColumnViolation.js'
+import type {
+  BehaviouralKind,
+  WorkflowColumn,
+  WorkflowColumnDraft,
+  WorkflowEffort,
+  WorkflowProvider,
+} from '../../../../contract/WorkflowColumnContract.js'
+import { behaviouralKindOf, keyOfLabel, refusalOfDraft } from './WorkflowColumn.js'
+import {
+  WorkflowColumnInUseError,
+  WorkflowColumnNotFoundError,
+  WorkflowColumnRefusedError,
+} from './WorkflowColumnViolation.js'
 
 export type WorkflowColumnRepository = {
-  list: () => readonly WorkflowColumn[]
-  create: (draft: WorkflowColumnDraft) => WorkflowColumn
-  remove: (id: number) => void
-  reorder: (keysInOrder: readonly string[]) => readonly WorkflowColumn[]
-  update: (id: number, draft: Omit<WorkflowColumnDraft, 'key'>) => WorkflowColumn
+  list: (projectId: number) => readonly WorkflowColumn[]
+  find: (columnId: number) => WorkflowColumn | null
+  create: (projectId: number, draft: WorkflowColumnDraft) => WorkflowColumn
+  update: (projectId: number, columnId: number, draft: WorkflowColumnDraft) => WorkflowColumn
+  remove: (projectId: number, columnId: number) => void
+  reorder: (projectId: number, keysInOrder: readonly string[]) => readonly WorkflowColumn[]
 }
 
 type ColumnRow = {
   id: number
+  project_id: number
   key: string
   label: string
   colour: string
   position: number
+  provider: WorkflowProvider
+  model: string
+  effort: WorkflowEffort | ''
   agent_name: string
   command: string
   preprompt: string
-  behavioural_kind: WorkflowColumn['behaviouralKind']
+  auto_start: number
+  behavioural_kind: BehaviouralKind
 }
 
 function fromRow(row: ColumnRow): WorkflowColumn {
   return {
     id: row.id,
+    projectId: row.project_id,
     key: row.key,
     label: row.label,
     colour: row.colour,
     position: row.position,
+    provider: row.provider,
+    model: row.model,
+    effort: row.effort,
     agentName: row.agent_name,
     command: row.command,
     preprompt: row.preprompt,
+    autoStart: row.auto_start === 1,
     behaviouralKind: row.behavioural_kind,
   }
 }
 
 export function createWorkflowColumnRepository(db: Database.Database): WorkflowColumnRepository {
-  const seedIfEmpty = db.transaction(() => {
-    const { total } = db.prepare<[], { total: number }>('SELECT COUNT(*) AS total FROM workflow_column').get()!
-    if (total > 0) {
-      return
-    }
-    const insert = db.prepare<[string, string, string, number, string, string, string, string]>(
-      `INSERT INTO workflow_column (key, label, colour, position, agent_name, command, preprompt, behavioural_kind)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    )
-    SEED_WORKFLOW_COLUMNS.forEach((seed, index) => {
-      insert.run(seed.key, seed.label, seed.colour, index + 1, seed.agentName, seed.command, seed.preprompt, seed.behaviouralKind)
-    })
-  })
-  seedIfEmpty()
-
-  const selectAll = db.prepare<[], ColumnRow>('SELECT * FROM workflow_column ORDER BY position ASC')
-  const selectKeys = db.prepare<[], { key: string }>('SELECT key FROM workflow_column')
-  const selectMaxPosition = db.prepare<[], { max_position: number | null }>(
-    'SELECT MAX(position) AS max_position FROM workflow_column',
+  const selectOfProject = db.prepare<[number], ColumnRow>(
+    'SELECT * FROM workflow_column WHERE project_id = ? ORDER BY position ASC',
   )
   const selectById = db.prepare<[number], ColumnRow>('SELECT * FROM workflow_column WHERE id = ?')
-  const insertColumn = db.prepare<[string, string, string, number, string, string, string, string]>(
-    `INSERT INTO workflow_column (key, label, colour, position, agent_name, command, preprompt, behavioural_kind)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+  const selectMaxPosition = db.prepare<[number], { max_position: number | null }>(
+    'SELECT MAX(position) AS max_position FROM workflow_column WHERE project_id = ?',
   )
-  const deleteColumn = db.prepare<[number]>('DELETE FROM workflow_column WHERE id = ?')
-  const shiftPositionsDown = db.prepare<[number]>(
-    'UPDATE workflow_column SET position = position - 1 WHERE position > ?',
+  const insertColumn = db.prepare<
+    [number, string, string, string, number, string, string, string, string, string, string, number, string]
+  >(
+    `INSERT INTO workflow_column
+       (project_id, key, label, colour, position, provider, model, effort, agent_name, command, preprompt, auto_start, behavioural_kind)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
-  const updatePosition = db.prepare<[number, number]>('UPDATE workflow_column SET position = ? WHERE id = ?')
-  const updateColumn = db.prepare<[string, string, string, string, string, string, number]>(
+  const updateColumn = db.prepare<[string, string, string, string, string, string, string, string, number, string, number]>(
     `UPDATE workflow_column
-        SET label = ?, colour = ?, agent_name = ?, command = ?, preprompt = ?, behavioural_kind = ?
+        SET label = ?, colour = ?, provider = ?, model = ?, effort = ?, agent_name = ?, command = ?,
+            preprompt = ?, auto_start = ?, behavioural_kind = ?
       WHERE id = ?`,
   )
+  const deleteColumn = db.prepare<[number]>('DELETE FROM workflow_column WHERE id = ?')
+  const shiftPositionsDown = db.prepare<[number, number]>(
+    'UPDATE workflow_column SET position = position - 1 WHERE project_id = ? AND position > ?',
+  )
+  const updatePosition = db.prepare<[number, number]>('UPDATE workflow_column SET position = ? WHERE id = ?')
+  const countStoriesInStep = db.prepare<[number, string], { total: number }>(
+    `SELECT COUNT(*) AS total FROM story
+       JOIN epic ON epic.id = story.epic_id
+      WHERE epic.project_id = ? AND story.state = ?`,
+  )
 
-  function list(): readonly WorkflowColumn[] {
-    return selectAll.all().map(fromRow)
+  function list(projectId: number): readonly WorkflowColumn[] {
+    return selectOfProject.all(projectId).map(fromRow)
+  }
+
+  function ownedBy(projectId: number, columnId: number): ColumnRow {
+    const row = selectById.get(columnId)
+    if (row === undefined || row.project_id !== projectId) {
+      throw new WorkflowColumnNotFoundError(columnId)
+    }
+    return row
+  }
+
+  function refuseIfInvalid(draft: WorkflowColumnDraft, otherLabels: readonly string[]): void {
+    const refusal = refusalOfDraft(draft, otherLabels)
+    if (refusal !== null) {
+      throw new WorkflowColumnRefusedError(refusal)
+    }
   }
 
   return {
     list,
 
-    create: (draft) => {
-      const refusal = refusalOfDraft(draft, selectKeys.all().map((row) => row.key))
-      if (refusal !== null) {
-        throw new WorkflowColumnRefusedError(refusal)
-      }
-      const nextPosition = (selectMaxPosition.get()?.max_position ?? 0) + 1
+    find: (columnId) => {
+      const row = selectById.get(columnId)
+      return row === undefined ? null : fromRow(row)
+    },
+
+    create: (projectId, draft) => {
+      const existing = list(projectId)
+      refuseIfInvalid(draft, existing.map((column) => column.label))
+      const key = keyOfLabel(draft.label, existing.map((column) => column.key))
+      const nextPosition = (selectMaxPosition.get(projectId)?.max_position ?? 0) + 1
       const { lastInsertRowid } = insertColumn.run(
-        draft.key,
-        draft.label,
+        projectId,
+        key,
+        draft.label.trim(),
         draft.colour,
         nextPosition,
+        draft.provider,
+        draft.model,
+        draft.effort,
         draft.agentName,
         draft.command,
         draft.preprompt,
-        draft.behaviouralKind,
+        draft.autoStart ? 1 : 0,
+        behaviouralKindOf(draft),
       )
       return fromRow(selectById.get(Number(lastInsertRowid))!)
     },
 
-    remove: (id) => {
-      const existing = selectById.get(id)
-      if (existing === undefined) {
-        return
-      }
-      db.transaction(() => {
-        deleteColumn.run(id)
-        shiftPositionsDown.run(existing.position)
-      })()
-    },
-
-    reorder: (keysInOrder) => {
-      const current = list()
-      const currentKeys = current.map((column) => column.key)
-      const sameSet =
-        keysInOrder.length === currentKeys.length && currentKeys.every((key) => keysInOrder.includes(key))
-      if (!sameSet) {
-        throw new WorkflowColumnRefusedError({ reason: 'DuplicateKey', key: keysInOrder.join(',') })
-      }
-      db.transaction(() => {
-        keysInOrder.forEach((key, index) => {
-          const column = current.find((candidate) => candidate.key === key)!
-          updatePosition.run(-1 * (index + 1), column.id)
-        })
-        keysInOrder.forEach((key, index) => {
-          const column = current.find((candidate) => candidate.key === key)!
-          updatePosition.run(index + 1, column.id)
-        })
-      })()
-      return list()
-    },
-
-    update: (id, draft) => {
-      const existing = selectById.get(id)
-      if (existing === undefined) {
-        throw new WorkflowColumnRefusedError({ reason: 'EmptyKey' })
-      }
-      const otherKeys = selectKeys.all().map((row) => row.key).filter((key) => key !== existing.key)
-      const refusal = refusalOfDraft({ ...draft, key: existing.key }, otherKeys)
-      if (refusal !== null) {
-        throw new WorkflowColumnRefusedError(refusal)
-      }
+    update: (projectId, columnId, draft) => {
+      ownedBy(projectId, columnId)
+      refuseIfInvalid(
+        draft,
+        list(projectId)
+          .filter((column) => column.id !== columnId)
+          .map((column) => column.label),
+      )
       updateColumn.run(
-        draft.label,
+        draft.label.trim(),
         draft.colour,
+        draft.provider,
+        draft.model,
+        draft.effort,
         draft.agentName,
         draft.command,
         draft.preprompt,
-        draft.behaviouralKind,
-        id,
+        draft.autoStart ? 1 : 0,
+        behaviouralKindOf(draft),
+        columnId,
       )
-      return fromRow(selectById.get(id)!)
+      return fromRow(selectById.get(columnId)!)
+    },
+
+    remove: (projectId, columnId) => {
+      const existing = ownedBy(projectId, columnId)
+      const held = countStoriesInStep.get(projectId, existing.key)?.total ?? 0
+      if (held > 0) {
+        throw new WorkflowColumnInUseError(existing.label, held)
+      }
+      db.transaction(() => {
+        deleteColumn.run(columnId)
+        shiftPositionsDown.run(projectId, existing.position)
+      })()
+    },
+
+    reorder: (projectId, keysInOrder) => {
+      const current = list(projectId)
+      const sameSet =
+        keysInOrder.length === current.length &&
+        new Set(keysInOrder).size === current.length &&
+        current.every((column) => keysInOrder.includes(column.key))
+      if (!sameSet) {
+        throw new WorkflowColumnRefusedError({ reason: 'OrderMismatch' })
+      }
+      db.transaction(() => {
+        keysInOrder.forEach((key, index) => {
+          updatePosition.run(-1 * (index + 1), current.find((column) => column.key === key)!.id)
+        })
+        keysInOrder.forEach((key, index) => {
+          updatePosition.run(index + 1, current.find((column) => column.key === key)!.id)
+        })
+      })()
+      return list(projectId)
     },
   }
 }

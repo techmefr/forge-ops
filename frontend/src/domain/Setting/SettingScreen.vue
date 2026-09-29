@@ -25,10 +25,6 @@ const operator = ref<TeamSelf | null>(null)
 const organisation = computed(() => keepsTheOrganisation(role.value, alone.value))
 const manages = computed(() => role.value === 'director' || operator.value?.superAdmin === true)
 
-function openWorkflow(): void {
-  document.getElementById('setting-workflow')?.scrollIntoView({ block: 'start' })
-}
-
 async function look(): Promise<void> {
   try {
     operator.value = await board.read<TeamSelf>('/api/board/self')
@@ -62,7 +58,7 @@ onMounted(() => void look())
     <section class="flex flex-col gap-4" data-tour="setting-team">
       <h2 class="display-italic m-0 text-[22px]">{{ t('settingHalf.team') }}</h2>
       <p class="text-[13px] text-txt-low">{{ t('settingHalf.teamSub') }}</p>
-      <ProjectsSection :self="operator" :workflow-reachable="organisation" @workflow="openWorkflow" />
+      <ProjectsSection :self="operator" />
       <TagsSection />
       <UsersSection :self="operator" :manages="manages" />
     </section>
@@ -71,9 +67,7 @@ onMounted(() => void look())
       <h2 class="display-italic m-0 text-[22px]">{{ t('settingHalf.organisation') }}</h2>
       <p class="text-[13px] text-txt-low">{{ t('settingHalf.organisationSub') }}</p>
       <TemplateSection />
-      <div id="setting-workflow">
-        <WorkflowSection />
-      </div>
+      <WorkflowSection />
       <BudgetSection />
       <OrganisationSection />
       <DeliverySection />

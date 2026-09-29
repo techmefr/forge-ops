@@ -548,3 +548,105 @@ describe('opening a base written before the project follow-up', () => {
     db.close()
   })
 })
+
+const OLD_PROJECT_WITHOUT_ADMIN = `CREATE TABLE project (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  repository_url TEXT NOT NULL,
+  integration_branch TEXT NOT NULL,
+  colour TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+)`
+
+const OLD_WORKFLOW_COLUMN = `CREATE TABLE workflow_column (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT NOT NULL UNIQUE,
+  label TEXT NOT NULL,
+  colour TEXT NOT NULL,
+  position INTEGER NOT NULL UNIQUE,
+  agent_name TEXT NOT NULL,
+  command TEXT NOT NULL,
+  preprompt TEXT NOT NULL DEFAULT "",
+  behavioural_kind TEXT NOT NULL DEFAULT "ordinary",
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+)`
+
+describe("opening a base whose workflow columns were global", () => {
+  function writeGlobalWorkflow(projects: number): void {
+    const older = new Database(path)
+    older.exec(OLD_PROJECT_WITHOUT_ADMIN)
+    older.exec(OLD_WORKFLOW_COLUMN)
+    for (let index = 1; index <= projects; index += 1) {
+      older
+        .prepare("INSERT INTO project (slug, name, repository_url, integration_branch, colour) VALUES (?, ?, ?, ?, ?)")
+        .run(`p${index}`, `P${index}`, "url", "main", "#112233")
+    }
+    const insert = older.prepare(
+      "INSERT INTO workflow_column (key, label, colour, position, agent_name, command, preprompt, behavioural_kind) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    )
+    insert.run("backlog", "Reserve", "line", 1, "architecte", "SPEC.md", "", "ordinary")
+    insert.run("architecture", "Plan", "info", 2, "architecte", "PLAN.md", "hello", "ordinary")
+    insert.run("plan_review", "Plan a valider", "warn", 3, "", "", "", "human_wait")
+    insert.run("building", "Dev", "acc", 4, "trinity", "BUILD.md", "", "ordinary")
+    insert.run("done", "Prod", "green", 5, "", "", "", "human_wait")
+    older.close()
+  }
+
+  type Row = {
+    project_id: number
+    key: string
+    position: number
+    provider: string
+    model: string
+    effort: string
+    agent_name: string
+    preprompt: string
+    auto_start: number
+  }
+
+  function rows(db: Database.Database): readonly Row[] {
+    return db
+      .prepare<[], Row>("SELECT * FROM workflow_column ORDER BY project_id, position")
+      .all()
+  }
+
+  it("copies the steps between backlog and done into every project", () => {
+    writeGlobalWorkflow(2)
+    const db = openDatabase(path)
+    const copied = rows(db)
+    expect(copied.map((row) => `${row.project_id}:${row.key}:${row.position}`)).toEqual([
+      "1:architecture:1",
+      "1:plan_review:2",
+      "1:building:3",
+      "2:architecture:1",
+      "2:plan_review:2",
+      "2:building:3",
+    ])
+    db.close()
+  })
+
+  it("gives the copied steps a provider, a model and an effort", () => {
+    writeGlobalWorkflow(1)
+    const db = openDatabase(path)
+    const [plan, review] = rows(db)
+    expect(plan).toMatchObject({ provider: "claude", model: "claude-sonnet-5", effort: "high", agent_name: "architecte", preprompt: "hello", auto_start: 0 })
+    expect(review).toMatchObject({ provider: "human", model: "", effort: "", auto_start: 0 })
+    db.close()
+  })
+
+  it("drops the global steps when there is no project to copy them to", () => {
+    writeGlobalWorkflow(0)
+    const db = openDatabase(path)
+    expect(rows(db)).toEqual([])
+    db.close()
+  })
+
+  it("does not copy twice when opened again", () => {
+    writeGlobalWorkflow(1)
+    openDatabase(path).close()
+    const db = openDatabase(path)
+    expect(rows(db)).toHaveLength(3)
+    db.close()
+  })
+})

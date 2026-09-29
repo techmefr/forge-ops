@@ -50,6 +50,24 @@ describe('createCodexSessionRunner', () => {
     expect(result.claudeSessionId.length).toBeGreaterThan(0)
   })
 
+  it('passes the step effort as the codex reasoning effort, capped at high', async () => {
+    const seen: (readonly string[])[] = []
+    const runner = createCodexSessionRunner({
+      cwdFor: () => '/tmp',
+      onEvent: () => undefined,
+      spawnCodex: (args) => {
+        seen.push(args)
+        return fakeChild([])
+      },
+    })
+
+    await runner.launch({ ...ORDER, effort: 'medium' })
+    await runner.launch({ ...ORDER, effort: 'max' })
+
+    expect(seen[0]).toContain('model_reasoning_effort="medium"')
+    expect(seen[1]).toContain('model_reasoning_effort="high"')
+  })
+
   it('relaie chaque ligne du flux comme un evenement de session', async () => {
     const events: { name: string; payload: Record<string, unknown> }[] = []
     const runner = createCodexSessionRunner({

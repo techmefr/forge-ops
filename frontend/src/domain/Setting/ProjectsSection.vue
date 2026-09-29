@@ -11,9 +11,7 @@ import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import type { Phrase } from '@/technical/Language/Phrase'
 
-const props = defineProps<{ self: TeamSelf | null; workflowReachable: boolean }>()
-
-const emit = defineEmits<{ workflow: [] }>()
+const props = defineProps<{ self: TeamSelf | null }>()
 
 const { t } = useI18n()
 const say = usePhrase()
@@ -83,11 +81,9 @@ void users.reload()
         :total="rows.length"
         :users="users.data.value ?? []"
         :self="props.self"
-        :workflow-reachable="props.workflowReachable"
         @change="(patch) => change(sheet, patch)"
         @move="(direction) => move(sheet, index, direction)"
         @remove="remove(sheet)"
-        @workflow="emit('workflow')"
       />
     </ul>
 
