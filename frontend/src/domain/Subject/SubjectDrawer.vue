@@ -32,6 +32,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: []
   changed: []
+  edit: []
   open: [id: number]
 }>()
 
@@ -79,6 +80,14 @@ watch(
     void refresh()
   },
   { immediate: true },
+)
+
+watch(
+  () => [props.subject.statusNote, props.subject.dueOn],
+  () => {
+    note.value = props.subject.statusNote ?? ''
+    void refresh()
+  },
 )
 
 async function guard(action: () => Promise<unknown>): Promise<boolean> {
@@ -166,8 +175,18 @@ function closeWhenClosed(open: boolean): void {
             #{{ tag.label }}
           </span>
           <button
+            v-if="!deleted"
             type="button"
-            class="ml-auto rounded-md border border-line px-2.5 py-1 text-[11px] font-semibold text-txt-mid uppercase hover:bg-elev"
+            class="ml-auto rounded-md border border-line px-2.5 py-1 text-[11px] font-semibold text-txt-hi uppercase hover:bg-elev"
+            data-test-id="drawer-edit"
+            @click="emit('edit')"
+          >
+            {{ t('subjects.drawer.edit') }}
+          </button>
+          <button
+            type="button"
+            class="rounded-md border border-line px-2.5 py-1 text-[11px] font-semibold text-txt-mid uppercase hover:bg-elev"
+            :class="deleted ? 'ml-auto' : ''"
             data-test-id="drawer-close"
             @click="emit('close')"
           >

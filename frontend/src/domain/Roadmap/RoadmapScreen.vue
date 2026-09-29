@@ -497,6 +497,7 @@ onMounted(() => {
       :today="today"
       @close="dialog = null"
       @saved="saved"
+      @changed="roadmap.reload()"
     />
   </div>
 </template>

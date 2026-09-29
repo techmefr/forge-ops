@@ -110,6 +110,7 @@ export const subjectLinksSchema = z.array(subjectLinkSchema).max(50)
 
 export const epicPatchSchema = z
   .object({
+    title: z.string().trim().min(1).max(200),
     priority: z.enum(EPIC_PRIORITIES),
     startedOn: calendarDate.nullable(),
     statusNote: z.string().trim().max(600).nullable(),
@@ -123,6 +124,28 @@ export const epicPatchSchema = z
   .strict()
 
 export type EpicPatch = z.infer<typeof epicPatchSchema>
+
+export const epicCreateSchema = z
+  .object({
+    projectId: z.number().int().positive(),
+    title: z.string().trim().min(1).max(200),
+    businessIntent: z.string().trim().max(2000).optional(),
+    assignee: z.string().trim().min(1).max(120).nullable().optional(),
+    priority: z.enum(EPIC_PRIORITIES).optional(),
+    startedOn: calendarDate.nullable().optional(),
+    statusNote: z.string().trim().max(600).nullable().optional(),
+    requestedBy: z.string().trim().min(1).max(120).nullable().optional(),
+    tagIds: z.array(z.number().int().positive()).max(50).optional(),
+    links: subjectLinksSchema.optional(),
+    dependsOn: z.array(z.number().int().positive()).max(50).optional(),
+  })
+  .strict()
+
+export type EpicCreate = z.infer<typeof epicCreateSchema>
+
+export const epicAssignmentSchema = z
+  .object({ login: z.string().trim().min(1).max(120).nullable() })
+  .strict()
 
 const absentWhenBlank = (value: unknown): unknown =>
   typeof value === 'string' && value.trim() === '' ? undefined : value

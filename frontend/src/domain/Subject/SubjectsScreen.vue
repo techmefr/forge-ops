@@ -11,7 +11,8 @@ import type { Phrase } from '@/technical/Language/Phrase'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import { readPreference, writePreference } from '@/technical/Appearance/Preference'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
-import NewSubjectDialog from './NewSubjectDialog.vue'
+import ProjectPicker from '@/domain/Project/ProjectPicker.vue'
+import SubjectFormDialog from './SubjectFormDialog.vue'
 import SubjectDrawer from './SubjectDrawer.vue'
 import SubjectRow from './SubjectRow.vue'
 import { initialsOfLogin } from './SubjectFormat'
@@ -50,6 +51,7 @@ const search = ref('')
 const refusal = ref<Phrase | null>(null)
 const openId = ref<number | null>(null)
 const creating = ref(false)
+const editing = ref(false)
 const peopleRoot = ref<HTMLElement | null>(null)
 
 const data = computed(() => subjects.data.value)
@@ -176,8 +178,8 @@ async function moveWithArrows(event: KeyboardEvent): Promise<void> {
   focusSelected()
 }
 
-function chooseProject(event: Event): void {
-  projectChoice.value = (event.target as HTMLSelectElement).value
+function chooseProject(projectId: number | null): void {
+  projectChoice.value = projectId === null ? ALL : String(projectId)
   writePreference(PROJECT_KEY, projectChoice.value)
 }
 
@@ -229,6 +231,12 @@ async function created(id: number): Promise<void> {
   await subjects.reload()
   select(VIEW_ALL)
   filter.value = 'open'
+  openId.value = id
+}
+
+async function edited(id: number): Promise<void> {
+  editing.value = false
+  await subjects.reload()
   openId.value = id
 }
 
@@ -291,21 +299,20 @@ onMounted(() => {
       role="search"
       :aria-label="t('subjects.toolbar.aria')"
     >
-      <label class="flex items-center gap-1.5 text-[11px] text-txt-low" for="subjects-project">
-        {{ t('subjects.toolbar.project') }}
-        <select
-          id="subjects-project"
-          class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
-          :value="projectChoice"
-          data-test-id="subjects-project"
-          @change="chooseProject"
-        >
-          <option :value="ALL">{{ t('subjects.toolbar.allProjects') }}</option>
-          <option v-for="project in projects" :key="project.id" :value="String(project.id)">
-            {{ project.name }}
-          </option>
-        </select>
-      </label>
+      <div class="flex items-center gap-1.5 text-[11px] text-txt-low">
+        <label for="subjects-project">{{ t('subjects.toolbar.project') }}</label>
+        <div class="w-48">
+          <ProjectPicker
+            id="subjects-project"
+            :model-value="projectChoice === ALL ? null : Number(projectChoice)"
+            :projects="projects"
+            :all-label="t('subjects.toolbar.allProjects')"
+            test-id="subjects-project"
+            @update:model-value="chooseProject"
+            @created="subjects.reload()"
+          />
+        </div>
+      </div>
       <label class="flex items-center gap-1.5 text-[11px] text-txt-low" for="subjects-tag">
         {{ t('subjects.toolbar.tag') }}
         <select
@@ -502,13 +509,31 @@ onMounted(() => {
       @close="openId = null"
       @changed="subjects.reload()"
       @open="openId = $event"
+      @edit="editing = true"
     />
-    <NewSubjectDialog
+    <SubjectFormDialog
       v-if="creating"
+      :subject="null"
       :projects="projects"
       :project-id="facet.project"
+      :people="people"
+      :tags="data?.tags ?? []"
+      :subjects="live"
       @close="creating = false"
+      @changed="subjects.reload()"
       @saved="created"
+    />
+    <SubjectFormDialog
+      v-if="editing && opened !== null"
+      :subject="opened"
+      :projects="projects"
+      :project-id="opened.projectId"
+      :people="people"
+      :tags="data?.tags ?? []"
+      :subjects="live"
+      @close="editing = false"
+      @changed="subjects.reload()"
+      @saved="edited"
     />
   </div>
 </template>
