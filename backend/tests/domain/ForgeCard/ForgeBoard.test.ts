@@ -395,3 +395,41 @@ describe('POST /api/forge-cards/:id/launch', () => {
     expect(launched).toHaveLength(1)
   })
 })
+
+describe('the pipeline actions', () => {
+  it('launches, retries after a failure and validates into the next step', async () => {
+    columns.create(projectId, AGENT_STEP)
+    columns.create(projectId, MANUAL_STEP)
+    const card = cardOf(storyId)
+
+    const first = await ask(`/api/forge-cards/${card.id}/move`, 'POST', { stepKey: 'spec' })
+    expect(first.status).toBe(200)
+    expect(launched).toHaveLength(1)
+
+    db.prepare("UPDATE agent_session SET lifecycle = 'failed', outcome = 'failed'").run()
+    expect(cardOf(storyId).status).toBe('failed')
+
+    const retried = await ask(`/api/forge-cards/${card.id}/launch`, 'POST', {})
+    expect(retried.status).toBe(201)
+    expect(launched).toHaveLength(2)
+
+    db.prepare("UPDATE agent_session SET lifecycle = 'finished', outcome = 'succeeded'").run()
+    expect(cardOf(storyId).status).toBe('to_validate')
+
+    const validated = await ask(`/api/forge-cards/${card.id}/move`, 'POST', { stepKey: 'security_audit' })
+    expect(validated.status).toBe(200)
+    expect(cardOf(storyId).stepKey).toBe('security_audit')
+    expect(launched).toHaveLength(2)
+  })
+
+  it('refuses a retry while the session still runs', async () => {
+    columns.create(projectId, AGENT_STEP)
+    const card = cardOf(storyId)
+    await mover.move(card.id, 'spec')
+
+    const retried = await ask(`/api/forge-cards/${card.id}/launch`, 'POST', {})
+
+    expect(retried.status).toBe(409)
+    expect(launched).toHaveLength(1)
+  })
+})
