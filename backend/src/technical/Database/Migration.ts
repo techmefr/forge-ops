@@ -34,6 +34,12 @@ const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'project', column: 'admin_user_id', declaration: 'INTEGER REFERENCES board_user(id)' },
   { table: 'project', column: 'position', declaration: 'INTEGER NOT NULL DEFAULT 0' },
   { table: 'board_user', column: 'capacity', declaration: 'INTEGER CHECK (capacity IS NULL OR capacity >= 1)' },
+  { table: 'project', column: 'status_sentence', declaration: 'TEXT' },
+  {
+    table: 'project',
+    column: 'weather_override',
+    declaration: "TEXT CHECK (weather_override IN ('sunny', 'cloudy', 'stormy'))",
+  },
   { table: 'scope_reservation', column: 'renewed_at', declaration: 'TEXT' },
   { table: 'agent_session', column: 'last_heartbeat_at', declaration: 'TEXT' },
   { table: 'agent_session', column: 'context_tokens', declaration: 'INTEGER' },

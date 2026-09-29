@@ -24,6 +24,7 @@ import { GROUPING_MODES } from '@contract/DeliveryContract'
 import { DEGRADATIONS } from '@contract/DriverContract'
 import { MILESTONE_KINDS } from '@contract/StoryContract'
 import { EPIC_STATES, LINK_KINDS } from '@contract/EpicContract'
+import { RISK_LEVELS, WEATHERS } from '@contract/FollowUpContract'
 import { SPOKEN_MARKS } from '@/domain/File/FileMarkTone'
 import { DRAWER_TABS } from '@/domain/Kanban/DrawerTab'
 import { THREAD_ENTRY_KINDS } from '@contract/ConversationContract'
@@ -70,6 +71,7 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   pilotStepKind: PILOT_STEP_KIND_SEQUENCE,
   provider: PROVIDER_KINDS,
   reviewPassState: REVIEW_PASS_STATE_SEQUENCE,
+  riskLevel: RISK_LEVELS,
   projectTab: PROJECT_TABS,
   role: ACCOUNT_ROLE_SEQUENCE,
   screen: SCREEN_SEQUENCE,
@@ -79,4 +81,5 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   storyPart: PARTS,
   threadEntry: THREAD_ENTRY_KINDS,
   voice: REMARK_VOICE_SEQUENCE,
+  weather: WEATHERS,
 }

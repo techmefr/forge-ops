@@ -522,3 +522,29 @@ describe('opening a base written before the project admin, position and user cap
     second.close()
   })
 })
+
+describe('opening a base written before the project follow-up', () => {
+  it('adds the status sentence and the weather override, both empty for the projects already written', () => {
+    const older = new Database(path)
+    older.exec(OLD_PROJECT)
+    older.prepare(INSERT_PROJECT).run('skera', 'Skera')
+    older.close()
+    const db = openDatabase(path)
+    expect(columnsOf(db, 'project')).toEqual(expect.arrayContaining(['status_sentence', 'weather_override']))
+    expect(
+      db.prepare<[], Record<string, unknown>>('SELECT name, status_sentence, weather_override FROM project').all(),
+    ).toEqual([{ name: 'Skera', status_sentence: null, weather_override: null }])
+    db.close()
+  })
+
+  it('creates the risk and decision tables', () => {
+    const older = new Database(path)
+    older.exec(OLD_PROJECT)
+    older.close()
+    const db = openDatabase(path)
+    for (const table of ['project_risk', 'project_decision']) {
+      expect(columnsOf(db, table).length).toBeGreaterThan(0)
+    }
+    db.close()
+  })
+})

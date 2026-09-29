@@ -39,6 +39,7 @@ import { createEpicRepository, type EpicRepository, type OverviewOptions } from 
 import { createEventRepository, type EventRepository } from '../Event/EventRepository.js'
 import { createProjectRepository, type ProjectRepository } from '../Project/ProjectRepository.js'
 import { InactiveAssigneeError } from '../Epic/EpicViolation.js'
+import { createFollowUpRepository, type FollowUpRepository } from '../FollowUp/FollowUpRepository.js'
 
 type StepBackRow = {
   id: number
@@ -75,6 +76,7 @@ export type StoryRepository = {
   epics: EpicRepository
   agenda: EventRepository
   projects: ProjectRepository
+  followUps: FollowUpRepository
   listEpics: (projectId: number, options?: OverviewOptions) => readonly EpicOverview[]
   assigneeOf: (epicId: number) => string | null
   findEpic: (epicId: number) => Epic
@@ -182,6 +184,7 @@ export function createStoryRepository(
   const epics = createEpicRepository(db, { now })
   const agenda = createEventRepository(db, { now })
   const projects = createProjectRepository(db, { epics })
+  const followUps = createFollowUpRepository(db, { epics, agenda })
   const insertProject = db.prepare<[string, string, string, string, string, string | null]>(
     'INSERT INTO project (slug, name, repository_url, integration_branch, colour, checkout_path, position) VALUES (?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(position) + 1, 0) FROM project))',
   )
@@ -457,6 +460,8 @@ export function createStoryRepository(
     projects,
 
     agenda,
+
+    followUps,
 
     listEpics: (projectId, options = {}) => {
       const planning = epics.planningOf(projectId, options)

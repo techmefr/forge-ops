@@ -18,6 +18,8 @@ export const SERVER_HELD: readonly string[] = [
   'epic_tag',
   'epic_link',
   'project_link',
+  'project_risk',
+  'project_decision',
   'epic_dependency',
   'epic_state_history',
   'column_template',

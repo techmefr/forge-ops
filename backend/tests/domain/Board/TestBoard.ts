@@ -17,7 +17,7 @@ export type TestBoard = {
   api: Hono
 }
 
-export function buildTestBoard(db: Database.Database): TestBoard {
+export function buildTestBoard(db: Database.Database, today?: () => string): TestBoard {
   return {
     api: createBoardApi({
       repository: createStoryRepository(db),
@@ -30,6 +30,7 @@ export function buildTestBoard(db: Database.Database): TestBoard {
       zones: createZoneRepository(db),
       budget: createBudgetRepository(db),
       events: createEventBus(),
+      today,
       dispatcher: {
         dispatch: () => Promise.reject(new Error('aucun lanceur dans ce test')),
         countRunning: () => 0,
