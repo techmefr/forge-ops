@@ -5,6 +5,9 @@ import EffectBadge from './EffectBadge.vue'
 import { board } from '@/technical/Api/Board'
 import { reasonOf } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
+import RequiredStar from '@/technical/Ui/RequiredStar.vue'
+import RequiredNote from '@/technical/Ui/RequiredNote.vue'
+import { requiredField, useRefusalFocus } from '@/technical/Ui/FieldState'
 import type { Phrase } from '@/technical/Language/Phrase'
 import type { Account } from '@/domain/Board/BoardModel'
 
@@ -77,6 +80,10 @@ async function savePassword(): Promise<void> {
   }
 }
 
+const profileForm = ref<HTMLElement | null>(null)
+const passwordForm = ref<HTMLElement | null>(null)
+useRefusalFocus(profileRefusal, profileForm)
+useRefusalFocus(passwordRefusal, passwordForm)
 onMounted(load)
 </script>
 
@@ -94,13 +101,14 @@ onMounted(load)
         {{ account.login }} · {{ t(`role.${account.role}`) }}
       </p>
 
-      <form class="flex flex-col gap-4" @submit.prevent="saveProfile">
+      <form ref="profileForm" class="flex flex-col gap-4" @submit.prevent="saveProfile">
         <label class="flex flex-col gap-2">
           <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
             t('setting.displayName')
-          }}</span>
+          }} <RequiredStar /></span>
           <input
             v-model="displayName"
+            v-bind="requiredField(profileRefusal, 'profile-refusal')"
             type="text"
             class="max-w-sm rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
@@ -125,20 +133,22 @@ onMounted(load)
           >
             {{ t('common.save') }}
           </button>
-          <span v-if="profileSaved" class="text-[13px] text-green">{{ t('setting.accountSaved') }}</span>
+          <span v-if="profileSaved" class="text-[13px] text-green" role="status">{{ t('setting.accountSaved') }}</span>
         </div>
-        <p v-if="profileRefusal !== null" class="text-[13px] text-red" role="alert">
+        <RequiredNote />
+        <p v-if="profileRefusal !== null" id="profile-refusal" class="text-[13px] text-red" role="alert">
           {{ say(profileRefusal) }}
         </p>
       </form>
 
-      <form class="flex flex-col gap-4 border-t border-line pt-5" @submit.prevent="savePassword">
+      <form ref="passwordForm" class="flex flex-col gap-4 border-t border-line pt-5" @submit.prevent="savePassword">
         <label class="flex flex-col gap-2">
           <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
             t('setting.currentPassword')
-          }}</span>
+          }} <RequiredStar /></span>
           <input
             v-model="currentPassword"
+            v-bind="requiredField(passwordRefusal, 'password-refusal')"
             type="password"
             autocomplete="current-password"
             class="max-w-sm rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
@@ -147,9 +157,10 @@ onMounted(load)
         <label class="flex flex-col gap-2">
           <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
             t('setting.newPassword')
-          }}</span>
+          }} <RequiredStar /></span>
           <input
             v-model="nextPassword"
+            v-bind="requiredField(passwordRefusal, 'password-refusal')"
             type="password"
             autocomplete="new-password"
             class="max-w-sm rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
@@ -164,11 +175,12 @@ onMounted(load)
           >
             {{ t('setting.changePassword') }}
           </button>
-          <span v-if="passwordSaved" class="text-[13px] text-green">{{
+          <span v-if="passwordSaved" class="text-[13px] text-green" role="status">{{
             t('setting.passwordChanged')
           }}</span>
         </div>
-        <p v-if="passwordRefusal !== null" class="text-[13px] text-red" role="alert">
+        <RequiredNote />
+        <p v-if="passwordRefusal !== null" id="password-refusal" class="text-[13px] text-red" role="alert">
           {{ say(passwordRefusal) }}
         </p>
       </form>

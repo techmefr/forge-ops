@@ -388,7 +388,7 @@ onMounted(() => {
             @click="select(view.key)"
           >
             <span
-              class="flex size-5 flex-none items-center justify-center rounded-full bg-line text-[11px] font-semibold"
+              class="flex size-5 flex-none items-center justify-center rounded-full bg-elev text-[11px] font-semibold text-txt-hi"
               :class="view.key === VIEW_LATE ? 'text-red' : 'text-txt-mid'"
               aria-hidden="true"
             >
@@ -414,7 +414,7 @@ onMounted(() => {
             @click="select(row.person.login)"
           >
             <span
-              class="flex size-5 flex-none items-center justify-center rounded-full bg-line text-[11px] font-semibold text-txt-mid"
+              class="flex size-5 flex-none items-center justify-center rounded-full bg-elev text-[11px] font-semibold text-txt-mid"
               aria-hidden="true"
             >
               {{ initialsOfLogin(row.person.displayName) }}

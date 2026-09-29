@@ -8,6 +8,9 @@ import { usePhrase } from '@/technical/Language/UsePhrase'
 import type { Phrase } from '@/technical/Language/Phrase'
 import { ACCOUNT_ROLE_SEQUENCE, type AccountRole } from '@/domain/Board/BoardModel'
 import { resolveLandingPath } from '@/technical/Router/Landing'
+import RequiredStar from '@/technical/Ui/RequiredStar.vue'
+import RequiredNote from '@/technical/Ui/RequiredNote.vue'
+import { requiredField, useRefusalFocus } from '@/technical/Ui/FieldState'
 
 const { t } = useI18n()
 const say = usePhrase()
@@ -90,6 +93,12 @@ onMounted(async () => {
     await attemptLocalAutologin()
   }
 })
+
+const tokenForm = ref<HTMLElement | null>(null)
+useRefusalFocus(refusal, tokenForm)
+
+const signForm = ref<HTMLElement | null>(null)
+useRefusalFocus(refusal, signForm)
 </script>
 
 <template>
@@ -101,13 +110,14 @@ onMounted(async () => {
       <p class="display-italic text-[22px]">{{ t('access.enterBoard') }}</p>
       <p class="mt-1 text-[11px] text-txt-low">{{ t('access.tokenHint') }}</p>
 
-      <form class="mt-5 flex flex-col gap-3" @submit.prevent="openBoardSession()">
+      <form ref="tokenForm" class="mt-5 flex flex-col gap-3" @submit.prevent="openBoardSession()">
         <label class="flex flex-col gap-1">
           <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
-            {{ t('access.boardToken') }}
+            <span>{{ t('access.boardToken') }} <RequiredStar /></span>
           </span>
           <input
             v-model="boardToken"
+            v-bind="requiredField(refusal, 'login-token-refusal')"
             type="password"
             autocomplete="off"
             class="rounded-lg border border-line bg-elev px-3 py-2 font-mono text-sm text-txt-hi"
@@ -122,7 +132,8 @@ onMounted(async () => {
           {{ t('access.openSession') }}
         </button>
 
-        <p v-if="refusal !== null" class="text-[11px] text-red" role="alert">{{ say(refusal) }}</p>
+        <RequiredNote />
+        <p id="login-token-refusal" v-if="refusal !== null" class="text-[11px] text-red" role="alert">{{ say(refusal) }}</p>
       </form>
     </section>
 
@@ -145,16 +156,17 @@ onMounted(async () => {
         }}
       </p>
 
-      <form
+      <form ref="signForm"
         class="mt-5 flex flex-col gap-3"
         @submit.prevent="state.data.value?.enrolmentOpen === true ? enrol() : signIn()"
       >
         <label class="flex flex-col gap-1">
           <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
-            {{ t('access.loginName') }}
+            <span>{{ t('access.loginName') }} <RequiredStar /></span>
           </span>
           <input
             v-model="login"
+            v-bind="requiredField(refusal, 'login-refusal')"
             type="text"
             autocomplete="username"
             class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
@@ -164,10 +176,11 @@ onMounted(async () => {
         <template v-if="state.data.value?.enrolmentOpen === true">
           <label class="flex flex-col gap-1">
             <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
-              {{ t('access.displayName') }}
+              <span>{{ t('access.displayName') }} <RequiredStar /></span>
             </span>
             <input
               v-model="displayName"
+              v-bind="requiredField(refusal, 'login-refusal')"
               type="text"
               class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
             />
@@ -189,10 +202,11 @@ onMounted(async () => {
 
         <label class="flex flex-col gap-1">
           <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
-            {{ t('access.password') }}
+            <span>{{ t('access.password') }} <RequiredStar /></span>
           </span>
           <input
             v-model="password"
+            v-bind="requiredField(refusal, 'login-refusal')"
             type="password"
             autocomplete="current-password"
             class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
@@ -210,7 +224,8 @@ onMounted(async () => {
           }}
         </button>
 
-        <p v-if="refusal !== null" class="text-[11px] text-red" role="alert">{{ say(refusal) }}</p>
+        <RequiredNote />
+        <p id="login-refusal" v-if="refusal !== null" class="text-[11px] text-red" role="alert">{{ say(refusal) }}</p>
       </form>
     </section>
   </div>

@@ -11,6 +11,7 @@ export const GERMAN: Message = {
     pt: 'Português',
   },
   common: {
+    requiredNote: 'Pflichtfeld',
     close: 'Schließen',
     open: 'Öffnen',
     retry: 'Erneut versuchen',

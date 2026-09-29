@@ -4,6 +4,9 @@ import { useI18n } from 'vue-i18n'
 import { DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
 import type { PromptTemplateKey, WorkflowColumnDraft } from '@contract/WorkflowColumnContract'
 import { usePhrase } from '@/technical/Language/UsePhrase'
+import RequiredStar from '@/technical/Ui/RequiredStar.vue'
+import RequiredNote from '@/technical/Ui/RequiredNote.vue'
+import { requiredField, useAlertFocus } from '@/technical/Ui/FieldState'
 import { useProjectWorkflow } from './UseProjectWorkflow'
 import { keysAfterMove, newStep, starterSteps, templateLabelKey } from './WorkflowRule'
 import WorkflowEmptyState from './WorkflowEmptyState.vue'
@@ -18,6 +21,8 @@ const say = usePhrase()
 
 const state = useProjectWorkflow(() => props.projectId)
 const newName = ref('')
+const drawerEl = ref<HTMLElement | null>(null)
+useAlertFocus(state.failure, drawerEl)
 
 const columns = computed(() => state.workflow.value?.columns ?? [])
 const maySettle = computed(() => state.workflow.value?.maySettle ?? false)
@@ -83,6 +88,7 @@ onMounted(() => void state.load())
       <DialogOverlay class="fixed inset-0 z-40 bg-deep/70" />
       <DialogContent
         class="fixed top-0 right-0 z-50 flex h-dvh w-full flex-col gap-3 overflow-y-auto border-l border-line bg-panel px-6 py-4 min-[760px]:w-[min(560px,100vw)]"
+        ref="drawerEl"
         data-test="workflow-drawer"
       >
         <div class="flex items-start gap-3">
@@ -104,7 +110,7 @@ onMounted(() => void state.load())
         <p v-if="state.pending.value" class="m-0 font-mono text-xs tracking-[0.2em] text-txt-low uppercase">
           {{ t('common.loading') }}
         </p>
-        <p v-if="state.failure.value !== null" class="m-0 text-sm text-red" role="alert">
+        <p v-if="state.failure.value !== null" id="workflow-failure" class="m-0 text-sm text-red" role="alert" tabindex="-1">
           {{ say(state.failure.value) }}
         </p>
 
@@ -146,9 +152,10 @@ onMounted(() => void state.load())
             @submit.prevent="addStep"
           >
             <label class="flex min-w-[10rem] flex-1 flex-col gap-1 text-[11px] text-txt-low">
-              {{ t('workflowSettings.newStepName') }}
+              <span>{{ t('workflowSettings.newStepName') }} <RequiredStar /></span>
               <input
                 v-model="newName"
+                v-bind="requiredField(state.failure.value, 'workflow-failure')"
                 type="text"
                 maxlength="60"
                 class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
@@ -161,6 +168,7 @@ onMounted(() => void state.load())
             >
               {{ t('workflowSettings.addStep') }}
             </button>
+            <RequiredNote class="basis-full" />
           </form>
 
           <p class="m-0 border-t border-line pt-2 font-mono text-[11px] text-txt-low">

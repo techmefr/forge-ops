@@ -9,6 +9,9 @@ import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import { phrase, type Phrase } from '@/technical/Language/Phrase'
 import { usePhrase } from '@/technical/Language/UsePhrase'
+import RequiredStar from '@/technical/Ui/RequiredStar.vue'
+import RequiredNote from '@/technical/Ui/RequiredNote.vue'
+import { requiredField, useRefusalFocus } from '@/technical/Ui/FieldState'
 
 const props = defineProps<{ self: TeamSelf | null; manages: boolean }>()
 
@@ -17,6 +20,9 @@ const say = usePhrase()
 
 const users = useResource<readonly BoardUserSheet[]>(() => board.read('/api/board-users'))
 const refusal = ref<Phrase | null>(null)
+const addRefusal = ref<Phrase | null>(null)
+const addForm = ref<HTMLElement | null>(null)
+useRefusalFocus(addRefusal, addForm)
 const login = ref('')
 const displayName = ref('')
 const password = ref('')
@@ -58,8 +64,8 @@ function toggle(user: BoardUserSheet): Promise<void> {
   })
 }
 
-function add(): Promise<void> {
-  return guard(async () => {
+async function add(): Promise<void> {
+  await guard(async () => {
     await board.send('/api/board-users', 'POST', {
       login: login.value.trim(),
       displayName: displayName.value.trim(),
@@ -70,6 +76,8 @@ function add(): Promise<void> {
     displayName.value = ''
     password.value = ''
   })
+  addRefusal.value = refusal.value
+  refusal.value = null
 }
 
 void users.reload()
@@ -144,33 +152,36 @@ void users.reload()
       </li>
     </ul>
 
-    <form v-if="manages" class="flex flex-col gap-3" @submit.prevent="add">
+    <form v-if="manages" ref="addForm" class="flex flex-col gap-3" @submit.prevent="add">
       <h3 class="m-0 font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('team.addUser') }}
       </h3>
       <div class="grid grid-cols-1 gap-3 min-[760px]:grid-cols-2">
         <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
-          {{ t('team.login') }}
+          <span>{{ t('team.login') }} <RequiredStar /></span>
           <input
             v-model="login"
+            v-bind="requiredField(addRefusal, 'users-add-refusal')"
             type="text"
             autocomplete="off"
             class="rounded-md border border-line bg-panel px-3 py-2 font-mono text-[13px] text-txt-hi"
           />
         </label>
         <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
-          {{ t('team.displayName') }}
+          <span>{{ t('team.displayName') }} <RequiredStar /></span>
           <input
             v-model="displayName"
+            v-bind="requiredField(addRefusal, 'users-add-refusal')"
             type="text"
             autocomplete="off"
             class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
         </label>
         <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
-          {{ t('team.password') }}
+          <span>{{ t('team.password') }} <RequiredStar /></span>
           <input
             v-model="password"
+            v-bind="requiredField(addRefusal, 'users-add-refusal')"
             type="password"
             autocomplete="new-password"
             class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
@@ -196,6 +207,10 @@ void users.reload()
       >
         {{ t('team.add') }}
       </button>
+      <RequiredNote />
+      <p v-if="addRefusal !== null" id="users-add-refusal" class="m-0 text-[13px] text-red" role="alert">
+        {{ say(addRefusal) }}
+      </p>
     </form>
     <p v-else class="m-0 text-[11px] text-txt-low">{{ t('team.managesOnly') }}</p>
 
