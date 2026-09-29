@@ -68,7 +68,7 @@ afterEach(() => {
   db.exec(
     'DELETE FROM batch_story; DELETE FROM merge_batch; DELETE FROM board_setting;' +
       ' DELETE FROM checkpoint; DELETE FROM acceptance_criterion; DELETE FROM story;' +
-      ' DELETE FROM epic; DELETE FROM project; DELETE FROM sqlite_sequence',
+      ' DELETE FROM epic_state_history; DELETE FROM epic; DELETE FROM project; DELETE FROM sqlite_sequence',
   )
 })
 

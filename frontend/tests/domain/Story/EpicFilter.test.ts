@@ -10,6 +10,19 @@ function epic(id: number, projectId: number, assignee: string | null): EpicOverv
     businessIntent: 'un besoin',
     assignee,
     storyCount: 0,
+    priority: 'normal',
+    startedOn: null,
+    statusNote: null,
+    requestedBy: null,
+    tags: [],
+    links: [],
+    dependsOn: [],
+    state: 'todo',
+    progress: { delivered: 0, total: 0 },
+    lateDays: null,
+    blockedSince: null,
+    waitingOn: [],
+    deletedAt: null,
   }
 }
 

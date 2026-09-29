@@ -29,12 +29,15 @@ export const PARAMETERLESS_PATHS: readonly string[] = [
   '/api/settings/workflow-columns',
   '/api/statistics',
   '/api/stories/backlog',
+  '/api/tags',
   '/api/worktrees',
 ]
 
 export const PROJECT_PATHS: readonly string[] = [
   '/api/projects/:id/clashes',
+  '/api/epics/:id/history',
   '/api/projects/:id/epics',
+  '/api/projects/:id/links',
   '/api/projects/:id/template',
   '/api/projects/:id/tree',
   '/api/projects/:id/zones',

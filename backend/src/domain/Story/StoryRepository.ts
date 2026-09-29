@@ -35,6 +35,7 @@ import { HUMAN_GATE_STATES } from './HumanGate.js'
 import type { StepBackDraft, StepBackRecord } from './StepBack.js'
 import type { CheckpointName } from '../Checkpoint/Checkpoint.js'
 import { assertCheckoutPath } from './CheckoutPath.js'
+import { createEpicRepository, type EpicRepository, type OverviewOptions } from '../Epic/EpicRepository.js'
 
 type StepBackRow = {
   id: number
@@ -68,7 +69,8 @@ export type StoryRepository = {
   listProjects: () => readonly Project[]
   setCheckoutPath: (projectId: number, checkoutPath: string) => Project
   createEpic: (draft: EpicDraft) => Epic
-  listEpics: (projectId: number) => readonly EpicOverview[]
+  epics: EpicRepository
+  listEpics: (projectId: number, options?: OverviewOptions) => readonly EpicOverview[]
   assigneeOf: (epicId: number) => string | null
   findEpic: (epicId: number) => Epic
   listHumanGateWaits: () => readonly HumanGateWait[]
@@ -163,12 +165,14 @@ function toStory(row: StoryRow): Story {
 
 export type StoryRepositoryOptions = {
   checkoutRoots?: readonly string[]
+  now?: () => string
 }
 
 export function createStoryRepository(
   db: Database.Database,
-  { checkoutRoots = [process.cwd()] }: StoryRepositoryOptions = {},
+  { checkoutRoots = [process.cwd()], now }: StoryRepositoryOptions = {},
 ): StoryRepository {
+  const epics = createEpicRepository(db, { now })
   const insertProject = db.prepare<[string, string, string, string, string, string | null]>(
     'INSERT INTO project (slug, name, repository_url, integration_branch, colour, checkout_path) VALUES (?, ?, ?, ?, ?, ?)',
   )
@@ -194,7 +198,7 @@ export function createStoryRepository(
     }
   >('SELECT * FROM project ORDER BY name')
   const selectEpics = db.prepare<
-    [number],
+    [number, number],
     {
       id: number
       project_id: number
@@ -208,7 +212,7 @@ export function createStoryRepository(
             COUNT(story.id) AS story_count
        FROM epic
        LEFT JOIN story ON story.epic_id = epic.id AND story.kind = 'functional'
-      WHERE epic.project_id = ?
+      WHERE epic.project_id = ? AND (epic.deleted_at IS NOT NULL) = ?
       GROUP BY epic.id
       ORDER BY epic.id`,
   )
@@ -369,9 +373,14 @@ export function createStoryRepository(
     return walk(fromStoryId, [])
   }
 
+  function settle(story: Story): Story {
+    epics.recordState(story.epicId)
+    return story
+  }
+
   function moveTo(storyId: number, state: StoryState): Story {
     updateState.run(state, storyId)
-    return findStory(storyId)
+    return settle(findStory(storyId))
   }
 
   function allProjects(): readonly Project[] {
@@ -425,18 +434,32 @@ export function createStoryRepository(
         throw new ProjectNotFoundError(draft.projectId)
       }
       const info = insertEpic.run(draft.projectId, draft.title, draft.businessIntent)
-      return { id: Number(info.lastInsertRowid), ...draft }
+      const id = Number(info.lastInsertRowid)
+      epics.recordState(id)
+      return { id, ...draft }
     },
 
-    listEpics: (projectId) =>
-      selectEpics.all(projectId).map((row) => ({
-        id: row.id,
-        projectId: row.project_id,
-        title: row.title,
-        businessIntent: row.business_intent,
-        assignee: row.assignee,
-        storyCount: row.story_count,
-      })),
+    epics,
+
+    listEpics: (projectId, options = {}) => {
+      const planning = epics.planningOf(projectId, options)
+      return selectEpics.all(projectId, options.deleted === true ? 1 : 0).flatMap((row) => {
+        const planned = planning.get(row.id)
+        return planned === undefined
+          ? []
+          : [
+              {
+                id: row.id,
+                projectId: row.project_id,
+                title: row.title,
+                businessIntent: row.business_intent,
+                assignee: row.assignee,
+                storyCount: row.story_count,
+                ...planned,
+              },
+            ]
+      })
+    },
 
     projectOfStory: (storyId) => {
       const row = selectProjectOfStory.get(storyId)
@@ -500,7 +523,7 @@ export function createStoryRepository(
 
     writeStory: (draft) => {
       const info = insertStory.run(draft.epicId, null, nextReference(draft.epicId), draft.title, draft.body, 'functional')
-      return findStory(Number(info.lastInsertRowid))
+      return settle(findStory(Number(info.lastInsertRowid)))
     },
 
     writeTwin: (draft) => {
@@ -645,7 +668,7 @@ export function createStoryRepository(
         throw new RolloutOutOfRangeError(percent)
       }
       updateRollout.run(percent, story.id)
-      return findStory(story.id)
+      return settle(findStory(story.id))
     },
 
     markMergeConflict: (storyId) => {
@@ -667,13 +690,13 @@ export function createStoryRepository(
         throw new EmptyBlockedReasonError(story.reference)
       }
       updateBlockedReason.run(trimmed, story.id)
-      return findStory(story.id)
+      return settle(findStory(story.id))
     },
 
     unblockStory: (storyId) => {
       const story = findStory(storyId)
       updateBlockedReason.run(null, story.id)
-      return findStory(story.id)
+      return settle(findStory(story.id))
     },
   }
 }

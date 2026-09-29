@@ -79,6 +79,7 @@ import { deriveHookToken, resolveBoardToken } from '../technical/Auth/BoardToken
 import { boardOrigins, isLocalOrigin } from '../technical/Auth/BoardOrigin.js'
 
 const DEFAULT_SESSION_CAP = 5
+const PURGE_EVERY_MS = 24 * 60 * 60 * 1000
 
 const DEFAULT_MUTATION_TEST_COMMAND = 'npx vitest run'
 
@@ -170,6 +171,8 @@ export function startBoardServer({
   const events = createEventBus()
   const allowedCheckoutRoots = [...checkoutRoots, resolve(worktreeRoot)]
   const stories = createStoryRepository(db, { checkoutRoots: allowedCheckoutRoots })
+  stories.epics.purgeExpired()
+  setInterval(() => stories.epics.purgeExpired(), PURGE_EVERY_MS).unref()
   const readEvidence = createEvidenceFileReader({
     root: process.cwd(),
     evidenceRoot: join('.claude', 'evidence'),

@@ -25,6 +25,11 @@ CREATE TABLE IF NOT EXISTS epic (
   title TEXT NOT NULL,
   business_intent TEXT NOT NULL,
   assignee TEXT,
+  priority TEXT NOT NULL DEFAULT 'normal' CHECK (priority IN ('max', 'high', 'normal', 'low')),
+  started_on TEXT,
+  status_note TEXT,
+  requested_by TEXT,
+  deleted_at TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -405,6 +410,55 @@ CREATE TABLE IF NOT EXISTS epic_milestone (
 );
 
 CREATE INDEX IF NOT EXISTS idx_epic_milestone_epic ON epic_milestone(epic_id, due_on);
+
+CREATE TABLE IF NOT EXISTS tag (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  label TEXT NOT NULL UNIQUE COLLATE NOCASE,
+  colour TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS epic_tag (
+  epic_id INTEGER NOT NULL REFERENCES epic(id),
+  tag_id INTEGER NOT NULL REFERENCES tag(id),
+  PRIMARY KEY (epic_id, tag_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_epic_tag_tag ON epic_tag(tag_id);
+
+CREATE TABLE IF NOT EXISTS epic_link (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  epic_id INTEGER NOT NULL REFERENCES epic(id),
+  kind TEXT NOT NULL CHECK (kind IN ('repo', 'speckit', 'graphify', 'doc', 'mockup', 'other')),
+  url TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_epic_link_epic ON epic_link(epic_id, id);
+
+CREATE TABLE IF NOT EXISTS project_link (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL REFERENCES project(id),
+  kind TEXT NOT NULL CHECK (kind IN ('repo', 'speckit', 'graphify', 'doc', 'mockup', 'other')),
+  url TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_project_link_project ON project_link(project_id, id);
+
+CREATE TABLE IF NOT EXISTS epic_dependency (
+  epic_id INTEGER NOT NULL REFERENCES epic(id),
+  depends_on_epic_id INTEGER NOT NULL REFERENCES epic(id),
+  PRIMARY KEY (epic_id, depends_on_epic_id),
+  CHECK (epic_id <> depends_on_epic_id)
+);
+
+CREATE TABLE IF NOT EXISTS epic_state_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  epic_id INTEGER NOT NULL REFERENCES epic(id),
+  state TEXT NOT NULL CHECK (state IN ('todo', 'doing', 'blocked', 'done', 'trash')),
+  at TEXT NOT NULL,
+  by TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_epic_state_history_epic ON epic_state_history(epic_id, id);
 
 CREATE TABLE IF NOT EXISTS column_template (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
