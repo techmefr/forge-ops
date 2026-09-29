@@ -13,7 +13,7 @@ const { t } = useI18n()
 
 <template>
   <nav
-    class="flex flex-none items-stretch gap-0.5 overflow-x-auto border-b border-line bg-panel px-4 sm:px-6"
+    class="scrollbar-none flex flex-none items-stretch gap-0.5 overflow-x-auto border-b border-line bg-panel px-4 sm:px-6"
     :aria-label="t(`${group}.aria`)"
   >
     <RouterLink

@@ -1033,7 +1033,6 @@ export const ENGLISH = {
   },
   forge: {
     title: 'My forge',
-    sub: 'Your stories, from the backlog to the merge request. A story entering an auto step starts its agent.',
     viewAria: 'View',
     viewKanban: 'Kanban',
     viewPipeline: 'Pipeline',

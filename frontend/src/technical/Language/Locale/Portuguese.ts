@@ -1044,7 +1044,6 @@ export const PORTUGUESE: Message = {
   },
   forge: {
     title: 'A minha forja',
-    sub: 'As tuas histórias, do backlog ao merge request. Uma história que entra numa etapa auto lança o seu agente.',
     viewAria: 'Vista',
     viewKanban: 'Kanban',
     viewPipeline: 'Pipeline',

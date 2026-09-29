@@ -1042,7 +1042,6 @@ export const FRENCH: Message = {
   },
   forge: {
     title: 'Ma forge',
-    sub: 'Tes stories, du backlog à la MR. Une story qui entre dans une étape « auto » lance son agent.',
     viewAria: 'Vue',
     viewKanban: 'Kanban',
     viewPipeline: 'Pipeline',

@@ -158,9 +158,8 @@ onMounted(async () => {
 
     <template v-if="projectId !== null">
       <div class="flex min-w-0 flex-none flex-wrap items-center gap-x-4 gap-y-2 px-4 pt-3">
-        <h2 class="display-italic m-0 text-[22px] text-txt-hi uppercase">{{ t('forge.title') }}</h2>
-        <span class="min-w-0 flex-1 text-[11px] text-txt-low">{{ t('forge.sub') }}</span>
-        <small class="text-[11px] text-txt-low">{{ t('forge.viewKept') }}</small>
+        <h2 class="sr-only">{{ t('forge.title') }}</h2>
+        <small class="ml-auto text-[11px] text-txt-low">{{ t('forge.viewKept') }}</small>
         <div class="flex rounded-md border border-line" role="group" :aria-label="t('forge.viewAria')">
           <button
             v-for="choice in FORGE_VIEWS"
