@@ -31,6 +31,9 @@ const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'epic_milestone', column: 'minutes', declaration: 'TEXT' },
   { table: 'epic_milestone', column: 'minutes_updated_at', declaration: 'TEXT' },
   { table: 'project', column: 'checkout_path', declaration: 'TEXT' },
+  { table: 'project', column: 'admin_user_id', declaration: 'INTEGER REFERENCES board_user(id)' },
+  { table: 'project', column: 'position', declaration: 'INTEGER NOT NULL DEFAULT 0' },
+  { table: 'board_user', column: 'capacity', declaration: 'INTEGER CHECK (capacity IS NULL OR capacity >= 1)' },
   { table: 'scope_reservation', column: 'renewed_at', declaration: 'TEXT' },
   { table: 'agent_session', column: 'last_heartbeat_at', declaration: 'TEXT' },
   { table: 'agent_session', column: 'context_tokens', declaration: 'INTEGER' },
@@ -162,10 +165,23 @@ function placeMilestonesOnTheirProject(db: Database.Database): void {
   )
 }
 
+function numberProjectsByName(db: Database.Database): void {
+  if (!tableExists(db, 'project') || !columnExists(db, 'project', 'position')) {
+    return
+  }
+  db.exec(
+    `UPDATE project SET position = (
+       SELECT COUNT(*) FROM project AS earlier
+        WHERE earlier.name < project.name OR (earlier.name = project.name AND earlier.id < project.id)
+     )`,
+  )
+}
+
 export function migrationSteps(schema: string): readonly MigrationStep[] {
   return [
     { name: 'zone/keyed-on-project', apply: rekeyZoneOnProject },
     { name: 'epic-milestone/project', apply: placeMilestonesOnTheirProject },
+    { name: 'project/position-by-name', apply: numberProjectsByName },
     ...checkedTableSteps(schema),
   ]
 }

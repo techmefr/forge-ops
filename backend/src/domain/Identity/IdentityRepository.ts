@@ -34,6 +34,7 @@ type UserRow = {
   role: UserRole
   email: string | null
   super_admin: number
+  capacity: number | null
   disabled_at: string | null
 }
 
@@ -50,6 +51,9 @@ export type IdentityRepository = {
   countSuperAdmins: () => number
   bootstrapSuperAdmin: (seed: SuperAdminSeed) => BoardUser
   changeSuperAdmin: (login: string, superAdmin: boolean) => BoardUser
+  changeActive: (login: string, active: boolean) => BoardUser
+  changeCapacity: (login: string, capacity: number | null) => BoardUser
+  listUsers: () => readonly BoardUser[]
   openSession: (login: string, password: string) => OpenedSession
   readSession: (token: string) => BoardUser | null
   closeSession: (token: string) => void
@@ -67,6 +71,8 @@ function toUser(row: UserRow): BoardUser {
     role: row.role,
     email: row.email ?? null,
     superAdmin: row.super_admin === 1,
+    active: row.disabled_at === null,
+    capacity: row.capacity ?? null,
   }
 }
 
@@ -89,6 +95,9 @@ export function createIdentityRepository(
   const countActiveSuperAdmins = db.prepare<[], { total: number }>(
     'SELECT COUNT(*) AS total FROM board_user WHERE super_admin = 1 AND disabled_at IS NULL',
   )
+  const reactivateByLogin = db.prepare<[string]>('UPDATE board_user SET disabled_at = NULL WHERE login = ?')
+  const updateCapacity = db.prepare<[number | null, string]>('UPDATE board_user SET capacity = ? WHERE login = ?')
+  const selectEveryUser = db.prepare<[], UserRow>('SELECT * FROM board_user ORDER BY display_name COLLATE NOCASE, login')
   const updateSuperAdmin = db.prepare<[number, string]>(
     'UPDATE board_user SET super_admin = ? WHERE login = ?',
   )
@@ -143,6 +152,8 @@ export function createIdentityRepository(
       role: draft.role,
       email: null,
       superAdmin: false,
+      active: true,
+      capacity: null,
     }
   }
 
@@ -165,6 +176,29 @@ export function createIdentityRepository(
       updateSuperAdmin.run(superAdmin ? 1 : 0, login)
       return { ...toUser(row), superAdmin }
     },
+
+    changeActive: (login, active) => {
+      const row = demandUser(login)
+      if (!active && row.disabled_at === null) {
+        if (row.super_admin === 1 && (countActiveSuperAdmins.get()?.total ?? 0) <= 1) {
+          throw new LastSuperAdminError()
+        }
+        disableByLogin.run(login)
+        revokeSessionsOfUser.run(row.id)
+      }
+      if (active && row.disabled_at !== null) {
+        reactivateByLogin.run(login)
+      }
+      return toUser(demandUser(login))
+    },
+
+    changeCapacity: (login, capacity) => {
+      demandUser(login)
+      updateCapacity.run(capacity, login)
+      return toUser(demandUser(login))
+    },
+
+    listUsers: () => selectEveryUser.all().map(toUser),
 
     countSuperAdmins: () => countActiveSuperAdmins.get()?.total ?? 0,
 

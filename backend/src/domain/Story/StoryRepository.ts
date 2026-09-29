@@ -37,6 +37,8 @@ import type { CheckpointName } from '../Checkpoint/Checkpoint.js'
 import { assertCheckoutPath } from './CheckoutPath.js'
 import { createEpicRepository, type EpicRepository, type OverviewOptions } from '../Epic/EpicRepository.js'
 import { createEventRepository, type EventRepository } from '../Event/EventRepository.js'
+import { createProjectRepository, type ProjectRepository } from '../Project/ProjectRepository.js'
+import { InactiveAssigneeError } from '../Epic/EpicViolation.js'
 
 type StepBackRow = {
   id: number
@@ -72,6 +74,7 @@ export type StoryRepository = {
   createEpic: (draft: EpicDraft) => Epic
   epics: EpicRepository
   agenda: EventRepository
+  projects: ProjectRepository
   listEpics: (projectId: number, options?: OverviewOptions) => readonly EpicOverview[]
   assigneeOf: (epicId: number) => string | null
   findEpic: (epicId: number) => Epic
@@ -178,8 +181,9 @@ export function createStoryRepository(
 ): StoryRepository {
   const epics = createEpicRepository(db, { now })
   const agenda = createEventRepository(db, { now })
+  const projects = createProjectRepository(db, { epics })
   const insertProject = db.prepare<[string, string, string, string, string, string | null]>(
-    'INSERT INTO project (slug, name, repository_url, integration_branch, colour, checkout_path) VALUES (?, ?, ?, ?, ?, ?)',
+    'INSERT INTO project (slug, name, repository_url, integration_branch, colour, checkout_path, position) VALUES (?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(position) + 1, 0) FROM project))',
   )
   const updateCheckoutPath = db.prepare<[string, number]>(
     'UPDATE project SET checkout_path = ? WHERE id = ?',
@@ -201,7 +205,7 @@ export function createStoryRepository(
       colour: string
       checkout_path: string | null
     }
-  >('SELECT * FROM project ORDER BY name')
+  >('SELECT * FROM project ORDER BY position, name')
   const selectEpics = db.prepare<
     [number, number],
     {
@@ -227,7 +231,10 @@ export function createStoryRepository(
   const updateEpicAssignee = db.prepare<[string | null, number]>(
     'UPDATE epic SET assignee = ? WHERE id = ?',
   )
-  const selectProjectById = db.prepare<[number], { id: number }>('SELECT id FROM project WHERE id = ?')
+  const selectDisabledAt = db.prepare<[string], { disabled_at: string | null }>(
+    'SELECT disabled_at FROM board_user WHERE login = ?',
+  )
+  const selectProjectById =db.prepare<[number], { id: number }>('SELECT id FROM project WHERE id = ?')
   const selectProjectBySlug = db.prepare<[string], { id: number }>('SELECT id FROM project WHERE slug = ?')
   const selectStory = db.prepare<[number], StoryRow>('SELECT * FROM story WHERE id = ?')
   const selectTwin = db.prepare<[number], StoryRow>('SELECT * FROM story WHERE twin_of_story_id = ?')
@@ -447,6 +454,7 @@ export function createStoryRepository(
     },
 
     epics,
+    projects,
 
     agenda,
 
@@ -515,6 +523,10 @@ export function createStoryRepository(
       }
       if (epic.assignee !== null && epic.assignee !== login) {
         throw new EpicTakenError(epicId, epic.assignee)
+      }
+      const deactivatedAt = selectDisabledAt.get(login)?.disabled_at ?? null
+      if (deactivatedAt !== null) {
+        throw new InactiveAssigneeError(login)
       }
       updateEpicAssignee.run(login, epicId)
     },

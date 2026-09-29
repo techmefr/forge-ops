@@ -8,18 +8,33 @@ import AppearanceSection from './AppearanceSection.vue'
 import BudgetSection from './BudgetSection.vue'
 import OrganisationSection from './OrganisationSection.vue'
 import DeliverySection from './DeliverySection.vue'
+import ProjectsSection from './ProjectsSection.vue'
+import TagsSection from './TagsSection.vue'
+import UsersSection from './UsersSection.vue'
 import TemplateSection from './TemplateSection.vue'
 import WorkflowSection from './WorkflowSection.vue'
 import { keepsTheOrganisation } from './SettingSection'
+import type { TeamSelf } from './TeamRule'
 
 const { t } = useI18n()
 
 const role = ref<Account['role'] | null>(null)
 const alone = ref(false)
+const operator = ref<TeamSelf | null>(null)
 
 const organisation = computed(() => keepsTheOrganisation(role.value, alone.value))
+const manages = computed(() => role.value === 'director' || operator.value?.superAdmin === true)
+
+function openWorkflow(): void {
+  document.getElementById('setting-workflow')?.scrollIntoView({ block: 'start' })
+}
 
 async function look(): Promise<void> {
+  try {
+    operator.value = await board.read<TeamSelf>('/api/board/self')
+  } catch {
+    operator.value = null
+  }
   try {
     const { mode } = await board.read<{ mode: 'local' | 'hub' }>('/api/board/mode')
     alone.value = mode === 'local'
@@ -44,11 +59,21 @@ onMounted(() => void look())
       <AccountSection />
     </section>
 
+    <section class="flex flex-col gap-4" data-tour="setting-team">
+      <h2 class="display-italic m-0 text-[22px]">{{ t('settingHalf.team') }}</h2>
+      <p class="text-[13px] text-txt-low">{{ t('settingHalf.teamSub') }}</p>
+      <ProjectsSection :self="operator" :workflow-reachable="organisation" @workflow="openWorkflow" />
+      <TagsSection />
+      <UsersSection :self="operator" :manages="manages" />
+    </section>
+
     <section v-if="organisation" class="flex flex-col gap-4" data-tour="setting-organisation">
       <h2 class="display-italic m-0 text-[22px]">{{ t('settingHalf.organisation') }}</h2>
       <p class="text-[13px] text-txt-low">{{ t('settingHalf.organisationSub') }}</p>
       <TemplateSection />
-      <WorkflowSection />
+      <div id="setting-workflow">
+        <WorkflowSection />
+      </div>
       <BudgetSection />
       <OrganisationSection />
       <DeliverySection />

@@ -1,12 +1,18 @@
 import { Hono } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { z } from 'zod'
+import {
+  boardUserChangeSchema,
+  boardUserDraftSchema,
+  type BoardUserSheet,
+} from '../../../../contract/ProjectContract.js'
 import type { IdentityRepository } from './IdentityRepository.js'
-import type { OpenedSession } from './Identity.js'
+import type { BoardUser, OpenedSession } from './Identity.js'
 import {
   IdentityViolationError,
   LoginRefusedError,
   PasswordRefusedError,
+  UnknownAccountError,
 } from './IdentityViolation.js'
 
 import { IDENTITY_COOKIE } from '../../technical/Auth/TokenGuard.js'
@@ -42,9 +48,17 @@ const profileSchema = z
   })
   .refine((draft) => draft.displayName !== undefined || draft.email !== undefined)
 
-const boardUserChangeSchema = z.object({
-  superAdmin: z.boolean(),
-})
+function sheetOf(user: BoardUser): BoardUserSheet {
+  return {
+    id: user.id,
+    login: user.login,
+    displayName: user.displayName,
+    role: user.role,
+    superAdmin: user.superAdmin,
+    active: user.active,
+    capacity: user.capacity,
+  }
+}
 
 const passwordChangeSchema = z.object({
   current: z.string().min(1).max(256),
@@ -138,19 +152,58 @@ export function createIdentityApi({
     return context.json(user)
   })
 
+  api.get('/api/board-users', (context) => context.json(identities.listUsers().map(sheetOf)))
+
+  api.post('/api/board-users', async (context) => {
+    const user = caller(context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE))
+    if (user === null) {
+      return context.json({ error: 'UnauthenticatedAccount' }, 401)
+    }
+    if (!user.superAdmin && user.role !== 'director') {
+      return context.json({ error: 'DirectorRequired' }, 403)
+    }
+    const draft = boardUserDraftSchema.safeParse(await context.req.json().catch(() => null))
+    if (!draft.success) {
+      return context.json({ error: 'InvalidBoardUser', issues: draft.error.issues }, 422)
+    }
+    return context.json(sheetOf(identities.enrolUser(draft.data)), 201)
+  })
+
   api.patch('/api/board-users/:login', async (context) => {
     const user = caller(context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE))
     if (user === null) {
       return context.json({ error: 'UnauthenticatedAccount' }, 401)
     }
-    if (!user.superAdmin) {
-      return context.json({ error: 'SuperAdminRequired' }, 403)
-    }
+    const login = context.req.param('login')
     const draft = boardUserChangeSchema.safeParse(await context.req.json().catch(() => null))
     if (!draft.success) {
       return context.json({ error: 'InvalidBoardUserChange', issues: draft.error.issues }, 422)
     }
-    return context.json(identities.changeSuperAdmin(context.req.param('login'), draft.data.superAdmin))
+    const change = draft.data
+    if (change.superAdmin !== undefined && !user.superAdmin) {
+      return context.json({ error: 'SuperAdminRequired' }, 403)
+    }
+    const manages = user.superAdmin || user.role === 'director'
+    if (change.active !== undefined && !manages) {
+      return context.json({ error: 'DirectorRequired' }, 403)
+    }
+    if (change.capacity !== undefined && !manages && user.login !== login) {
+      return context.json({ error: 'DirectorRequired' }, 403)
+    }
+    let changed = identities.findUser(login)
+    if (changed === null) {
+      throw new UnknownAccountError(login)
+    }
+    if (change.superAdmin !== undefined) {
+      changed = identities.changeSuperAdmin(login, change.superAdmin)
+    }
+    if (change.active !== undefined) {
+      changed = identities.changeActive(login, change.active)
+    }
+    if (change.capacity !== undefined) {
+      changed = identities.changeCapacity(login, change.capacity)
+    }
+    return context.json(sheetOf(changed))
   })
 
   api.put('/api/auth/profile', async (context) => {
