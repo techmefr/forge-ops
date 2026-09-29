@@ -9,7 +9,21 @@ export type Resource<T> = {
   reload: () => Promise<void>
 }
 
+export const SERVER_ERROR_CODES = [
+  'UnexpectedError',
+  'StoryNotFoundError',
+  'EpicNotFoundError',
+  'EventNotFoundError',
+  'RiskNotFoundError',
+  'TagNotFoundError',
+  'ItemInUseError',
+  'ScopeTakenError',
+] as const
+
 export function reasonOf(error: unknown): Phrase {
+  if (error instanceof BoardRequestError && (SERVER_ERROR_CODES as readonly string[]).includes(error.code)) {
+    return phrase(`serverError.${error.code}`)
+  }
   if (error instanceof BoardRequestError || error instanceof Error) {
     return verbatim(error.message)
   }

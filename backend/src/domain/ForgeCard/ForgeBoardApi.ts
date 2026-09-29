@@ -8,6 +8,7 @@ import type { ForgeCardMoved } from '../../../../contract/ForgeCardContract.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import type { ForgeBoardRepository } from './ForgeBoardRepository.js'
+import type { ForgeCardCloser } from './ForgeCardCloser.js'
 import type { ForgeCardMover } from './ForgeCardMover.js'
 import type { ForgeCardRepository } from './ForgeCardRepository.js'
 
@@ -25,12 +26,20 @@ const backlogSchema = z
 export type ForgeBoardApiInput = {
   board: ForgeBoardRepository
   mover: ForgeCardMover
+  closer: ForgeCardCloser
   forgeCards: ForgeCardRepository
   stories: StoryRepository
   events: Pick<EventBus, 'publish'>
 }
 
-export function createForgeBoardApi({ board, mover, forgeCards, stories, events }: ForgeBoardApiInput): Hono {
+export function createForgeBoardApi({
+  board,
+  mover,
+  closer,
+  forgeCards,
+  stories,
+  events,
+}: ForgeBoardApiInput): Hono {
   const api = new Hono()
 
   api.onError(mapApiError)
@@ -92,6 +101,21 @@ export function createForgeBoardApi({ board, mover, forgeCards, stories, events 
     const moved = await mover.move(forgeCardId.data, order.data.stepKey)
     announce(moved)
     return context.json(moved)
+  })
+
+  api.post('/api/forge-cards/:id/done', (context) => {
+    const forgeCardId = identifierSchema.safeParse(context.req.param('id'))
+    if (!forgeCardId.success) {
+      return context.json({ error: 'InvalidForgeCardIdentifier' }, 422)
+    }
+    const current = board.view(forgeCardId.data)
+    assertHand(context, current.subjectId, current.reference)
+    const closed = closer.close(forgeCardId.data)
+    for (const story of closed.unblocked) {
+      events.publish({ name: 'story.unblocked', payload: { ...story } })
+    }
+    events.publish({ name: 'story.merged', payload: { storyId: current.storyId, ...closed.cleanUp } })
+    return context.json(closed)
   })
 
   api.post('/api/forge-cards/:id/launch', async (context) => {

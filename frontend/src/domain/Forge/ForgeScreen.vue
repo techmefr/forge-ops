@@ -26,6 +26,7 @@ import {
   boardSteps,
   filterBySubject,
   firstStepKey,
+  isLastStep,
   type BoardStep,
   type CardAction,
   type ForgeView,
@@ -91,8 +92,12 @@ async function act(card: ForgeCardView, action: CardAction): Promise<void> {
   if (action === 'validate') {
     const index = steps.value.findIndex((step) => step.key === card.stepKey)
     const next = steps.value[index + 1]
-    if (next !== undefined && next.kind !== 'done') {
+    if (next !== undefined && next.kind === 'step') {
       await move(card, next.key)
+      return
+    }
+    if (isLastStep(steps.value, card) && (await forge.finish(card))) {
+      announcement.value = t('forge.finished', { title: card.title })
     }
     return
   }
@@ -240,6 +245,9 @@ onMounted(async () => {
       <p v-if="forge.failure.value !== null" class="m-0 px-4 pb-2 text-sm text-red" role="alert">
         {{ say(forge.failure.value) }}
       </p>
+      <ul v-if="forge.gaps.value.length > 0" class="m-0 list-disc px-8 pb-2 text-sm text-red">
+        <li v-for="gap in forge.gaps.value" :key="gap.key">{{ say(gap) }}</li>
+      </ul>
       <p class="sr-only" role="status" aria-live="polite">{{ announcement }}</p>
 
       <div v-if="noWorkflow" class="flex-none px-4">

@@ -13,6 +13,8 @@ import {
   referenceLabel,
   pipelineOrder,
   primaryActionOf,
+  gapCodesOf,
+  isLastStep,
 } from '@/domain/Forge/ForgeRule'
 
 function column(id: number, key: string, overrides: Partial<WorkflowColumn> = {}): WorkflowColumn {
@@ -174,10 +176,10 @@ describe('primaryActionOf', () => {
     expect(primaryActionOf(card(1, 'spec', 'failed'), STEPS)).toBe('retry')
   })
 
-  it('validates a card that waits, unless it is in the last step', () => {
+  it('validates a card that waits, and closes it from the last step', () => {
     expect(primaryActionOf(card(1, 'spec', 'to_validate'), STEPS)).toBe('validate')
     expect(primaryActionOf(card(1, 'review', 'human_review'), STEPS)).toBe('validate')
-    expect(primaryActionOf(card(1, 'build', 'to_validate'), STEPS)).toBeNull()
+    expect(primaryActionOf(card(1, 'build', 'to_validate'), STEPS)).toBe('validate')
   })
 
   it('offers no launch in a human step and nothing when done', () => {
@@ -203,5 +205,17 @@ describe('project choice', () => {
   it('shows a single reference when the card and its story share it', () => {
     expect(referenceLabel({ storyReference: 'FORGE-8', reference: 'FORGE-8' })).toBe('FORGE-8')
     expect(referenceLabel({ storyReference: 'FORGE-8', reference: 'FORGE-8-2' })).toBe('FORGE-8 · FORGE-8-2')
+  })
+})
+
+describe('thin story reasons', () => {
+  it('keeps only the gap codes the interface can say', () => {
+    expect(gapCodesOf({ gapCodes: ['CriteriaMissing', 'Nope', 3] })).toEqual(['CriteriaMissing'])
+    expect(gapCodesOf({})).toEqual([])
+  })
+
+  it('knows the last step of a workflow', () => {
+    expect(isLastStep(STEPS, card(1, 'build', 'to_validate'))).toBe(true)
+    expect(isLastStep(STEPS, card(1, 'spec', 'to_validate'))).toBe(false)
   })
 })

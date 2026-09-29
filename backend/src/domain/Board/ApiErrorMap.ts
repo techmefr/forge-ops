@@ -7,7 +7,7 @@ import {
 import { CheckpointViolationError } from '../Checkpoint/CheckpointViolation.js'
 import { ZoneNotFoundError, ZoneViolationError } from '../Zone/ZoneViolation.js'
 import { CriterionNotFoundError, CriterionViolationError } from '../Criterion/CriterionViolation.js'
-import { DispatchViolationError } from '../Dispatch/DispatchViolation.js'
+import { DispatchViolationError, StoryTooThinError } from '../Dispatch/DispatchViolation.js'
 import { ScopeTakenError, ScopeViolationError } from '../Foremerge/ForemergeViolation.js'
 import { EvidencePathRefusedError } from '../Evidence/EvidencePath.js'
 import { EvidenceShapeRefusedError } from '../Evidence/EvidenceShape.js'
@@ -29,6 +29,12 @@ export const mapApiError: ErrorHandler = (error, context) => {
   if (error instanceof ItemInUseError) {
     return context.json(
       { error: error.name, message: error.message, reason: error.reason, usage: error.usage },
+      409,
+    )
+  }
+  if (error instanceof StoryTooThinError) {
+    return context.json(
+      { error: error.name, message: error.message, score: error.score, gapCodes: error.gapCodes },
       409,
     )
   }

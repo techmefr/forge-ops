@@ -11,6 +11,7 @@ import type { StepEntry } from '../../../src/domain/Dispatch/Dispatch.js'
 
 let app: Hono
 let entered: StepEntry[]
+let closed = 0
 let epicId: number
 let cardId: number
 
@@ -70,7 +71,22 @@ beforeEach(() => {
     context.set('login', context.req.header('x-login') ?? 'local')
     await next()
   })
-  app.route('/', createForgeBoardApi({ board, mover, forgeCards, stories, events: { publish: () => undefined } }))
+  app.route(
+    '/',
+    createForgeBoardApi({
+      board,
+      mover,
+      closer: {
+        close: () => {
+          closed += 1
+          throw new Error('stop')
+        },
+      },
+      forgeCards,
+      stories,
+      events: { publish: () => undefined },
+    }),
+  )
 })
 
 describe('who may move the cards of a subject', () => {
@@ -79,6 +95,8 @@ describe('who may move the cards of a subject', () => {
     expect((await ask('bob', `/api/forge-cards/${cardId}/launch`, {})).status).toBe(409)
     expect((await ask('bob', '/api/forge-cards/backlog', { subjectId: epicId, title: 'Sneaky' })).status).toBe(409)
     expect(entered).toHaveLength(0)
+    expect((await ask('bob', `/api/forge-cards/${cardId}/done`, {})).status).toBe(409)
+    expect(closed).toBe(0)
   })
 
   it('lets the holder move the card', async () => {

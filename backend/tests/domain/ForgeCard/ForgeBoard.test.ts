@@ -156,6 +156,11 @@ beforeEach(() => {
   api = createForgeBoardApi({
     board,
     mover,
+    closer: {
+      close: () => {
+        throw new Error('unused')
+      },
+    },
     forgeCards,
     stories,
     events: { publish: (event) => published.push(event.name) },

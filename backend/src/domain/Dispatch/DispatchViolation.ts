@@ -24,11 +24,16 @@ export class FleetSaturatedError extends DispatchViolationError {
 }
 
 export class StoryTooThinError extends DispatchViolationError {
-  constructor(reference: string, score: number, gaps: readonly string[]) {
+  readonly score: number
+  readonly gapCodes: readonly string[]
+
+  constructor(reference: string, score: number, gaps: readonly string[], gapCodes: readonly string[] = []) {
     super(
       `${reference} marque ${score} sur 100 en completude : ${gaps.join(' ; ')}`,
       'StoryTooThinError',
     )
+    this.score = score
+    this.gapCodes = gapCodes
   }
 }
 

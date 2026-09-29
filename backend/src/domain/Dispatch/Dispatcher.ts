@@ -184,7 +184,7 @@ export function createDispatcher({
           hasTwin: stories.findTwin(order.storyId) !== null,
         })
         if (!verdict.launchable) {
-          throw new StoryTooThinError(story.reference, verdict.score, verdict.gaps)
+          throw new StoryTooThinError(story.reference, verdict.score, verdict.gaps, verdict.gapCodes)
         }
       }
 
