@@ -25,6 +25,11 @@ const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'epic', column: 'status_note', declaration: 'TEXT' },
   { table: 'epic', column: 'requested_by', declaration: 'TEXT' },
   { table: 'epic', column: 'deleted_at', declaration: 'TEXT' },
+  { table: 'epic_milestone', column: 'project_id', declaration: 'INTEGER REFERENCES project(id)' },
+  { table: 'epic_milestone', column: 'title', declaration: "TEXT NOT NULL DEFAULT ''" },
+  { table: 'epic_milestone', column: 'note', declaration: 'TEXT' },
+  { table: 'epic_milestone', column: 'minutes', declaration: 'TEXT' },
+  { table: 'epic_milestone', column: 'minutes_updated_at', declaration: 'TEXT' },
   { table: 'project', column: 'checkout_path', declaration: 'TEXT' },
   { table: 'scope_reservation', column: 'renewed_at', declaration: 'TEXT' },
   { table: 'agent_session', column: 'last_heartbeat_at', declaration: 'TEXT' },
@@ -41,6 +46,7 @@ const CHECKED_TABLES: readonly string[] = [
   'agent_session',
   'review_pass',
   'incident',
+  'epic_milestone',
 ]
 
 const STEP_LEDGER = `CREATE TABLE IF NOT EXISTS schema_step (
@@ -145,8 +151,23 @@ function checkedTableSteps(schema: string): readonly MigrationStep[] {
   return steps
 }
 
+function placeMilestonesOnTheirProject(db: Database.Database): void {
+  if (!tableExists(db, 'epic_milestone') || !columnExists(db, 'epic_milestone', 'project_id')) {
+    return
+  }
+  db.exec(
+    `UPDATE epic_milestone
+        SET project_id = (SELECT epic.project_id FROM epic WHERE epic.id = epic_milestone.epic_id)
+      WHERE project_id IS NULL AND epic_id IS NOT NULL`,
+  )
+}
+
 export function migrationSteps(schema: string): readonly MigrationStep[] {
-  return [{ name: 'zone/keyed-on-project', apply: rekeyZoneOnProject }, ...checkedTableSteps(schema)]
+  return [
+    { name: 'zone/keyed-on-project', apply: rekeyZoneOnProject },
+    { name: 'epic-milestone/project', apply: placeMilestonesOnTheirProject },
+    ...checkedTableSteps(schema),
+  ]
 }
 
 function stepWasApplied(db: Database.Database, name: string): boolean {

@@ -23,6 +23,7 @@ import { PROVIDER_KINDS } from '@contract/OrganisationContract'
 import { GROUPING_MODES } from '@contract/DeliveryContract'
 import { DEGRADATIONS } from '@contract/DriverContract'
 import { MILESTONE_KINDS } from '@contract/StoryContract'
+import { EPIC_STATES, LINK_KINDS } from '@contract/EpicContract'
 import { SPOKEN_MARKS } from '@/domain/File/FileMarkTone'
 import { DRAWER_TABS } from '@/domain/Kanban/DrawerTab'
 import { THREAD_ENTRY_KINDS } from '@contract/ConversationContract'
@@ -44,6 +45,7 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   degradation: DEGRADATIONS,
   desk: DESKS,
   drawerTab: DRAWER_TABS,
+  epicState: EPIC_STATES,
   fleetState: FLEET_JOB_STATE_SEQUENCE,
   fontFace: FONT_FACES,
   fontScale: FONT_SCALES,
@@ -51,6 +53,7 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   incidentState: INCIDENT_STATE_SEQUENCE,
   judgement: JUDGEMENT_KIND_SEQUENCE,
   language: LANGUAGES,
+  linkKind: LINK_KINDS,
   lens: REVIEW_LENS_SEQUENCE,
   lifecycle: AGENT_LIFECYCLE_SEQUENCE,
   mark: SPOKEN_MARKS,

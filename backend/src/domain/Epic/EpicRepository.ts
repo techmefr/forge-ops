@@ -141,7 +141,7 @@ export function createEpicRepository(
   const selectMilestonesOfProject = db.prepare<[number], MilestoneRow>(
     `SELECT epic_milestone.epic_id, epic_milestone.kind, epic_milestone.due_on
        FROM epic_milestone JOIN epic ON epic.id = epic_milestone.epic_id
-      WHERE epic.project_id = ?`,
+      WHERE epic.project_id = ? AND epic_milestone.kind IN ('demo', 'production', 'everyone')`,
   )
   const selectHistoryOfProject = db.prepare<[number], HistoryRow>(
     `SELECT epic_state_history.epic_id, epic_state_history.state, epic_state_history.at, epic_state_history.by

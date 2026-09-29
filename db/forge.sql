@@ -403,13 +403,19 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_story_hold_open ON story_hold(story_id) WH
 
 CREATE TABLE IF NOT EXISTS epic_milestone (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  epic_id INTEGER NOT NULL REFERENCES epic(id),
-  kind TEXT NOT NULL CHECK (kind IN ('demo', 'production', 'everyone')),
+  epic_id INTEGER REFERENCES epic(id),
+  project_id INTEGER REFERENCES project(id),
+  kind TEXT NOT NULL CHECK (kind IN ('demo', 'production', 'everyone', 'client', 'steering', 'other')),
   due_on TEXT NOT NULL,
-  UNIQUE (epic_id, kind)
+  title TEXT NOT NULL DEFAULT '',
+  note TEXT,
+  minutes TEXT,
+  minutes_updated_at TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_epic_milestone_epic ON epic_milestone(epic_id, due_on);
+
+CREATE INDEX IF NOT EXISTS idx_epic_milestone_project ON epic_milestone(project_id, due_on);
 
 CREATE TABLE IF NOT EXISTS tag (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -12,7 +12,7 @@ export class BoardRequestError extends Error {
 
 export type BoardClient = {
   read: <T>(path: string) => Promise<T>
-  send: <T>(path: string, method: 'POST' | 'PUT' | 'DELETE', body?: unknown) => Promise<T>
+  send: <T>(path: string, method: 'POST' | 'PUT' | 'PATCH' | 'DELETE', body?: unknown) => Promise<T>
 }
 
 export type BoardClientInput = {

@@ -127,7 +127,11 @@ export type CompletenessVerdict = {
   gaps: readonly string[]
 }
 
-export const MILESTONE_KINDS = ['demo', 'production', 'everyone'] as const
+export const MILESTONE_KINDS = ['demo', 'production', 'everyone', 'client', 'steering', 'other'] as const
+
+export const DEADLINE_KINDS = ['demo', 'production', 'everyone'] as const
+
+export type DeadlineKind = (typeof DEADLINE_KINDS)[number]
 
 export type MilestoneKind = (typeof MILESTONE_KINDS)[number]
 

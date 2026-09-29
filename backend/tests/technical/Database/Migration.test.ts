@@ -409,3 +409,58 @@ describe('opening a base written before the epic planning fields', () => {
     db.close()
   })
 })
+
+describe('opening a base written before the roadmap events', () => {
+  const OLD_EPIC_MILESTONE = `CREATE TABLE epic_milestone (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  epic_id INTEGER NOT NULL REFERENCES epic(id),
+  kind TEXT NOT NULL CHECK (kind IN ('demo', 'production', 'everyone')),
+  due_on TEXT NOT NULL,
+  UNIQUE (epic_id, kind)
+)`
+
+  function writeOldMilestones(): void {
+    const older = new Database(path)
+    older.exec(
+      'CREATE TABLE project (id INTEGER PRIMARY KEY AUTOINCREMENT, slug TEXT NOT NULL, name TEXT NOT NULL, repository_url TEXT NOT NULL, integration_branch TEXT NOT NULL, colour TEXT NOT NULL)',
+    )
+    older.exec('CREATE TABLE epic (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id INTEGER NOT NULL, title TEXT NOT NULL, business_intent TEXT NOT NULL)')
+    older.exec(OLD_EPIC_MILESTONE)
+    older.prepare('INSERT INTO project (slug, name, repository_url, integration_branch, colour) VALUES (?, ?, ?, ?, ?)').run('a', 'A', 'u', 'main', '#000000')
+    older.prepare('INSERT INTO epic (project_id, title, business_intent) VALUES (?, ?, ?)').run(1, 'Cloudmail', 'Mail')
+    older.prepare('INSERT INTO epic_milestone (epic_id, kind, due_on) VALUES (?, ?, ?)').run(1, 'demo', '2026-10-01')
+    older.close()
+  }
+
+  it('adds the event columns and keeps the milestones already written', () => {
+    writeOldMilestones()
+    const db = openDatabase(path)
+    expect(columnsOf(db, 'epic_milestone')).toEqual(
+      expect.arrayContaining(['project_id', 'title', 'note', 'minutes', 'minutes_updated_at']),
+    )
+    expect(
+      db.prepare<[], { epic_id: number; kind: string; due_on: string }>('SELECT epic_id, kind, due_on FROM epic_milestone').all(),
+    ).toEqual([{ epic_id: 1, kind: 'demo', due_on: '2026-10-01' }])
+    db.close()
+  })
+
+  it('places the milestones already written on the project of their epic', () => {
+    writeOldMilestones()
+    const db = openDatabase(path)
+    expect(db.prepare<[], { project_id: number }>('SELECT project_id FROM epic_milestone').get()?.project_id).toBe(1)
+    db.close()
+  })
+
+  it('accepts the new types, several of one type on an epic, and an event with no epic', () => {
+    writeOldMilestones()
+    const db = openDatabase(path)
+    const add = db.prepare('INSERT INTO epic_milestone (epic_id, project_id, kind, due_on) VALUES (?, ?, ?, ?)')
+    expect(() => {
+      add.run(1, 1, 'client', '2026-10-02')
+      add.run(1, 1, 'client', '2026-10-03')
+      add.run(null, 1, 'steering', '2026-10-04')
+    }).not.toThrow()
+    expect(() => add.run(null, 1, 'party', '2026-10-05')).toThrow()
+    db.close()
+  })
+})
