@@ -186,11 +186,12 @@ function toStory(row: StoryRow): Story {
 export type StoryRepositoryOptions = {
   checkoutRoots?: readonly string[]
   now?: () => string
+  onBacklog?: (story: Story) => void
 }
 
 export function createStoryRepository(
   db: Database.Database,
-  { checkoutRoots = [process.cwd()], now }: StoryRepositoryOptions = {},
+  { checkoutRoots = [process.cwd()], now, onBacklog }: StoryRepositoryOptions = {},
 ): StoryRepository {
   const epics = createEpicRepository(db, { now })
   const agenda = createEventRepository(db, { now })
@@ -650,7 +651,11 @@ export function createStoryRepository(
       if (twin !== undefined) {
         moveTo(twin.id, 'backlog')
       }
-      return moveTo(story.id, 'backlog')
+      const backlogged = moveTo(story.id, 'backlog')
+      if (backlogged.kind === 'functional') {
+        onBacklog?.(backlogged)
+      }
+      return backlogged
     },
 
     addDependency: (dependency) => {

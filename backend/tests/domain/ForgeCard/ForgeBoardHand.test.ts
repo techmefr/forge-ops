@@ -24,7 +24,8 @@ async function ask(login: string, path: string, body: unknown): Promise<Response
 
 beforeEach(() => {
   const db = openDatabase(':memory:')
-  const stories = createStoryRepository(db)
+  const forgeCards = createForgeCardRepository(db)
+  const stories = createStoryRepository(db, { onBacklog: (story) => forgeCards.attachCardToStory(story.id) })
   const columns = createWorkflowColumnRepository(db)
   entered = []
   const projectId = stories.createProject({
@@ -50,7 +51,6 @@ beforeEach(() => {
   const story = stories.writeStory({ epicId, title: 'see the mails', body: 'body' })
   stories.writeTwin({ storyId: story.id, title: 'tests', body: 'cases' })
   stories.sendToBacklog(story.id)
-  const forgeCards = createForgeCardRepository(db)
   const board = createForgeBoardRepository(db, { forgeCards, columns })
   cardId = board.list(projectId)[0]?.id ?? 0
   const enterStep = async (entry: StepEntry) => {

@@ -115,7 +115,8 @@ async function ask(path: string, method = 'GET', body?: unknown): Promise<Respon
 
 beforeEach(() => {
   db = openDatabase(':memory:')
-  stories = createStoryRepository(db)
+  const forgeCards = createForgeCardRepository(db)
+  stories = createStoryRepository(db, { onBacklog: (story) => forgeCards.attachCardToStory(story.id) })
   columns = createWorkflowColumnRepository(db)
   launched = []
   published = []
@@ -143,7 +144,6 @@ beforeEach(() => {
     concurrencyCap: 5,
     claudeCodeVersion: '2.1.224',
   })
-  const forgeCards = createForgeCardRepository(db)
   board = createForgeBoardRepository(db, { forgeCards, columns })
   mover = createForgeCardMover({
     board,

@@ -78,6 +78,9 @@ export function createEventRepository(
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
   )
   const remove = db.prepare<[number]>('DELETE FROM epic_milestone WHERE id = ?')
+  const selectTwin = db.prepare<[number, EventType, string], { id: number }>(
+    'SELECT id FROM epic_milestone WHERE epic_id = ? AND kind = ? AND due_on = ? ORDER BY id LIMIT 1',
+  )
 
   function assertProject(projectId: number): void {
     if (selectProject.get(projectId) === undefined) {
@@ -153,6 +156,10 @@ export function createEventRepository(
       assertProject(draft.projectId)
       if (draft.epicId !== null) {
         assertEpicInProject(draft.epicId, draft.projectId)
+      }
+      const twin = draft.epicId === null ? undefined : selectTwin.get(draft.epicId, draft.type, draft.date)
+      if (twin !== undefined) {
+        return find(twin.id)
       }
       const minutes = blankToNull(draft.minutes)
       const info = insert.run(
