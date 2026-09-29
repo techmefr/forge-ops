@@ -42,6 +42,10 @@ const profileSchema = z
   })
   .refine((draft) => draft.displayName !== undefined || draft.email !== undefined)
 
+const boardUserChangeSchema = z.object({
+  superAdmin: z.boolean(),
+})
+
 const passwordChangeSchema = z.object({
   current: z.string().min(1).max(256),
   next: z.string().min(1).max(256),
@@ -132,6 +136,21 @@ export function createIdentityApi({
       return context.json({ error: 'UnauthenticatedAccount' }, 401)
     }
     return context.json(user)
+  })
+
+  api.patch('/api/board-users/:login', async (context) => {
+    const user = caller(context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE))
+    if (user === null) {
+      return context.json({ error: 'UnauthenticatedAccount' }, 401)
+    }
+    if (!user.superAdmin) {
+      return context.json({ error: 'SuperAdminRequired' }, 403)
+    }
+    const draft = boardUserChangeSchema.safeParse(await context.req.json().catch(() => null))
+    if (!draft.success) {
+      return context.json({ error: 'InvalidBoardUserChange', issues: draft.error.issues }, 422)
+    }
+    return context.json(identities.changeSuperAdmin(context.req.param('login'), draft.data.superAdmin))
   })
 
   api.put('/api/auth/profile', async (context) => {

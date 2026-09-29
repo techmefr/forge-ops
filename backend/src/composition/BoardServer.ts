@@ -50,6 +50,7 @@ import { createLiveSessions } from '../technical/ClaudeCode/LiveSessions.js'
 import { createDiscussionApi } from '../domain/Discussion/DiscussionApi.js'
 import { createDiscussionRepository } from '../domain/Discussion/DiscussionRepository.js'
 import { operatorOf } from '../technical/Auth/BoardIdentity.js'
+import { readSuperAdminConfiguration } from '../technical/Auth/SuperAdminConfiguration.js'
 import { createTemplateRepository } from '../domain/Template/TemplateRepository.js'
 import { createTemplateApi } from '../domain/Template/TemplateApi.js'
 import { createOutboxRepository } from '../domain/Boundary/OutboxRepository.js'
@@ -275,7 +276,17 @@ export function startBoardServer({
   const cascadeCheckpoints = createCheckpointRepository(db, checkpointGates)
   const discussion = createDiscussionRepository(db, { stories })
   const batches = createBatchRepository(db)
+  const identities = createIdentityRepository(db)
+  const superAdminSeed = readSuperAdminConfiguration()
+  if (superAdminSeed !== null) {
+    identities.bootstrapSuperAdmin(superAdminSeed)
+  } else if (mode === 'hub') {
+    console.warn(
+      'No super admin configured: set FORGE_SUPER_ADMIN_LOGIN and FORGE_SUPER_ADMIN_PASSWORD (or FORGE_SUPER_ADMIN_PASSWORD_FILE); nobody can manage super admins until then.',
+    )
+  }
   const api = createBoardApi({
+    isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
     openHolds: discussion.openHolds,
     boardColumns: () =>
       templates.defaultTemplate().columns.map((column) => ({
@@ -308,7 +319,6 @@ export function startBoardServer({
     claudeHome,
   })
 
-  const identities = createIdentityRepository(db)
   const browserSessions = createBrowserSessions()
   const guarded = new Hono()
   guarded.get('/health', (context) =>

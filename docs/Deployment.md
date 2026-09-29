@@ -31,6 +31,22 @@ Pick by one question: **where do you want the agent to run?** Everything else fo
 - **Healthchecks on server and instance**, so a compose file can order the startup instead of racing it.
 - **The instance container carries the agent CLI**, and the repositories are mounted: an image that bakes in a checkout is an image that is stale the next day.
 
+## The first super admin
+
+A super admin is a flag an instance grants to the people it chooses; it is not tied to the director or architect role. The first one comes from the deployment, on the image that holds the accounts (`server`, or the `instance` when there is no server):
+
+| Variable | Meaning |
+|---|---|
+| `FORGE_SUPER_ADMIN_LOGIN` | Login of the account that gets the flag |
+| `FORGE_SUPER_ADMIN_PASSWORD` | Its password, used only when the account is created |
+| `FORGE_SUPER_ADMIN_PASSWORD_FILE` | Path of a mounted secret holding the password; wins over the variable |
+
+At start-up, a missing login is created with the flag and a hashed password; an existing one gets the flag back and keeps its password. A password changed in the tool is never overwritten by a restart, and neither value is ever logged.
+
+Without these variables the server still starts, logs a warning, and nobody can manage super admins until they are set. Once one exists, super admins are granted and removed in Settings › Users (`PATCH /api/board-users/:login`). The last super admin cannot lose the flag.
+
+Prefer the file form: `docker/super_admin_password.secret` is mounted as a secret in `docker/compose.vps.yml`.
+
 ## What to run
 
 | Topology | File |

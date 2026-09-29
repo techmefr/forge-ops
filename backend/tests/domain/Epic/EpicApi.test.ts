@@ -39,7 +39,7 @@ beforeEach(() => {
 describe('GET /api/board/self', () => {
   it('names the operator the board acts for', async () => {
     const response = await call('/api/board/self', 'GET')
-    expect(await response.json()).toMatchObject({ login: 'local' })
+    expect(await response.json()).toMatchObject({ login: 'local', superAdmin: false })
   })
 })
 

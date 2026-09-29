@@ -71,6 +71,7 @@ export type BoardApiInput = {
   openHolds?: () => readonly StoryHold[]
   boardColumns?: () => readonly { key: string; label: string; colour: string }[]
   today?: () => string
+  isSuperAdmin?: (login: string) => boolean
 }
 
 export function createBoardApi({
@@ -88,6 +89,7 @@ export function createBoardApi({
   openHolds = () => [],
   boardColumns = () => KANBAN_COLUMNS,
   today = () => new Date().toISOString().slice(0, 10),
+  isSuperAdmin = () => false,
 }: BoardApiInput): Hono {
   const api = new Hono()
 
@@ -134,7 +136,10 @@ export function createBoardApi({
     return context.json(epic, 201)
   })
 
-  api.get('/api/board/self', (context) => context.json({ login: operatorOf(context) }))
+  api.get('/api/board/self', (context) => {
+    const login = operatorOf(context)
+    return context.json({ login, superAdmin: isSuperAdmin(login) })
+  })
 
   api.post('/api/epics/:id/claim', (context) => {
     const epicId = identifierSchema.safeParse(context.req.param('id'))

@@ -8,8 +8,11 @@ services:
     environment:
       FORGE_MODE: hub
       FORGE_TOKEN_PATH: /run/secrets/board_token
+      FORGE_SUPER_ADMIN_LOGIN: ${FORGE_SUPER_ADMIN_LOGIN:-}
+      FORGE_SUPER_ADMIN_PASSWORD_FILE: /run/secrets/super_admin_password
     secrets:
       - board_token
+      - super_admin_password
     volumes:
       - server-data:/data
 
@@ -48,6 +51,8 @@ services:
 secrets:
   board_token:
     file: ./board_token.secret
+  super_admin_password:
+    file: ./super_admin_password.secret
   instance_token:
     file: ./instance_token.secret
 

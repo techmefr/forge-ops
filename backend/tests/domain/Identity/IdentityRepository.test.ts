@@ -43,6 +43,7 @@ describe('enrolUser', () => {
       displayName: 'Gaetan',
       role: 'director',
       email: null,
+      superAdmin: false,
     })
   })
 
