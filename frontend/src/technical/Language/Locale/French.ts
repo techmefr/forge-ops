@@ -788,7 +788,7 @@ export const FRENCH: Message = {
     noCheckout: 'Ce projet n’a pas encore de copie locale',
     noCheckoutHint:
       'Donne le dossier où le dépôt est cloné sur cette machine pour voir ses fichiers.',
-    checkoutPlaceholder: '/home/gaetan/mailer',
+    checkoutPlaceholder: '/home/dev/mailer',
     pointFolder: 'Pointer le dossier',
     closeNames: 'Noms trop proches',
     closeNamesHint: 'À dire à la session avant qu’elle en crée un deuxième.',

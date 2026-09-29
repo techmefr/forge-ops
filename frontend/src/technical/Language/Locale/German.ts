@@ -790,7 +790,7 @@ export const GERMAN: Message = {
     noCheckout: 'Dieses Projekt hat noch keine lokale Kopie',
     noCheckoutHint:
       'Gib den Ordner an, in dem das Repository auf dieser Maschine geklont ist, um seine Dateien zu sehen.',
-    checkoutPlaceholder: '/home/gaetan/mailer',
+    checkoutPlaceholder: '/home/dev/mailer',
     pointFolder: 'Auf den Ordner zeigen',
     closeNames: 'Zu ähnliche Namen',
     closeNamesHint: 'Der Sitzung zu sagen, bevor sie einen zweiten anlegt.',

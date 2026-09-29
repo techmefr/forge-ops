@@ -790,7 +790,7 @@ export const SPANISH: Message = {
     noCheckout: 'Este proyecto aún no tiene copia local',
     noCheckoutHint:
       'Indica la carpeta donde está clonado el repositorio en esta máquina para ver sus archivos.',
-    checkoutPlaceholder: '/home/gaetan/mailer',
+    checkoutPlaceholder: '/home/dev/mailer',
     pointFolder: 'Apuntar a la carpeta',
     closeNames: 'Nombres demasiado parecidos',
     closeNamesHint: 'Para decírselo a la sesión antes de que cree un segundo.',

@@ -65,3 +65,5 @@ Opens on **http://forge.localhost** — no port, works the same on macOS, Linux 
 Each file reads its secrets from `docker/board_token.secret` and, when a server is involved, `docker/instance_token.secret` - mint the second one from the organisation half of the settings. Neither ever enters an image or a URL.
 
 The web image writes `config.js` at startup from `FORGE_INSTANCE_URL` and `FORGE_SERVER_URL`, and the page reads it before it calls anything: the same built bundle serves all four topologies.
+
+Data handling, retention and erasure: see [Privacy.md](Privacy.md).

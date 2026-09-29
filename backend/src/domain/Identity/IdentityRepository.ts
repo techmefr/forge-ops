@@ -27,6 +27,18 @@ import {
 
 const TOKEN_BYTES = 32
 
+const ERASED_DISPLAY_NAME = 'Former user'
+
+const LOGIN_COLUMNS: readonly { table: string; column: string }[] = [
+  { table: 'epic', column: 'assignee' },
+  { table: 'story_step_back', column: 'asked_by' },
+  { table: 'story_hold', column: 'asked_by' },
+  { table: 'story_remark', column: 'author' },
+  { table: 'project_decision', column: 'decided_by' },
+  { table: 'project_risk', column: 'owner' },
+  { table: 'epic_state_history', column: 'by' },
+]
+
 type UserRow = {
   id: number
   login: string
@@ -53,6 +65,7 @@ export type IdentityRepository = {
   bootstrapSuperAdmin: (seed: SuperAdminSeed) => BoardUser
   changeSuperAdmin: (login: string, superAdmin: boolean) => BoardUser
   changeActive: (login: string, active: boolean) => BoardUser
+  eraseUser: (login: string) => BoardUser
   changeCapacity: (login: string, capacity: number | null) => BoardUser
   listUsers: () => readonly BoardUser[]
   openSession: (login: string, password: string) => OpenedSession
@@ -126,6 +139,21 @@ export function createIdentityRepository(
     'UPDATE board_user SET password_hash = ? WHERE login = ?',
   )
 
+  const erasedLoginColumns = LOGIN_COLUMNS.map(({ table, column }) =>
+    db.prepare<[string, string]>(`UPDATE ${table} SET ${column} = ? WHERE ${column} = ?`),
+  )
+  const eraseRequestedBy = db.prepare<[string, string, string]>(
+    'UPDATE epic SET requested_by = ? WHERE requested_by = ? OR requested_by = ?',
+  )
+  const eraseAccount = db.prepare<[string, string, string, number]>(
+    `UPDATE board_user
+        SET login = ?, display_name = ?, password_hash = ?, email = NULL, external_subject = NULL,
+            capacity = NULL, super_admin = 0, disabled_at = COALESCE(disabled_at, datetime('now'))
+      WHERE id = ?`,
+  )
+  const releaseProjects = db.prepare<[number]>('UPDATE project SET admin_user_id = NULL WHERE admin_user_id = ?')
+  const deleteSessionsOfUser = db.prepare<[number]>('DELETE FROM board_session WHERE user_id = ?')
+
   function demandUser(login: string): UserRow {
     const row = selectUserByLogin.get(login)
     if (row === undefined) {
@@ -191,6 +219,24 @@ export function createIdentityRepository(
         reactivateByLogin.run(login)
       }
       return toUser(demandUser(login))
+    },
+
+    eraseUser: (login) => {
+      const row = demandUser(login)
+      if (row.super_admin === 1 && row.disabled_at === null && (countActiveSuperAdmins.get()?.total ?? 0) <= 1) {
+        throw new LastSuperAdminError()
+      }
+      const pseudonym = `erased-${row.id}`
+      db.transaction(() => {
+        eraseAccount.run(pseudonym, ERASED_DISPLAY_NAME, hashPassword(randomBytes(TOKEN_BYTES).toString('hex')), row.id)
+        for (const update of erasedLoginColumns) {
+          update.run(pseudonym, row.login)
+        }
+        eraseRequestedBy.run(pseudonym, row.login, row.display_name)
+        releaseProjects.run(row.id)
+        deleteSessionsOfUser.run(row.id)
+      })()
+      return toUser(demandUser(pseudonym))
     },
 
     changeCapacity: (login, capacity) => {

@@ -789,7 +789,7 @@ export const PORTUGUESE: Message = {
     noCheckout: 'Este projeto ainda não tem cópia local',
     noCheckoutHint:
       'Indica a pasta onde o repositório está clonado nesta máquina para ver os seus ficheiros.',
-    checkoutPlaceholder: '/home/gaetan/mailer',
+    checkoutPlaceholder: '/home/dev/mailer',
     pointFolder: 'Apontar a pasta',
     closeNames: 'Nomes demasiado próximos',
     closeNamesHint: 'Para dizer à sessão antes que ela crie um segundo.',
