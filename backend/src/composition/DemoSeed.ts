@@ -31,6 +31,10 @@ function milestonesOf(epicId: number, rank: number): readonly Milestone[] {
   }))
 }
 
+function dayFromNow(days: number): string {
+  return new Date(Date.now() + days * 86400000).toISOString().slice(0, 10)
+}
+
 export type DemoBoard = {
   projects: number
   stories: number
@@ -581,6 +585,30 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
     })
     if (spare.assignee !== null) {
       stories.claimEpic(epic.id, spare.assignee)
+    }
+  }
+  for (const projectId of projectIds.values()) {
+    const first = stories.listEpics(projectId)[0]
+    if (first === undefined) {
+      continue
+    }
+    stories.epics.plan(first.id, { startedOn: dayFromNow(-24) })
+    const agenda = [
+      { type: 'steering', inDays: -14, title: 'Steering committee', epicId: null, minutes: 'Priority stays on the first epic. Next review in three weeks.' },
+      { type: 'client', inDays: -3, title: 'Client review', epicId: first.id, minutes: null },
+      { type: 'production', inDays: 9, title: 'Production release', epicId: first.id, minutes: null },
+      { type: 'steering', inDays: 16, title: 'Steering committee', epicId: null, minutes: null },
+    ] as const
+    for (const event of agenda) {
+      stories.agenda.create({
+        type: event.type,
+        date: dayFromNow(event.inDays),
+        title: event.title,
+        projectId,
+        epicId: event.epicId,
+        note: null,
+        minutes: event.minutes,
+      })
     }
   }
   const sessionOf = new Map<string, string>()

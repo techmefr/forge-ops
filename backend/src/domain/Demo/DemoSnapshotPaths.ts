@@ -37,6 +37,7 @@ export const PROJECT_PATHS: readonly string[] = [
   '/api/projects/:id/clashes',
   '/api/epics/:id/history',
   '/api/projects/:id/epics',
+  '/api/projects/:id/events',
   '/api/projects/:id/links',
   '/api/projects/:id/template',
   '/api/projects/:id/tree',

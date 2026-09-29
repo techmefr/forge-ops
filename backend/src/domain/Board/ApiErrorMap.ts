@@ -14,11 +14,13 @@ import { EvidenceShapeRefusedError } from '../Evidence/EvidenceShape.js'
 import { EvidenceUnreadableError } from '../Evidence/EvidenceRead.js'
 import { BudgetViolationError } from '../Budget/BudgetViolation.js'
 import { TagNotFoundError } from '../Epic/EpicViolation.js'
+import { EventNotFoundError } from '../Event/EventViolation.js'
 import { ForgeCardViolationError } from '../ForgeCard/ForgeCardViolation.js'
 
 export const mapApiError: ErrorHandler = (error, context) => {
   if (error instanceof StoryNotFoundError ||
     error instanceof EpicNotFoundError ||
+    error instanceof EventNotFoundError ||
     error instanceof TagNotFoundError) {
     return context.json({ error: error.name, message: error.message }, 404)
   }

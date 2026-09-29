@@ -251,3 +251,12 @@ body {
     animation: none;
   }
 }
+
+.roadmap-late {
+  border: 1px solid var(--forge-red);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--forge-red) 0 3px,
+    transparent 3px 7px
+  );
+}

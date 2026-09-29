@@ -12,7 +12,7 @@ import type {
   StoryState,
   TwinDraft,
 } from './Story.js'
-import type { Milestone, MilestoneKind } from '../../../../contract/StoryContract.js'
+import { DEADLINE_KINDS, type Milestone, type MilestoneKind } from '../../../../contract/StoryContract.js'
 import {
   BlockedByDependencyError,
   PointsOutOfRangeError,
@@ -36,6 +36,7 @@ import type { StepBackDraft, StepBackRecord } from './StepBack.js'
 import type { CheckpointName } from '../Checkpoint/Checkpoint.js'
 import { assertCheckoutPath } from './CheckoutPath.js'
 import { createEpicRepository, type EpicRepository, type OverviewOptions } from '../Epic/EpicRepository.js'
+import { createEventRepository, type EventRepository } from '../Event/EventRepository.js'
 
 type StepBackRow = {
   id: number
@@ -70,6 +71,7 @@ export type StoryRepository = {
   setCheckoutPath: (projectId: number, checkoutPath: string) => Project
   createEpic: (draft: EpicDraft) => Epic
   epics: EpicRepository
+  agenda: EventRepository
   listEpics: (projectId: number, options?: OverviewOptions) => readonly EpicOverview[]
   assigneeOf: (epicId: number) => string | null
   findEpic: (epicId: number) => Epic
@@ -141,6 +143,8 @@ type MilestoneRow = {
   due_on: string
 }
 
+const DEADLINE_LIST = `(${DEADLINE_KINDS.map((kind) => `'${kind}'`).join(', ')})`
+
 function toMilestone(row: MilestoneRow): Milestone {
   return { epicId: row.epic_id, kind: row.kind, dueOn: row.due_on }
 }
@@ -173,6 +177,7 @@ export function createStoryRepository(
   { checkoutRoots = [process.cwd()], now }: StoryRepositoryOptions = {},
 ): StoryRepository {
   const epics = createEpicRepository(db, { now })
+  const agenda = createEventRepository(db, { now })
   const insertProject = db.prepare<[string, string, string, string, string, string | null]>(
     'INSERT INTO project (slug, name, repository_url, integration_branch, colour, checkout_path) VALUES (?, ?, ?, ?, ?, ?)',
   )
@@ -216,8 +221,8 @@ export function createStoryRepository(
       GROUP BY epic.id
       ORDER BY epic.id`,
   )
-  const selectEpicById = db.prepare<[number], { id: number; assignee: string | null }>(
-    'SELECT id, assignee FROM epic WHERE id = ?',
+  const selectEpicById = db.prepare<[number], { id: number; project_id: number; assignee: string | null }>(
+    'SELECT id, project_id, assignee FROM epic WHERE id = ?',
   )
   const updateEpicAssignee = db.prepare<[string | null, number]>(
     'UPDATE epic SET assignee = ? WHERE id = ?',
@@ -275,14 +280,16 @@ export function createStoryRepository(
       ORDER BY story.id`,
   )
   const selectMilestones = db.prepare<[number], MilestoneRow>(
-    'SELECT epic_id, kind, due_on FROM epic_milestone WHERE epic_id = ? ORDER BY due_on',
+    `SELECT epic_id, kind, due_on FROM epic_milestone WHERE epic_id = ? AND kind IN ${DEADLINE_LIST} ORDER BY due_on`,
   )
   const selectEveryMilestone = db.prepare<[], MilestoneRow>(
-    'SELECT epic_id, kind, due_on FROM epic_milestone ORDER BY epic_id, due_on',
+    `SELECT epic_id, kind, due_on FROM epic_milestone WHERE epic_id IS NOT NULL AND kind IN ${DEADLINE_LIST} ORDER BY epic_id, due_on`,
   )
-  const insertMilestone = db.prepare<[number, MilestoneKind, string]>(
-    `INSERT INTO epic_milestone (epic_id, kind, due_on) VALUES (?, ?, ?)
-      ON CONFLICT (epic_id, kind) DO UPDATE SET due_on = excluded.due_on`,
+  const moveMilestone = db.prepare<[string, number, MilestoneKind]>(
+    'UPDATE epic_milestone SET due_on = ? WHERE epic_id = ? AND kind = ?',
+  )
+  const insertMilestone = db.prepare<[number, number, MilestoneKind, string]>(
+    'INSERT INTO epic_milestone (epic_id, project_id, kind, due_on) VALUES (?, ?, ?, ?)',
   )
   const selectKanban = db.prepare<[], StoryRow>(
     `SELECT * FROM story
@@ -440,6 +447,8 @@ export function createStoryRepository(
     },
 
     epics,
+
+    agenda,
 
     listEpics: (projectId, options = {}) => {
       const planning = epics.planningOf(projectId, options)
@@ -636,7 +645,11 @@ export function createStoryRepository(
       if (selectEpicById.get(milestone.epicId) === undefined) {
         throw new EpicNotFoundError(milestone.epicId)
       }
-      insertMilestone.run(milestone.epicId, milestone.kind, milestone.dueOn)
+      const moved = moveMilestone.run(milestone.dueOn, milestone.epicId, milestone.kind)
+      if (moved.changes === 0) {
+        const epic = selectEpicById.get(milestone.epicId)
+        insertMilestone.run(milestone.epicId, epic?.project_id ?? 0, milestone.kind, milestone.dueOn)
+      }
       return milestone
     },
 
