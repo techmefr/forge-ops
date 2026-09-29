@@ -12,8 +12,8 @@ export const STATE_TONES: Readonly<Record<EpicState, string>> = {
 export const DUE_TONES: Readonly<Record<DueBadge['kind'], string>> = {
   none: 'text-txt-low',
   date: 'text-txt-mid',
-  late: 'text-red border-red',
-  today: 'text-orange border-orange',
+  late: 'text-red',
+  today: 'text-orange',
   soon: 'text-orange',
   ahead: 'text-txt-mid',
 }

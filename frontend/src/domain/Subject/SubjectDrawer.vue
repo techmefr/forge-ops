@@ -148,7 +148,7 @@ function closeWhenClosed(open: boolean): void {
         <div class="flex flex-wrap items-center gap-2">
           <span
             v-if="project !== null"
-            class="inline-flex items-center gap-1 rounded border border-line px-1.5 py-0.5 text-[11px] font-bold text-txt-mid uppercase"
+            class="inline-flex items-center gap-1 text-[11px] text-txt-mid uppercase"
           >
             <span
               class="size-2 flex-none rounded-full"
@@ -160,14 +160,14 @@ function closeWhenClosed(open: boolean): void {
           <span
             v-for="tag in subject.tags"
             :key="tag.id"
-            class="inline-flex items-center gap-1 rounded border border-line px-1.5 py-0.5 text-[11px] text-txt-mid"
+            class="inline-flex items-center gap-1 text-[11px] text-txt-low"
           >
             <span class="size-2 flex-none rounded-full" :style="{ background: tintOf(tag.colour) }" aria-hidden="true" />
             #{{ tag.label }}
           </span>
           <button
             type="button"
-            class="ml-auto rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-txt-mid uppercase hover:border-acc"
+            class="ml-auto rounded-md border border-line px-2.5 py-1 text-[11px] font-semibold text-txt-mid uppercase hover:bg-elev"
             data-test-id="drawer-close"
             @click="emit('close')"
           >
@@ -175,7 +175,7 @@ function closeWhenClosed(open: boolean): void {
           </button>
         </div>
 
-        <DialogTitle class="display-italic text-lg text-txt-hi uppercase">{{ subject.title }}</DialogTitle>
+        <DialogTitle class="display-italic text-[13px] text-txt-hi uppercase">{{ subject.title }}</DialogTitle>
         <DialogDescription class="sr-only">{{ t('subjects.drawer.description') }}</DialogDescription>
 
         <dl class="grid grid-cols-[110px_1fr] items-center gap-x-3 gap-y-2 text-sm">
@@ -191,7 +191,7 @@ function closeWhenClosed(open: boolean): void {
           <dd>
             <select
               id="drawer-priority"
-              class="rounded-lg border border-line bg-elev px-2 py-1 text-sm text-txt-hi"
+              class="rounded-md border border-line bg-transparent px-2 py-1 text-sm text-txt-hi"
               :value="subject.priority"
               :disabled="deleted || busy"
               @change="changePriority"
@@ -213,7 +213,7 @@ function closeWhenClosed(open: boolean): void {
           </dd>
         </dl>
 
-        <label class="flex flex-col gap-1 text-xs tracking-wider text-txt-low uppercase" for="drawer-note">
+        <label class="flex flex-col gap-1 text-[11px] tracking-wider text-txt-low uppercase" for="drawer-note">
           {{ t('subjects.drawer.note') }}
         </label>
         <textarea
@@ -223,11 +223,11 @@ function closeWhenClosed(open: boolean): void {
           :maxlength="NOTE_LIMIT"
           :disabled="deleted"
           :placeholder="t('subjects.drawer.notePlaceholder')"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
           @change="saveNote"
         />
 
-        <h3 class="text-xs tracking-wider text-txt-low uppercase">{{ t('subjects.drawer.dependencies') }}</h3>
+        <h3 class="text-[11px] tracking-wider text-txt-low uppercase">{{ t('subjects.drawer.dependencies') }}</h3>
         <div class="flex flex-col gap-1 text-sm text-txt-hi">
           <p>
             <span class="text-txt-low">{{ t('subjects.drawer.waitingOn') }}</span>
@@ -261,7 +261,7 @@ function closeWhenClosed(open: boolean): void {
           </p>
         </div>
 
-        <h3 class="text-xs tracking-wider text-txt-low uppercase">{{ t('subjects.drawer.events') }}</h3>
+        <h3 class="text-[11px] tracking-wider text-txt-low uppercase">{{ t('subjects.drawer.events') }}</h3>
         <ul v-if="events.length > 0" class="flex flex-col gap-1 text-sm text-txt-hi">
           <li v-for="event in events" :key="event.id">
             <span class="font-mono">{{ dayLabel(event.date, locale) }}</span>
@@ -270,7 +270,7 @@ function closeWhenClosed(open: boolean): void {
         </ul>
         <p v-else class="text-sm text-txt-low">{{ t('subjects.drawer.none') }}</p>
 
-        <h3 class="text-xs tracking-wider text-txt-low uppercase">{{ t('subjects.drawer.history') }}</h3>
+        <h3 class="text-[11px] tracking-wider text-txt-low uppercase">{{ t('subjects.drawer.history') }}</h3>
         <ol v-if="trail.length > 0" class="flex flex-col gap-1 text-sm text-txt-hi" data-test-id="subject-history">
           <li v-for="(change, index) in trail" :key="index">
             <span class="font-mono text-txt-mid">{{ dayLabel(change.at.slice(0, 10), locale) }}</span>
@@ -280,14 +280,14 @@ function closeWhenClosed(open: boolean): void {
         </ol>
         <p v-else class="text-sm text-txt-low">{{ t('subjects.drawer.none') }}</p>
 
-        <h3 class="text-xs tracking-wider text-txt-low uppercase">{{ t('subjects.drawer.subjectLinks') }}</h3>
+        <h3 class="text-[11px] tracking-wider text-txt-low uppercase">{{ t('subjects.drawer.subjectLinks') }}</h3>
         <ul v-if="subject.links.length > 0" class="flex flex-wrap gap-2">
           <li v-for="link in subject.links" :key="`${link.kind}-${link.url}`">
             <a
               :href="link.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="rounded border border-line px-2 py-0.5 text-xs text-info hover:border-acc"
+              class="rounded-md border border-line px-2 py-0.5 text-[11px] text-info hover:bg-elev"
             >
               {{ t(`linkKind.${link.kind}`) }}<span class="sr-only"> {{ t('team.opensNewTab') }}</span>
             </a>
@@ -295,7 +295,7 @@ function closeWhenClosed(open: boolean): void {
         </ul>
         <p v-else class="text-sm text-txt-low">{{ t('subjects.drawer.none') }}</p>
 
-        <h3 class="text-xs tracking-wider text-txt-low uppercase">
+        <h3 class="text-[11px] tracking-wider text-txt-low uppercase">
           {{ t('subjects.drawer.projectLinks', { project: project?.name ?? '' }) }}
         </h3>
         <ul v-if="projectLinks.length > 0" class="flex flex-wrap gap-2">
@@ -304,7 +304,7 @@ function closeWhenClosed(open: boolean): void {
               :href="link.url"
               target="_blank"
               rel="noopener noreferrer"
-              class="rounded border border-line px-2 py-0.5 text-xs text-info hover:border-acc"
+              class="rounded-md border border-line px-2 py-0.5 text-[11px] text-info hover:bg-elev"
             >
               {{ t(`linkKind.${link.kind}`) }}<span class="sr-only"> {{ t('team.opensNewTab') }}</span>
             </a>
@@ -314,7 +314,7 @@ function closeWhenClosed(open: boolean): void {
 
         <p
           v-if="refusal !== null"
-          class="rounded-lg border border-red bg-red-soft/10 p-3 text-sm text-txt-hi"
+          class="rounded-md border border-red px-3 py-2 text-sm text-txt-hi"
           role="alert"
         >
           {{ say(refusal) }}
@@ -325,7 +325,7 @@ function closeWhenClosed(open: boolean): void {
             v-if="deleted"
             type="button"
             :disabled="busy"
-            class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+            class="rounded-md bg-acc px-3 py-1.5 text-[11px] font-semibold text-ink uppercase disabled:opacity-40"
             data-test-id="drawer-restore"
             @click="restore"
           >
@@ -335,7 +335,7 @@ function closeWhenClosed(open: boolean): void {
             v-else
             type="button"
             :disabled="busy"
-            class="rounded-lg border border-red px-4 py-2 text-xs font-bold text-red uppercase disabled:opacity-40"
+            class="rounded-md border border-red px-3 py-1.5 text-[11px] font-semibold text-red uppercase disabled:opacity-40"
             data-test-id="drawer-delete"
             @click="remove"
           >

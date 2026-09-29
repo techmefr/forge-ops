@@ -53,10 +53,10 @@ function closeWhenClosed(open: boolean): void {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-40 bg-deep/70" />
       <DialogContent
-        class="fixed top-1/2 left-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[min(520px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-line bg-panel p-6"
+        class="fixed top-1/2 left-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[min(520px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-line bg-panel p-6"
         data-test-id="new-subject-dialog"
       >
-        <DialogTitle class="display-italic text-lg text-txt-hi uppercase">
+        <DialogTitle class="display-italic text-[13px] text-txt-hi uppercase">
           {{ t('subjects.newDialog.title') }}
         </DialogTitle>
         <DialogDescription class="mt-1 text-[13px] text-txt-mid">
@@ -68,7 +68,7 @@ function closeWhenClosed(open: boolean): void {
             {{ t('subjects.newDialog.project') }}
             <select
               v-model="chosenProject"
-              class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+              class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
               data-test-id="new-subject-project"
             >
               <option v-for="project in projects" :key="project.id" :value="project.id">{{ project.name }}</option>
@@ -80,7 +80,7 @@ function closeWhenClosed(open: boolean): void {
               v-model="title"
               type="text"
               required
-              class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+              class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
               data-test-id="new-subject-title"
             />
           </label>
@@ -90,13 +90,13 @@ function closeWhenClosed(open: boolean): void {
               v-model="intent"
               rows="3"
               required
-              class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+              class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
               data-test-id="new-subject-intent"
             />
           </label>
           <p
             v-if="refusal !== null"
-            class="rounded-lg border border-red bg-red-soft/10 p-3 text-sm text-txt-hi"
+            class="rounded-md border border-red px-3 py-2 text-sm text-txt-hi"
             role="alert"
           >
             {{ say(refusal) }}
@@ -104,7 +104,7 @@ function closeWhenClosed(open: boolean): void {
           <div class="flex flex-wrap items-center justify-end gap-2">
             <button
               type="button"
-              class="rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase hover:border-acc"
+              class="rounded-md border border-line px-3 py-1.5 text-[11px] font-semibold text-txt-mid uppercase hover:bg-elev"
               @click="emit('close')"
             >
               {{ t('subjects.newDialog.cancel') }}
@@ -112,7 +112,7 @@ function closeWhenClosed(open: boolean): void {
             <button
               type="submit"
               :disabled="busy || !ready"
-              class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+              class="rounded-md bg-acc px-3 py-1.5 text-[11px] font-semibold text-ink uppercase disabled:opacity-40"
               data-test-id="new-subject-create"
             >
               {{ t('subjects.newDialog.create') }}

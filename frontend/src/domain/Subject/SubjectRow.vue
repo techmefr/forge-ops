@@ -91,15 +91,15 @@ function changeState(event: Event): void {
 
 <template>
   <li
-    class="grid cursor-pointer grid-cols-1 gap-2 border-b border-line px-4 py-3 hover:bg-elev motion-safe:transition-colors min-[760px]:grid-cols-[1fr_auto_auto_auto] min-[760px]:items-start min-[760px]"
+    class="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-line/60 px-4 py-2.5 hover:bg-elev/60 min-[760px]:grid min-[760px]:grid-cols-[1fr_auto_auto_auto] min-[760px]:items-start min-[760px]:gap-x-4"
     :data-test-id="`subject-row-${subject.id}`"
     @click="openFromClick"
   >
-    <div class="flex min-w-0 flex-col gap-1">
+    <div class="flex w-full min-w-0 flex-col gap-1 min-[760px]:w-auto">
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
         <button
           type="button"
-          class="text-left text-sm font-semibold text-txt-hi hover:underline"
+          class="rounded-md text-left text-sm font-semibold text-txt-hi hover:underline"
           :aria-label="t('subjects.row.open', { title: subject.title })"
           data-test-id="subject-open"
           @click="emit('open', subject.id)"
@@ -108,10 +108,10 @@ function changeState(event: Event): void {
         </button>
         <span
           v-if="project !== null"
-          class="inline-flex items-center gap-1 rounded border border-line px-1.5 py-0.5 text-[11px] font-bold text-txt-mid uppercase"
+          class="inline-flex items-center gap-1 text-[11px] text-txt-mid uppercase"
         >
           <span
-            class="size-2 flex-none rounded-full"
+            class="size-1.5 flex-none rounded-full"
             :style="{ background: tintOf(project.colour) }"
             aria-hidden="true"
           />
@@ -119,28 +119,28 @@ function changeState(event: Event): void {
         </span>
         <span
           v-if="subject.priority !== 'normal'"
-          class="rounded border px-1.5 py-0.5 text-[11px] font-bold uppercase"
-          :class="subject.priority === 'max' ? 'border-red text-red' : 'border-orange text-orange'"
+          class="text-[11px] font-semibold uppercase"
+          :class="subject.priority === 'max' ? 'text-red' : 'text-orange'"
         >
           {{ t(`epicPriority.${subject.priority}`) }}
         </span>
         <span
           v-for="tag in subject.tags"
           :key="tag.id"
-          class="inline-flex items-center gap-1 rounded border border-line px-1.5 py-0.5 text-[11px] text-txt-mid"
+          class="inline-flex items-center gap-1 text-[11px] text-txt-low"
         >
           <span
-            class="size-2 flex-none rounded-full"
+            class="size-1.5 flex-none rounded-full"
             :style="{ background: tintOf(tag.colour) }"
             aria-hidden="true"
           />
-          #{{ tag.label }}
+          {{ tag.label }}
         </span>
       </div>
       <p v-if="subject.statusNote !== null" class="text-[13px] text-txt-mid">
         {{ subject.statusNote }}
       </p>
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-txt-mid">
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-txt-low">
         <span v-if="blocked !== null" class="font-semibold text-warn" data-test-id="subject-blocked">
           {{ t('subjects.row.blockedFor', { days: blocked }) }}
         </span>
@@ -167,8 +167,8 @@ function changeState(event: Event): void {
           {{ t('subjects.row.forWhom', { name: subject.requestedBy }) }}
         </span>
         <span v-if="showProgress" class="inline-flex items-center gap-1.5">
-          <span class="h-1.5 w-14 overflow-hidden rounded-full bg-line" aria-hidden="true">
-            <span class="block h-full bg-green" :style="{ width: `${progressPercent}%` }" />
+          <span class="h-1 w-12 overflow-hidden rounded-full bg-line" aria-hidden="true">
+            <span class="block h-full bg-txt-mid" :style="{ width: `${progressPercent}%` }" />
           </span>
           {{
             t('subjects.row.stories', {
@@ -185,7 +185,7 @@ function changeState(event: Event): void {
 
     <select
       v-if="editableState"
-      class="justify-self-start rounded-lg border border-line bg-elev px-2 py-1 text-xs font-semibold"
+      class="justify-self-start rounded-md bg-elev px-2 py-1 text-[11px] font-semibold"
       :class="STATE_TONES[subject.state]"
       :value="subject.state"
       :aria-label="t('subjects.row.stateOf', { title: subject.title })"
@@ -198,7 +198,7 @@ function changeState(event: Event): void {
     </select>
     <span
       v-else
-      class="w-fit rounded-lg border border-line px-2 py-1 text-xs font-semibold"
+      class="w-fit justify-self-start px-2 py-1 text-[11px] font-semibold"
       :class="STATE_TONES[subject.state]"
       :title="deleted ? undefined : t('subjects.row.derived')"
       data-test-id="subject-state-label"
@@ -207,7 +207,7 @@ function changeState(event: Event): void {
     </span>
 
     <span
-      class="w-fit justify-self-start rounded border border-transparent px-1.5 py-1 font-mono text-xs font-bold"
+      class="w-fit justify-self-start px-1 py-1 font-mono text-[11px] font-semibold"
       :class="DUE_TONES[badge.kind]"
       :title="badgeTitle"
       data-test-id="subject-due"
@@ -219,7 +219,7 @@ function changeState(event: Event): void {
     <button
       v-if="deleted"
       type="button"
-      class="justify-self-start rounded-lg border border-acc px-3 py-1 text-xs font-bold text-acc uppercase hover:bg-acc hover:text-ink"
+      class="justify-self-start rounded-md border border-line px-2.5 py-1 text-[11px] font-semibold text-txt-hi uppercase hover:bg-elev"
       :aria-label="t('subjects.row.restoreAria', { title: subject.title })"
       data-test-id="subject-restore"
       @click="emit('restore', subject)"
@@ -229,7 +229,7 @@ function changeState(event: Event): void {
     <button
       v-else-if="canTake"
       type="button"
-      class="justify-self-start rounded-lg border border-acc px-3 py-1 text-xs font-bold text-acc uppercase hover:bg-acc hover:text-ink"
+      class="justify-self-start rounded-md border border-line px-2.5 py-1 text-[11px] font-semibold text-txt-hi uppercase hover:bg-elev"
       :aria-label="t('subjects.row.takeAria', { title: subject.title })"
       data-test-id="subject-take"
       @click="emit('take', subject)"
@@ -239,7 +239,7 @@ function changeState(event: Event): void {
     <button
       v-else-if="canRelease"
       type="button"
-      class="justify-self-start rounded-lg border border-line px-3 py-1 text-xs font-bold text-txt-mid uppercase hover:border-acc"
+      class="justify-self-start rounded-md border border-line px-2.5 py-1 text-[11px] font-semibold text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
       :aria-label="t('subjects.row.releaseAria', { title: subject.title })"
       data-test-id="subject-release"
       @click="emit('release', subject)"

@@ -55,6 +55,21 @@ function epic(over: Partial<EpicOverview> = {}): EpicOverview {
   }
 }
 
+function followUp(projectId: number) {
+  return {
+    projectId,
+    statusSentence: null,
+    weather: 'sunny',
+    source: 'computed',
+    score: { late: 0, blocked: 0, highRisks: 0, total: 0 },
+    alerts: { late: 0, blocked: 0, highRisks: 0, minutesToWrite: 0 },
+    nextEvent: null,
+    risks: [],
+    decisions: [],
+    events: [],
+  }
+}
+
 type World = {
   live: EpicOverview[]
   trash?: EpicOverview[]
@@ -67,6 +82,8 @@ function serve(world: World): void {
     '/api/epics': world.live,
     '/api/epics?state=trash': world.trash ?? [],
     '/api/projects': PROJECTS,
+    '/api/projects/1/follow-up': followUp(1),
+    '/api/projects/2/follow-up': followUp(2),
     '/api/tags': [{ id: 7, label: 'Urgent', colour: '#ff0000', usage: 1 }],
     '/api/board-users': world.users ?? USERS,
     '/api/board/self': { login: world.self ?? 'anna', superAdmin: false },
@@ -409,6 +426,8 @@ describe('SubjectsScreen drawer', () => {
       '/api/epics': [subject],
       '/api/epics?state=trash': [],
       '/api/projects': PROJECTS,
+      '/api/projects/1/follow-up': followUp(1),
+      '/api/projects/2/follow-up': followUp(2),
       '/api/tags': [],
       '/api/board-users': USERS,
       '/api/board/self': { login: 'anna', superAdmin: false },

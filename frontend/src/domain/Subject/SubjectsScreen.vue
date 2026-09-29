@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SUBJECT_FILTERS, type ManualEpicState, type SubjectFilter } from '@contract/EpicContract'
 import type { EpicOverview } from '@/domain/Board/BoardModel'
+import WeatherCards from '@/domain/FollowUp/WeatherCards.vue'
 import { localDay } from '@/domain/Roadmap/Timeline'
 import { board } from '@/technical/Api/Board'
 import { reasonOf } from '@/technical/Api/UseResource'
@@ -95,6 +96,12 @@ const opened = computed(
 const blocksOfOpened = computed(() =>
   live.value.filter((other) => opened.value !== null && other.dependsOn.includes(opened.value.id)),
 )
+
+const viewRows = computed(() => [
+  { key: VIEW_ALL, label: t('subjects.viewAll'), glyph: '*', count: counts.value.all, testId: 'view-all', countId: 'count-all' },
+  { key: VIEW_LATE, label: t('subjects.viewLate'), glyph: '!', count: counts.value.late, testId: 'view-late', countId: 'count-late' },
+  { key: VIEW_NONE, label: t('subjects.viewNone'), glyph: '?', count: counts.value.none, testId: 'view-none', countId: 'count-none' },
+])
 
 const heading = computed(() => {
   if (selection.value === VIEW_ALL) {
@@ -237,10 +244,14 @@ function loadDescription(row: (typeof rows.value)[number]): string {
 }
 
 const TONE_CLASSES = {
-  neutral: 'border-line text-txt-mid',
-  full: 'border-orange text-orange',
-  over: 'border-red text-red',
+  neutral: 'text-txt-low',
+  full: 'text-orange',
+  over: 'text-red',
 } as const
+
+const SELECTED_CLASSES = 'text-txt-hi shadow-[inset_2px_0_0_0_var(--color-acc)]'
+
+const IDLE_CLASSES = 'text-txt-mid hover:bg-elev/60'
 
 watch(
   () => data.value,
@@ -272,15 +283,19 @@ onMounted(() => {
 
 <template>
   <div
-    class="flex h-full min-h-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 sm:p-6"
+    class="flex h-full min-h-0 min-w-0 flex-col gap-4 overflow-y-auto px-4 py-4 sm:px-8"
     data-test-id="subjects-screen"
   >
-    <div class="flex flex-none flex-wrap items-center gap-3" role="search" :aria-label="t('subjects.toolbar.aria')">
-      <label class="flex items-center gap-2 text-xs text-txt-mid" for="subjects-project">
+    <div
+      class="flex flex-none flex-wrap items-center gap-2"
+      role="search"
+      :aria-label="t('subjects.toolbar.aria')"
+    >
+      <label class="flex items-center gap-1.5 text-[11px] text-txt-low" for="subjects-project">
         {{ t('subjects.toolbar.project') }}
         <select
           id="subjects-project"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
           :value="projectChoice"
           data-test-id="subjects-project"
           @change="chooseProject"
@@ -291,12 +306,12 @@ onMounted(() => {
           </option>
         </select>
       </label>
-      <label class="flex items-center gap-2 text-xs text-txt-mid" for="subjects-tag">
+      <label class="flex items-center gap-1.5 text-[11px] text-txt-low" for="subjects-tag">
         {{ t('subjects.toolbar.tag') }}
         <select
           id="subjects-tag"
           v-model="tagChoice"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
           data-test-id="subjects-tag"
         >
           <option :value="ALL">{{ t('subjects.toolbar.allTags') }}</option>
@@ -308,14 +323,14 @@ onMounted(() => {
       <input
         v-model="search"
         type="search"
-        class="min-w-48 flex-1 rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi sm:max-w-sm"
+        class="min-w-40 flex-1 rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi sm:max-w-sm"
         :placeholder="t('subjects.toolbar.searchPlaceholder')"
         :aria-label="t('subjects.toolbar.search')"
         data-test-id="subjects-search"
       />
       <button
         type="button"
-        class="ml-auto rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase"
+        class="ml-auto rounded-md bg-acc px-3 py-1.5 text-[11px] font-semibold text-ink uppercase"
         data-test-id="subjects-new"
         @click="creating = true"
       >
@@ -323,9 +338,11 @@ onMounted(() => {
       </button>
     </div>
 
+    <WeatherCards :project-id="facet.project" />
+
     <p
       v-if="refusal !== null"
-      class="rounded-lg border border-red bg-red-soft/10 p-3 text-sm text-txt-hi"
+      class="rounded-md border border-red px-3 py-2 text-sm text-txt-hi"
       role="alert"
       data-test-id="subjects-refusal"
     >
@@ -339,84 +356,70 @@ onMounted(() => {
       empty-key="subjects.empty"
       @retry="subjects.reload()"
     >
-      <div class="grid flex-none grid-cols-1 items-start gap-4 min-[760px]:grid-cols-[260px_1fr]">
+      <div class="grid flex-none grid-cols-1 items-start gap-4 min-[760px]:grid-cols-[232px_1fr] min-[760px]:gap-8">
         <div
           ref="peopleRoot"
-          class="flex min-w-0 flex-row gap-1 overflow-x-auto rounded-lg border border-line bg-card p-2 min-[760px]:flex-col min-[760px]:overflow-x-visible"
+          class="flex min-w-0 flex-row gap-0.5 overflow-x-auto border-b border-line pb-2 min-[760px]:flex-col min-[760px]:overflow-x-visible min-[760px]:border-r min-[760px]:border-b-0 min-[760px]:pr-4 min-[760px]:pb-0"
           role="group"
           :aria-label="t('subjects.teamAria')"
           data-test-id="subjects-people"
           @keydown="moveWithArrows"
         >
-          <h3 class="hidden px-2 pt-1 font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase min-[760px]:block">
+          <h3 class="hidden px-2.5 pb-1 text-[11px] tracking-wider text-txt-low uppercase min-[760px]:block">
             {{ t('subjects.views') }}
           </h3>
           <button
+            v-for="view in viewRows"
+            :key="view.key"
             type="button"
-            class="flex flex-none items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-sm min-[760px]:w-full"
-            :class="selection === VIEW_ALL ? 'border-acc bg-elev text-txt-hi' : 'border-transparent text-txt-mid hover:bg-elev'"
-            :tabindex="selection === VIEW_ALL ? 0 : -1"
-            :aria-current="selection === VIEW_ALL ? 'true' : undefined"
-            :data-selection="VIEW_ALL"
-            data-test-id="view-all"
-            @click="select(VIEW_ALL)"
+            class="flex flex-none items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm min-[760px]:w-full"
+            :class="selection === view.key ? SELECTED_CLASSES : IDLE_CLASSES"
+            :tabindex="selection === view.key ? 0 : -1"
+            :aria-current="selection === view.key ? 'true' : undefined"
+            :data-selection="view.key"
+            :data-test-id="view.testId"
+            @click="select(view.key)"
           >
-            <span class="flex size-6 flex-none items-center justify-center rounded-full bg-line text-xs font-bold" aria-hidden="true">*</span>
-            <span class="flex-1 whitespace-nowrap">{{ t('subjects.viewAll') }}</span>
-            <span class="font-mono text-xs" data-test-id="count-all">{{ counts.all }}</span>
-          </button>
-          <button
-            type="button"
-            class="flex flex-none items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-sm min-[760px]:w-full"
-            :class="selection === VIEW_LATE ? 'border-acc bg-elev text-txt-hi' : 'border-transparent text-txt-mid hover:bg-elev'"
-            :tabindex="selection === VIEW_LATE ? 0 : -1"
-            :aria-current="selection === VIEW_LATE ? 'true' : undefined"
-            :data-selection="VIEW_LATE"
-            data-test-id="view-late"
-            @click="select(VIEW_LATE)"
-          >
-            <span class="flex size-6 flex-none items-center justify-center rounded-full bg-line text-xs font-bold text-red" aria-hidden="true">!</span>
-            <span class="flex-1 whitespace-nowrap">{{ t('subjects.viewLate') }}</span>
-            <span class="font-mono text-xs" data-test-id="count-late">{{ counts.late }}</span>
-          </button>
-          <button
-            type="button"
-            class="flex flex-none items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-sm min-[760px]:w-full"
-            :class="selection === VIEW_NONE ? 'border-acc bg-elev text-txt-hi' : 'border-transparent text-txt-mid hover:bg-elev'"
-            :tabindex="selection === VIEW_NONE ? 0 : -1"
-            :aria-current="selection === VIEW_NONE ? 'true' : undefined"
-            :data-selection="VIEW_NONE"
-            data-test-id="view-none"
-            @click="select(VIEW_NONE)"
-          >
-            <span class="flex size-6 flex-none items-center justify-center rounded-full bg-line text-xs font-bold" aria-hidden="true">?</span>
-            <span class="flex-1 whitespace-nowrap">{{ t('subjects.viewNone') }}</span>
-            <span class="font-mono text-xs" data-test-id="count-none">{{ counts.none }}</span>
+            <span
+              class="flex size-5 flex-none items-center justify-center rounded-full bg-line text-[11px] font-semibold"
+              :class="view.key === VIEW_LATE ? 'text-red' : 'text-txt-mid'"
+              aria-hidden="true"
+            >
+              {{ view.glyph }}
+            </span>
+            <span class="flex-1 whitespace-nowrap">{{ view.label }}</span>
+            <span class="font-mono text-[11px] text-txt-low" :data-test-id="view.countId">{{ view.count }}</span>
           </button>
 
-          <h3 class="hidden px-2 pt-3 font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase min-[760px]:block">
+          <h3 class="hidden px-2.5 pt-4 pb-1 text-[11px] tracking-wider text-txt-low uppercase min-[760px]:block">
             {{ t('subjects.team') }}
           </h3>
           <button
             v-for="row in rows"
             :key="row.person.login"
             type="button"
-            class="flex flex-none items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-sm min-[760px]:w-full"
-            :class="selection === row.person.login ? 'border-acc bg-elev text-txt-hi' : 'border-transparent text-txt-mid hover:bg-elev'"
+            class="flex flex-none items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm min-[760px]:w-full"
+            :class="selection === row.person.login ? SELECTED_CLASSES : IDLE_CLASSES"
             :tabindex="selection === row.person.login ? 0 : -1"
             :aria-current="selection === row.person.login ? 'true' : undefined"
             :data-selection="row.person.login"
             :data-test-id="`person-${row.person.login}`"
             @click="select(row.person.login)"
           >
-            <span class="flex size-6 flex-none items-center justify-center rounded-full bg-line text-[10px] font-bold" aria-hidden="true">
+            <span
+              class="flex size-5 flex-none items-center justify-center rounded-full bg-line text-[11px] font-semibold text-txt-mid"
+              aria-hidden="true"
+            >
               {{ initialsOfLogin(row.person.displayName) }}
             </span>
             <span class="flex min-w-0 flex-1 flex-col">
               <span class="truncate whitespace-nowrap">
-                {{ row.person.displayName }}<template v-if="row.person.login === self"> {{ t('subjects.me') }}</template>
+                {{ row.person.displayName }}<span v-if="row.person.login === self" class="ml-1 text-txt-low">{{ t('subjects.me') }}</span>
               </span>
-              <span v-if="row.flags.late > 0 || row.flags.blocked > 0" class="flex flex-wrap gap-x-2 text-[11px] font-semibold">
+              <span
+                v-if="row.flags.late > 0 || row.flags.blocked > 0"
+                class="flex flex-wrap gap-x-2 text-[11px]"
+              >
                 <span v-if="row.flags.late > 0" class="whitespace-nowrap text-red" data-test-id="flag-late">
                   {{ t('subjects.flagLate', { count: row.flags.late }, row.flags.late) }}
                 </span>
@@ -426,7 +429,7 @@ onMounted(() => {
               </span>
             </span>
             <span
-              class="flex-none rounded border px-1.5 py-0.5 font-mono text-xs font-bold"
+              class="flex-none rounded-md px-1.5 py-0.5 font-mono text-[11px] font-semibold"
               :class="TONE_CLASSES[row.tone]"
               :title="loadDescription(row)"
               :data-tone="row.tone"
@@ -436,17 +439,17 @@ onMounted(() => {
               <span class="sr-only">{{ loadDescription(row) }}</span>
             </span>
           </button>
-          <p class="hidden px-2 pt-2 text-[11px] text-txt-low min-[760px]:block">{{ t('subjects.hint') }}</p>
+          <p class="hidden px-2.5 pt-4 text-[11px] text-txt-low min-[760px]:block">{{ t('subjects.hint') }}</p>
         </div>
 
-        <section class="min-w-0 rounded-lg border border-line bg-card" :aria-label="heading">
-          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line px-4 py-3">
-            <h2 class="display-italic text-lg text-txt-hi uppercase" data-test-id="list-title">{{ heading }}</h2>
-            <p class="text-xs text-txt-mid" aria-live="polite" data-test-id="list-summary">{{ summary }}</p>
+        <section class="min-w-0" :aria-label="heading">
+          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-2">
+            <h2 class="display-italic text-[13px] text-txt-hi uppercase" data-test-id="list-title">{{ heading }}</h2>
+            <p class="text-[11px] text-txt-low" aria-live="polite" data-test-id="list-summary">{{ summary }}</p>
           </div>
           <div
             v-if="selection === VIEW_ALL"
-            class="flex flex-wrap gap-2 border-b border-line px-4 py-3"
+            class="flex flex-wrap gap-1 py-2"
             role="group"
             :aria-label="t('subjects.filterGroup')"
           >
@@ -454,17 +457,17 @@ onMounted(() => {
               v-for="option in SUBJECT_FILTERS"
               :key="option"
               type="button"
-              class="rounded-full border px-3 py-1 text-xs font-semibold"
-              :class="filter === option ? 'border-acc bg-acc text-ink' : 'border-line text-txt-mid hover:border-acc'"
+              class="rounded-md px-2.5 py-1 text-[11px] font-semibold"
+              :class="filter === option ? 'bg-elev text-txt-hi' : 'text-txt-low hover:bg-elev/60 hover:text-txt-mid'"
               :aria-pressed="filter === option"
               :data-test-id="`filter-${option}`"
               @click="filter = option"
             >
               {{ t(`subjectFilter.${option}`) }}
-              <span class="ml-1 font-mono">{{ stateCounts[option] }}</span>
+              <span class="ml-1 font-mono font-normal">{{ stateCounts[option] }}</span>
             </button>
           </div>
-          <p v-if="visible.length === 0" class="px-4 py-6 text-sm text-txt-low" data-test-id="list-empty">
+          <p v-if="visible.length === 0" class="py-6 text-sm text-txt-low" data-test-id="list-empty">
             {{ t('subjects.emptyList') }}
           </p>
           <ul v-else data-test-id="subjects-list">
