@@ -1,4 +1,5 @@
 import { FROZEN_VISIT } from './Visit.js'
+import { listenToDemoStream } from './DemoStream.js'
 
 export type StreamedEvent = {
   name: string
@@ -68,7 +69,7 @@ export function openBoardStream({
   source = (url) => new EventSource(url, { withCredentials: true }),
 }: StreamInput): StreamHandle {
   if (FROZEN_VISIT) {
-    return { close: () => undefined }
+    return { close: listenToDemoStream(onEvent) }
   }
 
   const stream = source(path)

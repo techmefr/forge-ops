@@ -11,6 +11,8 @@ import { createForemergeRepository } from '../../../src/domain/Foremerge/Foremer
 import { KANBAN_COLUMNS } from '../../../src/domain/Story/Story.js'
 import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
+const SPARE_EPIC_COUNT = 19
+
 const CENSUS = { tests: 0, skipped: 0, tautologies: 0 }
 
 let db: Database.Database
@@ -247,6 +249,34 @@ describe('the epics the seed leaves on the story screen', () => {
           'SELECT COUNT(*) AS total FROM epic WHERE id NOT IN (SELECT epic_id FROM story)',
         )
         .get()?.total ?? 0
-    expect(bare).toBe(5)
+    expect(bare).toBe(SPARE_EPIC_COUNT)
+  })
+})
+
+describe('seedDemoBoard coverage of the team screens', () => {
+  it('holds a super admin, users with capacity and tags', () => {
+    const users = db.prepare('SELECT login, super_admin, capacity FROM board_user').all() as {
+      super_admin: number
+      capacity: number | null
+    }[]
+    expect(users.some((user) => user.super_admin === 1)).toBe(true)
+    expect(users.filter((user) => user.capacity !== null).length).toBeGreaterThan(2)
+    expect((db.prepare('SELECT COUNT(*) AS total FROM tag').get() as { total: number }).total).toBeGreaterThan(2)
+  })
+
+  it('holds a trashed subject', () => {
+    const trashed = db.prepare('SELECT COUNT(*) AS total FROM epic WHERE deleted_at IS NOT NULL').get() as {
+      total: number
+    }
+    expect(trashed.total).toBeGreaterThan(0)
+  })
+
+  it('gives projects their own workflow, including one without steps', () => {
+    const providers = db.prepare('SELECT DISTINCT provider FROM workflow_column').all()
+    expect(providers.length).toBeGreaterThanOrEqual(3)
+    const withSteps = db.prepare('SELECT COUNT(DISTINCT project_id) AS total FROM workflow_column').get() as {
+      total: number
+    }
+    expect(withSteps.total).toBeLessThan(createStoryRepository(db).listProjects().length)
   })
 })

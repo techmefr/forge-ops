@@ -1313,8 +1313,8 @@ export const ENGLISH = {
     cancel: 'Cancel',
   },
   visit: {
-    title: 'Frozen visit',
-    body: 'These figures come from the demonstration board, captured once. Nothing is written here and no agent runs. Install the board to run it for real.',
+    title: 'Live demo',
+    body: 'This is a demonstration board on sample data. Your changes stay in this browser tab and vanish on reload, and the agents are simulated. Install the board to run it for real.',
     source: 'The repository',
   },
   tour: {

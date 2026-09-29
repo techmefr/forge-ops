@@ -1,6 +1,9 @@
-import type { EpicPatch } from '../../../contract/EpicContract.js'
+import type { EpicPatch, SubjectLink } from '../../../contract/EpicContract.js'
+import type { EventType } from '../../../contract/EventContract.js'
 import type { Milestone, MilestoneKind } from '../../../contract/StoryContract.js'
 import type Database from 'better-sqlite3'
+import { randomBytes } from 'node:crypto'
+import { createIdentityRepository } from '../domain/Identity/IdentityRepository.js'
 import { createStoryRepository } from '../domain/Story/StoryRepository.js'
 import { createCheckpointRepository } from '../domain/Checkpoint/CheckpointRepository.js'
 import { PERMISSIVE_CHECKPOINT_GATES } from '../domain/Checkpoint/PermissiveCheckpointGate.js'
@@ -46,7 +49,7 @@ const DEMO_STEPS: readonly WorkflowColumnDraft[] = [
     preprompt: '',
     autoStart: false,
   },
-  agentStep('Building', 'blue', false),
+  agentStep('Building', 'info', false),
   agentStep('Gating', 'orange', false),
   agentStep('Reviewing', 'green', false),
   agentStep('Shipping', 'red', false),
@@ -94,6 +97,7 @@ type StoryPlan = {
   points: number | null
   proven: CheckpointName | null
   criteria: readonly { statement: string; met: boolean }[]
+  column?: string
 }
 
 type ProjectPlan = {
@@ -103,6 +107,7 @@ type ProjectPlan = {
   epicTitle: string
   epicIntent: string
   stories: readonly StoryPlan[]
+  steps?: readonly WorkflowColumnDraft[]
 }
 
 const PROVEN_UP_TO: readonly CheckpointName[] = [
@@ -122,6 +127,137 @@ type SpareEpicPlan = {
   assignee: string | null
   planning?: EpicPatch
   lateByDays?: number
+  tags?: readonly string[]
+  dependsOn?: readonly string[]
+  links?: readonly SubjectLink[]
+  deleted?: boolean
+}
+
+const TAG_PLAN: readonly { label: string; colour: string }[] = [
+  { label: 'frontend', colour: '#5b8def' },
+  { label: 'backend', colour: '#22c55e' },
+  { label: 'security', colour: '#ef4444' },
+  { label: 'ux', colour: '#a855f7' },
+  { label: 'debt', colour: '#f59e0b' },
+]
+
+const USER_PLAN: readonly {
+  login: string
+  displayName: string
+  role: 'director' | 'architect'
+  capacity: number | null
+  active: boolean
+}[] = [
+  { login: 'elena', displayName: 'Elena Vasquez', role: 'architect', capacity: 4, active: true },
+  { login: 'marc', displayName: 'Marc Dubois', role: 'director', capacity: 2, active: true },
+  { login: 'sofia', displayName: 'Sofia Rossi', role: 'architect', capacity: 3, active: true },
+  { login: 'tom', displayName: 'Tom Keller', role: 'architect', capacity: null, active: false },
+]
+
+type ProjectExtras = {
+  admin: string | null
+  calm: boolean
+  links: readonly SubjectLink[]
+  events: readonly { type: EventType; inDays: number; title: string; minutes: string | null; onFirstEpic: boolean }[]
+  risks: readonly { text: string; level: 'high' | 'medium' | 'low'; owner: string | null; openedDaysAgo: number }[]
+  decisions: readonly { text: string; by: string; daysAgo: number }[]
+  sentence: string
+}
+
+const PROJECT_EXTRAS: Readonly<Record<string, ProjectExtras>> = {
+  forge: {
+    admin: 'local',
+    calm: false,
+    links: [
+      { kind: 'repo', url: 'https://github.com/techmefr/forge-ops' },
+      { kind: 'doc', url: 'https://github.com/techmefr/forge-ops/blob/main/docs/VisualDirection.md' },
+    ],
+    events: [
+      { type: 'other', inDays: -20, title: 'Architecture workshop', minutes: null, onFirstEpic: false },
+      { type: 'demo', inDays: 2, title: 'Sprint demo', minutes: null, onFirstEpic: true },
+    ],
+    risks: [
+      { text: 'Two agents may edit the same zone before the reservation lands', level: 'medium', owner: 'elena', openedDaysAgo: 3 },
+    ],
+    decisions: [{ text: 'Cards move by drag and drop, buttons stay as the keyboard path', by: 'Elena Vasquez', daysAgo: 6 }],
+    sentence: 'Delivery is on track, the client review is the next checkpoint.',
+  },
+  mailer: {
+    admin: 'elena',
+    calm: false,
+    links: [
+      { kind: 'repo', url: 'https://github.com/techmefr/mailer' },
+      { kind: 'mockup', url: 'https://example.com/mailer-mockups' },
+    ],
+    events: [{ type: 'client', inDays: -8, title: 'Client demo', minutes: null, onFirstEpic: true }],
+    risks: [
+      { text: 'The mail vendor API is still closed', level: 'high', owner: 'sofia', openedDaysAgo: 12 },
+      { text: 'Attachment size limits are undecided', level: 'medium', owner: null, openedDaysAgo: 4 },
+    ],
+    decisions: [],
+    sentence: 'The vendor API blocks two subjects, we are escalating with the client.',
+  },
+  atlas: {
+    admin: 'sofia',
+    calm: true,
+    links: [{ kind: 'graphify', url: 'https://example.com/atlas-graph' }],
+    events: [
+      {
+        type: 'production',
+        inDays: -2,
+        title: 'Zone view release',
+        minutes: 'Released to the internal team, no incident.',
+        onFirstEpic: true,
+      },
+    ],
+    risks: [],
+    decisions: [{ text: 'Zones are declared per path prefix, never per story', by: 'Sofia Rossi', daysAgo: 9 }],
+    sentence: 'Zone view is out, colouring is next.',
+  },
+  harbor: {
+    admin: 'marc',
+    calm: true,
+    links: [
+      { kind: 'repo', url: 'https://github.com/techmefr/harbor' },
+      { kind: 'speckit', url: 'https://github.com/techmefr/harbor/tree/main/specs' },
+      { kind: 'doc', url: 'https://example.com/harbor-runbook' },
+    ],
+    events: [
+      { type: 'steering', inDays: -21, title: 'Steering committee', minutes: 'Scope cut to the payment flow only.', onFirstEpic: false },
+      { type: 'client', inDays: -6, title: 'Client review', minutes: null, onFirstEpic: true },
+      { type: 'production', inDays: -1, title: 'Payment go-live', minutes: null, onFirstEpic: true },
+      { type: 'demo', inDays: 5, title: 'Recovery demo', minutes: null, onFirstEpic: true },
+      { type: 'steering', inDays: 12, title: 'Steering committee', minutes: null, onFirstEpic: false },
+    ],
+    risks: [
+      { text: 'The payment provider sandbox is down twice a week', level: 'high', owner: 'marc', openedDaysAgo: 15 },
+      { text: 'Go-live slipped and the client was not told', level: 'high', owner: 'elena', openedDaysAgo: 2 },
+      { text: 'No load test has been run on the checkout', level: 'medium', owner: null, openedDaysAgo: 10 },
+    ],
+    decisions: [{ text: 'Freeze all new scope until the go-live is stable', by: 'Marc Dubois', daysAgo: 1 }],
+    sentence: 'Go-live slipped, two subjects are late and one is blocked on the provider.',
+  },
+  lumen: {
+    admin: 'elena',
+    calm: true,
+    links: [{ kind: 'repo', url: 'https://github.com/techmefr/lumen' }],
+    events: [
+      { type: 'steering', inDays: -10, title: 'Steering committee', minutes: 'Everything on plan, next review in a month.', onFirstEpic: false },
+      { type: 'production', inDays: 18, title: 'Public launch', minutes: null, onFirstEpic: true },
+    ],
+    risks: [{ text: 'Translations for two locales are not reviewed yet', level: 'low', owner: 'tom', openedDaysAgo: 7 }],
+    decisions: [{ text: 'Launch on the planned date', by: 'Elena Vasquez', daysAgo: 10 }],
+    sentence: 'Everything is on plan for the public launch.',
+  },
+  sandbox: {
+    admin: null,
+    calm: true,
+    links: [],
+    events: [],
+    risks: [],
+    decisions: [],
+    sentence: 'A blank project: define its steps to start the forge.',
+  },
 }
 
 const SPARE_EPICS: readonly SpareEpicPlan[] = [
@@ -149,9 +285,19 @@ const SPARE_EPICS: readonly SpareEpicPlan[] = [
     project: 'mailer',
     title: 'Signature par compte',
     intent: 'laisser chaque compte porter sa propre signature',
-    assignee: 'seraph',
+    assignee: 'sofia',
     planning: { state: 'blocked', statusNote: 'Waiting for the mail vendor to open the API.' },
     lateByDays: 4,
+    tags: ['backend'],
+  },
+  {
+    project: 'mailer',
+    title: 'Pieces jointes',
+    intent: 'joindre des fichiers a un mail sans depasser la limite du fournisseur',
+    assignee: 'sofia',
+    planning: { priority: 'high' },
+    dependsOn: ['Signature par compte'],
+    tags: ['backend', 'debt'],
   },
   {
     project: 'atlas',
@@ -159,6 +305,135 @@ const SPARE_EPICS: readonly SpareEpicPlan[] = [
     intent: 'prevenir quand deux stories touchent le meme dossier en meme temps',
     assignee: null,
   },
+  {
+    project: 'atlas',
+    title: 'Legende des couleurs',
+    intent: 'expliquer les couleurs de zones directement sur la carte',
+    assignee: 'sofia',
+    planning: { state: 'doing', priority: 'low' },
+    tags: ['ux', 'frontend'],
+  },
+  {
+    project: 'forge',
+    title: 'Export des statistiques',
+    intent: 'sortir les couts et les durees par projet en un fichier',
+    assignee: 'elena',
+    planning: { state: 'done', priority: 'low' },
+    tags: ['backend'],
+  },
+  {
+    project: 'forge',
+    title: 'Notifications de fin de session',
+    intent: 'prevenir l architecte quand une session attend sa validation',
+    assignee: 'marc',
+    planning: { priority: 'max', requestedBy: 'Client steering', statusNote: 'Design agreed, waiting for the gateway.' },
+    dependsOn: ['Passerelle GitLab'],
+    tags: ['ux', 'frontend'],
+    links: [{ kind: 'mockup', url: 'https://example.com/notifications-mockup' }],
+  },
+  {
+    project: 'forge',
+    title: 'Guide d onboarding',
+    intent: 'accueillir un nouvel architecte avec une visite guidee du board',
+    assignee: 'elena',
+    planning: { state: 'doing', priority: 'normal' },
+    lateByDays: 6,
+    tags: ['ux'],
+  },
+  {
+    project: 'forge',
+    title: 'Ancien prototype',
+    intent: 'premiere maquette abandonnee, gardee dans la corbeille',
+    assignee: null,
+    deleted: true,
+  },
+  {
+    project: 'harbor',
+    title: 'Changement de fournisseur de paiement',
+    intent: 'basculer vers un fournisseur plus stable avant la fin du mois',
+    assignee: 'marc',
+    planning: { state: 'doing', priority: 'max', statusNote: 'Sandbox keys received, contract not signed.' },
+    lateByDays: 9,
+    tags: ['security', 'backend'],
+    links: [{ kind: 'doc', url: 'https://example.com/payment-provider-comparison' }],
+  },
+  {
+    project: 'harbor',
+    title: 'Gestion des remboursements',
+    intent: 'rembourser une commande depuis le back-office',
+    assignee: 'elena',
+    planning: { state: 'blocked', priority: 'high', statusNote: 'Blocked until the provider exposes the refund API.' },
+    lateByDays: 3,
+    tags: ['backend'],
+    dependsOn: ['Changement de fournisseur de paiement'],
+  },
+  {
+    project: 'harbor',
+    title: 'Recus par mail',
+    intent: 'envoyer un recu au client apres chaque paiement',
+    assignee: null,
+    planning: { priority: 'normal', requestedBy: 'Finance' },
+    tags: ['frontend'],
+  },
+  {
+    project: 'harbor',
+    title: 'Archive des factures',
+    intent: 'garder les factures consultables pendant dix ans',
+    assignee: 'sofia',
+    planning: { state: 'done' },
+    tags: ['debt'],
+  },
+  {
+    project: 'lumen',
+    title: 'Site public',
+    intent: 'presenter le produit avec une page d accueil et un blog',
+    assignee: 'sofia',
+    planning: { state: 'doing', priority: 'high' },
+    tags: ['frontend', 'ux'],
+  },
+  {
+    project: 'lumen',
+    title: 'Theme sombre',
+    intent: 'proposer un theme sombre suivant le systeme',
+    assignee: 'elena',
+    planning: { state: 'done' },
+    tags: ['ux'],
+  },
+  {
+    project: 'lumen',
+    title: 'Centre d aide',
+    intent: 'rassembler les reponses aux questions frequentes',
+    assignee: null,
+    planning: { priority: 'low' },
+  },
+]
+
+const HARBOR_STEPS: readonly WorkflowColumnDraft[] = [
+  { ...agentStep('Architecture', 'acc', true), model: 'claude-opus-5-5', effort: 'max', agentName: 'architecte' },
+  {
+    label: 'Plan review',
+    colour: 'warn',
+    provider: 'human',
+    model: '',
+    effort: '',
+    agentName: '',
+    command: '',
+    preprompt: '',
+    autoStart: false,
+  },
+  { ...agentStep('Building', 'info', false), provider: 'codex', model: '', effort: 'medium', command: 'BUILD.md' },
+  { ...agentStep('Gating', 'orange', true), model: 'claude-haiku-4-5', effort: 'low' },
+  { ...agentStep('Reviewing', 'green', false), model: 'claude-sonnet-5', effort: 'xhigh', agentName: 'elrond' },
+  { ...agentStep('Shipping', 'red', false), preprompt: 'Rebase, run the gate again, open the MR as a draft.' },
+]
+
+const LUMEN_STEPS: readonly WorkflowColumnDraft[] = [
+  agentStep('Architecture', 'acc', true),
+  { ...agentStep('Building', 'info', true), model: 'claude-fable-5-1', effort: 'xhigh' },
+  { ...agentStep('Design QA', 'violet', false), model: 'claude-sonnet-5', effort: 'medium', agentName: 'link' },
+  agentStep('Gating', 'orange', false),
+  agentStep('Reviewing', 'green', false),
+  agentStep('Shipping', 'red', false),
 ]
 
 const PLAN: readonly ProjectPlan[] = [
@@ -371,6 +646,129 @@ const PLAN: readonly ProjectPlan[] = [
       },
     ],
   },
+  {
+    slug: 'harbor',
+    name: 'Harbor',
+    colour: '#f59e0b',
+    epicTitle: 'Checkout et paiement',
+    epicIntent: 'permettre a un client de payer sa commande sans quitter le site',
+    steps: HARBOR_STEPS,
+    stories: [
+      {
+        slug: 'pay',
+        title: 'payer une commande par carte',
+        body: 'As a customer I want to pay by card and see my order confirmed at once.',
+        twinTitle: 'prove the card payment',
+        state: 'reviewing',
+        points: 8,
+        proven: 'verified',
+        criteria: [
+          { statement: 'a declined card keeps the basket intact', met: true },
+          { statement: 'the confirmation shows the order reference', met: false },
+        ],
+      },
+      {
+        slug: 'refund',
+        title: 'rembourser une commande',
+        body: 'As a shop owner I want to refund an order from the back-office.',
+        twinTitle: 'prove the refund flow',
+        state: 'building',
+        points: 5,
+        proven: 'tests_written',
+        criteria: [{ statement: 'a partial refund leaves the rest of the order paid', met: false }],
+      },
+      {
+        slug: 'retry',
+        title: 'relancer un paiement echoue',
+        body: 'As a customer I want to retry a failed payment without refilling the form.',
+        twinTitle: 'prove the payment retry',
+        state: 'plan_review',
+        points: 3,
+        proven: 'spec_done',
+        criteria: [{ statement: 'three failed attempts lock the order for ten minutes', met: false }],
+      },
+      {
+        slug: 'webhook',
+        title: 'traiter les webhooks du fournisseur',
+        body: 'As an operator I want provider webhooks applied once and only once.',
+        twinTitle: 'prove the webhook handling',
+        state: 'gating',
+        points: 5,
+        proven: 'build_done',
+        criteria: [{ statement: 'a replayed webhook changes nothing', met: false }],
+      },
+      {
+        slug: 'export',
+        title: 'exporter les paiements du mois',
+        body: 'As a finance user I want a monthly CSV of all payments.',
+        twinTitle: 'prove the monthly export',
+        state: 'backlog',
+        points: 3,
+        proven: null,
+        criteria: [{ statement: 'an empty month still produces a header line', met: false }],
+      },
+    ],
+  },
+  {
+    slug: 'lumen',
+    name: 'Lumen',
+    colour: '#10b981',
+    epicTitle: 'Lancement public',
+    epicIntent: 'ouvrir le produit au public avec un site clair et un blog',
+    steps: LUMEN_STEPS,
+    stories: [
+      {
+        slug: 'home',
+        title: 'afficher la page d accueil',
+        body: 'As a visitor I want a home page that explains the product in ten seconds.',
+        twinTitle: 'prove the home page',
+        state: 'done',
+        points: 3,
+        proven: 'reviewed',
+        criteria: [{ statement: 'the call to action is visible without scrolling', met: true }],
+      },
+      {
+        slug: 'blog',
+        title: 'lister les articles du blog',
+        body: 'As a visitor I want to browse the latest posts.',
+        twinTitle: 'prove the blog list',
+        state: 'building',
+        points: 5,
+        proven: 'tests_written',
+        criteria: [{ statement: 'posts appear newest first', met: false }],
+        column: 'design_qa',
+      },
+      {
+        slug: 'search',
+        title: 'rechercher dans le site',
+        body: 'As a visitor I want to search pages by keyword.',
+        twinTitle: 'prove the site search',
+        state: 'architecture',
+        points: 5,
+        proven: 'spec_done',
+        criteria: [{ statement: 'an empty result explains how to widen the search', met: false }],
+      },
+      {
+        slug: 'faq',
+        title: 'publier la foire aux questions',
+        body: 'As a visitor I want answers to the common questions.',
+        twinTitle: 'prove the FAQ page',
+        state: 'backlog',
+        points: 2,
+        proven: null,
+        criteria: [{ statement: 'each question links to its own anchor', met: false }],
+      },
+    ],
+  },
+  {
+    slug: 'sandbox',
+    name: 'Sandbox',
+    colour: '#64748b',
+    epicTitle: 'Premiers pas',
+    epicIntent: 'un projet vide pour essayer de definir ses propres etapes',
+    steps: [],
+    stories: [],
+  },
 ]
 
 const ZONE_PLAN: readonly { project: string; pathPrefix: string; name: string; colour: string }[] = [
@@ -454,6 +852,15 @@ const SESSION_PLAN: readonly SessionPlan[] = [
   { story: 'mailer/delete', phase: 'architecture', agentName: 'architecte', daysAgo: 0, seconds: 540, costUsd: 0.28, inputTokens: 38000, outputTokens: 4600, exit: { exitCode: 0 } },
   { story: 'atlas/zones', phase: 'tdd', agentName: 'dozer', daysAgo: 2, seconds: 1120, costUsd: 0.61, inputTokens: 76000, outputTokens: 10000, exit: { exitCode: 0 } },
   { story: 'atlas/zones', phase: 'gate', agentName: 'galadriel', daysAgo: 1, seconds: 410, costUsd: 0.22, inputTokens: 31000, outputTokens: 3300, exit: { exitCode: 2 } },
+  { story: 'harbor/pay', phase: 'code', agentName: 'trinity', daysAgo: 3, seconds: 2800, costUsd: 1.75, inputTokens: 220000, outputTokens: 29000, exit: { exitCode: 0 } },
+  { story: 'harbor/pay', phase: 'review', agentName: 'elrond', daysAgo: 0, seconds: 560, costUsd: 0.33, inputTokens: 45000, outputTokens: 5200, exit: { exitCode: 0 } },
+  { story: 'harbor/refund', phase: 'code', agentName: 'trinity', daysAgo: 0, seconds: 900, costUsd: 0.52, inputTokens: 70000, outputTokens: 9000, exit: null },
+  { story: 'harbor/retry', phase: 'architecture', agentName: 'architecte', daysAgo: 1, seconds: 640, costUsd: 0.41, inputTokens: 52000, outputTokens: 6100, exit: { exitCode: 0 } },
+  { story: 'harbor/webhook', phase: 'code', agentName: 'trinity', daysAgo: 2, seconds: 1900, costUsd: 1.12, inputTokens: 150000, outputTokens: 19000, exit: { exitCode: 0 } },
+  { story: 'harbor/webhook', phase: 'gate', agentName: 'galadriel', daysAgo: 1, seconds: 380, costUsd: 0.2, inputTokens: 29000, outputTokens: 3100, exit: { exitCode: 2 } },
+  { story: 'lumen/home', phase: 'code', agentName: 'neo', daysAgo: 6, seconds: 1500, costUsd: 0.9, inputTokens: 110000, outputTokens: 14000, exit: { exitCode: 0 } },
+  { story: 'lumen/blog', phase: 'code', agentName: 'neo', daysAgo: 0, seconds: 700, costUsd: 0.44, inputTokens: 58000, outputTokens: 7200, exit: null },
+  { story: 'lumen/search', phase: 'architecture', agentName: 'architecte', daysAgo: 0, seconds: 480, costUsd: 0.3, inputTokens: 40000, outputTokens: 4800, exit: { exitCode: 0 } },
 ]
 
 type RemarkPlan = {
@@ -495,12 +902,69 @@ const REMARK_PLAN: readonly RemarkPlan[] = [
     body: 'La remarque de securite sur le chemin absolu est juste, mais elle attendra la story suivante : celle-ci ne touche pas la comparaison.',
   },
   {
+    story: 'harbor/retry',
+    author: 'architecte',
+    voice: 'agent',
+    body: 'Plan ready for your review: the retry reuses the stored payment intent, so the card form is never refilled. Three failed attempts lock the order for ten minutes.',
+  },
+  {
+    story: 'harbor/retry',
+    author: 'local',
+    voice: 'human',
+    body: 'Does the lock also apply to a customer who changes card between attempts?',
+  },
+  {
+    story: 'harbor/retry',
+    author: 'architecte',
+    voice: 'agent',
+    body: 'Yes, the counter belongs to the order, not to the card. I can move it to the customer if you prefer.',
+  },
+  {
+    story: 'harbor/pay',
+    author: 'elrond',
+    voice: 'agent',
+    body: 'Review pass done: one weak finding on the confirmation screen, the order reference is not announced to screen readers.',
+  },
+  {
+    story: 'harbor/webhook',
+    author: 'galadriel',
+    voice: 'agent',
+    body: 'The gate failed: the replay test writes twice when two webhooks arrive within the same second. The dedupe key needs the provider event id.',
+  },
+  {
+    story: 'lumen/search',
+    author: 'architecte',
+    voice: 'agent',
+    body: 'Spec and plan drafted. I need one answer before building: should the search cover the blog posts or only the static pages?',
+  },
+  {
+    story: 'lumen/search',
+    author: 'local',
+    voice: 'human',
+    body: 'Both, but static pages rank first.',
+  },
+  {
     story: 'forge/metrics',
     author: 'trinity',
     voice: 'agent',
     body: 'Sans collecteur branche je ne peux pas remplir la memoire, je laisse le champ vide et je le dis plutot que d ecrire zero.',
   },
 ]
+
+export function reviveDemoSessions(db: Database.Database): number {
+  const revive = db.prepare<[string]>(
+    `UPDATE agent_session
+        SET lifecycle = 'working', outcome = NULL, ended_at = NULL, last_heartbeat_at = datetime('now')
+      WHERE claude_session_id = ?`,
+  )
+  let revived = 0
+  SESSION_PLAN.forEach((plan, index) => {
+    if (plan.exit === null) {
+      revived += revive.run(`${plan.story.replace('/', '-')}-${plan.phase}-${index}`).changes
+    }
+  })
+  return revived
+}
 
 function evidenceOf(reference: string, name: CheckpointName): string {
   return `.claude/evidence/${reference.toLowerCase()}/${name}.md`
@@ -530,6 +994,29 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
   const foremerge = createForemergeRepository(db, { stories })
   const budget = createBudgetRepository(db)
   const discussion = createDiscussionRepository(db, { stories })
+  const identities = createIdentityRepository(db)
+
+  identities.bootstrapSuperAdmin({ login: 'local', password: randomBytes(24).toString('hex') })
+  identities.changeCapacity('local', 5)
+  identities.changeDisplayName('local', 'Demo architect')
+  for (const user of USER_PLAN) {
+    identities.enrolUser({
+      login: user.login,
+      displayName: user.displayName,
+      password: randomBytes(24).toString('hex'),
+      role: user.role,
+    })
+    if (user.capacity !== null) {
+      identities.changeCapacity(user.login, user.capacity)
+    }
+    if (!user.active) {
+      identities.changeActive(user.login, false)
+    }
+  }
+  const tagIds = new Map<string, number>()
+  for (const tag of TAG_PLAN) {
+    tagIds.set(tag.label, stories.epics.createTag(tag).id)
+  }
 
   const setState = db.prepare<[StoryState, StoryState, number]>(
     `UPDATE story
@@ -542,6 +1029,15 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
       WHERE id = ?`,
   )
   const workflowColumns = createWorkflowColumnRepository(db)
+  const placeInColumn = db.prepare<[string, number]>(
+    `UPDATE story
+        SET workflow_column_id = (
+              SELECT workflow_column.id FROM workflow_column
+                JOIN epic ON epic.project_id = workflow_column.project_id
+               WHERE epic.id = story.epic_id AND workflow_column.key = ?
+            )
+      WHERE id = ?`,
+  )
   const setEscalation = db.prepare<[string, number]>('UPDATE story SET escalation_reason = ? WHERE id = ?')
   const backdateSession = db.prepare<[number, number, number, string]>(
     `UPDATE agent_session
@@ -581,7 +1077,7 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
       checkoutPath: project.slug === 'forge' ? process.cwd() : null,
     })
     projectIds.set(project.slug, written.id)
-    for (const step of DEMO_STEPS) {
+    for (const step of project.steps ?? DEMO_STEPS) {
       workflowColumns.create(written.id, step)
     }
     const epic = stories.createEpic({
@@ -628,6 +1124,7 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
   }
 
 
+  const epicIds = new Map<string, number>()
   for (const spare of SPARE_EPICS) {
     const projectId = projectIds.get(spare.project)
     if (projectId === undefined) {
@@ -647,6 +1144,28 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
     if (spare.lateByDays !== undefined) {
       stories.writeMilestone({ epicId: epic.id, kind: 'demo', dueOn: dayFromNow(-spare.lateByDays) })
     }
+    epicIds.set(spare.title, epic.id)
+  }
+  for (const spare of SPARE_EPICS) {
+    const epicId = epicIds.get(spare.title)
+    if (epicId === undefined) {
+      continue
+    }
+    const patch: EpicPatch = {
+      ...(spare.tags === undefined
+        ? {}
+        : { tagIds: spare.tags.flatMap((label) => tagIds.get(label) ?? []) }),
+      ...(spare.dependsOn === undefined
+        ? {}
+        : { dependsOn: spare.dependsOn.flatMap((title) => epicIds.get(title) ?? []) }),
+      ...(spare.links === undefined ? {} : { links: [...spare.links] }),
+    }
+    if (Object.keys(patch).length > 0) {
+      stories.epics.plan(epicId, patch)
+    }
+    if (spare.deleted === true) {
+      stories.epics.softDelete(epicId, 'local')
+    }
   }
   for (const projectId of projectIds.values()) {
     const first = stories.listEpics(projectId)[0]
@@ -654,6 +1173,47 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
       continue
     }
     stories.epics.plan(first.id, { startedOn: dayFromNow(-24) })
+    const slug = [...projectIds.entries()].find(([, id]) => id === projectId)?.[0] ?? ''
+    const extras = PROJECT_EXTRAS[slug]
+    if (extras !== undefined) {
+      const admin = extras.admin === null ? null : identities.findUser(extras.admin)
+      if (admin !== null) {
+        stories.projects.update(projectId, { adminId: admin.id })
+      }
+      if (extras.links.length > 0) {
+        stories.epics.setProjectLinks(projectId, extras.links)
+      }
+      for (const event of extras.events) {
+        stories.agenda.create({
+          type: event.type,
+          date: dayFromNow(event.inDays),
+          title: event.title,
+          projectId,
+          epicId: event.onFirstEpic ? first.id : null,
+          note: null,
+          minutes: event.minutes,
+        })
+      }
+      for (const risk of extras.risks) {
+        stories.followUps.openRisk(
+          projectId,
+          { text: risk.text, level: risk.level, owner: risk.owner, epicId: null },
+          dayFromNow(-risk.openedDaysAgo),
+        )
+      }
+      for (const decision of extras.decisions) {
+        stories.followUps.recordDecision(
+          projectId,
+          { text: decision.text, decidedOn: dayFromNow(-decision.daysAgo), decidedBy: decision.by },
+          'local',
+          dayFromNow(0),
+        )
+      }
+      stories.followUps.changeWeather(projectId, { statusSentence: extras.sentence })
+      if (extras.calm) {
+        continue
+      }
+    }
     const agenda = [
       { type: 'steering', inDays: -14, title: 'Steering committee', epicId: null, minutes: 'Priority stays on the first epic. Next review in three weeks.' },
       { type: 'client', inDays: -3, title: 'Client review', epicId: first.id, minutes: null },
@@ -671,9 +1231,6 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
         minutes: event.minutes,
       })
     }
-    stories.followUps.changeWeather(projectId, {
-      statusSentence: 'Delivery is on track, the client review is the next checkpoint.',
-    })
     stories.followUps.openRisk(
       projectId,
       { text: 'The client validation may slip past the release date', level: 'high', owner: null, epicId: first.id },
@@ -933,6 +1490,9 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
         continue
       }
       setState.run(plan.state, plan.state, storyId)
+      if (plan.column !== undefined) {
+        placeInColumn.run(plan.column, storyId)
+      }
     }
   }
 

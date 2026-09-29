@@ -1,33 +1,38 @@
+import { createDemoStore, DEMO_REFUSAL, type DemoStore } from './Demo/DemoStore.js'
+import type { DemoEnvironment, DemoReply } from './Demo/DemoModel.js'
+
 export type DemoSnapshot = Record<string, unknown>
 
-export const DEMO_REFUSAL = {
-  error: 'DemonstrationFigee',
-  message:
-    'Cette page est une visite de forge-ops sur des donnees figees : rien ne peut y etre ecrit. Installez le board pour le lancer pour de vrai.',
-}
+export { DEMO_REFUSAL }
 
-function respond(payload: unknown, status: number): Response {
-  return new Response(JSON.stringify(payload), {
+function respond({ status, body }: DemoReply): Response {
+  if (body === null) {
+    return new Response(null, { status })
+  }
+  return new Response(JSON.stringify(body), {
     status,
     headers: { 'content-type': 'application/json' },
   })
 }
 
-export function createDemoFetcher(load: () => Promise<DemoSnapshot>): typeof fetch {
-  let loading: Promise<DemoSnapshot> | null = null
+function bodyOf(init: RequestInit | undefined): unknown {
+  if (typeof init?.body !== 'string' || init.body === '') {
+    return null
+  }
+  try {
+    return JSON.parse(init.body) as unknown
+  } catch {
+    return null
+  }
+}
+
+export function createDemoFetcher(load: () => Promise<DemoSnapshot>, env: DemoEnvironment): typeof fetch {
+  let loading: Promise<DemoStore> | null = null
 
   return async (input, init) => {
-    const path = typeof input === 'string' ? input : input instanceof URL ? input.pathname : input.url
-    const method = init?.method ?? 'GET'
-    if (method !== 'GET') {
-      return respond(DEMO_REFUSAL, 409)
-    }
-    loading = loading ?? load()
-    const snapshot = await loading
-    const held = snapshot[path]
-    if (held === undefined) {
-      return respond({ error: 'HorsVisite', message: `${path} ne fait pas partie de la visite figee` }, 404)
-    }
-    return respond(held, 200)
+    const path = typeof input === 'string' ? input : input instanceof URL ? input.pathname + input.search : input.url
+    loading = loading ?? load().then((snapshot) => createDemoStore(snapshot, env))
+    const store = await loading
+    return respond(store.handle(init?.method ?? 'GET', path, bodyOf(init)))
   }
 }

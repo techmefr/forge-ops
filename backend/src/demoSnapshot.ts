@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path'
 import { demoEnvironment } from './domain/Demo/DemoEnvironment.js'
 import { openDatabase } from './technical/Database/Connection.js'
 import { markDemoDatabase } from './technical/Demo/DemoMark.js'
-import { seedDemoBoard } from './composition/DemoSeed.js'
+import { reviveDemoSessions, seedDemoBoard } from './composition/DemoSeed.js'
 import { defaultBoardServerInput, startBoardServer } from './composition/BoardServer.js'
 import { resolveBoardToken } from './technical/Auth/BoardToken.js'
 import { PARAMETERLESS_PATHS, PROJECT_PATHS, STORY_PATHS } from './domain/Demo/DemoSnapshotPaths.js'
@@ -36,6 +36,10 @@ const board = await startBoardServer({
   mode: 'local',
   environmentMode: 'demo',
 })
+
+const livingDb = openDatabase(environment.dbPath)
+reviveDemoSessions(livingDb)
+livingDb.close()
 
 const snapshot: Record<string, unknown> = {}
 
