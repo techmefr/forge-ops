@@ -81,6 +81,7 @@ import { createTokenGuard } from '../technical/Auth/TokenGuard.js'
 import { createBrowserSessions } from '../technical/Auth/BrowserSession.js'
 import { createSessionApi } from '../technical/Http/SessionApi.js'
 import { deriveHookToken, resolveBoardToken } from '../technical/Auth/BoardToken.js'
+import { securityHeaders } from '../technical/Http/SecurityHeaders.js'
 import { boardOrigins, isLocalOrigin } from '../technical/Auth/BoardOrigin.js'
 
 const DEFAULT_SESSION_CAP = 5
@@ -331,6 +332,7 @@ export function startBoardServer({
 
   const browserSessions = createBrowserSessions()
   const guarded = new Hono()
+  guarded.use('*', securityHeaders())
   guarded.get('/health', (context) =>
     context.json({ role: process.env.FORGE_ROLE ?? 'instance', mode, ready: true }),
   )

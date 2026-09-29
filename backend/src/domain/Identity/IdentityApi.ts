@@ -16,6 +16,7 @@ import {
 } from './IdentityViolation.js'
 
 import { IDENTITY_COOKIE } from '../../technical/Auth/TokenGuard.js'
+import { cookieSecure } from '../../technical/Auth/SecureCookie.js'
 import {
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
@@ -119,6 +120,7 @@ export function createIdentityApi({
       path: '/',
       httpOnly: true,
       sameSite: 'Strict',
+      secure: cookieSecure(context),
       expires: new Date(opened.expiresAt),
     })
     return context.json({ user: opened.user })
@@ -193,6 +195,9 @@ export function createIdentityApi({
     let changed = identities.findUser(login)
     if (changed === null) {
       throw new UnknownAccountError(login)
+    }
+    if (change.active !== undefined && changed.superAdmin && !user.superAdmin) {
+      return context.json({ error: 'SuperAdminRequired' }, 403)
     }
     if (change.superAdmin !== undefined) {
       changed = identities.changeSuperAdmin(login, change.superAdmin)

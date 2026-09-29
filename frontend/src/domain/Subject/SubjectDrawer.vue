@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { safeHref } from '@/technical/Ui/SafeHref'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
@@ -303,7 +304,7 @@ function closeWhenClosed(open: boolean): void {
         <ul v-if="subject.links.length > 0" class="flex flex-wrap gap-2">
           <li v-for="link in subject.links" :key="`${link.kind}-${link.url}`">
             <a
-              :href="link.url"
+              :href="safeHref(link.url)"
               target="_blank"
               rel="noopener noreferrer"
               class="rounded-md border border-line px-2 py-0.5 text-[11px] text-info hover:bg-elev"
@@ -320,7 +321,7 @@ function closeWhenClosed(open: boolean): void {
         <ul v-if="projectLinks.length > 0" class="flex flex-wrap gap-2">
           <li v-for="link in projectLinks" :key="`${link.kind}-${link.url}`">
             <a
-              :href="link.url"
+              :href="safeHref(link.url)"
               target="_blank"
               rel="noopener noreferrer"
               class="rounded-md border border-line px-2 py-0.5 text-[11px] text-info hover:bg-elev"

@@ -4,6 +4,7 @@ import {
   hashPassword,
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
+  spendVerificationTime,
   verifyPassword,
 } from '../../technical/Auth/PasswordHash.js'
 import {
@@ -210,7 +211,11 @@ export function createIdentityRepository(
 
     openSession: (login, password) => {
       const row = selectUserByLogin.get(login)
-      if (row === undefined || !verifyPassword(password, row.password_hash)) {
+      if (row === undefined) {
+        spendVerificationTime(password)
+        throw new LoginRefusedError()
+      }
+      if (!verifyPassword(password, row.password_hash)) {
         throw new LoginRefusedError()
       }
       if (row.disabled_at !== null) {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { safeHref } from '@/technical/Ui/SafeHref'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { LINK_KINDS, type LinkKind, type SubjectLink } from '@contract/EpicContract'
@@ -36,7 +37,7 @@ function drop(index: number): void {
       >
         <span class="font-mono text-txt-mid uppercase">{{ t(`linkKind.${link.kind}`) }}</span>
         <a
-          :href="link.url"
+          :href="safeHref(link.url)"
           target="_blank"
           rel="noopener noreferrer"
           class="max-w-[16rem] truncate text-txt-hi underline"

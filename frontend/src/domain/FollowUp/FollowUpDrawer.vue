@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { safeHref } from '@/technical/Ui/SafeHref'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -451,7 +452,7 @@ function closeWhenClosed(open: boolean): void {
           <ul v-else class="flex flex-wrap gap-2">
             <li v-for="link in links.data.value ?? []" :key="`${link.kind}-${link.url}`">
               <a
-                :href="link.url"
+                :href="safeHref(link.url)"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="rounded border border-line px-2 py-1 text-[12px] text-info hover:border-acc"

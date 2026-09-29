@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { epicPatchSchema, subjectLinksSchema, tagDraftSchema } from '../../../../contract/EpicContract.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
+import { mayAdministerProject } from '../Project/ProjectAuthority.js'
+import type { ProjectRepository } from '../Project/ProjectRepository.js'
 import type { EpicRepository } from './EpicRepository.js'
 
 const identifierSchema = z.coerce.number().int().positive()
@@ -13,9 +15,11 @@ export type EpicApiInput = {
   epics: EpicRepository
   events: EventBus
   today: () => string
+  projects: ProjectRepository
+  isSuperAdmin: (login: string) => boolean
 }
 
-export function createEpicApi({ epics, events, today }: EpicApiInput): Hono {
+export function createEpicApi({ epics, events, today, projects, isSuperAdmin }: EpicApiInput): Hono {
   const api = new Hono()
 
   api.patch('/api/epics/:id', async (context) => {
@@ -102,6 +106,10 @@ export function createEpicApi({ epics, events, today }: EpicApiInput): Hono {
     const body = projectLinksSchema.safeParse(await context.req.json().catch(() => null))
     if (!projectId.success || !body.success) {
       return context.json({ error: 'InvalidProjectLinks' }, 422)
+    }
+    const project = projects.find(projectId.data)
+    if (project !== null && !mayAdministerProject({ login: operatorOf(context), ...project, isSuperAdmin })) {
+      return context.json({ error: 'ProjectAdminRequired' }, 403)
     }
     epics.setProjectLinks(projectId.data, body.data.links)
     return context.json(epics.projectLinks(projectId.data))

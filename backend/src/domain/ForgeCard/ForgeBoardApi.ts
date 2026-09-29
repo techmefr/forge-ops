@@ -1,6 +1,9 @@
 import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { z } from 'zod'
 import { mapApiError } from '../Board/ApiErrorMap.js'
+import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
+import { assertStoryHand } from '../Story/StoryHand.js'
 import type { ForgeCardMoved } from '../../../../contract/ForgeCardContract.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
@@ -31,6 +34,10 @@ export function createForgeBoardApi({ board, mover, forgeCards, stories, events 
   const api = new Hono()
 
   api.onError(mapApiError)
+
+  function assertHand(context: Context, subjectId: number, reference: string): void {
+    assertStoryHand(reference, stories.assigneeOf(subjectId), operatorOf(context))
+  }
 
   function announce(moved: ForgeCardMoved): void {
     if (!moved.started || moved.claudeSessionId === null) {
@@ -63,6 +70,7 @@ export function createForgeBoardApi({ board, mover, forgeCards, stories, events 
       return context.json({ error: 'InvalidBacklogStory', issues: draft.error.issues }, 422)
     }
     const epic = stories.findEpic(draft.data.subjectId)
+    assertHand(context, epic.id, epic.title)
     const story = stories.writeStory({ epicId: epic.id, title: draft.data.title, body: draft.data.title })
     stories.writeTwin({ storyId: story.id, title: `Tests: ${draft.data.title}`, body: draft.data.title })
     stories.sendToBacklog(story.id)
@@ -79,6 +87,8 @@ export function createForgeBoardApi({ board, mover, forgeCards, stories, events 
     if (!order.success) {
       return context.json({ error: 'InvalidMoveOrder', issues: order.error.issues }, 422)
     }
+    const current = board.view(forgeCardId.data)
+    assertHand(context, current.subjectId, current.reference)
     const moved = await mover.move(forgeCardId.data, order.data.stepKey)
     announce(moved)
     return context.json(moved)
@@ -89,6 +99,8 @@ export function createForgeBoardApi({ board, mover, forgeCards, stories, events 
     if (!forgeCardId.success) {
       return context.json({ error: 'InvalidForgeCardIdentifier' }, 422)
     }
+    const current = board.view(forgeCardId.data)
+    assertHand(context, current.subjectId, current.reference)
     const moved = await mover.launch(forgeCardId.data)
     announce(moved)
     return context.json(moved, 201)

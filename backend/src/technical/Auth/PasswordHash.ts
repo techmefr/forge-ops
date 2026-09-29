@@ -43,3 +43,9 @@ export function verifyPassword(password: string, stored: string): boolean {
     return false
   }
 }
+
+const UNKNOWN_ACCOUNT_HASH = hashPassword('unknown-account-placeholder')
+
+export function spendVerificationTime(password: string): void {
+  verifyPassword(password, UNKNOWN_ACCOUNT_HASH)
+}

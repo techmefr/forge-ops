@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { z } from 'zod'
 import type { BrowserSessions } from '../Auth/BrowserSession.js'
+import { cookieSecure } from '../Auth/SecureCookie.js'
 import { BOARD_COOKIE, LOCAL_SESSION_PATH, sameSecret, SESSION_EXCHANGE_PATH } from '../Auth/TokenGuard.js'
 
 const exchangeSchema = z.object({
@@ -29,6 +30,7 @@ export function createSessionApi({ token, sessions }: SessionApiInput): Hono {
       path: '/',
       httpOnly: true,
       sameSite: 'Strict',
+      secure: cookieSecure(context),
       expires: new Date(opened.expiresAt),
     })
     return context.json({ expiresAt: new Date(opened.expiresAt).toISOString() }, 201)
@@ -40,6 +42,7 @@ export function createSessionApi({ token, sessions }: SessionApiInput): Hono {
       path: '/',
       httpOnly: true,
       sameSite: 'Strict',
+      secure: cookieSecure(context),
       expires: new Date(opened.expiresAt),
     })
     return context.json({ expiresAt: new Date(opened.expiresAt).toISOString() }, 201)
