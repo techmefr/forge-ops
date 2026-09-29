@@ -781,7 +781,7 @@ export const ENGLISH = {
   browser: {
     noCheckout: 'This project has no local copy yet',
     noCheckoutHint: 'Give the folder where the repository is cloned on this machine to see its files.',
-    checkoutPlaceholder: '/home/gaetan/mailer',
+    checkoutPlaceholder: '/home/dev/mailer',
     pointFolder: 'Point at the folder',
     closeNames: 'Names too close',
     closeNamesHint: 'To tell the session before it creates a second one.',

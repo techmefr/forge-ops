@@ -211,7 +211,18 @@ export function createIdentityApi({
     return context.json(sheetOf(changed))
   })
 
-  api.put('/api/auth/profile', async (context) => {
+  api.post('/api/board-users/:login/erase', (context) => {
+    const user = caller(context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE))
+    if (user === null) {
+      return context.json({ error: 'UnauthenticatedAccount' }, 401)
+    }
+    if (!user.superAdmin) {
+      return context.json({ error: 'SuperAdminRequired' }, 403)
+    }
+    return context.json(sheetOf(identities.eraseUser(context.req.param('login'))))
+  })
+
+  api.put('/api/auth/profile',async (context) => {
     const user = caller(context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE))
     if (user === null) {
       return context.json({ error: 'UnauthenticatedAccount' }, 401)
