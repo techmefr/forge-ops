@@ -238,13 +238,38 @@ describe('remove', () => {
     const epic = Number(
       db.prepare('INSERT INTO epic (project_id, title, business_intent) VALUES (?, ?, ?)').run(alpha, 'Epic', 'intent').lastInsertRowid,
     )
-    db.prepare("INSERT INTO story (epic_id, reference, title, body, kind, state) VALUES (?, 'S-1', 't', 'b', 'functional', ?)").run(
-      epic,
-      created.key,
-    )
+    db.prepare(
+      "INSERT INTO story (epic_id, reference, title, body, kind, state, workflow_column_id) VALUES (?, 'S-1', 't', 'b', 'functional', 'building', ?)",
+    ).run(epic, created.id)
 
     expect(() => columns.remove(alpha, created.id)).toThrow(WorkflowColumnInUseError)
     expect(columns.list(alpha)).toHaveLength(1)
+  })
+
+  it('refuses while a story sits in a custom step whose key is no story state', () => {
+    const created = columns.create(alpha, { ...BUILD, label: 'Security audit' })
+    const epic = Number(
+      db.prepare('INSERT INTO epic (project_id, title, business_intent) VALUES (?, ?, ?)').run(alpha, 'Epic', 'intent').lastInsertRowid,
+    )
+    db.prepare(
+      "INSERT INTO story (epic_id, reference, title, body, kind, state, workflow_column_id) VALUES (?, 'S-1', 't', 'b', 'functional', 'building', ?)",
+    ).run(epic, created.id)
+
+    expect(() => columns.remove(alpha, created.id)).toThrow(WorkflowColumnInUseError)
+  })
+
+  it('lets a step go once its stories moved elsewhere', () => {
+    const created = columns.create(alpha, { ...BUILD, label: 'Security audit' })
+    const epic = Number(
+      db.prepare('INSERT INTO epic (project_id, title, business_intent) VALUES (?, ?, ?)').run(alpha, 'Epic', 'intent').lastInsertRowid,
+    )
+    db.prepare(
+      "INSERT INTO story (epic_id, reference, title, body, kind, state, workflow_column_id) VALUES (?, 'S-1', 't', 'b', 'functional', 'backlog', NULL)",
+    ).run(epic)
+
+    columns.remove(alpha, created.id)
+
+    expect(columns.list(alpha)).toEqual([])
   })
 
   it('does not count the stories of another project that share the key', () => {

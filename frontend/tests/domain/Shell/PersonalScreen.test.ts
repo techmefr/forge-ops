@@ -29,6 +29,7 @@ function mounted() {
       plugins: [createBoardI18n('fr')],
       stubs: {
         RouterLink: { template: '<a><slot /></a>' },
+        ForgeScreen: true,
         StoryScreen: true,
         FileScreen: true,
         ViewScreen: true,

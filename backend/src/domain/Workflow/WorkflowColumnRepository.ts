@@ -84,10 +84,8 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
     'UPDATE workflow_column SET position = position - 1 WHERE project_id = ? AND position > ?',
   )
   const updatePosition = db.prepare<[number, number]>('UPDATE workflow_column SET position = ? WHERE id = ?')
-  const countStoriesInStep = db.prepare<[number, string], { total: number }>(
-    `SELECT COUNT(*) AS total FROM story
-       JOIN epic ON epic.id = story.epic_id
-      WHERE epic.project_id = ? AND story.state = ?`,
+  const countStoriesInStep = db.prepare<[number], { total: number }>(
+    'SELECT COUNT(*) AS total FROM story WHERE workflow_column_id = ?',
   )
 
   function list(projectId: number): readonly WorkflowColumn[] {
@@ -166,7 +164,7 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
 
     remove: (projectId, columnId) => {
       const existing = ownedBy(projectId, columnId)
-      const held = countStoriesInStep.get(projectId, existing.key)?.total ?? 0
+      const held = countStoriesInStep.get(columnId)?.total ?? 0
       if (held > 0) {
         throw new WorkflowColumnInUseError(existing.label, held)
       }

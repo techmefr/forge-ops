@@ -6,6 +6,8 @@ import WorkflowDrawer from './WorkflowDrawer.vue'
 
 const props = defineProps<{ projectId: number; projectName: string }>()
 
+const emit = defineEmits<{ changed: [] }>()
+
 const { t } = useI18n()
 
 const state = useProjectWorkflow(() => props.projectId)
@@ -18,6 +20,7 @@ const count = computed(() => state.workflow.value?.columns.length ?? 0)
 async function closed(): Promise<void> {
   opened.value = false
   await state.load()
+  emit('changed')
 }
 
 watch(

@@ -151,8 +151,8 @@ describe('writes by the project admin', () => {
         .run(alpha, 'Epic', 'intent').lastInsertRowid,
     )
     db.prepare(
-      "INSERT INTO story (epic_id, reference, title, body, kind, state) VALUES (?, 'S-1', 't', 'b', 'functional', 'building')",
-    ).run(epic)
+      "INSERT INTO story (epic_id, reference, title, body, kind, state, workflow_column_id) VALUES (?, 'S-1', 't', 'b', 'functional', 'building', ?)",
+    ).run(epic, created.id)
 
     const answer = await ask(`/api/projects/${alpha}/workflow-columns/${created.id}`, 'DELETE')
 

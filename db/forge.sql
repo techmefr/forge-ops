@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS story (
   merge_conflict INTEGER NOT NULL DEFAULT 0 CHECK (merge_conflict IN (0, 1)),
   escalation_reason TEXT,
   blocked_reason TEXT,
+  workflow_column_id INTEGER REFERENCES workflow_column(id),
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CHECK (twin_of_story_id IS NULL OR kind = 'test'),

@@ -36,6 +36,7 @@ export const PARAMETERLESS_PATHS: readonly string[] = [
 ]
 
 export const PROJECT_PATHS: readonly string[] = [
+  '/api/forge-cards?project=:id',
   '/api/projects/:id/clashes',
   '/api/epics/:id/history',
   '/api/projects/:id/epics',

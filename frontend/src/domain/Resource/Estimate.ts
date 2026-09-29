@@ -27,3 +27,18 @@ export function estimateRun({ stories, capUsd, spentUsd }: EstimateInput): Estim
     affordable: costUsd <= remainingUsd,
   }
 }
+
+export type RoomInput = {
+  capUsd: number
+  spentUsd: number
+  memoryFreeMb: number | null
+}
+
+export function roomForSessions({ capUsd, spentUsd, memoryFreeMb }: RoomInput): number {
+  const remainingUsd = Math.max(capUsd - spentUsd, 0)
+  const byBudget = Math.floor(remainingUsd / COST_PER_STORY_USD)
+  if (memoryFreeMb === null) {
+    return byBudget
+  }
+  return Math.max(Math.min(byBudget, Math.floor(memoryFreeMb / MEMORY_PER_SESSION_MB)), 0)
+}

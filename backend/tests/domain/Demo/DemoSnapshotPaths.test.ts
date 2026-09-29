@@ -45,17 +45,18 @@ function routesTheBoardServes(): readonly string[] {
 
 describe('the frozen visit keeps up with the board it shows', () => {
   const snapshotted = [...PARAMETERLESS_PATHS, ...PROJECT_PATHS, ...STORY_PATHS]
+  const snapshottedRoutes = snapshotted.map((path) => path.split('?')[0] ?? path)
 
   it('captures every readable route, or says out loud which ones it leaves out', () => {
     const uncovered = routesTheBoardServes().filter(
-      (route) => !snapshotted.includes(route) && !OUTSIDE_THE_VISIT.includes(route),
+      (route) => !snapshottedRoutes.includes(route) && !OUTSIDE_THE_VISIT.includes(route),
     )
     expect(uncovered).toEqual([])
   })
 
   it('captures nothing the board does not serve', () => {
     const served = routesTheBoardServes()
-    for (const path of snapshotted) {
+    for (const path of snapshottedRoutes) {
       expect(served).toContain(path)
     }
   })

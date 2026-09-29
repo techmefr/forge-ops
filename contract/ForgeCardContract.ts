@@ -21,3 +21,34 @@ export type ForgeCardDraft = {
   storyIds: readonly number[]
   provider?: ForgeCardProvider
 }
+
+export const BACKLOG_STEP_KEY = 'backlog'
+
+export const DONE_STEP_KEY = 'done'
+
+export const FORGE_CARD_STATUSES = ['idle', 'running', 'failed', 'to_validate', 'human_review', 'done'] as const
+
+export type ForgeCardStatus = (typeof FORGE_CARD_STATUSES)[number]
+
+export type ForgeCardView = {
+  id: number
+  reference: string
+  storyId: number
+  storyReference: string
+  title: string
+  projectId: number
+  subjectId: number
+  subjectTitle: string
+  stepKey: string
+  provider: ForgeCardProvider
+  status: ForgeCardStatus
+  claudeSessionId: string | null
+  durationSeconds: number
+  costUsd: number
+}
+
+export type ForgeCardMoved = {
+  card: ForgeCardView
+  started: boolean
+  claudeSessionId: string | null
+}

@@ -1,5 +1,43 @@
 import { describe, expect, it } from 'vitest'
-import { textOf } from '../../../src/technical/ClaudeCode/SdkSessionRunner.js'
+import { textOf, toolsOf } from '../../../src/technical/ClaudeCode/SdkSessionRunner.js'
+
+describe('toolsOf', () => {
+  it('names a tool the assistant starts', () => {
+    expect(
+      toolsOf({
+        type: 'assistant',
+        message: {
+          content: [
+            { type: 'text', text: 'reading' },
+            { type: 'tool_use', id: 't1', name: 'Read', input: {} },
+          ],
+        },
+      }),
+    ).toEqual([{ id: 't1', name: 'Read', outcome: 'started' }])
+  })
+
+  it('reports how a tool ended, by its id', () => {
+    expect(
+      toolsOf({
+        type: 'user',
+        message: {
+          content: [
+            { type: 'tool_result', tool_use_id: 't1', content: 'ok' },
+            { type: 'tool_result', tool_use_id: 't2', content: 'boom', is_error: true },
+          ],
+        },
+      }),
+    ).toEqual([
+      { id: 't1', name: '', outcome: 'ok' },
+      { id: 't2', name: '', outcome: 'failed' },
+    ])
+  })
+
+  it('finds nothing in a plain message', () => {
+    expect(toolsOf({ type: 'assistant', message: { content: 'hello' } })).toEqual([])
+    expect(toolsOf(null)).toEqual([])
+  })
+})
 
 describe('textOf', () => {
   it('reads what the assistant said', () => {
