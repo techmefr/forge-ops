@@ -42,18 +42,19 @@
   --forge-txtlow: #95a3db;
   --forge-acc: #bd93f9;
   --forge-accsoft: #d6bbff;
-  --forge-accdeep: #a47df2;
+  --forge-accdeep: #b596f4;
   --forge-info: #8be9fd;
   --forge-violet: #ff79c6;
   --forge-violetsoft: #ffa6da;
   --forge-green: #50fa7b;
   --forge-greensoft: #9bffb5;
-  --forge-red: #ff6666;
+  --forge-red: #ff8383;
   --forge-redsoft: #ff9090;
   --forge-orange: #ffb86c;
   --forge-orangealt: #ff9e4a;
   --forge-warn: #f1fa8c;
   --forge-warnsoft: #f6fcb8;
+  --forge-edge: #7983ae;
 }
 
 @media (prefers-color-scheme: light) {
@@ -68,19 +69,20 @@
     --forge-txtmid: #3f3b2a;
     --forge-txtlow: #5f5a40;
     --forge-acc: #644ac9;
-    --forge-accsoft: #7058d3;
+    --forge-accsoft: #654fbe;
     --forge-accdeep: #4d36a8;
     --forge-info: #036a96;
     --forge-violet: #a3144d;
-    --forge-violetsoft: #b63a69;
+    --forge-violetsoft: #a4345f;
     --forge-green: #14710a;
-    --forge-greensoft: #287d1e;
-    --forge-red: #c9392a;
-    --forge-redsoft: #bb4839;
-    --forge-orange: #a34d14;
-    --forge-orangealt: #ac561f;
-    --forge-warn: #816c15;
-    --forge-warnsoft: #7e6e1b;
+    --forge-greensoft: #24711b;
+    --forge-red: #b53326;
+    --forge-redsoft: #a84133;
+    --forge-orange: #934512;
+    --forge-orangealt: #9b4d1c;
+    --forge-warn: #746113;
+    --forge-warnsoft: #716318;
+    --forge-edge: #817d6f;
   }
 }
 
@@ -95,19 +97,20 @@
   --forge-txtmid: #3f3b2a;
   --forge-txtlow: #5f5a40;
   --forge-acc: #644ac9;
-  --forge-accsoft: #7058d3;
+  --forge-accsoft: #654fbe;
   --forge-accdeep: #4d36a8;
   --forge-info: #036a96;
   --forge-violet: #a3144d;
-  --forge-violetsoft: #b63a69;
+  --forge-violetsoft: #a4345f;
   --forge-green: #14710a;
-  --forge-greensoft: #287d1e;
-  --forge-red: #c9392a;
-  --forge-redsoft: #bb4839;
-  --forge-orange: #a34d14;
-  --forge-orangealt: #ac561f;
-  --forge-warn: #816c15;
-  --forge-warnsoft: #7e6e1b;
+  --forge-greensoft: #24711b;
+  --forge-red: #b53326;
+  --forge-redsoft: #a84133;
+  --forge-orange: #934512;
+  --forge-orangealt: #9b4d1c;
+  --forge-warn: #746113;
+  --forge-warnsoft: #716318;
+  --forge-edge: #817d6f;
 }
 
 html,
@@ -165,6 +168,23 @@ body {
 :focus-visible {
   outline: 2px solid var(--forge-acc);
   outline-offset: 2px;
+}
+
+input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"]),
+select,
+textarea {
+  border-color: var(--forge-edge);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .hljs-comment,

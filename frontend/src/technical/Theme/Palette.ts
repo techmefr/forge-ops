@@ -283,10 +283,16 @@ const LIFT_STEP = 0.1
 
 const LIFT_LIMIT = 60
 
-function liftUntilReadable(colour: string, background: string, towards: string): string {
+function readable(palette: Palette, colour: string): boolean {
+  return [palette.deep, palette.panel, palette.card, palette.elev].every(
+    (surface) => contrastRatio(colour, surface) >= MINIMUM_CONTRAST_RATIO,
+  )
+}
+
+function liftUntilReadable(palette: Palette, colour: string, towards: string): string {
   let lifted = colour
   let step = 0
-  while (contrastRatio(lifted, background) < MINIMUM_CONTRAST_RATIO && step < LIFT_LIMIT) {
+  while (!readable(palette, lifted) && step < LIFT_LIMIT) {
     lifted = mixColours(lifted, towards, LIFT_STEP)
     step += 1
   }
@@ -313,16 +319,34 @@ export function resolvePalette(name: ThemeName, mode: ThemeMode): Palette {
   const base = BASE_PALETTES[name]
   const authored = mode === 'light' ? LIGHT_PALETTES[name] : undefined
   const palette = authored ? { ...authored } : mode === 'light' ? toLightPalette(base) : { ...base }
-  const background = mode === 'light' ? palette.panel : palette.card
   const towards = mode === 'light' ? '#000000' : '#FFFFFF'
   for (const key of ACCENT_KEYS) {
-    palette[key] = liftUntilReadable(palette[key], background, towards)
+    palette[key] = liftUntilReadable(palette, palette[key], towards)
+  }
+  for (const key of TEXT_KEYS) {
+    palette[key] = liftUntilReadable(palette, palette[key], towards)
   }
   return palette
 }
 
+const CONTROL_CONTRAST_RATIO = 3
+
+export function controlEdge(palette: Palette): string {
+  const surfaces = [palette.deep, palette.panel, palette.card, palette.elev]
+  for (let weight = 0; weight <= 1; weight += 0.05) {
+    const edge = mixColours(palette.line, palette.txtLow, weight)
+    if (surfaces.every((surface) => contrastRatio(edge, surface) >= CONTROL_CONTRAST_RATIO)) {
+      return edge
+    }
+  }
+  return palette.txtLow
+}
+
 export function paletteVariables(palette: Palette): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(palette).map(([key, value]) => [`--forge-${key.toLowerCase()}`, value]),
-  )
+  return {
+    ...Object.fromEntries(
+      Object.entries(palette).map(([key, value]) => [`--forge-${key.toLowerCase()}`, value]),
+    ),
+    '--forge-edge': controlEdge(palette),
+  }
 }

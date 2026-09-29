@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   ACCENT_KEYS,
   MINIMUM_CONTRAST_RATIO,
+  TEXT_KEYS,
   THEME_NAMES,
   contrastRatio,
+  controlEdge,
   mixColours,
   paletteVariables,
   resolvePalette,
@@ -76,5 +78,20 @@ describe('paletteVariables', () => {
     const variables = paletteVariables(resolvePalette('volt', 'dark'))
     expect(variables['--forge-acc']).toBe('#D6FF2B')
     expect(variables['--forge-txthi']).toBe('#F4F4F6')
+  })
+})
+
+describe.each(THEME_NAMES)('readability of %s on every surface', (name) => {
+  it.each(['dark', 'light'] as const)('in %s mode', (mode) => {
+    const palette = resolvePalette(name, mode)
+    const surfaces = [palette.deep, palette.panel, palette.card, palette.elev]
+    for (const key of [...ACCENT_KEYS, ...TEXT_KEYS]) {
+      for (const surface of surfaces) {
+        expect(contrastRatio(palette[key], surface)).toBeGreaterThanOrEqual(4.5)
+      }
+    }
+    for (const surface of surfaces) {
+      expect(contrastRatio(controlEdge(palette), surface)).toBeGreaterThanOrEqual(3)
+    }
   })
 })

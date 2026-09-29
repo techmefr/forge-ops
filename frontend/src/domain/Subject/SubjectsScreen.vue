@@ -372,9 +372,9 @@ onMounted(() => {
           data-test-id="subjects-people"
           @keydown="moveWithArrows"
         >
-          <h3 class="hidden px-2.5 pb-1 text-[11px] tracking-wider text-txt-low uppercase min-[760px]:block">
+          <h2 class="hidden px-2.5 pb-1 text-[11px] tracking-wider text-txt-low uppercase min-[760px]:block">
             {{ t('subjects.views') }}
-          </h3>
+          </h2>
           <button
             v-for="view in viewRows"
             :key="view.key"
@@ -398,9 +398,9 @@ onMounted(() => {
             <span class="font-mono text-[11px] text-txt-low" :data-test-id="view.countId">{{ view.count }}</span>
           </button>
 
-          <h3 class="hidden px-2.5 pt-4 pb-1 text-[11px] tracking-wider text-txt-low uppercase min-[760px]:block">
+          <h2 class="hidden px-2.5 pt-4 pb-1 text-[11px] tracking-wider text-txt-low uppercase min-[760px]:block">
             {{ t('subjects.team') }}
-          </h3>
+          </h2>
           <button
             v-for="row in rows"
             :key="row.person.login"

@@ -6,7 +6,7 @@ import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import type { ColumnTemplate, KanbanColumn, ProjectCard, StoryHold } from '@/domain/Board/BoardModel'
-import { tintOf } from '@/technical/Ui/Tint'
+import { textOnTint, tintOf } from '@/technical/Ui/Tint'
 import CardDrawer from './CardDrawer.vue'
 import ColumnPanel from '@/domain/Template/ColumnPanel.vue'
 import { holdOf } from './Hold'
@@ -156,62 +156,66 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
             </div>
 
             <div class="flex flex-col gap-3 overflow-auto p-3">
-              <button
+              <div
                 v-for="story in byColumn.get(column.key) ?? []"
                 :key="story.id"
-                type="button"
-                :aria-label="`${story.projectSlug} ${story.reference} ${story.title}`"
-                data-tour="kanban-card"
-                class="w-full rounded-lg border bg-card p-4 text-left hover:border-acc"
+                class="relative rounded-lg border bg-card hover:border-acc"
                 :class="story.attention === null ? 'border-transparent' : 'border-orange'"
-                @click="drawerId = story.id"
               >
-                <div class="flex items-center gap-2">
-                  <span
-                    class="rounded-md px-2.5 py-1.5 font-mono text-[11px] font-semibold text-deep"
-                    :style="{ background: tintOf(story.projectColour) }"
-                    >{{ story.projectSlug }}</span
-                  >
-                  <span class="font-mono text-[11px] font-semibold text-txt-mid">{{ story.reference }}</span>
-                  <label
-                    v-if="column.key === 'backlog'"
-                    class="ml-auto flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-mono text-[11px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
-                    @click.stop
-                  >
-                    <input
-                      type="checkbox"
-                      class="h-[16px] w-[16px] accent-acc"
-                      :checked="chosen.has(story.id)"
-                      :aria-label="t('backlog.takeOne', { reference: story.reference })"
-                      @change="toggle(story.id)"
-                    />
-                    {{ t('common.take') }}
-                  </label>
-                  <span
-                    v-if="story.attention !== null"
-                    class="rounded-md border border-orange px-2.5 py-1.5 font-mono text-[11px] text-orange uppercase"
-                    >{{ t(`attention.${story.attention}`) }}</span
-                  >
-                </div>
-                <span class="mt-1.5 block text-sm text-txt-hi">{{ story.title }}</span>
-                <span
-                  v-if="blockedReasonOf(story) !== null"
-                  class="mt-1.5 block truncate text-[11px] text-orange"
-                  >{{ blockedReasonOf(story) }}</span
+                <button
+                  type="button"
+                  :aria-label="`${story.projectSlug} ${story.reference} ${story.title}`"
+                  data-tour="kanban-card"
+                  class="w-full rounded-lg p-4 text-left"
+                  :class="column.key === 'backlog' ? 'pr-24' : ''"
+                  @click="drawerId = story.id"
                 >
-                <p class="mt-2 flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-txt-low">
-                  <span>{{ story.holder ?? t('kanban.nobody') }}</span>
-                  <span>{{ t('common.money', { amount: story.usage.costUsd.toFixed(2) }) }}</span>
-                  <span v-if="story.milestone !== null" class="ml-auto" :class="lateness(story)">
-                    {{ t(`milestone.${story.milestone.kind}`) }} {{ story.milestone.dueOn }}
-                    <span v-if="story.daysLeft !== null">{{
-                      story.daysLeft < 0
-                        ? t('kanban.daysLate', { count: -story.daysLeft }, -story.daysLeft)
-                        : t('kanban.daysLeft', { count: story.daysLeft }, story.daysLeft)
-                    }}</span>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="rounded-md px-2.5 py-1.5 font-mono text-[11px] font-semibold"
+                      :style="{ background: tintOf(story.projectColour), color: textOnTint(story.projectColour) }"
+                      >{{ story.projectSlug }}</span
+                    >
+                    <span class="font-mono text-[11px] font-semibold text-txt-mid">{{ story.reference }}</span>
+                    <span
+                      v-if="story.attention !== null"
+                      class="rounded-md border border-orange px-2.5 py-1.5 font-mono text-[11px] text-orange uppercase"
+                      >{{ t(`attention.${story.attention}`) }}</span
+                    >
+                  </div>
+                  <span class="mt-1.5 block text-sm text-txt-hi">{{ story.title }}</span>
+                  <span
+                    v-if="blockedReasonOf(story) !== null"
+                    class="mt-1.5 block truncate text-[11px] text-orange"
+                    >{{ blockedReasonOf(story) }}</span
+                  >
+                  <span class="mt-2 flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-txt-low">
+                    <span>{{ story.holder ?? t('kanban.nobody') }}</span>
+                    <span>{{ t('common.money', { amount: story.usage.costUsd.toFixed(2) }) }}</span>
+                    <span v-if="story.milestone !== null" class="ml-auto" :class="lateness(story)">
+                      {{ t(`milestone.${story.milestone.kind}`) }} {{ story.milestone.dueOn }}
+                      <span v-if="story.daysLeft !== null">{{
+                        story.daysLeft < 0
+                          ? t('kanban.daysLate', { count: -story.daysLeft }, -story.daysLeft)
+                          : t('kanban.daysLeft', { count: story.daysLeft }, story.daysLeft)
+                      }}</span>
+                    </span>
                   </span>
-                </p>
-              </button>
+                </button>
+                <label
+                  v-if="column.key === 'backlog'"
+                  class="absolute top-3 right-3 z-10 flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-mono text-[11px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
+                >
+                  <input
+                    type="checkbox"
+                    class="h-[16px] w-[16px] accent-acc"
+                    :checked="chosen.has(story.id)"
+                    :aria-label="t('backlog.takeOne', { reference: story.reference })"
+                    @change="toggle(story.id)"
+                  />
+                  {{ t('common.take') }}
+                </label>
+              </div>
             </div>
           </section>
         </div>
