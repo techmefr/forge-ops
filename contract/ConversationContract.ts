@@ -2,7 +2,7 @@ export const THREAD_VOICES = ['human', 'agent'] as const
 
 export type ThreadVoice = (typeof THREAD_VOICES)[number]
 
-export const THREAD_ENTRY_KINDS = ['testimony', 'proof'] as const
+export const THREAD_ENTRY_KINDS = ['testimony', 'proof', 'message'] as const
 
 export type ThreadEntryKind = (typeof THREAD_ENTRY_KINDS)[number]
 

@@ -8,6 +8,7 @@ import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/Perm
 import { createDiscussionRepository } from '../../../src/domain/Discussion/DiscussionRepository.js'
 import { createCriterionRepository } from '../../../src/domain/Criterion/CriterionRepository.js'
 import { createStoryRepository } from '../../../src/domain/Story/StoryRepository.js'
+import { createMessageRepository } from '../../../src/domain/Conversation/MessageRepository.js'
 import { createTemplateRepository } from '../../../src/domain/Template/TemplateRepository.js'
 import {
   AGENT_SESSION_HEADER,
@@ -61,6 +62,7 @@ beforeEach(() => {
     discussion,
     checkpoints,
     templates,
+    messages: createMessageRepository(db),
     talker: {
       say: () => Promise.resolve(),
       hangUp: () => undefined,
@@ -88,7 +90,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  db.exec('DELETE FROM checkpoint; DELETE FROM acceptance_criterion; DELETE FROM story_remark; DELETE FROM agent_session')
+  db.exec('DELETE FROM checkpoint; DELETE FROM acceptance_criterion; DELETE FROM story_message; DELETE FROM story_remark; DELETE FROM agent_session')
 })
 
 describe('reading the thread of a card', () => {

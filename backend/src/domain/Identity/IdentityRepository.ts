@@ -34,6 +34,7 @@ const LOGIN_COLUMNS: readonly { table: string; column: string }[] = [
   { table: 'story_step_back', column: 'asked_by' },
   { table: 'story_hold', column: 'asked_by' },
   { table: 'story_remark', column: 'author' },
+  { table: 'story_message', column: 'author' },
   { table: 'project_decision', column: 'decided_by' },
   { table: 'project_risk', column: 'owner' },
   { table: 'epic_state_history', column: 'by' },

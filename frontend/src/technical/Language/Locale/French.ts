@@ -702,6 +702,7 @@ export const FRENCH: Message = {
   threadEntry: {
     testimony: 'Dit',
     proof: 'Preuve',
+    message: 'Message',
   },
   thread: {
     empty: 'Rien n\'a encore été dit sur cette carte.',

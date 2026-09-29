@@ -3,7 +3,14 @@ import type { StoryThread } from '@contract/ConversationContract'
 import { board } from '@/technical/Api/Board'
 import { openBoardStream, type StreamedEvent } from '@/technical/Api/BoardStream'
 import { phrase, type Phrase } from '@/technical/Language/Phrase'
-import { concernsStory, foldEvent, itemsOfThread, type ReplyRoute, type ThreadItem } from './ConversationRule'
+import {
+  concernsStory,
+  foldEvent,
+  itemsOfThread,
+  withoutPersisted,
+  type ReplyRoute,
+  type ThreadItem,
+} from './ConversationRule'
 
 const liveByStory = new Map<string, readonly ThreadItem[]>()
 
@@ -29,6 +36,8 @@ export function useCardConversation(story: ConversationStory, { onSettled }: Car
     pending.value = true
     try {
       history.value = itemsOfThread(await board.read<StoryThread>(`/api/stories/${story.id}/thread`))
+      live.value = withoutPersisted(live.value, history.value)
+      liveByStory.set(story.reference, live.value)
     } catch {
       failure.value = phrase('common.boardSilent')
     } finally {

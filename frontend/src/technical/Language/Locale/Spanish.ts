@@ -704,6 +704,7 @@ export const SPANISH: Message = {
   threadEntry: {
     testimony: 'Dicho',
     proof: 'Prueba',
+    message: 'Mensaje',
   },
   thread: {
     empty: 'Todavía no se ha dicho nada sobre esta tarjeta.',

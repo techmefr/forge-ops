@@ -16,7 +16,7 @@ forge-ops is self-hosted. The organisation that runs an instance is the data con
 | Requested by | `epic.requested_by` (free text, may be a person or a team) | Who asked for a subject | Every signed-in user |
 | Decided by, risk owner, remark author, hold and step-back requester, state history author | Logins or free text | Traceability of decisions and changes | Every signed-in user |
 | Minutes, notes, status sentences | Free text written by users | Project follow-up | Every signed-in user |
-| Agent conversations, costs, file touches | Instance database and `~/.claude` | Run and audit agent sessions | Every signed-in user of the instance |
+| Card conversation messages (`story_message`: what the agent said, what a person told it, with the login of that person), costs, file touches | Instance database and `~/.claude` | Show the conversation again after a reload, run and audit agent sessions | Every signed-in user of the instance |
 
 Not stored: IP addresses, user agents, analytics, advertising identifiers. The server writes no access log of its own and never logs passwords, tokens or email addresses. The demo seed contains fictional data only.
 
@@ -41,7 +41,7 @@ The operator may shorten these by deleting a project or trashing subjects.
 
 - **Access and rectification.** A person reads their own account with `GET /api/auth/me` and changes their display name and email with `PUT /api/auth/profile` (Settings, profile).
 - **Deactivation.** A director or super admin deactivates an account (`PATCH /api/board-users/:login` with `active: false`). Sessions are revoked at once, the person can no longer sign in, and the history stays attributed to the login. Only a super admin can deactivate a super admin, and the last active super admin cannot be deactivated.
-- **Erasure.** A super admin runs `POST /api/board-users/:login/erase`. In one transaction the account loses its display name (replaced by "Former user"), its email, its single sign-on subject, its capacity and its super admin flag; its password hash is replaced by an unusable random one; its sessions are deleted; the projects it administered lose their admin. Its login is replaced by the pseudonym `erased-<id>` in every column that holds a login (assignee, remark author, decided by, risk owner, hold and step-back requester, state history), and in `requested_by` when it matches the login or the old display name. The last active super admin cannot be erased.
+- **Erasure.** A super admin runs `POST /api/board-users/:login/erase`. In one transaction the account loses its display name (replaced by "Former user"), its email, its single sign-on subject, its capacity and its super admin flag; its password hash is replaced by an unusable random one; its sessions are deleted; the projects it administered lose their admin. Its login is replaced by the pseudonym `erased-<id>` in every column that holds a login (assignee, remark and message author, decided by, risk owner, hold and step-back requester, state history), and in `requested_by` when it matches the login or the old display name. The last active super admin cannot be erased.
 - **What erasure cannot reach.** Names written inside free text (notes, minutes, remarks, conversations, git history of the repositories) are not searched. Ask the authors to edit them, or delete the subject or project that holds them.
 - **Requests.** A person asks the operator of their instance; the operator acts as controller and a super admin applies the steps above. Deleting the database file removes everything.
 

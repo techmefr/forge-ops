@@ -697,6 +697,7 @@ export const ENGLISH = {
   threadEntry: {
     testimony: 'Said',
     proof: 'Proof',
+    message: 'Message',
   },
   thread: {
     empty: 'Nothing has been said on this card yet.',
