@@ -43,7 +43,7 @@ const dirty = computed(() => isDirty(draftOf(props.column), draft.value))
 const isHuman = computed(() => draft.value.provider === 'human')
 const isClaude = computed(() => draft.value.provider === 'claude')
 const template = computed(() => templateOfPrompt(draft.value.preprompt))
-const accent = computed(() => colourInputValue(draft.value.colour))
+const swatch = computed(() => colourInputValue(draft.value.colour))
 
 watch(
   () => props.column,
@@ -51,6 +51,10 @@ watch(
     draft.value = draftOf(column)
   },
 )
+
+function pickColour(event: Event): void {
+  draft.value = { ...draft.value, colour: (event.target as HTMLInputElement).value }
+}
 
 function pickProvider(event: Event): void {
   draft.value = withProvider(draft.value, (event.target as HTMLSelectElement).value as WorkflowProvider)
@@ -69,19 +73,15 @@ function pickEffort(event: Event): void {
 </script>
 
 <template>
-  <li
-    class="flex flex-col gap-3 rounded-lg border border-line border-l-4 bg-card p-3"
-    :style="{ borderLeftColor: accent }"
-    :aria-labelledby="`${identifier}-name`"
-  >
-    <div class="flex flex-wrap items-center gap-2">
+  <li class="flex flex-col gap-3 py-4" :aria-labelledby="`${identifier}-name`">
+    <div class="flex items-center gap-1.5">
       <label class="flex items-center">
         <span class="sr-only">{{ t('workflowSettings.stepColour', { name: column.label }) }}</span>
         <input
           type="color"
-          :value="accent"
-          class="h-8 w-9 rounded-md border border-line bg-transparent p-0.5"
-          @input="draft.colour = ($event.target as HTMLInputElement).value"
+          :value="swatch"
+          class="h-7 w-7 rounded-md border border-line bg-transparent p-0.5"
+          @input="pickColour"
         />
       </label>
       <label :for="`${identifier}-name`" class="sr-only">{{ t('workflowSettings.stepName') }}</label>
@@ -90,13 +90,13 @@ function pickEffort(event: Event): void {
         v-model="draft.label"
         type="text"
         maxlength="60"
-        class="min-w-[8rem] flex-1 rounded-lg border border-line bg-elev px-3 py-2 text-sm font-semibold text-txt-hi"
+        class="min-w-0 flex-1 rounded-md border border-line bg-card px-2.5 py-1.5 text-sm font-semibold text-txt-hi"
       />
       <button
         type="button"
         :disabled="index === 0 || busy"
         :aria-label="t('workflowSettings.moveUp', { name: column.label })"
-        class="rounded-lg border border-line px-2.5 py-1.5 text-txt-mid hover:border-acc disabled:opacity-40"
+        class="rounded-md px-2 py-1.5 text-txt-mid hover:bg-elev disabled:opacity-40"
         @click="emit('move', -1)"
       >
         <span aria-hidden="true">↑</span>
@@ -105,7 +105,7 @@ function pickEffort(event: Event): void {
         type="button"
         :disabled="index === total - 1 || busy"
         :aria-label="t('workflowSettings.moveDown', { name: column.label })"
-        class="rounded-lg border border-line px-2.5 py-1.5 text-txt-mid hover:border-acc disabled:opacity-40"
+        class="rounded-md px-2 py-1.5 text-txt-mid hover:bg-elev disabled:opacity-40"
         @click="emit('move', 1)"
       >
         <span aria-hidden="true">↓</span>
@@ -114,19 +114,19 @@ function pickEffort(event: Event): void {
         type="button"
         :disabled="busy"
         :aria-label="t('workflowSettings.remove', { name: column.label })"
-        class="rounded-lg border border-line px-2.5 py-1.5 text-txt-mid hover:border-red disabled:opacity-40"
+        class="rounded-md px-2 py-1.5 text-txt-mid hover:bg-elev disabled:opacity-40"
         @click="emit('remove')"
       >
         <span aria-hidden="true">×</span>
       </button>
     </div>
 
-    <div class="grid grid-cols-1 gap-3 min-[760px]:grid-cols-2">
-      <label class="flex flex-col gap-1 text-[11px] tracking-[0.12em] text-txt-low uppercase">
+    <div class="grid grid-cols-1 gap-x-3 gap-y-2.5 min-[760px]:grid-cols-2">
+      <label class="flex flex-col gap-1 text-[11px] text-txt-low">
         {{ t('workflowSettings.provider') }}
         <select
           :value="draft.provider"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-sm tracking-normal text-txt-hi normal-case"
+          class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
           @change="pickProvider"
         >
           <option v-for="provider in WORKFLOW_PROVIDERS" :key="provider" :value="provider">
@@ -135,74 +135,65 @@ function pickEffort(event: Event): void {
         </select>
       </label>
 
-      <p
-        v-if="isHuman"
-        class="m-0 self-end text-[13px] text-txt-mid min-[760px]:col-span-1"
-      >
+      <p v-if="isHuman" class="m-0 self-end pb-1.5 text-sm text-txt-mid">
         {{ t('workflowSettings.humanNote') }}
       </p>
 
       <template v-else>
-        <label class="flex flex-col gap-1 text-[11px] tracking-[0.12em] text-txt-low uppercase">
+        <label class="flex flex-col gap-1 text-[11px] text-txt-low">
           {{ t('workflowSettings.model') }}
           <select
             v-if="isClaude"
             v-model="draft.model"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm tracking-normal text-txt-hi normal-case"
+            class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
           >
             <option v-for="model in CLAUDE_MODELS" :key="model" :value="model">{{ model }}</option>
           </select>
           <select
             v-else
             disabled
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm tracking-normal text-txt-hi normal-case opacity-70"
+            class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi opacity-70"
           >
             <option value="">{{ t('workflowSettings.modelCli') }}</option>
           </select>
         </label>
 
-        <label class="flex flex-col gap-1 text-[11px] tracking-[0.12em] text-txt-low uppercase">
+        <label class="flex flex-col gap-1 text-[11px] text-txt-low">
           {{ t('workflowSettings.effort') }}
           <select
             :value="draft.effort"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm tracking-normal text-txt-hi normal-case"
+            class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
             @change="pickEffort"
           >
             <option v-for="effort in WORKFLOW_EFFORTS" :key="effort" :value="effort">{{ effort }}</option>
           </select>
         </label>
 
-        <label
-          v-if="isClaude"
-          class="flex flex-col gap-1 text-[11px] tracking-[0.12em] text-txt-low uppercase"
-        >
+        <label v-if="isClaude" class="flex flex-col gap-1 text-[11px] text-txt-low">
           {{ t('workflowSettings.agent') }}
           <input
             v-model="draft.agentName"
             type="text"
             :placeholder="t('workflowSettings.mainSession')"
-            class="rounded-lg border border-line bg-elev px-3 py-2 font-mono text-[13px] tracking-normal text-txt-hi normal-case"
+            class="rounded-md border border-line bg-card px-2.5 py-1.5 font-mono text-sm text-txt-hi"
           />
         </label>
 
-        <label
-          class="flex flex-col gap-1 text-[11px] tracking-[0.12em] text-txt-low uppercase"
-          :class="isClaude ? 'min-[760px]:col-span-2' : ''"
-        >
+        <label class="flex flex-col gap-1 text-[11px] text-txt-low" :class="isClaude ? '' : 'min-[760px]:col-span-2'">
           {{ isClaude ? t('workflowSettings.skill') : t('workflowSettings.command') }}
           <input
             v-model="draft.command"
             type="text"
             :placeholder="isClaude ? t('workflowSettings.skillPlaceholder') : t('workflowSettings.commandPlaceholder')"
-            class="rounded-lg border border-line bg-elev px-3 py-2 font-mono text-[13px] tracking-normal text-txt-hi normal-case"
+            class="rounded-md border border-line bg-card px-2.5 py-1.5 font-mono text-sm text-txt-hi"
           />
         </label>
 
-        <label class="flex flex-col gap-1 text-[11px] tracking-[0.12em] text-txt-low uppercase min-[760px]:col-span-2">
+        <label class="flex flex-col gap-1 text-[11px] text-txt-low min-[760px]:col-span-2">
           {{ t('workflowSettings.basePrompt') }}
           <select
             :value="template"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm tracking-normal text-txt-hi normal-case"
+            class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
             @change="pickTemplate"
           >
             <option value="">{{ t('workflowSettings.pickTemplate') }}</option>
@@ -221,30 +212,30 @@ function pickEffort(event: Event): void {
             v-model="draft.preprompt"
             rows="4"
             :aria-describedby="`${identifier}-hint`"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-[13px] text-txt-hi"
+            class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
           />
           <small :id="`${identifier}-hint`" class="text-[11px] text-txt-low">
             {{ t('workflowSettings.promptHint') }}
           </small>
         </div>
 
-        <label class="flex items-center gap-2 text-[13px] text-txt-mid min-[760px]:col-span-2">
+        <label class="flex items-center gap-2 text-sm text-txt-mid min-[760px]:col-span-2">
           <input v-model="draft.autoStart" type="checkbox" class="h-4 w-4 accent-[var(--forge-acc)]" />
           {{ t('workflowSettings.autoStart') }}
         </label>
       </template>
     </div>
 
-    <div class="flex flex-wrap items-center gap-3">
+    <div class="flex items-center gap-3">
       <button
         type="button"
         :disabled="!dirty || busy"
-        class="rounded-lg border border-acc bg-acc px-3 py-1.5 font-mono text-[11px] font-bold text-ink uppercase disabled:opacity-40"
+        class="rounded-md border border-line px-3 py-1.5 font-mono text-[11px] text-txt-hi uppercase hover:bg-elev disabled:opacity-40"
         @click="emit('save', draft)"
       >
         {{ t('workflowSettings.save') }}
       </button>
-      <span v-if="dirty" class="text-[11px] text-orange">{{ t('workflowSettings.unsaved') }}</span>
+      <span v-if="dirty" class="text-[11px] text-txt-low">{{ t('workflowSettings.unsaved') }}</span>
     </div>
   </li>
 </template>

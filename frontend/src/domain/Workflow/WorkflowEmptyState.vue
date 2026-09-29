@@ -25,19 +25,16 @@ const body = computed(() => {
 </script>
 
 <template>
-  <section
-    class="flex flex-col gap-3 rounded-lg border border-dashed border-acc bg-acc-soft/20 p-4"
-    :aria-label="t('workflowSettings.emptyTitle', { name: projectName })"
-  >
-    <p class="m-0 text-[14px] font-semibold text-txt-hi">
+  <section class="flex flex-col gap-2 py-4" :aria-label="t('workflowSettings.emptyTitle', { name: projectName })">
+    <p class="m-0 text-sm font-semibold text-txt-hi">
       {{ t('workflowSettings.emptyTitle', { name: projectName }) }}
     </p>
-    <p class="m-0 text-[13px] text-txt-mid">{{ body }}</p>
-    <div v-if="maySettle" class="flex flex-col items-start gap-2">
+    <p class="m-0 text-sm text-txt-mid">{{ body }}</p>
+    <div v-if="maySettle" class="flex flex-col items-start gap-1.5 pt-1">
       <button
         type="button"
         :disabled="busy === true"
-        class="rounded-lg border border-acc bg-acc px-4 py-2 font-mono text-[11px] font-bold text-ink uppercase disabled:opacity-40"
+        class="rounded-md border border-acc bg-acc px-3 py-1.5 font-mono text-[11px] font-bold text-ink uppercase disabled:opacity-40"
         @click="emit('create')"
       >
         {{ t('workflowSettings.createStarter') }}

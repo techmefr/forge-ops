@@ -34,7 +34,7 @@ onMounted(() => void state.load())
       v-if="maySettle"
       type="button"
       :aria-label="t('workflowSettings.openFor', { name: projectName })"
-      class="rounded-lg border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+      class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:bg-elev"
       @click="opened = true"
     >
       <span aria-hidden="true">⚙ </span>{{ t('workflowSettings.openWithCount', { count }, count) }}

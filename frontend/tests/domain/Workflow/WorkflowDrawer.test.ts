@@ -156,7 +156,7 @@ describe('the steps', () => {
     effort.value = 'max'
     effort.dispatchEvent(new Event('change'))
     await flushPromises()
-    ;(first.querySelector('button.bg-acc') as HTMLButtonElement).click()
+    ;([...first.querySelectorAll('button')].find((button) => button.textContent?.trim() === 'Save the step') as HTMLButtonElement).click()
     await flushPromises()
 
     expect(send).toHaveBeenCalledWith(
