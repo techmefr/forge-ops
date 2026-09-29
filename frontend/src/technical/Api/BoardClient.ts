@@ -1,9 +1,11 @@
 export class BoardRequestError extends Error {
   readonly status: number
   readonly code: string
+  readonly detail: Readonly<Record<string, unknown>>
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, detail: Readonly<Record<string, unknown>> = {}) {
     super(message)
+    this.detail = detail
     this.name = 'BoardRequestError'
     this.status = status
     this.code = code
@@ -25,15 +27,19 @@ export function isRejection(error: unknown): boolean {
   return error instanceof BoardRequestError && error.status === 401
 }
 
-function messageOf(payload: unknown, status: number): { code: string; message: string } {
+function messageOf(
+  payload: unknown,
+  status: number,
+): { code: string; message: string; detail: Record<string, unknown> } {
   if (typeof payload === 'object' && payload !== null) {
     const record = payload as Record<string, unknown>
     return {
       code: typeof record.error === 'string' ? record.error : `Http${status}`,
       message: typeof record.message === 'string' ? record.message : `La requete a echoue en ${status}`,
+      detail: record,
     }
   }
-  return { code: `Http${status}`, message: `La requete a echoue en ${status}` }
+  return { code: `Http${status}`, message: `La requete a echoue en ${status}`, detail: {} }
 }
 
 export function createBoardClient({
@@ -52,8 +58,8 @@ export function createBoardClient({
       if (response.status === 401) {
         onUnauthorized?.()
       }
-      const { code, message } = messageOf(payload, response.status)
-      throw new BoardRequestError(response.status, code, message)
+      const { code, message, detail } = messageOf(payload, response.status)
+      throw new BoardRequestError(response.status, code, message, detail)
     }
     return payload as T
   }

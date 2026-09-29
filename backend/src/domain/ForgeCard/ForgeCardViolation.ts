@@ -65,6 +65,12 @@ export class DoneIsFinalError extends ForgeCardViolationError {
   }
 }
 
+export class NotAtLastStepError extends ForgeCardViolationError {
+  constructor(reference: string) {
+    super(`${reference} is not in the last step of its workflow: it cannot be closed yet`, 'NotAtLastStepError')
+  }
+}
+
 export class StepBusyError extends ForgeCardViolationError {
   constructor(reference: string) {
     super(`${reference} has a session in progress: stop it first`, 'StepBusyError')

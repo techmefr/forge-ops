@@ -39,7 +39,8 @@ import { SCREEN_SEQUENCE } from '@/technical/Router/Screen'
 import { PERSONAL_TABS, PROJECT_TABS } from '@/technical/Router/ScreenTab'
 import { LANGUAGES } from '@/technical/Language/Language'
 import { FORGE_CARD_STATUSES } from '@contract/ForgeCardContract'
-import { CARD_ACTIONS, DOT_STATES, FORGE_FAILURE_CODES } from '@/domain/Forge/ForgeRule'
+import { CARD_ACTIONS, DOT_STATES, FORGE_FAILURE_CODES, STORY_GAP_CODES } from '@/domain/Forge/ForgeRule'
+import { SERVER_ERROR_CODES } from '@/technical/Api/UseResource'
 
 export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   attention: ATTENTIONS,
@@ -55,6 +56,8 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   'forge.dot': DOT_STATES,
   'forge.failure': FORGE_FAILURE_CODES,
   'forge.status': FORGE_CARD_STATUSES,
+  serverError: SERVER_ERROR_CODES,
+  storyGap: STORY_GAP_CODES,
   fontFace: FONT_FACES,
   fontScale: FONT_SCALES,
   grouping: GROUPING_MODES,

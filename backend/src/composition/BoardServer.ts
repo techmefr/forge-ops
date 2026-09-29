@@ -29,6 +29,7 @@ import { createForgeCardRepository } from '../domain/ForgeCard/ForgeCardReposito
 import { createForgeCardApi } from '../domain/ForgeCard/ForgeCardApi.js'
 import { createForgeBoardRepository } from '../domain/ForgeCard/ForgeBoardRepository.js'
 import { createForgeCardMover } from '../domain/ForgeCard/ForgeCardMover.js'
+import { createForgeCardCloser } from '../domain/ForgeCard/ForgeCardCloser.js'
 import { createForgeBoardApi } from '../domain/ForgeCard/ForgeBoardApi.js'
 import { createStepEntry } from '../domain/Dispatch/StepEntry.js'
 import { cleanUpAfterMerge } from '../domain/Deployment/MergeCleanup.js'
@@ -459,6 +460,7 @@ export function startBoardServer({
   )
   guarded.route('/', createWorktreeApi({ worktrees, events }))
   guarded.route('/', createForgeCardApi({ forgeCards, worktrees }))
+  const pilotCriteria = createCriterionRepository(db)
   const forgeBoard = createForgeBoardRepository(db, { forgeCards, columns: workflowColumns })
   forgeBoard.backfillCards()
   guarded.route(
@@ -468,6 +470,20 @@ export function startBoardServer({
       forgeCards,
       stories,
       events,
+      closer: createForgeCardCloser({
+        board: forgeBoard,
+        forgeCards,
+        stories,
+        columns: workflowColumns,
+        checkpoints: cascadeCheckpoints,
+        criteria: pilotCriteria,
+        cleanUpAfterMerge: (storyId) =>
+          cleanUpAfterMerge({
+            storyId,
+            releaseScope: foremerge.release,
+            closeWorktree: (target) => worktrees.close(target, { deleteBranch: true }),
+          }),
+      }),
       mover: createForgeCardMover({
         board: forgeBoard,
         forgeCards,
@@ -483,7 +499,6 @@ export function startBoardServer({
     openDriver: () => createPlaywrightPilot({ shotDir, headless: !headedPilot }),
   })
   pilots.abandonOrphans()
-  const pilotCriteria = createCriterionRepository(db)
   guarded.route(
     '/',
     createPilotApi({

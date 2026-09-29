@@ -125,6 +125,7 @@ export type CompletenessVerdict = {
   score: number
   launchable: boolean
   gaps: readonly string[]
+  gapCodes: readonly string[]
 }
 
 export const MILESTONE_KINDS = ['demo', 'production', 'everyone', 'client', 'steering', 'other'] as const

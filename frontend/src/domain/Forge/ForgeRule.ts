@@ -161,6 +161,24 @@ export const CARD_ACTIONS = ['launch', 'retry', 'validate', 'stop'] as const
 
 export type CardAction = (typeof CARD_ACTIONS)[number]
 
+export const STORY_GAP_CODES = [
+  'TitleTooShort',
+  'BodyTooShort',
+  'BodyWithoutNeed',
+  'CriteriaMissing',
+  'TwinMissing',
+] as const
+
+export function gapCodesOf(detail: Readonly<Record<string, unknown>>): readonly string[] {
+  const codes = detail.gapCodes
+  if (!Array.isArray(codes)) {
+    return []
+  }
+  return codes.filter(
+    (code): code is string => typeof code === 'string' && (STORY_GAP_CODES as readonly string[]).includes(code),
+  )
+}
+
 export const FORGE_FAILURE_CODES = [
   'StepBusyError',
   'DoneIsEarnedError',
@@ -174,6 +192,7 @@ export const FORGE_FAILURE_CODES = [
   'FleetSaturatedError',
   'BudgetExhaustedError',
   'StoryBlockedError',
+  'NotAtLastStepError',
 ] as const
 
 export function primaryActionOf(card: ForgeCardView, steps: readonly BoardStep[]): CardAction | null {
@@ -190,7 +209,7 @@ export function primaryActionOf(card: ForgeCardView, steps: readonly BoardStep[]
     return 'retry'
   }
   if (card.status === 'to_validate' || card.status === 'human_review') {
-    return adjacentStep(steps, card, 1) === null ? null : 'validate'
+    return adjacentStep(steps, card, 1) === null && !isLastStep(steps, card) ? null : 'validate'
   }
   const step = steps.find((candidate) => candidate.key === card.stepKey)
   return step?.human === true ? null : 'launch'
@@ -216,4 +235,9 @@ export function referenceLabel(card: { storyReference: string; reference: string
   return card.storyReference === card.reference
     ? card.reference
     : `${card.storyReference} · ${card.reference}`
+}
+
+export function isLastStep(steps: readonly BoardStep[], card: ForgeCardView): boolean {
+  const real = steps.filter((step) => step.kind === 'step')
+  return real.length > 0 && real[real.length - 1]?.key === card.stepKey
 }
