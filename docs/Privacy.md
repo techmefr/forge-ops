@@ -48,3 +48,9 @@ The operator may shorten these by deleting a project or trashing subjects.
 ## Security measures
 
 Passwords are hashed with scrypt; login attempts are rate limited per account and unknown logins cost the same time as known ones; cookies are HttpOnly and SameSite=Strict; the page is served with a strict Content-Security-Policy, `nosniff`, frame denial and no referrer; links entered by users are limited to http and https. See [Deployment.md](Deployment.md) for the token and secret handling.
+
+## Dependency audit and known limits
+
+- `npm audit --omit=dev` reports no known vulnerability in the production dependencies (checked 2026-09-29). Re-run it before each release.
+- Tenancy is flat: every signed-in person can read every project. Writes are limited by the project admin, the subject holder and the super admin, not by a per-project membership.
+- A subject stays in the project it was created in. Moving it would rewrite story references, workflow steps, milestones, risks and decisions, so it is deliberately not offered.

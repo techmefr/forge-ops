@@ -18,11 +18,31 @@ export const SERVER_ERROR_CODES = [
   'TagNotFoundError',
   'ItemInUseError',
   'ScopeTakenError',
+  'InvalidRequest',
+  'StoryNotYoursError',
+  'EpicTakenError',
+  'ProjectAdminRequired',
+  'WorkflowNeedsTheProjectAdmin',
+  'SuperAdminRequired',
+  'DirectorRequired',
+  'UnauthenticatedAccount',
+  'TooManyLoginAttempts',
+  'LoginRefusedError',
+  'AccountDisabledError',
+  'LoginTakenError',
+  'LastSuperAdminError',
+  'UnknownAccountError',
+  'PasswordRefusedError',
+  'DoneNotEarnedError',
+  'ProjectNotFoundError',
 ] as const
 
 export function reasonOf(error: unknown): Phrase {
   if (error instanceof BoardRequestError && (SERVER_ERROR_CODES as readonly string[]).includes(error.code)) {
     return phrase(`serverError.${error.code}`)
+  }
+  if (error instanceof BoardRequestError && error.code.startsWith('Invalid')) {
+    return phrase('serverError.InvalidRequest')
   }
   if (error instanceof BoardRequestError || error instanceof Error) {
     return verbatim(error.message)

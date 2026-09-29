@@ -9,6 +9,13 @@ describe('reasonOf', () => {
     ).toBe('il manque la jumelle')
   })
 
+  it('traduit un code connu au lieu de reprendre le texte du serveur', () => {
+    expect(reasonOf(new BoardRequestError(409, 'StoryNotYoursError', 'pas a toi')).key).toBe(
+      'serverError.StoryNotYoursError',
+    )
+    expect(reasonOf(new BoardRequestError(422, 'InvalidEpicDraft', 'x')).key).toBe('serverError.InvalidRequest')
+  })
+
   it('reprend le message d une panne quelconque', () => {
     expect(reasonOf(new Error('reseau coupe')).key).toBe('reseau coupe')
   })

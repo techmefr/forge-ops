@@ -144,6 +144,7 @@ export function createConversationApi({
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
     const story = stories.findStory(storyId.data)
+    assertStoryHand(story.reference, stories.assigneeOf(story.epicId), operatorOf(context))
     const refusal = validationRefusalOf(
       story.state,
       voiceOf(context.req.header(AGENT_SESSION_HEADER) ?? null),

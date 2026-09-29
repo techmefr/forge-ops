@@ -1,6 +1,6 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type Database from 'better-sqlite3'
-import type { Hono } from 'hono'
+import { Hono } from 'hono'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { createCheckpointRepository } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
@@ -100,6 +100,27 @@ describe('reading the thread of a card', () => {
     const body = (await response.json()) as StoryThread
     expect(body.opening?.prompt.length ?? 0).toBeGreaterThan(0)
     expect(body.awaitsValidation).toBe(true)
+  })
+
+  it('refuses the validation of a story whose subject is held by someone else', async () => {
+    const epicId = stories.findStory(storyId).epicId
+    stories.claimEpic(epicId, 'ana')
+    const asBob = new Hono()
+    asBob.use('*', async (context, next) => {
+      context.set('login', 'bob')
+      await next()
+    })
+    asBob.route('/', api)
+    const refused = await asBob.request(`/api/stories/${storyId}/validate`, { method: 'POST' })
+    expect(refused.status).toBe(409)
+    expect(published).not.toContain('story.validated')
+    const asAna = new Hono()
+    asAna.use('*', async (context, next) => {
+      context.set('login', 'ana')
+      await next()
+    })
+    asAna.route('/', api)
+    expect((await asAna.request(`/api/stories/${storyId}/validate`, { method: 'POST' })).status).toBe(200)
   })
 
   it('answers 404 for a story nobody wrote', async () => {
