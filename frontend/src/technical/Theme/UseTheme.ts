@@ -1,8 +1,14 @@
 import { computed, ref, watchEffect, type Ref } from 'vue'
-import { MODE_CHOICES, resolveMode, type ModeChoice } from '../Appearance/ModeChoice.js'
+import {
+  DEFAULT_MODE_CHOICE,
+  MODE_CHOICES,
+  resolveMode,
+  type ModeChoice,
+} from '../Appearance/ModeChoice.js'
 import { readPreference, writePreference } from '../Appearance/Preference.js'
 import type { Palette, ThemeMode, ThemeName } from './Palette.js'
-import { THEME_NAMES, paletteVariables, resolvePalette } from './Palette.js'
+import { PALETTE_CACHE_KEY, paletteSignature } from './PrePaint.js'
+import { DEFAULT_THEME, THEME_NAMES, paletteVariables, resolvePalette } from './Palette.js'
 
 const THEME_STORAGE_KEY = 'forge.theme'
 
@@ -10,9 +16,9 @@ const MODE_STORAGE_KEY = 'forge.mode'
 
 const DARK_QUERY = '(prefers-color-scheme: dark)'
 
-const theme = ref<ThemeName>('dracula')
+const theme = ref<ThemeName>(DEFAULT_THEME)
 
-const choice = ref<ModeChoice>('dark')
+const choice = ref<ModeChoice>(DEFAULT_MODE_CHOICE)
 
 const systemDark = ref(true)
 
@@ -45,14 +51,23 @@ export function useTheme(): ThemeDesk {
 
   if (!started) {
     started = true
-    theme.value = readPreference(THEME_STORAGE_KEY, THEME_NAMES, 'dracula')
-    choice.value = readPreference(MODE_STORAGE_KEY, MODE_CHOICES, 'dark')
+    theme.value = readPreference(THEME_STORAGE_KEY, THEME_NAMES, DEFAULT_THEME)
+    choice.value = readPreference(MODE_STORAGE_KEY, MODE_CHOICES, DEFAULT_MODE_CHOICE)
     watchSystem()
     watchEffect(() => {
       const root = document.documentElement
-      for (const [name, value] of Object.entries(paletteVariables(palette.value))) {
+      const variables = paletteVariables(palette.value)
+      for (const [name, value] of Object.entries(variables)) {
         root.style.setProperty(name, value)
       }
+      writePreference(
+        PALETTE_CACHE_KEY,
+        JSON.stringify({
+          signature: paletteSignature(theme.value, mode.value),
+          variables,
+        }),
+      )
+      root.dataset.mode = mode.value
       root.dataset.theme = theme.value
       root.style.colorScheme = mode.value
     })

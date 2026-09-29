@@ -33,6 +33,7 @@ const scales = computed(() => listOf(FONT_SCALES, 'fontScale'))
 
     <ChoiceRow
       :label="t('setting.palette')"
+      :hint="t('setting.paletteHint')"
       :options="themes"
       :current="theme"
       @select="selectTheme"

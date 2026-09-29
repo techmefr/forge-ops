@@ -30,6 +30,86 @@
   --color-warn-soft: var(--forge-warnsoft);
 }
 
+:root {
+  --forge-deep: #191a21;
+  --forge-panel: #21222c;
+  --forge-card: #282a36;
+  --forge-elev: #343746;
+  --forge-line: #44475a;
+  --forge-ink: #191a21;
+  --forge-txthi: #f8f8f2;
+  --forge-txtmid: #bfc7d5;
+  --forge-txtlow: #95a3db;
+  --forge-acc: #bd93f9;
+  --forge-accsoft: #d6bbff;
+  --forge-accdeep: #a47df2;
+  --forge-info: #8be9fd;
+  --forge-violet: #ff79c6;
+  --forge-violetsoft: #ffa6da;
+  --forge-green: #50fa7b;
+  --forge-greensoft: #9bffb5;
+  --forge-red: #ff6666;
+  --forge-redsoft: #ff9090;
+  --forge-orange: #ffb86c;
+  --forge-orangealt: #ff9e4a;
+  --forge-warn: #f1fa8c;
+  --forge-warnsoft: #f6fcb8;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-mode="dark"]) {
+    --forge-deep: #ece9df;
+    --forge-panel: #fffbeb;
+    --forge-card: #f8f4e4;
+    --forge-elev: #e6e2d0;
+    --forge-line: #cfcfde;
+    --forge-ink: #fffbeb;
+    --forge-txthi: #1f1f1f;
+    --forge-txtmid: #3f3b2a;
+    --forge-txtlow: #5f5a40;
+    --forge-acc: #644ac9;
+    --forge-accsoft: #7058d3;
+    --forge-accdeep: #4d36a8;
+    --forge-info: #036a96;
+    --forge-violet: #a3144d;
+    --forge-violetsoft: #b63a69;
+    --forge-green: #14710a;
+    --forge-greensoft: #287d1e;
+    --forge-red: #c9392a;
+    --forge-redsoft: #bb4839;
+    --forge-orange: #a34d14;
+    --forge-orangealt: #ac561f;
+    --forge-warn: #816c15;
+    --forge-warnsoft: #7e6e1b;
+  }
+}
+
+:root[data-mode="light"] {
+  --forge-deep: #ece9df;
+  --forge-panel: #fffbeb;
+  --forge-card: #f8f4e4;
+  --forge-elev: #e6e2d0;
+  --forge-line: #cfcfde;
+  --forge-ink: #fffbeb;
+  --forge-txthi: #1f1f1f;
+  --forge-txtmid: #3f3b2a;
+  --forge-txtlow: #5f5a40;
+  --forge-acc: #644ac9;
+  --forge-accsoft: #7058d3;
+  --forge-accdeep: #4d36a8;
+  --forge-info: #036a96;
+  --forge-violet: #a3144d;
+  --forge-violetsoft: #b63a69;
+  --forge-green: #14710a;
+  --forge-greensoft: #287d1e;
+  --forge-red: #c9392a;
+  --forge-redsoft: #bb4839;
+  --forge-orange: #a34d14;
+  --forge-orangealt: #ac561f;
+  --forge-warn: #816c15;
+  --forge-warnsoft: #7e6e1b;
+}
+
 html,
 body,
 #app {

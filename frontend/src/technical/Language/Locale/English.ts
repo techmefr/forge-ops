@@ -794,6 +794,7 @@ export const ENGLISH = {
     workflow: 'Phase workflow',
     appearance: 'Appearance',
     palette: 'Palette',
+    paletteHint: 'Dracula follows the system: Dracula in dark, Alucard in light.',
     lightOrDark: 'Light or dark',
     lightOrDarkHint: 'Follow the system tracks the desktop setting live.',
     font: 'Typeface',

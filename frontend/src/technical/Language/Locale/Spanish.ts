@@ -806,6 +806,7 @@ export const SPANISH: Message = {
     workflow: 'Workflow de fases',
     appearance: 'Aspecto',
     palette: 'Paleta',
+    paletteHint: 'Dracula sigue el sistema: Dracula en oscuro, Alucard en claro.',
     lightOrDark: 'Claro u oscuro',
     lightOrDarkHint: 'Como el sistema sigue el ajuste del escritorio en directo.',
     font: 'Tipografía',

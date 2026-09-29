@@ -4,6 +4,29 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Forge.ops</title>
+    <script>
+      ;(function () {
+        try {
+          var root = document.documentElement
+          var storage = window.localStorage
+          var theme = storage.getItem('forge.theme') || 'dracula'
+          var choice = storage.getItem('forge.mode') || 'system'
+          var dark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          var mode = choice === 'system' ? (dark ? 'dark' : 'light') : choice
+          root.dataset.mode = mode
+          root.style.colorScheme = mode
+          var cache = JSON.parse(storage.getItem('forge.palette') || 'null')
+          if (cache && cache.signature === theme + '|' + mode) {
+            for (var name in cache.variables) {
+              root.style.setProperty(name, cache.variables[name])
+            }
+            root.dataset.theme = theme
+          }
+        } catch (error) {
+          return
+        }
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

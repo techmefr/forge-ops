@@ -4,6 +4,8 @@ export const MODE_CHOICES = ['dark', 'light', 'system'] as const
 
 export type ModeChoice = (typeof MODE_CHOICES)[number]
 
+export const DEFAULT_MODE_CHOICE: ModeChoice = 'system'
+
 export function resolveMode(choice: ModeChoice, prefersDark: boolean): ThemeMode {
   if (choice === 'system') {
     return prefersDark ? 'dark' : 'light'

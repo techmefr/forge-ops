@@ -72,7 +72,7 @@ const BASE_PALETTES: Record<ThemeName, Palette> = {
     ink: '#191A21',
     txtHi: '#F8F8F2',
     txtMid: '#BFC7D5',
-    txtLow: '#8B9AD4',
+    txtLow: '#95A3DB',
     acc: '#BD93F9',
     accSoft: '#D6BBFF',
     accDeep: '#9A6EF0',
@@ -190,6 +190,38 @@ const BASE_PALETTES: Record<ThemeName, Palette> = {
   },
 }
 
+export const DEFAULT_THEME: ThemeName = 'dracula'
+
+const ALUCARD: Palette = {
+  deep: '#ECE9DF',
+  panel: '#FFFBEB',
+  card: '#F8F4E4',
+  elev: '#E6E2D0',
+  line: '#CFCFDE',
+  ink: '#FFFBEB',
+  txtHi: '#1F1F1F',
+  txtMid: '#3F3B2A',
+  txtLow: '#5F5A40',
+  acc: '#644AC9',
+  accSoft: '#7058D3',
+  accDeep: '#4D36A8',
+  info: '#036A96',
+  violet: '#A3144D',
+  violetSoft: '#B63A69',
+  green: '#14710A',
+  greenSoft: '#287D1E',
+  red: '#C9392A',
+  redSoft: '#BB4839',
+  orange: '#A34D14',
+  orangeAlt: '#AC561F',
+  warn: '#816C15',
+  warnSoft: '#7E6E1B',
+}
+
+const LIGHT_PALETTES: Partial<Record<ThemeName, Palette>> = {
+  dracula: ALUCARD,
+}
+
 export const THEME_LABELS: Record<ThemeName, string> = {
   volt: 'Volt',
   dracula: 'Dracula',
@@ -279,7 +311,8 @@ function toLightPalette(base: Palette): Palette {
 
 export function resolvePalette(name: ThemeName, mode: ThemeMode): Palette {
   const base = BASE_PALETTES[name]
-  const palette = mode === 'light' ? toLightPalette(base) : { ...base }
+  const authored = mode === 'light' ? LIGHT_PALETTES[name] : undefined
+  const palette = authored ? { ...authored } : mode === 'light' ? toLightPalette(base) : { ...base }
   const background = mode === 'light' ? palette.panel : palette.card
   const towards = mode === 'light' ? '#000000' : '#FFFFFF'
   for (const key of ACCENT_KEYS) {

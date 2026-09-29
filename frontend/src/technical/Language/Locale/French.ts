@@ -803,6 +803,7 @@ export const FRENCH: Message = {
     workflow: 'Workflow des phases',
     appearance: 'Apparence',
     palette: 'Palette',
+    paletteHint: 'Dracula suit le système : Dracula en sombre, Alucard en clair.',
     lightOrDark: 'Clair ou sombre',
     lightOrDarkHint: 'Comme le système suit le réglage du bureau en direct.',
     font: 'Police',

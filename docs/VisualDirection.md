@@ -49,3 +49,12 @@ Tighter gaps within a related group, wider gaps between unrelated groups - never
 - One hairline, `border-line` (usually `border-b`), separates a whole region from what comes after it - a header from the screen body, a tab strip from the header above it. Never nest a second bordered box inside that region to further separate its children.
 - To distinguish content within a region, shift background tone instead of adding a border: `bg-panel` for the chrome shell, `bg-card` for content sitting on it, `bg-elev` for something raised one step further (a popover, an active/hover surface).
 - Current-state (active tab, selected item) gets exactly one signal - here, the accent underline (`border-acc` on `border-b-[3px]`) plus the accent-coloured meta label. It does not also change background, weight and border simultaneously.
+
+## Default theme
+
+Dracula is the default palette and it follows the system: the official Dracula palette when the OS prefers dark, Alucard (Dracula official light variant, background #FFFBEB) when it prefers light. A mode chosen in Settings stays authoritative; while it is on "Follow the system" the change listener switches live. `frontend/index.html` applies the mode and the cached palette before first paint and `frontend/src/style.css` carries the Dracula/Alucard tokens as the no-JavaScript fallback.
+
+The `--forge-*` tokens are unchanged; they map onto the palettes in `frontend/src/technical/Theme/Palette.ts`. Normal text stays at 4.5:1 or more in both (checked by `DraculaDefault.test.ts`). Deviations from the official values:
+
+- Dracula dark: the muted text (`txtLow`, official comment #6272A4 already lifted to #8B9AD4) moves to #95A3DB to reach 4.5:1 on the raised surface; red and the deep accent are lifted by the existing readability pass.
+- Alucard: red #CB3A2A becomes #C9392A and yellow #846E15 becomes #816C15 to reach 4.5:1 on the card surface; the soft accent variants and the surface steps (#ECE9DF, #F8F4E4, #E6E2D0) are derived, not official.
