@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { MilestoneKind } from './StoryContract.js'
 
 export const EPIC_PRIORITIES = ['max', 'high', 'normal', 'low'] as const
 
@@ -13,6 +14,16 @@ export type LinkKind = (typeof LINK_KINDS)[number]
 export const EPIC_STATES = ['todo', 'doing', 'blocked', 'done', 'trash'] as const
 
 export type EpicState = (typeof EPIC_STATES)[number]
+
+export const MANUAL_EPIC_STATES = ['todo', 'doing', 'blocked', 'done'] as const
+
+export type ManualEpicState = (typeof MANUAL_EPIC_STATES)[number]
+
+export const SUBJECT_FILTERS = ['open', 'late', 'todo', 'doing', 'blocked', 'done', 'trash'] as const
+
+export type SubjectFilter = (typeof SUBJECT_FILTERS)[number]
+
+export const UNASSIGNED = 'none'
 
 export const TRASH_RETENTION_DAYS = 90
 
@@ -46,6 +57,12 @@ export type EpicWaitingOn = {
   title: string
 }
 
+export type EpicNextEvent = {
+  type: MilestoneKind
+  date: string
+  title: string
+}
+
 export type EpicPlanning = {
   priority: EpicPriority
   startedOn: string | null
@@ -57,12 +74,28 @@ export type EpicPlanning = {
   state: EpicState
   progress: EpicProgress
   lateDays: number | null
+  dueOn: string | null
+  nextEvent: EpicNextEvent | null
   blockedSince: string | null
   waitingOn: readonly EpicWaitingOn[]
   deletedAt: string | null
 }
 
-const calendarDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+export function inSubjectFilter(
+  subject: Pick<EpicPlanning, 'state' | 'lateDays'>,
+  filter: SubjectFilter,
+): boolean {
+  switch (filter) {
+    case 'open':
+      return subject.state === 'todo' || subject.state === 'doing' || subject.state === 'blocked'
+    case 'late':
+      return subject.lateDays !== null
+    default:
+      return subject.state === filter
+  }
+}
+
+const calendarDate =z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 
 export const subjectLinkSchema = z.object({
   kind: z.enum(LINK_KINDS),
@@ -84,11 +117,27 @@ export const epicPatchSchema = z
     tagIds: z.array(z.number().int().positive()).max(50),
     links: subjectLinksSchema,
     dependsOn: z.array(z.number().int().positive()).max(50),
+    state: z.enum(MANUAL_EPIC_STATES),
   })
   .partial()
   .strict()
 
 export type EpicPatch = z.infer<typeof epicPatchSchema>
+
+const absentWhenBlank = (value: unknown): unknown =>
+  typeof value === 'string' && value.trim() === '' ? undefined : value
+
+export const epicQuerySchema = z
+  .object({
+    project: z.preprocess(absentWhenBlank, z.coerce.number().int().positive().optional()),
+    assignee: z.preprocess(absentWhenBlank, z.string().trim().max(120).optional()),
+    state: z.preprocess(absentWhenBlank, z.enum(SUBJECT_FILTERS).optional()),
+    tag: z.preprocess(absentWhenBlank, z.coerce.number().int().positive().optional()),
+    q: z.preprocess(absentWhenBlank, z.string().trim().max(200).optional()),
+  })
+  .strict()
+
+export type EpicQuery = z.infer<typeof epicQuerySchema>
 
 export const tagDraftSchema = z.object({
   label: z.string().trim().min(1).max(40),

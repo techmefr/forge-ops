@@ -17,6 +17,7 @@ const EXPECTED_ROUTES = [
   'GET /api/board/phases',
   'GET /api/board/projects',
   'GET /api/board/self',
+  'GET /api/epics',
   'GET /api/epics/:id/history',
   'GET /api/events',
   'GET /api/files/conflicts',

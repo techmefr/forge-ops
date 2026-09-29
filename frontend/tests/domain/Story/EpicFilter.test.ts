@@ -20,6 +20,8 @@ function epic(id: number, projectId: number, assignee: string | null): EpicOverv
     state: 'todo',
     progress: { delivered: 0, total: 0 },
     lateDays: null,
+    dueOn: null,
+    nextEvent: null,
     blockedSince: null,
     waitingOn: [],
     deletedAt: null,

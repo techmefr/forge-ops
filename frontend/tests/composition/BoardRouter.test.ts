@@ -46,7 +46,7 @@ describe('createBoardRouter', () => {
 
     await board.push('/')
 
-    expect(board.currentRoute.value.path).toBe('/projects/board')
+    expect(board.currentRoute.value.path).toBe('/projects/subjects')
   })
 
   it('renvoie un chemin inconnu sur l ecran d accueil, sans page blanche', async () => {
@@ -54,7 +54,7 @@ describe('createBoardRouter', () => {
 
     await board.push('/nawak')
 
-    expect(board.currentRoute.value.path).toBe('/projects/board')
+    expect(board.currentRoute.value.path).toBe('/projects/subjects')
     expect(HOME_PATH).toBe('/projects')
   })
 

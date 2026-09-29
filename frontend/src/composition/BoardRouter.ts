@@ -19,7 +19,7 @@ const ABSORBED: readonly RouteRecordRaw[] = Object.entries(ABSORBED_PATHS).map(
 
 export const ROUTES: readonly RouteRecordRaw[] = [
   { path: '/', redirect: HOME_PATH },
-  { path: '/projects', redirect: '/projects/board' },
+  { path: '/projects', redirect: '/projects/subjects' },
   {
     path: '/projects/:tab',
     name: 'projects',

@@ -1,4 +1,6 @@
 import type Database from 'better-sqlite3'
+import type { EpicQuery } from '../../../../contract/EpicContract.js'
+import { matchesQuery } from '../../../../contract/SubjectQuery.js'
 import type {
   Dependency,
   Epic,
@@ -78,6 +80,7 @@ export type StoryRepository = {
   projects: ProjectRepository
   followUps: FollowUpRepository
   listEpics: (projectId: number, options?: OverviewOptions) => readonly EpicOverview[]
+  listEveryEpic: (query: EpicQuery, today: string) => readonly EpicOverview[]
   assigneeOf: (epicId: number) => string | null
   findEpic: (epicId: number) => Epic
   listHumanGateWaits: () => readonly HumanGateWait[]
@@ -400,6 +403,26 @@ export function createStoryRepository(
     return settle(findStory(storyId))
   }
 
+  function epicsOfProject(projectId: number, options: OverviewOptions = {}): readonly EpicOverview[] {
+    const planning = epics.planningOf(projectId, options)
+    return selectEpics.all(projectId, options.deleted === true ? 1 : 0).flatMap((row) => {
+      const planned = planning.get(row.id)
+      return planned === undefined
+        ? []
+        : [
+            {
+              id: row.id,
+              projectId: row.project_id,
+              title: row.title,
+              businessIntent: row.business_intent,
+              assignee: row.assignee,
+              storyCount: row.story_count,
+              ...planned,
+            },
+          ]
+    })
+  }
+
   function allProjects(): readonly Project[] {
     return selectProjects.all().map((row) => ({
       id: row.id,
@@ -463,25 +486,12 @@ export function createStoryRepository(
 
     followUps,
 
-    listEpics: (projectId, options = {}) => {
-      const planning = epics.planningOf(projectId, options)
-      return selectEpics.all(projectId, options.deleted === true ? 1 : 0).flatMap((row) => {
-        const planned = planning.get(row.id)
-        return planned === undefined
-          ? []
-          : [
-              {
-                id: row.id,
-                projectId: row.project_id,
-                title: row.title,
-                businessIntent: row.business_intent,
-                assignee: row.assignee,
-                storyCount: row.story_count,
-                ...planned,
-              },
-            ]
-      })
-    },
+    listEveryEpic: (query, today) =>
+      allProjects()
+        .flatMap((project) => epicsOfProject(project.id, { today, deleted: query.state === 'trash' }))
+        .filter((epic) => matchesQuery(epic, query)),
+
+    listEpics: epicsOfProject,
 
     projectOfStory: (storyId) => {
       const row = selectProjectOfStory.get(storyId)

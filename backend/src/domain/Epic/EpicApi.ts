@@ -27,7 +27,7 @@ export function createEpicApi({ epics, events, today }: EpicApiInput): Hono {
     if (!patch.success) {
       return context.json({ error: 'InvalidEpicPatch', issues: patch.error.issues }, 422)
     }
-    epics.plan(epicId.data, patch.data)
+    epics.plan(epicId.data, patch.data, operatorOf(context))
     const planning = epics.planningOfEpic(epicId.data, today())
     events.publish({ name: 'epic.updated', payload: { id: epicId.data } })
     return context.json({ id: epicId.data, ...planning })

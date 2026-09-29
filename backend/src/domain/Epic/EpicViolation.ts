@@ -69,3 +69,9 @@ export class InactiveAssigneeError extends StoryViolationError {
     super(`Account ${login} is deactivated: no subject can be assigned to it`, 'InactiveAssigneeError')
   }
 }
+
+export class EpicStateDerivedError extends StoryViolationError {
+  constructor(epicId: number) {
+    super(`L etat de l epique ${epicId} decoule de ses stories`, 'EpicStateDerivedError')
+  }
+}
