@@ -76,9 +76,9 @@ void users.reload()
 </script>
 
 <template>
-  <section class="flex flex-col gap-4 rounded-lg border border-line bg-card p-4" data-tour="setting-users">
+  <section class="flex flex-col gap-4 border-t border-line pt-6" data-tour="setting-users">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="display-italic m-0 text-[22px]">{{ t('team.users') }}</h2>
+      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('team.users') }}</h2>
       <EffectBadge section="users" />
     </div>
     <p class="m-0 text-[13px] text-txt-mid">{{ t('team.usersSub') }}</p>
@@ -95,7 +95,7 @@ void users.reload()
       <li
         v-for="user in rows"
         :key="user.id"
-        class="flex flex-wrap items-center gap-3 rounded-lg bg-panel px-3 py-2"
+        class="flex flex-wrap items-center gap-3 rounded-md bg-panel px-3 py-2"
       >
         <span
           class="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-elev font-mono text-[11px] text-txt-hi"
@@ -121,7 +121,7 @@ void users.reload()
             :placeholder="t('team.noCapacity')"
             :disabled="!mayEdit(user)"
             :aria-label="t('team.capacityOf', { name: user.displayName })"
-            class="w-20 rounded-lg border border-line bg-card px-2 py-1.5 text-[13px] text-txt-hi disabled:opacity-60"
+            class="w-20 rounded-md border border-line bg-card px-2 py-1.5 text-[13px] text-txt-hi disabled:opacity-60"
             @change="setCapacity(user, $event)"
           />
         </label>
@@ -135,7 +135,7 @@ void users.reload()
         <button
           v-if="manages"
           type="button"
-          class="rounded-lg border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+          class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
           @click="toggle(user)"
         >
           {{ user.active ? t('team.deactivate') : t('team.reactivate')
@@ -155,7 +155,7 @@ void users.reload()
             v-model="login"
             type="text"
             autocomplete="off"
-            class="rounded-lg border border-line bg-panel px-3 py-2 font-mono text-[13px] text-txt-hi"
+            class="rounded-md border border-line bg-panel px-3 py-2 font-mono text-[13px] text-txt-hi"
           />
         </label>
         <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
@@ -164,7 +164,7 @@ void users.reload()
             v-model="displayName"
             type="text"
             autocomplete="off"
-            class="rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
         </label>
         <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
@@ -173,7 +173,7 @@ void users.reload()
             v-model="password"
             type="password"
             autocomplete="new-password"
-            class="rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
           <span class="text-[11px] text-txt-low">{{ t('setting.passwordHint') }}</span>
         </label>
@@ -181,7 +181,7 @@ void users.reload()
           {{ t('team.role') }}
           <select
             v-model="role"
-            class="rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           >
             <option v-for="option in ACCOUNT_ROLE_SEQUENCE" :key="option" :value="option">
               {{ t(`role.${option}`) }}
@@ -192,7 +192,7 @@ void users.reload()
       <button
         type="submit"
         :disabled="!draftReady"
-        class="self-start rounded-lg border border-acc bg-acc px-4 py-2 text-[13px] font-bold text-ink uppercase disabled:opacity-40"
+        class="self-start rounded-md border border-acc bg-acc px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-40"
       >
         {{ t('team.add') }}
       </button>

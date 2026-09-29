@@ -44,9 +44,9 @@ onMounted(() => catalogue.reload())
 </script>
 
 <template>
-  <section class="flex flex-col gap-4 rounded-lg border border-line bg-card p-4">
+  <section class="flex flex-col gap-4 border-t border-line pt-6">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="display-italic m-0 text-[22px]">{{ t('setting.templates') }}</h2>
+      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('setting.templates') }}</h2>
       <EffectBadge section="templates" />
     </div>
 
@@ -65,7 +65,7 @@ onMounted(() => catalogue.reload())
         }}</span>
         <button
           type="button"
-          class="ml-auto rounded-lg border border-line px-2 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+          class="ml-auto rounded-md border border-line px-2 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
           @click="exportOne(template.id)"
         >
           {{ t('template.export') }}
@@ -78,7 +78,7 @@ onMounted(() => catalogue.reload())
       <textarea
         v-model="carried"
         rows="6"
-        class="rounded-lg border border-line bg-panel px-2 py-1.5 font-mono text-[11px] text-txt-hi"
+        class="rounded-md border border-line bg-panel px-2 py-1.5 font-mono text-[11px] text-txt-hi"
       />
     </label>
 
@@ -86,7 +86,7 @@ onMounted(() => catalogue.reload())
       <button
         type="button"
         :disabled="busy || carried.trim() === '' || !(catalogue.data.value?.maySettle ?? false)"
-        class="rounded-lg border border-acc bg-acc px-3 py-1.5 font-mono text-[11px] font-bold text-ink uppercase disabled:opacity-40"
+        class="rounded-md border border-acc bg-acc px-3 py-1.5 font-mono text-[11px] font-bold text-ink uppercase disabled:opacity-40"
         @click="importOne()"
       >
         {{ t('template.import') }}

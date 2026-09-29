@@ -46,13 +46,13 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
       class="grid flex-none gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]"
       data-tour="statistic-tally"
     >
-      <article class="rounded-lg border border-line bg-card p-4">
+      <article class="border-t border-line pt-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.sessions') }}
         </p>
         <p class="display-italic mt-1 text-[28px]">{{ summary.data.value?.sessions ?? 0 }}</p>
       </article>
-      <article class="rounded-lg border border-line bg-card p-4">
+      <article class="border-t border-line pt-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.totalCost') }}
         </p>
@@ -60,7 +60,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
           {{ t('common.money', { amount: (summary.data.value?.totalCostUsd ?? 0).toFixed(2) }) }}
         </p>
       </article>
-      <article class="rounded-lg border border-line bg-card p-4">
+      <article class="border-t border-line pt-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.machineTime') }}
         </p>
@@ -72,7 +72,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
 
     <div class="mt-2 min-h-0 flex-1 overflow-auto pr-1">
     <div class="mt-4 grid gap-4 lg:grid-cols-2">
-      <section class="rounded-lg border border-line bg-card p-4">
+      <section class="border-t border-line pt-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.busiestAgents') }}
         </p>
@@ -100,7 +100,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
         </ul>
       </section>
 
-      <section class="rounded-lg border border-line bg-card p-4">
+      <section class="border-t border-line pt-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.timePerPhase') }}
         </p>
@@ -136,7 +136,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
       </section>
     </div>
 
-    <section class="mt-6 rounded-lg border border-line bg-card p-4">
+    <section class="mt-6 border-t border-line pt-4">
       <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('statistic.timePerStory') }}
       </p>

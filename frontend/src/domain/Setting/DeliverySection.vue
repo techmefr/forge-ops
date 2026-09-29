@@ -36,9 +36,9 @@ void settings.reload()
 </script>
 
 <template>
-  <section class="flex flex-col gap-6 rounded-lg border border-line bg-card p-4">
+  <section class="flex flex-col gap-6 border-t border-line pt-6">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="display-italic m-0 text-[22px]">{{ t('setting.delivery') }}</h2>
+      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('setting.delivery') }}</h2>
       <EffectBadge section="delivery" />
     </div>
 

@@ -1,4 +1,4 @@
-import { createBoardClient } from './BoardClient.js'
+import { createBoardClient, isRejection } from './BoardClient.js'
 import { createDemoFetcher, type DemoSnapshot } from './DemoFetcher.js'
 import { FROZEN_VISIT } from './Visit.js'
 import { readAddresses } from './Addresses.js'
@@ -35,7 +35,7 @@ export async function checkBoardSession(): Promise<boolean> {
   try {
     await board.read('/api/auth/whoami')
     return true
-  } catch {
-    return false
+  } catch (error) {
+    return !isRejection(error)
   }
 }

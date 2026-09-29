@@ -64,16 +64,16 @@ onMounted(() => settings.reload())
 </script>
 
 <template>
-  <section class="flex flex-col gap-6 rounded-lg border border-line bg-card p-4">
+  <section class="flex flex-col gap-6 border-t border-line pt-6">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="display-italic m-0 text-[22px]">{{ t('setting.budget') }}</h2>
+      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('setting.budget') }}</h2>
       <EffectBadge section="budget" />
     </div>
-    <div class="rounded-lg bg-panel p-4">
+    <div class="rounded-md bg-panel p-4">
       <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('setting.spentToday') }}
       </p>
-      <p class="display-italic mt-1 text-[28px]">
+      <p class="mt-1 text-xl font-medium">
         {{ t('common.money', { amount: spent.toFixed(2) }) }}
         <span class="text-txt-low">/ {{ t('common.money', { amount: draft.capUsd.toFixed(2) }) }}</span>
       </p>
@@ -96,7 +96,7 @@ onMounted(() => settings.reload())
           type="number"
           min="0.01"
           step="0.01"
-          class="w-40 rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+          class="w-40 rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
         />
       </label>
 
@@ -107,7 +107,7 @@ onMounted(() => settings.reload())
         <label
           v-for="conduct in COST_CAP_CONDUCT_SEQUENCE"
           :key="conduct"
-          class="flex cursor-pointer gap-3 rounded-lg border p-3"
+          class="flex cursor-pointer gap-3 rounded-md border p-3"
           :class="draft.conduct === conduct ? 'border-acc bg-acc-soft/10' : 'border-line bg-card'"
         >
           <input v-model="draft.conduct" type="radio" :value="conduct" class="mt-1" />
@@ -127,7 +127,7 @@ onMounted(() => settings.reload())
         <input
           v-model="draft.downgradeModel"
           type="text"
-          class="rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+          class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
         />
       </label>
 
@@ -139,7 +139,7 @@ onMounted(() => settings.reload())
           v-model="rerouteUrl"
           type="url"
           :placeholder="t('setting.gatewayPlaceholder')"
-          class="rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+          class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
         />
         <span class="text-[13px] text-txt-low">{{ t('setting.httpsOnly') }}</span>
       </label>
@@ -148,7 +148,7 @@ onMounted(() => settings.reload())
         <button
           type="submit"
           :disabled="busy"
-          class="rounded-lg border border-acc bg-acc px-4 py-2 text-[13px] font-bold text-ink uppercase disabled:opacity-40"
+          class="rounded-md border border-acc bg-acc px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-40"
         >
           {{ t('common.save') }}
         </button>

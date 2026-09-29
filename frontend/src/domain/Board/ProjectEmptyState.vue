@@ -16,11 +16,11 @@ function onCreated(): void {
 
 <template>
   <section
-    class="flex flex-col gap-4 rounded-lg border border-line bg-card p-6"
+    class="flex flex-col gap-4 border-t border-line pt-6"
     :aria-label="t('emptyState.title')"
   >
     <div>
-      <p class="display-italic text-[22px]">{{ t('emptyState.title') }}</p>
+      <p class="text-base font-semibold">{{ t('emptyState.title') }}</p>
       <p class="mt-1 text-[13px] text-txt-low">{{ t('emptyState.body') }}</p>
     </div>
 

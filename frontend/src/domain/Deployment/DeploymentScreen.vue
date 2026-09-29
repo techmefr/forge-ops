@@ -156,7 +156,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
           <article
             v-for="story in shipping"
             :key="story.id"
-            class="rounded-lg border border-line bg-card p-4"
+            class="border-t border-line pt-4"
           >
             <div class="flex items-center gap-3">
               <span class="font-mono text-[11px] font-semibold text-acc">{{ story.reference }}</span>

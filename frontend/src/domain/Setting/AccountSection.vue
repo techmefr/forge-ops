@@ -81,9 +81,9 @@ onMounted(load)
 </script>
 
 <template>
-  <section class="flex flex-col gap-6 rounded-lg border border-line bg-card p-4">
+  <section class="flex flex-col gap-6 border-t border-line pt-6">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="display-italic m-0 text-[22px]">{{ t('setting.account') }}</h2>
+      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('setting.account') }}</h2>
       <EffectBadge section="account" />
     </div>
 
@@ -102,7 +102,7 @@ onMounted(load)
           <input
             v-model="displayName"
             type="text"
-            class="max-w-sm rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="max-w-sm rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
         </label>
         <label class="flex flex-col gap-2">
@@ -114,14 +114,14 @@ onMounted(load)
             type="email"
             autocomplete="email"
             :placeholder="t('setting.emailPlaceholder')"
-            class="max-w-sm rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="max-w-sm rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
         </label>
         <div class="flex items-center gap-3">
           <button
             type="submit"
             :disabled="busy"
-            class="rounded-lg border border-acc bg-acc px-4 py-2 text-[13px] font-bold text-ink uppercase disabled:opacity-40"
+            class="rounded-md border border-acc bg-acc px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-40"
           >
             {{ t('common.save') }}
           </button>
@@ -141,7 +141,7 @@ onMounted(load)
             v-model="currentPassword"
             type="password"
             autocomplete="current-password"
-            class="max-w-sm rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="max-w-sm rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
         </label>
         <label class="flex flex-col gap-2">
@@ -152,7 +152,7 @@ onMounted(load)
             v-model="nextPassword"
             type="password"
             autocomplete="new-password"
-            class="max-w-sm rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="max-w-sm rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
           <span class="text-[13px] text-txt-low">{{ t('setting.passwordHint') }}</span>
         </label>
@@ -160,7 +160,7 @@ onMounted(load)
           <button
             type="submit"
             :disabled="busy"
-            class="rounded-lg border border-acc bg-acc px-4 py-2 text-[13px] font-bold text-ink uppercase disabled:opacity-40"
+            class="rounded-md border border-acc bg-acc px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-40"
           >
             {{ t('setting.changePassword') }}
           </button>

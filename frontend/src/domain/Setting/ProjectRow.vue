@@ -46,7 +46,7 @@ function relink(links: readonly SubjectLink[]): void {
 </script>
 
 <template>
-  <li class="flex flex-col gap-3 rounded-lg bg-panel px-3 py-3">
+  <li class="flex flex-col gap-3 rounded-md bg-panel px-3 py-3">
     <div class="flex flex-wrap items-center gap-3">
       <label class="flex items-center">
         <span class="sr-only">{{ t('team.colourOf', { name: sheet.name }) }}</span>
@@ -75,7 +75,7 @@ function relink(links: readonly SubjectLink[]): void {
           :value="sheet.adminUserId ?? ''"
           :disabled="adminLocked"
           :aria-describedby="adminLocked ? `project-admin-lock-${sheet.id}` : undefined"
-          class="rounded-lg border border-line bg-card px-2 py-1.5 text-[13px] text-txt-hi disabled:opacity-60"
+          class="rounded-md border border-line bg-card px-2 py-1.5 text-[13px] text-txt-hi disabled:opacity-60"
           @change="pickAdmin"
         >
           <option value="">{{ t('team.noAdmin') }}</option>
@@ -92,7 +92,7 @@ function relink(links: readonly SubjectLink[]): void {
           type="button"
           :disabled="index === 0"
           :aria-label="t('team.moveUp', { name: sheet.name })"
-          class="rounded-lg border border-line px-2 py-1 text-txt-mid hover:border-acc disabled:opacity-40"
+          class="rounded-md border border-line px-2 py-1 text-txt-mid hover:border-acc disabled:opacity-40"
           @click="emit('move', -1)"
         >
           <span aria-hidden="true">↑</span>
@@ -101,7 +101,7 @@ function relink(links: readonly SubjectLink[]): void {
           type="button"
           :disabled="index === total - 1"
           :aria-label="t('team.moveDown', { name: sheet.name })"
-          class="rounded-lg border border-line px-2 py-1 text-txt-mid hover:border-acc disabled:opacity-40"
+          class="rounded-md border border-line px-2 py-1 text-txt-mid hover:border-acc disabled:opacity-40"
           @click="emit('move', 1)"
         >
           <span aria-hidden="true">↓</span>
@@ -110,7 +110,7 @@ function relink(links: readonly SubjectLink[]): void {
           type="button"
           :disabled="reason !== null"
           :aria-describedby="`project-use-${sheet.id}`"
-          class="rounded-lg border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-red disabled:opacity-40"
+          class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-red disabled:opacity-40"
           @click="emit('remove')"
         >
           {{ t('team.delete') }}<span class="sr-only"> {{ sheet.name }}</span>

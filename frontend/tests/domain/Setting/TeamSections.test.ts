@@ -92,7 +92,7 @@ describe('ProjectsSection', () => {
     const section = mountWith(ProjectsSection, { self })
     await flushPromises()
 
-    const rows = section.findAll('li.rounded-lg')
+    const rows = section.findAll('li.rounded-md')
     const alpha = rows[0]
     const remove = alpha?.findAll('button').find((button) => button.text().startsWith('Delete'))
     expect(remove?.attributes('disabled')).toBeDefined()
@@ -105,7 +105,7 @@ describe('ProjectsSection', () => {
     const section = mountWith(ProjectsSection, { self })
     await flushPromises()
 
-    const beta = section.findAll('li.rounded-lg')[1]
+    const beta = section.findAll('li.rounded-md').filter((row) => row.text().includes('Delete'))[1]
     await beta?.findAll('button').find((button) => button.text().startsWith('Delete'))?.trigger('click')
     await flushPromises()
 

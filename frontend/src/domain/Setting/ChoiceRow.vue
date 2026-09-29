@@ -18,7 +18,7 @@ const emit = defineEmits<{ select: [T] }>()
         :key="option.key"
         type="button"
         :aria-pressed="option.key === current"
-        class="rounded-lg border px-3 py-2 text-[11px] font-semibold uppercase"
+        class="rounded-md border px-3 py-2 text-[11px] font-semibold uppercase"
         :class="
           option.key === current
             ? 'border-acc bg-acc text-ink'

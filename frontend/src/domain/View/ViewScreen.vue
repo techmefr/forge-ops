@@ -96,7 +96,7 @@ onMounted(() => stories.reload())
           <PilotPanel :story-id="openStoryId" @proven="evidencePath = $event.evidencePath" />
         </div>
 
-        <form class="mt-5 rounded-lg border border-line bg-card p-4" @submit.prevent="prove">
+        <form class="mt-5 border-t border-line pt-4" @submit.prevent="prove">
           <p class="display-italic text-sm text-txt-mid">{{ t('view.keepScreenshot') }}</p>
           <div class="mt-3 flex flex-wrap gap-3">
             <input

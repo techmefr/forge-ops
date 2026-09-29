@@ -371,7 +371,7 @@ onMounted(async () => {
 
         <form
           v-if="part === 'functional' && ticket.data.value !== null"
-          class="mt-6 flex flex-col gap-2 rounded-lg border border-line bg-card p-4"
+          class="mt-6 flex flex-col gap-2 border-t border-line pt-4"
           @submit.prevent="linkBlocker"
         >
           <label
