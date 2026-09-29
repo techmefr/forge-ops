@@ -47,9 +47,9 @@ onMounted(() => settings.reload())
 </script>
 
 <template>
-  <section class="flex flex-col gap-4 rounded-lg border border-line bg-card p-4">
+  <section class="flex flex-col gap-4 border-t border-line pt-6">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="display-italic m-0 text-[22px]">{{ t('setting.workflow') }}</h2>
+      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('setting.workflow') }}</h2>
       <EffectBadge section="workflow" />
     </div>
 
@@ -59,7 +59,7 @@ onMounted(() => settings.reload())
       <fieldset
         v-for="entry in draft"
         :key="entry.phase"
-        class="flex flex-col gap-2 rounded-lg border border-line bg-panel p-3"
+        class="flex flex-col gap-2 rounded-md border border-line bg-panel p-3"
       >
         <legend class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t(`phase.${entry.phase}`) }}
@@ -71,7 +71,7 @@ onMounted(() => settings.reload())
             v-model="entry.agentName"
             type="text"
             :aria-label="`${t('workflow.agentName')} - ${t(`phase.${entry.phase}`)}`"
-            class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
+            class="rounded-md border border-line bg-card px-3 py-2 text-sm text-txt-hi"
           />
         </label>
 
@@ -81,7 +81,7 @@ onMounted(() => settings.reload())
             v-model="entry.command"
             type="text"
             :aria-label="`${t('workflow.command')} - ${t(`phase.${entry.phase}`)}`"
-            class="rounded-lg border border-line bg-card px-3 py-2 font-mono text-[13px] text-txt-hi"
+            class="rounded-md border border-line bg-card px-3 py-2 font-mono text-[13px] text-txt-hi"
           />
         </label>
 
@@ -91,7 +91,7 @@ onMounted(() => settings.reload())
             v-model="entry.preprompt"
             rows="3"
             :aria-label="`${t('workflow.preprompt')} - ${t(`phase.${entry.phase}`)}`"
-            class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
+            class="rounded-md border border-line bg-card px-3 py-2 text-sm text-txt-hi"
           />
         </label>
       </fieldset>
@@ -100,7 +100,7 @@ onMounted(() => settings.reload())
         <button
           type="submit"
           :disabled="busy || !(settings.data.value?.maySettle ?? false)"
-          class="rounded-lg border border-acc bg-acc px-4 py-2 text-[13px] font-bold text-ink uppercase disabled:opacity-40"
+          class="rounded-md border border-acc bg-acc px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-40"
         >
           {{ t('common.save') }}
         </button>

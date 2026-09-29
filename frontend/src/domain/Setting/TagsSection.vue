@@ -58,9 +58,9 @@ void tags.reload()
 </script>
 
 <template>
-  <section class="flex flex-col gap-4 rounded-lg border border-line bg-card p-4" data-tour="setting-tags">
+  <section class="flex flex-col gap-4 border-t border-line pt-6" data-tour="setting-tags">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="display-italic m-0 text-[22px]">{{ t('team.tags') }}</h2>
+      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('team.tags') }}</h2>
       <EffectBadge section="tags" />
     </div>
     <p class="m-0 text-[13px] text-txt-mid">{{ t('team.tagsSub') }}</p>
@@ -77,7 +77,7 @@ void tags.reload()
       <li
         v-for="tag in tags.data.value ?? []"
         :key="tag.id"
-        class="flex flex-wrap items-center gap-3 rounded-lg bg-panel px-3 py-2"
+        class="flex flex-wrap items-center gap-3 rounded-md bg-panel px-3 py-2"
       >
         <label class="flex items-center">
           <span class="sr-only">{{ t('team.colourOf', { name: tag.label }) }}</span>
@@ -104,14 +104,14 @@ void tags.reload()
         </div>
         <RouterLink
           :to="{ path: '/projects/subjects', query: { tag: String(tag.id) } }"
-          class="rounded-lg border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+          class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
           >{{ t('team.seeSubjects') }}<span class="sr-only"> #{{ tag.label }}</span></RouterLink
         >
         <button
           type="button"
           :disabled="tag.usage > 0"
           :aria-describedby="`tag-use-${tag.id}`"
-          class="rounded-lg border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-red disabled:opacity-40"
+          class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-red disabled:opacity-40"
           @click="remove(tag)"
         >
           {{ t('team.delete') }}<span class="sr-only"> #{{ tag.label }}</span>
@@ -135,12 +135,12 @@ void tags.reload()
         type="text"
         maxlength="40"
         :placeholder="t('team.newTag')"
-        class="min-w-0 flex-1 rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+        class="min-w-0 flex-1 rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
       />
       <button
         type="submit"
         :disabled="label.trim() === ''"
-        class="rounded-lg border border-acc bg-acc px-4 py-2 text-[13px] font-bold text-ink uppercase disabled:opacity-40"
+        class="rounded-md border border-acc bg-acc px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-40"
       >
         {{ t('team.add') }}
       </button>

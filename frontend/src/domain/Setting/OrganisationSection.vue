@@ -74,9 +74,9 @@ void tokens.reload()
 </script>
 
 <template>
-  <section class="flex flex-col gap-6 rounded-lg border border-line bg-card p-4">
+  <section class="flex flex-col gap-6 border-t border-line pt-6">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="display-italic m-0 text-[22px]">{{ t('setting.organisation') }}</h2>
+      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('setting.organisation') }}</h2>
       <EffectBadge section="organisation" />
     </div>
 
@@ -90,7 +90,7 @@ void tokens.reload()
         <li
           v-for="provider in sheet.data.value?.providers ?? []"
           :key="provider.kind"
-          class="flex items-center gap-3 rounded-lg bg-panel px-3 py-2"
+          class="flex items-center gap-3 rounded-md bg-panel px-3 py-2"
         >
           <span class="text-[13px] text-txt-hi">{{ t(`provider.${provider.kind}`) }}</span>
           <span
@@ -104,7 +104,7 @@ void tokens.reload()
           <button
             v-if="sheet.data.value?.maySettle"
             type="button"
-            class="ml-auto rounded-lg border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+            class="ml-auto rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
             @click="toggle(provider)"
           >
             {{ provider.enabled ? t('organisation.switchOff') : t('organisation.switchOn') }}
@@ -119,7 +119,7 @@ void tokens.reload()
       </h3>
       <p class="text-[13px] text-txt-mid">{{ t('organisation.instanceSaid') }}</p>
 
-      <p v-if="minted !== null" class="rounded-lg border border-line bg-elev p-3">
+      <p v-if="minted !== null" class="rounded-md border border-line bg-elev p-3">
         <span class="font-mono text-[11px] text-txt-hi uppercase">{{ t('organisation.shownOnce') }}</span>
         <code class="mt-1 block font-mono text-[11px] break-all text-txt-hi">{{ minted }}</code>
       </p>
@@ -128,7 +128,7 @@ void tokens.reload()
         <li
           v-for="token in tokens.data.value ?? []"
           :key="token.id"
-          class="flex items-center gap-3 rounded-lg bg-panel px-3 py-2"
+          class="flex items-center gap-3 rounded-md bg-panel px-3 py-2"
         >
           <span class="text-[13px] text-txt-hi">{{ token.name }}</span>
           <span v-if="token.revokedAt !== null" class="font-mono text-[11px] text-txt-low uppercase">{{
@@ -137,7 +137,7 @@ void tokens.reload()
           <button
             v-else-if="sheet.data.value?.maySettle"
             type="button"
-            class="ml-auto rounded-lg border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-red"
+            class="ml-auto rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-red"
             @click="revoke(token)"
           >
             {{ t('organisation.revoke') }}
@@ -152,12 +152,12 @@ void tokens.reload()
           v-model="tokenName"
           type="text"
           :placeholder="t('organisation.tokenName')"
-          class="flex-1 rounded-lg border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+          class="flex-1 rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
         />
         <button
           type="submit"
           :disabled="tokenName.trim() === ''"
-          class="rounded-lg border border-acc bg-acc px-4 py-2 text-[13px] font-bold text-ink uppercase disabled:opacity-40"
+          class="rounded-md border border-acc bg-acc px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-40"
         >
           {{ t('organisation.mint') }}
         </button>

@@ -60,9 +60,9 @@ void users.reload()
 </script>
 
 <template>
-  <section class="flex flex-col gap-4 rounded-lg border border-line bg-card p-4" data-tour="setting-projects">
+  <section class="flex flex-col gap-4 border-t border-line pt-6" data-tour="setting-projects">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="display-italic m-0 text-[22px]">{{ t('team.projects') }}</h2>
+      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('team.projects') }}</h2>
       <EffectBadge section="projects" />
     </div>
     <p class="m-0 text-[13px] text-txt-mid">{{ t('team.projectsSub') }}</p>
@@ -91,7 +91,7 @@ void users.reload()
       <button
         v-if="!adding"
         type="button"
-        class="rounded-lg border border-line px-3 py-2 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+        class="rounded-md border border-line px-3 py-2 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
         @click="adding = true"
       >
         {{ t('team.addProject') }}

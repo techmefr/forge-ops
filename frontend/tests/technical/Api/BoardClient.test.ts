@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { BoardRequestError, createBoardClient } from '../../../src/technical/Api/BoardClient.js'
+import { BoardRequestError, createBoardClient, isRejection } from '../../../src/technical/Api/BoardClient.js'
 
 function fetcherReturning(status: number, body: unknown, capture?: RequestInit[]): typeof fetch {
   return ((path: string, init: RequestInit) => {
@@ -139,5 +139,13 @@ describe("the unauthenticated hook", () => {
     await client.read("/api/x")
 
     expect(turnedAway).not.toHaveBeenCalled()
+  })
+})
+
+describe('isRejection', () => {
+  it('is true only for a refused session, not for an unreachable or failing board', () => {
+    expect(isRejection(new BoardRequestError(401, 'Http401', 'no'))).toBe(true)
+    expect(isRejection(new BoardRequestError(500, 'Http500', 'down'))).toBe(false)
+    expect(isRejection(new TypeError('failed to fetch'))).toBe(false)
   })
 })

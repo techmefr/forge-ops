@@ -60,7 +60,7 @@ function drop(index: number): void {
       <select
         :id="`link-kind-${identifier}`"
         v-model="kind"
-        class="rounded-lg border border-line bg-card px-2 py-1.5 text-[13px] text-txt-hi"
+        class="rounded-md border border-line bg-card px-2 py-1.5 text-[13px] text-txt-hi"
       >
         <option v-for="option in LINK_KINDS" :key="option" :value="option">
           {{ t(`linkKind.${option}`) }}
@@ -72,12 +72,12 @@ function drop(index: number): void {
         v-model="address"
         type="url"
         placeholder="https://"
-        class="min-w-0 flex-1 rounded-lg border border-line bg-card px-3 py-1.5 text-[13px] text-txt-hi"
+        class="min-w-0 flex-1 rounded-md border border-line bg-card px-3 py-1.5 text-[13px] text-txt-hi"
       />
       <button
         type="submit"
         :disabled="address.trim() === ''"
-        class="rounded-lg border border-line px-3 py-1.5 font-mono text-[11px] text-txt-mid uppercase hover:border-acc disabled:opacity-40"
+        class="rounded-md border border-line px-3 py-1.5 font-mono text-[11px] text-txt-mid uppercase hover:border-acc disabled:opacity-40"
       >
         {{ t('team.addLink') }}
       </button>

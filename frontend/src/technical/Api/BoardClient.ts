@@ -21,6 +21,10 @@ export type BoardClientInput = {
   onUnauthorized?: () => void
 }
 
+export function isRejection(error: unknown): boolean {
+  return error instanceof BoardRequestError && error.status === 401
+}
+
 function messageOf(payload: unknown, status: number): { code: string; message: string } {
   if (typeof payload === 'object' && payload !== null) {
     const record = payload as Record<string, unknown>
