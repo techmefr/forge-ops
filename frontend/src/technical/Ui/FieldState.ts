@@ -1,6 +1,16 @@
 import { nextTick, watch, type Ref } from 'vue'
 import type { Phrase } from '@/technical/Language/Phrase'
 
+type Root = HTMLElement | { $el: unknown } | null
+
+function elementOf(root: Root): HTMLElement | null {
+  if (root === null) {
+    return null
+  }
+  const node = root instanceof HTMLElement ? root : root.$el
+  return node instanceof HTMLElement ? node : null
+}
+
 export type FieldState = {
   'aria-required': 'true'
   'aria-invalid': 'true' | undefined
@@ -16,22 +26,22 @@ export function requiredField(refusal: Phrase | null, errorId: string): FieldSta
   }
 }
 
-export function useRefusalFocus(refusal: Ref<Phrase | null>, root: Ref<HTMLElement | null>): void {
+export function useRefusalFocus(refusal: Ref<Phrase | null>, root: Ref<Root>): void {
   watch(refusal, async (next) => {
     if (next === null) {
       return
     }
     await nextTick()
-    root.value?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+    elementOf(root.value)?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
   })
 }
 
-export function useAlertFocus(refusal: Ref<Phrase | null>, root: Ref<HTMLElement | null>): void {
+export function useAlertFocus(refusal: Ref<Phrase | null>, root: Ref<Root>): void {
   watch(refusal, async (next) => {
     if (next === null) {
       return
     }
     await nextTick()
-    root.value?.querySelector<HTMLElement>('[role="alert"]')?.focus()
+    elementOf(root.value)?.querySelector<HTMLElement>('[role="alert"]')?.focus()
   })
 }
