@@ -1,4 +1,5 @@
 import type { CheckpointName } from './CheckpointContract.js'
+import type { EpicPlanning } from './EpicContract.js'
 
 export const STORY_KIND_SEQUENCE = ['functional', 'test'] as const
 
@@ -85,10 +86,11 @@ export type Epic = {
   businessIntent: string
 }
 
-export type EpicOverview = Epic & {
-  storyCount: number
-  assignee: string | null
-}
+export type EpicOverview = Epic &
+  EpicPlanning & {
+    storyCount: number
+    assignee: string | null
+  }
 
 export type Story = {
   id: number

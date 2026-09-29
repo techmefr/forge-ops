@@ -50,7 +50,7 @@ beforeAll(() => {
 afterEach(() => {
   db.exec(
     'DELETE FROM agent_session; DELETE FROM story_remark; DELETE FROM acceptance_criterion;' +
-      ' DELETE FROM checkpoint; DELETE FROM story; DELETE FROM epic; DELETE FROM project;' +
+      ' DELETE FROM checkpoint; DELETE FROM story; DELETE FROM epic_state_history; DELETE FROM epic; DELETE FROM project;' +
       ' DELETE FROM sqlite_sequence',
   )
 })

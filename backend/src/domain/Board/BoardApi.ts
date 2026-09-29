@@ -19,6 +19,7 @@ import { PHASE_CONTRACTS } from '../Dispatch/Dispatch.js'
 import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import { createBudgetApi } from '../Budget/BudgetApi.js'
 import { KANBAN_COLUMNS } from '../Story/Story.js'
+import { createEpicApi } from '../Epic/EpicApi.js'
 import { createStoryApi } from '../Story/StoryApi.js'
 import { createHumanGateApi } from '../Story/HumanGateApi.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
@@ -164,8 +165,15 @@ export function createBoardApi({
     if (!projectId.success) {
       return context.json({ error: 'InvalidProjectIdentifier' }, 422)
     }
-    return context.json(repository.listEpics(projectId.data))
+    return context.json(
+      repository.listEpics(projectId.data, {
+        today: today(),
+        deleted: context.req.query('deleted') === 'true',
+      }),
+    )
   })
+
+  api.route('/', createEpicApi({ epics: repository.epics, events, today }))
 
   api.route(
     '/',

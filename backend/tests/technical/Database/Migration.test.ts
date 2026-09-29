@@ -350,3 +350,62 @@ describe('migrate atomicity', () => {
     db.close()
   })
 })
+
+describe('opening a base written before the epic planning fields', () => {
+  const OLD_EPIC = `CREATE TABLE epic (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  business_intent TEXT NOT NULL,
+  assignee TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+)`
+
+  function writeOldEpic(): void {
+    const older = new Database(path)
+    older.exec(OLD_EPIC)
+    older
+      .prepare('INSERT INTO epic (project_id, title, business_intent, assignee) VALUES (?, ?, ?, ?)')
+      .run(1, 'Cloudmail', 'Mail', 'gaetan')
+    older.close()
+  }
+
+  it('adds the planning columns', () => {
+    writeOldEpic()
+    const db = openDatabase(path)
+    expect(columnsOf(db, 'epic')).toEqual(
+      expect.arrayContaining(['priority', 'started_on', 'status_note', 'requested_by', 'deleted_at']),
+    )
+    db.close()
+  })
+
+  it('leaves the epics already written as they were, at normal priority', () => {
+    writeOldEpic()
+    const db = openDatabase(path)
+    expect(
+      db
+        .prepare<[], Record<string, unknown>>('SELECT title, assignee, priority, started_on, deleted_at FROM epic')
+        .all(),
+    ).toEqual([
+      { title: 'Cloudmail', assignee: 'gaetan', priority: 'normal', started_on: null, deleted_at: null },
+    ])
+    db.close()
+  })
+
+  it('creates the tag, link, dependency and history tables', () => {
+    writeOldEpic()
+    const db = openDatabase(path)
+    for (const table of ['tag', 'epic_tag', 'epic_link', 'project_link', 'epic_dependency', 'epic_state_history']) {
+      expect(columnsOf(db, table).length).toBeGreaterThan(0)
+    }
+    db.close()
+  })
+
+  it('adds nothing twice when opened again', () => {
+    writeOldEpic()
+    openDatabase(path).close()
+    const db = openDatabase(path)
+    expect(columnsOf(db, 'epic').filter((name) => name === 'priority')).toHaveLength(1)
+    db.close()
+  })
+})
