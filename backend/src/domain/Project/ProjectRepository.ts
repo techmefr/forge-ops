@@ -50,6 +50,8 @@ export function createProjectRepository(
   )
   const deleteLinks = db.prepare<[number]>('DELETE FROM project_link WHERE project_id = ?')
   const deleteTemplate = db.prepare<[number]>('DELETE FROM project_template WHERE project_id = ?')
+  const deleteRisks = db.prepare<[number]>('DELETE FROM project_risk WHERE project_id = ?')
+  const deleteDecisions = db.prepare<[number]>('DELETE FROM project_decision WHERE project_id = ?')
   const deleteZones = db.prepare<[number]>('DELETE FROM zone WHERE project_id = ?')
   const deleteBatchStories = db.prepare<[number]>(
     'DELETE FROM batch_story WHERE batch_id IN (SELECT id FROM merge_batch WHERE project_id = ?)',
@@ -123,6 +125,8 @@ export function createProjectRepository(
     }
     deleteLinks.run(projectId)
     deleteTemplate.run(projectId)
+    deleteRisks.run(projectId)
+    deleteDecisions.run(projectId)
     deleteZones.run(projectId)
     deleteBatchStories.run(projectId)
     deleteBatches.run(projectId)

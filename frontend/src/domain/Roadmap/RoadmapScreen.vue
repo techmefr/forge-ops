@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import { tintOf } from '@/technical/Ui/Tint'
 import { minutesToWrite, type ProjectEvent } from '@contract/EventContract'
+import WeatherCards from '@/domain/FollowUp/WeatherCards.vue'
 import EventDialog from './EventDialog.vue'
 import { EVENT_TONES } from './EventTone'
 import {
@@ -51,6 +52,7 @@ type ProjectBlock = {
 const { t, locale } = useI18n()
 
 const roadmap = useRoadmap()
+const cards = ref<InstanceType<typeof WeatherCards> | null>(null)
 const today = ref(localDay(new Date()))
 const dialog = ref<{
   event: ProjectEvent | null
@@ -194,7 +196,7 @@ function openEvent(event: ProjectEvent): void {
 
 async function saved(): Promise<void> {
   dialog.value = null
-  await roadmap.reload()
+  await Promise.all([roadmap.reload(), cards.value?.reload()])
 }
 
 onMounted(() => {
@@ -215,6 +217,8 @@ onMounted(() => {
         {{ t('roadmap.newEvent') }}
       </button>
     </div>
+
+    <WeatherCards ref="cards" />
 
     <ScreenState
       :pending="roadmap.pending.value && roadmap.data.value === null"

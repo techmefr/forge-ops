@@ -12,7 +12,7 @@ export type RoadmapProject = {
   links: readonly SubjectLink[]
 }
 
-function subjectOf(epic: EpicOverview): RoadmapSubject {
+export function subjectOf(epic: EpicOverview): RoadmapSubject {
   return {
     id: epic.id,
     title: epic.title,

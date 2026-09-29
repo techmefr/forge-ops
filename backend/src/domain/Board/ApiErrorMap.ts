@@ -15,12 +15,14 @@ import { EvidenceUnreadableError } from '../Evidence/EvidenceRead.js'
 import { BudgetViolationError } from '../Budget/BudgetViolation.js'
 import { EventNotFoundError } from '../Event/EventViolation.js'
 import { ItemInUseError, TagNotFoundError } from '../Epic/EpicViolation.js'
+import { RiskNotFoundError } from '../FollowUp/FollowUpViolation.js'
 import { ForgeCardViolationError } from '../ForgeCard/ForgeCardViolation.js'
 
 export const mapApiError: ErrorHandler = (error, context) => {
   if (error instanceof StoryNotFoundError ||
     error instanceof EpicNotFoundError ||
     error instanceof EventNotFoundError ||
+    error instanceof RiskNotFoundError ||
     error instanceof TagNotFoundError) {
     return context.json({ error: error.name, message: error.message }, 404)
   }

@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS project (
   checkout_path TEXT,
   admin_user_id INTEGER REFERENCES board_user(id),
   position INTEGER NOT NULL DEFAULT 0,
+  status_sentence TEXT,
+  weather_override TEXT CHECK (weather_override IN ('sunny', 'cloudy', 'stormy')),
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -451,6 +453,29 @@ CREATE TABLE IF NOT EXISTS project_link (
 );
 
 CREATE INDEX IF NOT EXISTS idx_project_link_project ON project_link(project_id, id);
+
+CREATE TABLE IF NOT EXISTS project_risk (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL REFERENCES project(id),
+  text TEXT NOT NULL,
+  level TEXT NOT NULL CHECK (level IN ('high', 'medium', 'low')),
+  owner TEXT,
+  epic_id INTEGER REFERENCES epic(id),
+  opened_on TEXT NOT NULL,
+  closed_on TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_project_risk_project ON project_risk(project_id, closed_on);
+
+CREATE TABLE IF NOT EXISTS project_decision (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL REFERENCES project(id),
+  decided_on TEXT NOT NULL,
+  text TEXT NOT NULL,
+  decided_by TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_project_decision_project ON project_decision(project_id, decided_on);
 
 CREATE TABLE IF NOT EXISTS epic_dependency (
   epic_id INTEGER NOT NULL REFERENCES epic(id),

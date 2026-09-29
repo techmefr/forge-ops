@@ -610,6 +610,25 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
         minutes: event.minutes,
       })
     }
+    stories.followUps.changeWeather(projectId, {
+      statusSentence: 'Delivery is on track, the client review is the next checkpoint.',
+    })
+    stories.followUps.openRisk(
+      projectId,
+      { text: 'The client validation may slip past the release date', level: 'high', owner: null, epicId: first.id },
+      dayFromNow(-5),
+    )
+    stories.followUps.openRisk(
+      projectId,
+      { text: 'Staging data is not refreshed every week', level: 'low', owner: null, epicId: null },
+      dayFromNow(-9),
+    )
+    stories.followUps.recordDecision(
+      projectId,
+      { text: 'Release stays on the planned date, scope is frozen', decidedOn: dayFromNow(-14), decidedBy: 'Steering committee' },
+      'local',
+      dayFromNow(0),
+    )
   }
   const sessionOf = new Map<string, string>()
   SESSION_PLAN.forEach((plan, index) => {

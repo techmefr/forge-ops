@@ -49,6 +49,18 @@ function serve(epics: unknown[], events: ProjectEvent[]): void {
     '/api/projects/1/epics': epics,
     '/api/projects/1/events': events,
     '/api/projects/1/links': [{ kind: 'repo', url: 'https://example.com/repo' }],
+    '/api/projects/1/follow-up': {
+      projectId: 1,
+      statusSentence: null,
+      weather: 'sunny',
+      source: 'computed',
+      score: { late: 0, blocked: 0, highRisks: 0, total: 0 },
+      alerts: { late: 0, blocked: 0, highRisks: 0, minutesToWrite: 0 },
+      nextEvent: null,
+      risks: [],
+      decisions: [],
+      events,
+    },
   }
   read.mockImplementation((path: string) => Promise.resolve(responses[path] ?? []))
 }

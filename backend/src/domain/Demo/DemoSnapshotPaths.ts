@@ -40,6 +40,7 @@ export const PROJECT_PATHS: readonly string[] = [
   '/api/epics/:id/history',
   '/api/projects/:id/epics',
   '/api/projects/:id/events',
+  '/api/projects/:id/follow-up',
   '/api/projects/:id/links',
   '/api/projects/:id/template',
   '/api/projects/:id/tree',
