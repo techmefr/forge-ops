@@ -1,6 +1,8 @@
 import { createDemoState } from './DemoLoader'
+import { restoreDemoState, saveDemoState } from './DemoSession'
 import { FOLLOW_UP_ROUTES } from './DemoFollowUp'
 import { FORGE_ROUTES } from './DemoForge'
+import { INCIDENT_ROUTES } from './DemoIncidents'
 import { SUBJECT_ROUTES } from './DemoSubjects'
 import { TEAM_ROUTES } from './DemoTeam'
 import { WORKFLOW_ROUTES } from './DemoWorkflow'
@@ -18,10 +20,12 @@ const ROUTES: readonly DemoRoute[] = [
   ...TEAM_ROUTES,
   ...WORKFLOW_ROUTES,
   ...FORGE_ROUTES,
+  ...INCIDENT_ROUTES,
 ]
 
 export type DemoStore = {
   handle: (method: string, url: string, body: unknown) => DemoReply
+  save: () => string
 }
 
 function bodyRecord(body: unknown): Record<string, unknown> {
@@ -41,10 +45,18 @@ function filtered(payload: unknown, query: URLSearchParams): unknown {
   })
 }
 
-export function createDemoStore(snapshot: Record<string, unknown>, env: DemoEnvironment): DemoStore {
+export function createDemoStore(
+  snapshot: Record<string, unknown>,
+  env: DemoEnvironment,
+  saved: string | null = null,
+): DemoStore {
   const state = createDemoState(snapshot)
+  if (saved !== null) {
+    restoreDemoState(state, saved)
+  }
 
   return {
+    save: () => saveDemoState(state),
     handle: (method, url, body) => {
       const [pathname = '', search = ''] = url.split('?')
       const query = new URLSearchParams(search)

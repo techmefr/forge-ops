@@ -280,3 +280,10 @@ describe('seedDemoBoard coverage of the team screens', () => {
     expect(withSteps.total).toBeLessThan(createStoryRepository(db).listProjects().length)
   })
 })
+
+describe('seedDemoBoard incidents', () => {
+  it('leaves pending, accepted and refused incidents to browse', () => {
+    const states = db.prepare('SELECT DISTINCT state FROM incident').all() as { state: string }[]
+    expect(states.map((row) => row.state).sort()).toEqual(['accepted', 'pending', 'refused'])
+  })
+})

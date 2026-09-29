@@ -10,6 +10,7 @@ import {
   refusal,
   reply,
   route,
+  setSingleton,
   type DemoContext,
   type DemoReply,
   type DemoRoute,
@@ -188,7 +189,7 @@ function createUser(context: DemoContext): DemoReply {
 }
 
 function replaceSingleton(state: DemoState, path: string, change: (current: Record<string, unknown>) => unknown): void {
-  state.singletons[path] = change((state.singletons[path] ?? {}) as Record<string, unknown>)
+  setSingleton(state, path, change((state.singletons[path] ?? {}) as Record<string, unknown>))
 }
 
 export const TEAM_ROUTES: readonly DemoRoute[] = [
@@ -244,12 +245,16 @@ export const TEAM_ROUTES: readonly DemoRoute[] = [
       revokedAt: null,
     }
     const held = (context.state.singletons['/api/instance/tokens'] ?? []) as InstanceToken[]
-    context.state.singletons['/api/instance/tokens'] = [...held, token]
+    setSingleton(context.state, '/api/instance/tokens', [...held, token])
     return reply({ token, secret: `demo-${token.id}-not-a-real-token` }, 201)
   }),
   route('DELETE', '/api/instance/tokens/(\\d+)', (context) => {
     const held = (context.state.singletons['/api/instance/tokens'] ?? []) as { id: number }[]
-    context.state.singletons['/api/instance/tokens'] = held.filter((token) => token.id !== identifierAt(context))
+    setSingleton(
+      context.state,
+      '/api/instance/tokens',
+      held.filter((token) => token.id !== identifierAt(context)),
+    )
     return reply(null, 204)
   }),
   route('PUT', '/api/auth/profile', () => reply({})),

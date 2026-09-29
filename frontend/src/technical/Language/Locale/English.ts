@@ -1334,7 +1334,9 @@ export const ENGLISH = {
   },
   visit: {
     title: 'Live demo',
-    body: 'This is a demonstration board on sample data. Your changes stay in this browser tab and vanish on reload, and the agents are simulated. Install the board to run it for real.',
+    body: 'This is a demonstration board on sample data. Your changes stay in this browser tab and are kept across reloads until you reset the demo, and the agents are simulated. Install the board to run it for real.',
+    reset: 'Reset demo',
+    readOnly: 'This action is read-only in the demo. Install the board to use it for real.',
     source: 'The repository',
   },
   tour: {

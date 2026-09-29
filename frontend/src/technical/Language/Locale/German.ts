@@ -1348,7 +1348,9 @@ export const GERMAN: Message = {
   },
   visit: {
     title: 'Live-Demo',
-    body: 'Dies ist ein Demo-Board mit Beispieldaten. Ihre Änderungen bleiben in diesem Tab und verschwinden beim Neuladen, die Agenten sind simuliert. Installieren Sie das Board, um es wirklich zu betreiben.',
+    body: 'Dies ist ein Demo-Board mit Beispieldaten. Ihre Änderungen bleiben in diesem Tab und bleiben beim Neuladen bis zum Zurücksetzen erhalten, die Agenten sind simuliert. Installieren Sie das Board, um es wirklich zu betreiben.',
+    reset: 'Demo zurücksetzen',
+    readOnly: 'Diese Aktion ist in der Demo nur lesbar. Installieren Sie das Board, um sie wirklich zu nutzen.',
     source: 'Das Repository',
   },
   tour: {

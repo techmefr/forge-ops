@@ -33,6 +33,14 @@ describe('createDemoFetcher', () => {
     await expect(response.json()).resolves.toMatchObject({ error: 'DemonstrationFigee' })
   })
 
+  it('announces a refused write so the screen can say it is read-only', async () => {
+    const emit = vi.fn()
+    const fetcher = createDemoFetcher(() => Promise.resolve(SNAPSHOT), { ...ENVIRONMENT, emit })
+    await fetcher('/api/stories/1/dispatch', { method: 'POST' })
+
+    expect(emit).toHaveBeenCalledWith({ name: 'demo.readonly', payload: {} })
+  })
+
   it('filters a captured list by the query string of the route', async () => {
     const fetcher = createDemoFetcher(() => Promise.resolve(SNAPSHOT), ENVIRONMENT)
     const response = await fetcher('/api/incidents?state=pending')

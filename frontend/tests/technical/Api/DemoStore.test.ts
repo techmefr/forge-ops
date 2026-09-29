@@ -31,6 +31,7 @@ const SNAPSHOT = {
   '/api/epics': [epic(1, 1, { assignee: 'local' }), epic(2, 1, { state: 'blocked' })],
   '/api/epics?state=trash': [epic(3, 1, { state: 'trash', deletedAt: '2026-09-01T00:00:00Z' })],
   '/api/tags': [],
+  '/api/incidents': [{ id: 9, originId: 1, fingerprint: 'f', title: 'T', detail: 'D', occurrences: 1, state: 'pending', storyId: null, refusalReason: null }],
   '/api/board-users': [],
   '/api/board/self': { login: 'local', superAdmin: true },
   '/api/projects/1/events': [],
@@ -230,5 +231,39 @@ describe('forms', () => {
     const second = store.handle('POST', '/api/projects', { name: 'A', colour: '#00ff00', repository: '' })
 
     expect((second.body as { slug: string }).slug).toBe('a-3')
+  })
+})
+
+describe('incidents', () => {
+  it('accepts a pending incident into a subject, once', () => {
+    expect(store.handle('POST', '/api/incidents/9/accept', { epicId: 1 }).status).toBe(201)
+    expect(read('/api/incidents?state=accepted')).toHaveLength(1)
+    expect(store.handle('POST', '/api/incidents/9/refuse', { reason: 'late' }).status).toBe(409)
+  })
+
+  it('refuses with a reason', () => {
+    expect(store.handle('POST', '/api/incidents/9/refuse', { reason: '' }).status).toBe(422)
+    store.handle('POST', '/api/incidents/9/refuse', { reason: 'duplicate' })
+    expect(read('/api/incidents?state=refused')).toMatchObject([{ refusalReason: 'duplicate' }])
+  })
+})
+
+describe('session', () => {
+  it('carries the edits into a store rebuilt from the saved copy', () => {
+    store.handle('POST', '/api/tags', { label: 'kept', colour: '#a855f7' })
+    store.handle('POST', '/api/incidents/9/refuse', { reason: 'duplicate' })
+    store.handle('POST', '/api/forge-cards/1/move', { stepKey: 'architecture' })
+
+    const again = createDemoStore(SNAPSHOT, ENVIRONMENT, store.save())
+
+    expect(again.handle('GET', '/api/tags', null).body).toMatchObject([{ label: 'kept' }])
+    expect(again.handle('GET', '/api/incidents?state=refused', null).body).toHaveLength(1)
+    const cards = again.handle('GET', '/api/forge-cards?project=1', null).body as { id: number; status: string }[]
+    expect(cards.find((held) => held.id === 1)?.status).toBe('to_validate')
+  })
+
+  it('ignores a corrupted saved copy', () => {
+    const again = createDemoStore(SNAPSHOT, ENVIRONMENT, '{nope')
+    expect(again.handle('GET', '/api/epics', null).body).toHaveLength(2)
   })
 })

@@ -42,6 +42,12 @@ export type DemoState = {
   failedOnce: Set<number>
   generation: Map<number, number>
   sequence: number
+  touched: Set<string>
+}
+
+export function setSingleton(state: DemoState, path: string, value: unknown): void {
+  state.singletons[path] = value
+  state.touched.add(path)
 }
 
 export function reply(body: unknown, status = 200): DemoReply {

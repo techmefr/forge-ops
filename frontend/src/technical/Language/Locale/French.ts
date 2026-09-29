@@ -1345,7 +1345,9 @@ export const FRENCH: Message = {
   },
   visit: {
     title: 'Démo interactive',
-    body: 'Ceci est un board de démonstration sur des données d’exemple. Vos changements restent dans cet onglet et disparaissent au rechargement, les agents sont simulés. Installez le board pour le lancer pour de vrai.',
+    body: 'Ceci est un board de démonstration sur des données d’exemple. Vos changements restent dans cet onglet et sont conservés au rechargement jusqu’à la réinitialisation, les agents sont simulés. Installez le board pour le lancer pour de vrai.',
+    reset: 'Réinitialiser',
+    readOnly: 'Cette action est en lecture seule dans la démo. Installez le board pour l’utiliser pour de vrai.',
     source: 'Le dépôt',
   },
   tour: {

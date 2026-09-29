@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { resetDemo } from '@/technical/Api/DemoStream'
 
 const REPOSITORY = 'https://github.com/techmefr/forge-ops'
 
@@ -27,6 +28,14 @@ const open = ref(true)
       >
         {{ t('visit.source') }}
       </a>
+      <button
+        type="button"
+        class="font-mono text-[11px] tracking-[0.14em] text-txt-hi uppercase underline underline-offset-2"
+        data-test-id="demo-reset"
+        @click="resetDemo"
+      >
+        {{ t('visit.reset') }}
+      </button>
       <button
         type="button"
         class="font-mono text-[11px] tracking-[0.14em] text-txt-low uppercase"

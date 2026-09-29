@@ -1347,7 +1347,9 @@ export const SPANISH: Message = {
   },
   visit: {
     title: 'Demo interactiva',
-    body: 'Este es un tablero de demostración con datos de ejemplo. Tus cambios se quedan en esta pestaña y desaparecen al recargar, los agentes son simulados. Instala el board para usarlo de verdad.',
+    body: 'Este es un tablero de demostración con datos de ejemplo. Tus cambios se quedan en esta pestaña y se conservan al recargar hasta restablecer la demo, los agentes son simulados. Instala el board para usarlo de verdad.',
+    reset: 'Restablecer demo',
+    readOnly: 'Esta acción es de solo lectura en la demo. Instala el board para usarla de verdad.',
     source: 'El repositorio',
   },
   tour: {

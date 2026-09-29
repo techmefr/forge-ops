@@ -1347,7 +1347,9 @@ export const ITALIAN: Message = {
   },
   visit: {
     title: 'Demo interattiva',
-    body: 'Questa è una bacheca dimostrativa con dati di esempio. Le tue modifiche restano in questa scheda e spariscono al ricaricamento, gli agenti sono simulati. Installa il board per usarlo davvero.',
+    body: 'Questa è una bacheca dimostrativa con dati di esempio. Le tue modifiche restano in questa scheda e restano dopo il ricaricamento fino al ripristino, gli agenti sono simulati. Installa il board per usarlo davvero.',
+    reset: 'Reimposta demo',
+    readOnly: 'Questa azione è di sola lettura nella demo. Installa il board per usarla davvero.',
     source: 'Il repository',
   },
   tour: {
