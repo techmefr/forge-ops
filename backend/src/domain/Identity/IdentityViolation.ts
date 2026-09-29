@@ -35,6 +35,12 @@ export class EmailTakenError extends IdentityViolationError {
   }
 }
 
+export class LastSuperAdminError extends IdentityViolationError {
+  constructor() {
+    super('Le dernier super admin ne peut pas perdre son drapeau : nommez-en un autre d abord', 'LastSuperAdminError')
+  }
+}
+
 export class UnknownAccountError extends IdentityViolationError {
   constructor(login: string) {
     super(`Le compte ${login} est introuvable`, 'UnknownAccountError')

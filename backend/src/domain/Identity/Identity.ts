@@ -6,6 +6,12 @@ export type BoardUser = {
   displayName: string
   role: UserRole
   email: string | null
+  superAdmin: boolean
+}
+
+export type SuperAdminSeed = {
+  login: string
+  password: string
 }
 
 export type UserDraft = {

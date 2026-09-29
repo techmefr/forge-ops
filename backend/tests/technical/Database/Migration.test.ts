@@ -59,6 +59,23 @@ beforeEach(() => {
 
 afterEach(() => rmSync(folder, { recursive: true, force: true }))
 
+describe('opening a base written before the super admin flag', () => {
+  it('adds the flag and leaves existing accounts unflagged', () => {
+    const older = new Database(path)
+    older.exec(OLD_BOARD_USER)
+    older
+      .prepare('INSERT INTO board_user (login, display_name, password_hash) VALUES (?, ?, ?)')
+      .run('gaetan', 'Gaetan', 'peu importe')
+    older.close()
+    const db = openDatabase(path)
+    expect(columnsOf(db, 'board_user')).toContain('super_admin')
+    expect(
+      db.prepare<[], { super_admin: number }>('SELECT super_admin FROM board_user').get()?.super_admin,
+    ).toBe(0)
+    db.close()
+  })
+})
+
 describe('opening a base written before the email column', () => {
   it('adds the column', () => {
     const older = new Database(path)

@@ -6,10 +6,18 @@ import {
   PASSWORD_MIN_LENGTH,
   verifyPassword,
 } from '../../technical/Auth/PasswordHash.js'
-import { SESSION_LIFETIME_MS, type BoardUser, type OpenedSession, type UserDraft, type UserRole } from './Identity.js'
+import {
+  SESSION_LIFETIME_MS,
+  type BoardUser,
+  type OpenedSession,
+  type SuperAdminSeed,
+  type UserDraft,
+  type UserRole,
+} from './Identity.js'
 import {
   AccountDisabledError,
   EmailTakenError,
+  LastSuperAdminError,
   LoginRefusedError,
   LoginTakenError,
   PasswordRefusedError,
@@ -25,6 +33,7 @@ type UserRow = {
   password_hash: string
   role: UserRole
   email: string | null
+  super_admin: number
   disabled_at: string | null
 }
 
@@ -38,6 +47,9 @@ export type IdentityRepository = {
   enrolUser: (draft: UserDraft) => BoardUser
   disableUser: (login: string) => void
   countUsers: () => number
+  countSuperAdmins: () => number
+  bootstrapSuperAdmin: (seed: SuperAdminSeed) => BoardUser
+  changeSuperAdmin: (login: string, superAdmin: boolean) => BoardUser
   openSession: (login: string, password: string) => OpenedSession
   readSession: (token: string) => BoardUser | null
   closeSession: (token: string) => void
@@ -54,6 +66,7 @@ function toUser(row: UserRow): BoardUser {
     displayName: row.display_name,
     role: row.role,
     email: row.email ?? null,
+    superAdmin: row.super_admin === 1,
   }
 }
 
@@ -72,6 +85,12 @@ export function createIdentityRepository(
   const countAllUsers = db.prepare<[], { total: number }>('SELECT COUNT(*) AS total FROM board_user')
   const disableByLogin = db.prepare<[string]>(
     "UPDATE board_user SET disabled_at = datetime('now') WHERE login = ?",
+  )
+  const countActiveSuperAdmins = db.prepare<[], { total: number }>(
+    'SELECT COUNT(*) AS total FROM board_user WHERE super_admin = 1 AND disabled_at IS NULL',
+  )
+  const updateSuperAdmin = db.prepare<[number, string]>(
+    'UPDATE board_user SET super_admin = ? WHERE login = ?',
   )
   const insertSession = db.prepare<[string, number, string]>(
     'INSERT INTO board_session (token_hash, user_id, expires_at) VALUES (?, ?, ?)',
@@ -105,27 +124,49 @@ export function createIdentityRepository(
     return row
   }
 
+  function enrolAccount(draft: UserDraft): BoardUser {
+    if (selectUserByLogin.get(draft.login) !== undefined) {
+      throw new LoginTakenError(draft.login)
+    }
+    if (draft.password.length < PASSWORD_MIN_LENGTH) {
+      throw new PasswordRefusedError(`il faut au moins ${PASSWORD_MIN_LENGTH} caracteres`)
+    }
+    if (draft.password.length > PASSWORD_MAX_LENGTH) {
+      throw new PasswordRefusedError(`il faut au plus ${PASSWORD_MAX_LENGTH} caracteres`)
+    }
+    const stored = hashPassword(draft.password)
+    const info = insertUser.run(draft.login, draft.displayName, stored, draft.role)
+    return {
+      id: Number(info.lastInsertRowid),
+      login: draft.login,
+      displayName: draft.displayName,
+      role: draft.role,
+      email: null,
+      superAdmin: false,
+    }
+  }
+
   return {
-    enrolUser: (draft) => {
-      if (selectUserByLogin.get(draft.login) !== undefined) {
-        throw new LoginTakenError(draft.login)
+    enrolUser: enrolAccount,
+
+    bootstrapSuperAdmin: (seed) => {
+      if (selectUserByLogin.get(seed.login) === undefined) {
+        enrolAccount({ login: seed.login, displayName: seed.login, password: seed.password, role: 'director' })
       }
-      if (draft.password.length < PASSWORD_MIN_LENGTH) {
-        throw new PasswordRefusedError(`il faut au moins ${PASSWORD_MIN_LENGTH} caracteres`)
-      }
-      if (draft.password.length > PASSWORD_MAX_LENGTH) {
-        throw new PasswordRefusedError(`il faut au plus ${PASSWORD_MAX_LENGTH} caracteres`)
-      }
-      const stored = hashPassword(draft.password)
-      const info = insertUser.run(draft.login, draft.displayName, stored, draft.role)
-      return {
-        id: Number(info.lastInsertRowid),
-        login: draft.login,
-        displayName: draft.displayName,
-        role: draft.role,
-        email: null,
-      }
+      updateSuperAdmin.run(1, seed.login)
+      return toUser(demandUser(seed.login))
     },
+
+    changeSuperAdmin: (login, superAdmin) => {
+      const row = demandUser(login)
+      if (!superAdmin && row.super_admin === 1 && (countActiveSuperAdmins.get()?.total ?? 0) <= 1) {
+        throw new LastSuperAdminError()
+      }
+      updateSuperAdmin.run(superAdmin ? 1 : 0, login)
+      return { ...toUser(row), superAdmin }
+    },
+
+    countSuperAdmins: () => countActiveSuperAdmins.get()?.total ?? 0,
 
     disableUser: (login) => {
       disableByLogin.run(login)
