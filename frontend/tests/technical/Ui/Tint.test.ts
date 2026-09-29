@@ -1,5 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import { tintOf } from '../../../src/technical/Ui/Tint.js'
+import { textOnTint, tintOf } from '../../../src/technical/Ui/Tint.js'
+
+describe('textOnTint', () => {
+  it('reads dark on a light tint', () => {
+    expect(textOnTint('#ffee00')).toBe('#141419')
+  })
+
+  it('reads light on a dark tint', () => {
+    expect(textOnTint('#1a2b66')).toBe('#ffffff')
+  })
+
+  it('accepts the short hexadecimal form', () => {
+    expect(textOnTint('#fe0')).toBe('#141419')
+  })
+
+  it('lets the theme decide for a named colour', () => {
+    expect(textOnTint('acc')).toBe('var(--forge-ink)')
+  })
+})
 
 describe('tintOf', () => {
   it('prend une couleur du theme par son nom', () => {

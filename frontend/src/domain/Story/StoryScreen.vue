@@ -420,7 +420,7 @@ onMounted(async () => {
           <button
             type="submit"
             :disabled="busy"
-            class="rounded-lg border border-violet bg-violet-soft/20 px-3 py-2 text-sm font-bold text-violet uppercase disabled:opacity-50"
+            class="rounded-lg border border-violet bg-card px-3 py-2 text-sm font-bold text-violet uppercase disabled:opacity-50"
           >
             {{ t('story.writeTwin') }}
           </button>

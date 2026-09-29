@@ -2,7 +2,6 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { TabsList, TabsRoot, TabsTrigger } from 'reka-ui'
 import { SCREENS, screenOfPath } from '@/technical/Router/Screen'
 import { screenOfArrow } from '@/technical/Router/TabRing'
 import { ARMED, IDLE, resolveStroke, type Phase } from '@/technical/Router/Shortcut'
@@ -23,7 +22,7 @@ const { working } = useFleet()
 
 const current = computed(() => screenOfPath(route.path))
 
-const strip = ref<InstanceType<typeof TabsList> | null>(null)
+const strip = ref<HTMLElement | null>(null)
 
 function editing(target: EventTarget | null): boolean {
   const node = target instanceof HTMLElement ? target : null
@@ -56,23 +55,11 @@ async function ride(event: KeyboardEvent): Promise<void> {
   }
   event.preventDefault()
   await router.push(wanted.path)
-  const open = (strip.value?.$el as HTMLElement | undefined)?.querySelector<HTMLElement>(
-    '[aria-selected="true"]',
-  )
-  open?.focus()
+  strip.value?.querySelector<HTMLElement>('[aria-current="page"]')?.focus()
 }
 
 onMounted(() => window.addEventListener('keydown', jump))
 onBeforeUnmount(() => window.removeEventListener('keydown', jump))
-
-watch(
-  current,
-  () => {
-    const open = (strip.value?.$el as HTMLElement | undefined)?.querySelector('[aria-selected="true"]')
-    open?.scrollIntoView?.({ inline: 'center', block: 'nearest' })
-  },
-  { flush: 'post' },
-)
 
 const heading = computed(() => {
   if (route.matched.length === 0) {
@@ -87,6 +74,23 @@ const heading = computed(() => {
   }
   return { digit: '~', label: t('shell.access'), sub: t('shell.accessSub') }
 })
+
+watch(
+  () => `${heading.value.label} · Forge.ops`,
+  (title) => {
+    document.title = title
+  },
+  { immediate: true },
+)
+
+watch(
+  current,
+  () => {
+    strip.value?.querySelector('[aria-current="page"]')?.scrollIntoView?.({ inline: 'center', block: 'nearest' })
+  },
+  { flush: 'post' },
+)
+
 </script>
 
 <template>
@@ -95,56 +99,50 @@ const heading = computed(() => {
       <div class="flex flex-none items-center gap-3 py-3 sm:py-4">
         <p class="display-italic text-[22px] leading-none">Forge<span class="text-acc">.</span>ops</p>
       </div>
-      <TabsRoot :model-value="current?.key" activation-mode="manual" as="div" class="contents">
-        <TabsList
-          ref="strip"
-          as="nav"
-          data-tour="shell-pipeline"
-          class="scrollbar-none flex min-w-0 items-stretch gap-0.5 overflow-x-auto"
-          :aria-label="t('shell.pipeline')"
-          @keydown="ride"
+      <nav
+        ref="strip"
+        data-tour="shell-pipeline"
+        class="scrollbar-none flex min-w-0 items-stretch gap-0.5 overflow-x-auto"
+        :aria-label="t('shell.pipeline')"
+        @keydown="ride"
+      >
+        <RouterLink
+          v-for="screen in SCREENS"
+          :key="screen.key"
+          :to="screen.path"
+          :aria-keyshortcuts="`Alt+Shift+${screen.digit}`"
+          :title="t('shell.shortcut', { digit: screen.digit })"
+          class="flex flex-col justify-center gap-[3px] border-b-2 px-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc"
+          :class="
+            current?.key === screen.key
+              ? 'border-acc text-txt-hi'
+              : 'border-transparent text-txt-mid hover:text-txt-hi'
+          "
         >
-          <TabsTrigger
-            v-for="screen in SCREENS"
-            :key="screen.key"
-            :value="screen.key"
-            as-child
+          <span
+            class="font-mono text-[11px]"
+            :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
+            aria-hidden="true"
+            >{{ screen.digit }}</span
           >
-            <RouterLink
-              :to="screen.path"
-              :aria-keyshortcuts="`Alt+Shift+${screen.digit}`"
-              :title="t('shell.shortcut', { digit: screen.digit })"
-              class="flex flex-col justify-center gap-[3px] border-b-2 px-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc"
-              :class="
-                current?.key === screen.key
-                  ? 'border-acc text-txt-hi'
-                  : 'border-transparent text-txt-mid hover:text-txt-hi'
-              "
-            >
-              <span
-                class="font-mono text-[11px]"
-                :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
-                >{{ screen.digit }}</span
-              >
-              <span class="flex items-center gap-1.5 whitespace-nowrap">
-                <Glyph :name="screen.key" :size="14" />
-                <span class="display-italic text-sm uppercase">{{
-                  t(`screen.${screen.key}.label`)
-                }}</span>
-              </span>
-            </RouterLink>
-          </TabsTrigger>
-        </TabsList>
-      </TabsRoot>
+          <span class="flex items-center gap-1.5 whitespace-nowrap">
+            <Glyph :name="screen.key" :size="14" />
+            <span class="display-italic text-sm uppercase">{{
+              t(`screen.${screen.key}.label`)
+            }}</span>
+          </span>
+        </RouterLink>
+      </nav>
     </header>
 
-    <header
+    <section
+      aria-labelledby="page-heading"
       class="sticky top-0 z-40 flex flex-wrap items-center gap-3 border-b border-line bg-panel/80 px-4 py-3 backdrop-blur sm:min-h-[92px] sm:gap-4 sm:px-8 sm:py-4"
     >
       <div class="min-w-0 flex-[1_1_240px]" data-tour="shell-heading">
         <div class="flex items-baseline gap-2.5">
           <span class="font-mono text-[11px] font-semibold text-txt-low">{{ heading.digit }}</span>
-          <h1 class="display-italic m-0 text-[22px] leading-none sm:text-[28px]">{{ heading.label }}</h1>
+          <h1 id="page-heading" class="display-italic m-0 text-[22px] leading-none sm:text-[28px]">{{ heading.label }}</h1>
         </div>
         <p class="mt-1 text-[13px] text-txt-low">{{ heading.sub }}</p>
       </div>
@@ -166,7 +164,7 @@ const heading = computed(() => {
           >{{ phase === ARMED ? t('shell.strokeArmed') : t('shell.strokeStarted') }}</span
         >
       </div>
-    </header>
+    </section>
 
     <main class="min-h-0 min-w-0 flex-1 overflow-auto lg:overflow-hidden">
       <RouterView />

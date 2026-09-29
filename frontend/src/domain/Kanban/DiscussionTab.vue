@@ -96,7 +96,7 @@ watch(() => props.story.id, () => void discussion.reload(), { immediate: true })
           <p class="flex items-center gap-2 font-mono text-[10px] uppercase">
             <span
               class="rounded px-1.5 py-0.5 text-[9px] font-bold"
-              :class="remark.voice === 'human' ? 'bg-acc-soft/25 text-acc' : 'bg-elev text-txt-mid'"
+              :class="remark.voice === 'human' ? 'bg-elev text-acc' : 'bg-elev text-txt-mid'"
               >{{ t(`voice.${remark.voice}`) }}</span
             >
             <span class="text-txt-low">{{ remark.author }}</span>

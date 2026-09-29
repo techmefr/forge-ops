@@ -116,7 +116,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
       </p>
     </div>
 
-    <section v-if="conflicted.length > 0" class="mt-6 rounded-lg border border-red bg-red-soft/10 p-4">
+    <section v-if="conflicted.length > 0" class="mt-6 rounded-lg border border-red bg-card p-4">
       <p class="font-mono text-[11px] tracking-[0.18em] text-red uppercase">
         {{ t('deployment.mergeConflicts') }}
       </p>
@@ -241,7 +241,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
               v-if="story.state !== 'done'"
               type="button"
               :disabled="busy"
-              class="mt-4 w-full rounded-lg border border-green bg-green-soft/20 px-3 py-2 text-[11px] font-bold text-green uppercase disabled:opacity-40"
+              class="mt-4 w-full rounded-lg border border-green bg-card px-3 py-2 text-[11px] font-bold text-green uppercase disabled:opacity-40"
               @click="markDone(story)"
             >
               {{ t('deployment.inProductionUnblock') }}

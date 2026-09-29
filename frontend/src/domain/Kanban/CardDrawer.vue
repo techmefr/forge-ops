@@ -5,6 +5,7 @@ import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'reka-ui'
 import { board } from '@/technical/Api/Board'
 import { reasonOf } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
+import { usePanelFocus } from '@/technical/Ui/UsePanelFocus'
 import type { Phrase } from '@/technical/Language/Phrase'
 import type { ProjectCard, StoryHold } from '@/domain/Board/BoardModel'
 import { DRAWER_TABS, tabOfState, type DrawerTab } from './DrawerTab'
@@ -22,6 +23,8 @@ const emit = defineEmits<{ close: []; moved: [] }>()
 
 const { t } = useI18n()
 const say = usePhrase()
+const panel = ref<HTMLElement | null>(null)
+const { onKeydown } = usePanelFocus(panel, () => emit('close'))
 const tab = ref<DrawerTab>('story')
 const blockedReason = ref('')
 const blocking = ref(false)
@@ -69,8 +72,11 @@ async function unblockStory(): Promise<void> {
 
 <template>
   <aside
-    class="flex w-[420px] flex-none flex-col border-l border-line bg-panel"
+    ref="panel"
+    tabindex="-1"
+    class="flex w-[420px] flex-none flex-col border-l border-line bg-panel focus:outline-none"
     :aria-label="t('kanban.drawerAria')"
+    @keydown="onKeydown"
   >
     <header class="flex items-start gap-3 border-b border-line px-6 py-4">
       <div class="min-w-0">

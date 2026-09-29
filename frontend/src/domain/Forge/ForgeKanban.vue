@@ -79,6 +79,7 @@ function dragging(card: ForgeCardView, on: boolean): void {
   <div
     class="flex h-full min-w-0 gap-3 overflow-x-auto overflow-y-hidden pb-1"
     role="group"
+    tabindex="0"
     :aria-label="t('forge.boardAria')"
     data-test="forge-kanban"
   >
