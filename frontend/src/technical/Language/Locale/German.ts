@@ -1046,7 +1046,6 @@ export const GERMAN: Message = {
   },
   forge: {
     title: 'Meine Schmiede',
-    sub: 'Deine Stories, vom Backlog bis zum Merge Request. Eine Story, die in einen Auto-Schritt kommt, startet ihren Agenten.',
     viewAria: 'Ansicht',
     viewKanban: 'Kanban',
     viewPipeline: 'Pipeline',

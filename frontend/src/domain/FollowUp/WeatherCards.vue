@@ -109,7 +109,7 @@ followUps.reload()
   >
     <ul
       v-if="shown.length > 0"
-      class="grid flex-none grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3 max-[760px]:grid-cols-1 max-[760px]:gap-2"
+      class="grid flex-none grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-x-6 max-[760px]:grid-cols-1"
       :aria-label="t('followUp.cardsAria')"
       data-test-id="weather-cards"
     >
@@ -126,8 +126,7 @@ followUps.reload()
       >
         <button
           type="button"
-          class="flex min-h-[74px] w-full flex-col gap-1.5 rounded-lg border border-l-4 border-line bg-panel px-3.5 py-2.5 text-left hover:bg-card"
-          :class="WEATHER_TONES[entry.followUp.weather].border"
+          class="flex min-h-10 w-full flex-col gap-1 border-b border-line px-1 py-2.5 text-left hover:bg-elev/60"
           :aria-label="cardLabel(entry)"
           :aria-describedby="panelId(entry)"
           @click="openFollowUp(entry)"
@@ -157,8 +156,7 @@ followUps.reload()
         <div
           v-show="revealed === entry.project.id"
           :id="panelId(entry)"
-          class="absolute inset-x-0 top-full z-20 -mt-1 flex flex-col gap-1 rounded-b-lg border border-t-0 border-l-4 border-line bg-panel px-3.5 pt-3 pb-2.5 text-xs text-txt-mid shadow-lg max-[760px]:hidden"
-          :class="WEATHER_TONES[entry.followUp.weather].border"
+          class="absolute inset-x-0 top-full z-20 -mt-1 flex flex-col gap-1 rounded-md border border-line bg-panel px-3 py-2.5 text-xs text-txt-mid max-[760px]:hidden"
           data-test-id="weather-panel"
         >
           <span v-if="alertLines(entry.followUp.alerts).length === 0">{{ t('followUp.panelNothing') }}</span>

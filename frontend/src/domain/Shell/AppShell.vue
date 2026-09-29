@@ -75,6 +75,9 @@ watch(
 )
 
 const heading = computed(() => {
+  if (route.matched.length === 0) {
+    return { digit: '', label: '', sub: '' }
+  }
   if (current.value !== null) {
     return {
       digit: current.value.digit,
@@ -97,7 +100,7 @@ const heading = computed(() => {
           ref="strip"
           as="nav"
           data-tour="shell-pipeline"
-          class="flex min-w-0 items-stretch gap-0.5 overflow-x-auto"
+          class="scrollbar-none flex min-w-0 items-stretch gap-0.5 overflow-x-auto"
           :aria-label="t('shell.pipeline')"
           @keydown="ride"
         >
