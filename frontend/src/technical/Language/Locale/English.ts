@@ -9,6 +9,7 @@ export const ENGLISH = {
     pt: 'Português',
   },
   common: {
+    requiredNote: 'required field',
     close: 'Close',
     open: 'Open',
     retry: 'Try again',

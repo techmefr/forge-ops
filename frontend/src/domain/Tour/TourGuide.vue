@@ -109,7 +109,7 @@ onBeforeUnmount(() => {
 
   <GhostPointer :anchor="anchor" :gesture="gesture" />
 
-  <aside
+  <div
     v-if="tour.open.value && tour.step.value !== null"
     ref="panel"
     role="dialog"
@@ -153,5 +153,5 @@ onBeforeUnmount(() => {
     </div>
 
     <p class="text-[11px] text-txt-low">{{ t('tour.hint') }}</p>
-  </aside>
+  </div>
 </template>

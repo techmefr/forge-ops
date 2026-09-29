@@ -66,3 +66,36 @@ describe('ProjectCreateForm', () => {
     expect(form.emitted('cancel')).toBeTruthy()
   })
 })
+
+describe('ProjectCreateForm accessibility', () => {
+  it('marks the four required fields and explains the marker', () => {
+    const form = mounted()
+    const texts = form.findAll('input[type="text"]')
+    expect(texts).toHaveLength(4)
+    for (const input of texts) {
+      expect(input.attributes('aria-required')).toBe('true')
+    }
+    expect(form.findAll('span[aria-hidden="true"]').length).toBeGreaterThanOrEqual(5)
+    expect(form.text()).toContain('champ obligatoire')
+  })
+
+  it('ties the refusal to the fields and focuses the first one', async () => {
+    send.mockRejectedValue(new Error('slug deja pris'))
+    const form = mount(ProjectCreateForm, {
+      attachTo: document.body,
+      global: { plugins: [createBoardI18n('fr')] },
+    })
+    const texts = form.findAll('input[type="text"]')
+    await texts[0]?.setValue('Skera')
+    await texts[1]?.setValue('skera')
+    await texts[2]?.setValue('https://x/y.git')
+    await form.find('form').trigger('submit')
+    await flushPromises()
+    const alert = form.find('[role="alert"]')
+    expect(alert.attributes('id')).toBe('project-create-refusal')
+    expect(texts[0]?.attributes('aria-invalid')).toBe('true')
+    expect(texts[0]?.attributes('aria-describedby')).toBe('project-create-refusal')
+    expect(document.activeElement).toBe(texts[0]?.element)
+    form.unmount()
+  })
+})

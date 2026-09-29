@@ -8,12 +8,17 @@ import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import type { Phrase } from '@/technical/Language/Phrase'
+import RequiredNote from '@/technical/Ui/RequiredNote.vue'
+import { requiredField, useRefusalFocus } from '@/technical/Ui/FieldState'
 
 const { t } = useI18n()
 const say = usePhrase()
 
 const tags = useResource<readonly Tag[]>(() => board.read('/api/tags'))
 const refusal = ref<Phrase | null>(null)
+const addRefusal = ref<Phrase | null>(null)
+const addForm = ref<HTMLElement | null>(null)
+useRefusalFocus(addRefusal, addForm)
 const label = ref('')
 const colour = ref('#e08a00')
 
@@ -47,11 +52,13 @@ function remove(tag: Tag): Promise<void> {
   })
 }
 
-function add(): Promise<void> {
-  return guard(async () => {
+async function add(): Promise<void> {
+  await guard(async () => {
     await board.send('/api/tags', 'POST', { label: label.value.trim(), colour: colour.value })
     label.value = ''
   })
+  addRefusal.value = refusal.value
+  refusal.value = null
 }
 
 void tags.reload()
@@ -119,7 +126,7 @@ void tags.reload()
       </li>
     </ul>
 
-    <form class="flex flex-wrap items-center gap-2" @submit.prevent="add">
+    <form ref="addForm" class="flex flex-wrap items-center gap-2" @submit.prevent="add">
       <label class="flex items-center">
         <span class="sr-only">{{ t('team.newTagColour') }}</span>
         <input
@@ -132,9 +139,10 @@ void tags.reload()
       <input
         id="new-tag-label"
         v-model="label"
+        v-bind="requiredField(addRefusal, 'tags-add-refusal')"
         type="text"
         maxlength="40"
-        :placeholder="t('team.newTag')"
+        :placeholder="`${t('team.newTag')} *`"
         class="min-w-0 flex-1 rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
       />
       <button
@@ -144,6 +152,10 @@ void tags.reload()
       >
         {{ t('team.add') }}
       </button>
+      <RequiredNote class="basis-full" />
+      <p v-if="addRefusal !== null" id="tags-add-refusal" class="m-0 basis-full text-[13px] text-red" role="alert">
+        {{ say(addRefusal) }}
+      </p>
     </form>
 
     <p class="m-0 text-[11px] text-txt-low">{{ t('team.tagsFoot') }}</p>

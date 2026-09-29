@@ -14,6 +14,9 @@ import { board } from '@/technical/Api/Board'
 import { keepDialogWhileListboxOpen } from '@/technical/Ui/ListboxEscape'
 import { reasonOf } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
+import RequiredStar from '@/technical/Ui/RequiredStar.vue'
+import RequiredNote from '@/technical/Ui/RequiredNote.vue'
+import { useAlertFocus } from '@/technical/Ui/FieldState'
 import type { Phrase } from '@/technical/Language/Phrase'
 import {
   EVENT_MINUTES_LIMIT,
@@ -46,6 +49,8 @@ const note = ref('')
 const minutes = ref('')
 const refusal = ref<Phrase | null>(null)
 const busy = ref(false)
+const formEl = ref<HTMLElement | null>(null)
+useAlertFocus(refusal, formEl)
 const confirmingRemoval = ref(false)
 
 const editing = computed(() => props.event !== null)
@@ -146,7 +151,7 @@ function closeWhenClosed(open: boolean): void {
           {{ t('roadmap.form.description') }}
         </DialogDescription>
 
-        <form class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2" @submit.prevent="save">
+        <form ref="formEl" class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2" @submit.prevent="save">
           <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
             {{ t('roadmap.form.type') }}
             <select
@@ -160,11 +165,12 @@ function closeWhenClosed(open: boolean): void {
           </label>
 
           <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
-            {{ t('roadmap.form.date') }}
+            <span>{{ t('roadmap.form.date') }} <RequiredStar /></span>
             <input
               v-model="date"
               type="date"
               required
+              aria-required="true"
               class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
             />
           </label>
@@ -226,10 +232,13 @@ function closeWhenClosed(open: boolean): void {
             <span class="text-[11px] text-txt-low">{{ t('roadmap.form.minutesHint') }}</span>
           </label>
 
+          <RequiredNote class="sm:col-span-2" />
+
           <p
             v-if="refusal !== null"
             class="rounded-lg border border-red bg-red-soft/10 p-3 text-sm text-txt-hi sm:col-span-2"
             role="alert"
+            tabindex="-1"
           >
             {{ say(refusal) }}
           </p>

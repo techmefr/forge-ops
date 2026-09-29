@@ -11,6 +11,7 @@ export const SPANISH: Message = {
     pt: 'Português',
   },
   common: {
+    requiredNote: 'campo obligatorio',
     close: 'Cerrar',
     open: 'Abrir',
     retry: 'Reintentar',

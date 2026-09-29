@@ -5,6 +5,9 @@ import { board } from '@/technical/Api/Board'
 import { reasonOf } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import type { Phrase } from '@/technical/Language/Phrase'
+import RequiredStar from '@/technical/Ui/RequiredStar.vue'
+import RequiredNote from '@/technical/Ui/RequiredNote.vue'
+import { requiredField, useRefusalFocus } from '@/technical/Ui/FieldState'
 
 const emit = defineEmits<{ created: []; cancel: [] }>()
 
@@ -37,23 +40,28 @@ async function create(): Promise<void> {
     busy.value = false
   }
 }
+
+const formEl = ref<HTMLElement | null>(null)
+useRefusalFocus(refusal, formEl)
 </script>
 
 <template>
-  <form class="flex flex-col gap-3" @submit.prevent="create">
+  <form ref="formEl" class="flex flex-col gap-3" @submit.prevent="create">
     <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
-      {{ t('projectCreate.name') }}
+      <span>{{ t('projectCreate.name') }} <RequiredStar /></span>
       <input
         v-model="name"
+        v-bind="requiredField(refusal, 'project-create-refusal')"
         type="text"
         class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
       />
     </label>
 
     <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
-      {{ t('projectCreate.slug') }}
+      <span>{{ t('projectCreate.slug') }} <RequiredStar /></span>
       <input
         v-model="slug"
+        v-bind="requiredField(refusal, 'project-create-refusal')"
         type="text"
         class="rounded-lg border border-line bg-elev px-3 py-2 font-mono text-[13px] text-txt-hi"
       />
@@ -61,18 +69,20 @@ async function create(): Promise<void> {
     </label>
 
     <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
-      {{ t('projectCreate.repositoryUrl') }}
+      <span>{{ t('projectCreate.repositoryUrl') }} <RequiredStar /></span>
       <input
         v-model="repositoryUrl"
+        v-bind="requiredField(refusal, 'project-create-refusal')"
         type="text"
         class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
       />
     </label>
 
     <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
-      {{ t('projectCreate.integrationBranch') }}
+      <span>{{ t('projectCreate.integrationBranch') }} <RequiredStar /></span>
       <input
         v-model="integrationBranch"
+        v-bind="requiredField(refusal, 'project-create-refusal')"
         type="text"
         class="rounded-lg border border-line bg-elev px-3 py-2 font-mono text-[13px] text-txt-hi"
       />
@@ -100,6 +110,7 @@ async function create(): Promise<void> {
       </button>
     </div>
 
-    <p v-if="refusal !== null" class="text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
+    <RequiredNote />
+    <p id="project-create-refusal" v-if="refusal !== null" class="text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
   </form>
 </template>
