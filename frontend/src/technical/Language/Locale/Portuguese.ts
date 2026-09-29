@@ -1325,8 +1325,8 @@ export const PORTUGUESE: Message = {
     cancel: 'Cancelar',
   },
   visit: {
-    title: 'Visita congelada',
-    body: 'Estes números vêm do quadro de demonstração, capturados uma única vez. Aqui nada é escrito e nenhum agente corre. Instale o board para o executar a sério.',
+    title: 'Demonstração interativa',
+    body: 'Este é um quadro de demonstração com dados de exemplo. As suas alterações ficam neste separador e desaparecem ao recarregar, os agentes são simulados. Instale o board para o executar a sério.',
     source: 'O repositório',
   },
   tour: {

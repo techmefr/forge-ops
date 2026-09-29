@@ -1326,8 +1326,8 @@ export const ITALIAN: Message = {
     cancel: 'Annulla',
   },
   visit: {
-    title: 'Visita congelata',
-    body: 'Questi dati vengono dalla bacheca dimostrativa, catturati una volta sola. Qui non si scrive nulla e nessun agente gira. Installa il board per usarlo davvero.',
+    title: 'Demo interattiva',
+    body: 'Questa è una bacheca dimostrativa con dati di esempio. Le tue modifiche restano in questa scheda e spariscono al ricaricamento, gli agenti sono simulati. Installa il board per usarlo davvero.',
     source: 'Il repository',
   },
   tour: {

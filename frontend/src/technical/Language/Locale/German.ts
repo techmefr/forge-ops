@@ -1327,8 +1327,8 @@ export const GERMAN: Message = {
     cancel: 'Abbrechen',
   },
   visit: {
-    title: 'Eingefrorener Rundgang',
-    body: 'Diese Zahlen stammen vom Demo-Board und wurden einmalig erfasst. Hier wird nichts geschrieben und kein Agent läuft. Installieren Sie das Board, um es wirklich zu betreiben.',
+    title: 'Live-Demo',
+    body: 'Dies ist ein Demo-Board mit Beispieldaten. Ihre Änderungen bleiben in diesem Tab und verschwinden beim Neuladen, die Agenten sind simuliert. Installieren Sie das Board, um es wirklich zu betreiben.',
     source: 'Das Repository',
   },
   tour: {

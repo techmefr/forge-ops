@@ -1324,8 +1324,8 @@ export const FRENCH: Message = {
     cancel: 'Annuler',
   },
   visit: {
-    title: 'Visite figée',
-    body: 'Ces chiffres viennent du board de démonstration, capturés une fois. Rien ne s’écrit ici et aucun agent ne tourne. Installez le board pour le lancer pour de vrai.',
+    title: 'Démo interactive',
+    body: 'Ceci est un board de démonstration sur des données d’exemple. Vos changements restent dans cet onglet et disparaissent au rechargement, les agents sont simulés. Installez le board pour le lancer pour de vrai.',
     source: 'Le dépôt',
   },
   tour: {

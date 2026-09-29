@@ -1326,8 +1326,8 @@ export const SPANISH: Message = {
     cancel: 'Cancelar',
   },
   visit: {
-    title: 'Visita congelada',
-    body: 'Estas cifras vienen del tablero de demostración, capturadas una sola vez. Aquí no se escribe nada y ningún agente se ejecuta. Instala el board para usarlo de verdad.',
+    title: 'Demo interactiva',
+    body: 'Este es un tablero de demostración con datos de ejemplo. Tus cambios se quedan en esta pestaña y desaparecen al recargar, los agentes son simulados. Instala el board para usarlo de verdad.',
     source: 'El repositorio',
   },
   tour: {
