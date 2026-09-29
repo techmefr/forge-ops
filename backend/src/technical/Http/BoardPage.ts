@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { readFileSync, statSync } from 'node:fs'
 import { extname, join, resolve, sep } from 'node:path'
+import { contentSecurityPolicy } from './SecurityHeaders.js'
 
 const NUL = String.fromCharCode(0)
 
@@ -74,8 +75,10 @@ export function createBoardPage({ distDir }: BoardPageInput): Hono {
       return context.json({ error: 'FrontNotBuilt' }, 503)
     }
 
+    const html = document.toString('utf-8')
     context.header('cache-control', 'no-store')
-    return context.html(document.toString('utf-8'))
+    context.header('content-security-policy', contentSecurityPolicy(html))
+    return context.html(html)
   })
 
   return page

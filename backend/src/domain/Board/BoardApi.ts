@@ -229,7 +229,7 @@ export function createBoardApi({
     )
   })
 
-  api.route('/', createEpicApi({ epics: repository.epics, events, today }))
+  api.route('/', createEpicApi({ epics: repository.epics, events, today, projects: repository.projects, isSuperAdmin }))
   api.route('/', createEventApi({ agenda: repository.agenda, events }))
   api.route('/', createProjectApi({ projects: repository.projects, events, isSuperAdmin }))
   api.route('/', createFollowUpApi({ followUps: repository.followUps, projects: repository.projects, events, today, isSuperAdmin }))

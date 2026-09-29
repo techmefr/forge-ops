@@ -2,7 +2,8 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import { projectUpdateSchema } from '../../../../contract/ProjectContract.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
-import { LOCAL_OPERATOR, operatorOf } from '../../technical/Auth/BoardIdentity.js'
+import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
+import { mayAdministerProject } from './ProjectAuthority.js'
 import type { ProjectRepository } from './ProjectRepository.js'
 
 const identifierSchema = z.coerce.number().int().positive()
@@ -33,12 +34,8 @@ export function createProjectApi({ projects, events, isSuperAdmin }: ProjectApiI
     }
     const login = operatorOf(context)
     const changesAdmin = patch.data.adminId !== undefined && patch.data.adminId !== current.adminUserId
-    const mayChangeAdmin =
-      current.adminUserId === null ||
-      login === LOCAL_OPERATOR ||
-      login === current.adminLogin ||
-      isSuperAdmin(login)
-    if (changesAdmin && !mayChangeAdmin) {
+    const mayChangeAdmin = mayAdministerProject({ login, ...current, isSuperAdmin })
+    if ((changesAdmin || patch.data.links !== undefined) && !mayChangeAdmin) {
       return context.json({ error: 'ProjectAdminRequired' }, 403)
     }
     const sheet = projects.update(projectId.data, patch.data)
@@ -51,8 +48,12 @@ export function createProjectApi({ projects, events, isSuperAdmin }: ProjectApiI
     if (!projectId.success) {
       return context.json({ error: 'InvalidProjectIdentifier' }, 422)
     }
-    if (projects.find(projectId.data) === null) {
+    const current = projects.find(projectId.data)
+    if (current === null) {
       return context.json({ error: 'ProjectNotFoundError' }, 404)
+    }
+    if (!mayAdministerProject({ login: operatorOf(context), ...current, isSuperAdmin })) {
+      return context.json({ error: 'ProjectAdminRequired' }, 403)
     }
     projects.remove(projectId.data)
     events.publish({ name: 'project.deleted', payload: { id: projectId.data } })

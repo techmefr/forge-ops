@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { safeHref } from '@/technical/Ui/SafeHref'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
@@ -330,7 +331,7 @@ onMounted(() => {
                   >
                     <li v-for="link in block.entry.links" :key="`${link.kind}-${link.url}`">
                       <a
-                        :href="link.url"
+                        :href="safeHref(link.url)"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="rounded border border-line px-1.5 py-0.5 text-[11px] text-info hover:border-acc"

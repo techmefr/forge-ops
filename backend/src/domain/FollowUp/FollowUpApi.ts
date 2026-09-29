@@ -6,8 +6,9 @@ import {
   riskPatchSchema,
   weatherChangeSchema,
 } from '../../../../contract/FollowUpContract.js'
-import { LOCAL_OPERATOR, operatorOf } from '../../technical/Auth/BoardIdentity.js'
+import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
+import { mayAdministerProject } from '../Project/ProjectAuthority.js'
 import type { ProjectRepository } from '../Project/ProjectRepository.js'
 import type { FollowUpRepository } from './FollowUpRepository.js'
 
@@ -86,9 +87,7 @@ export function createFollowUpApi({ followUps, projects, events, today, isSuperA
     const admin = projects.find(projectId.data)
     if (admin !== null) {
       const login = operatorOf(context)
-      const allowed =
-        admin.adminUserId === null || login === LOCAL_OPERATOR || login === admin.adminLogin || isSuperAdmin(login)
-      if (!allowed) {
+      if (!mayAdministerProject({ login, ...admin, isSuperAdmin })) {
         return context.json({ error: 'ProjectAdminRequired' }, 403)
       }
     }
