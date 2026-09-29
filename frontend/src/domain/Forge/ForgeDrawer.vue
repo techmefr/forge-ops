@@ -6,7 +6,7 @@ import type { ForgeCardView } from '@contract/ForgeCardContract'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import { replyRouteOf, submitsOn } from './ConversationRule'
 import { STATUS_GLYPH } from './ForgeGlyph'
-import { adjacentStep, minutesOf, primaryActionOf, type BoardStep, type CardAction } from './ForgeRule'
+import { adjacentStep, minutesOf, primaryActionOf, referenceLabel, type BoardStep, type CardAction } from './ForgeRule'
 import { useCardConversation } from './UseCardConversation'
 
 const props = defineProps<{
@@ -135,7 +135,7 @@ onMounted(() => void conversation.load())
       >
         <header class="flex flex-none items-start gap-3 border-b border-line px-5 py-3">
           <div class="min-w-0 flex-1">
-            <p class="m-0 font-mono text-[11px] text-txt-low">{{ card.storyReference }} · {{ card.reference }}</p>
+            <p class="m-0 font-mono text-[11px] text-txt-low">{{ referenceLabel(card) }}</p>
             <DialogTitle class="m-0 text-[13px] font-semibold text-txt-hi">{{ card.title }}</DialogTitle>
             <DialogDescription class="sr-only">{{ t('forge.drawer.threadAria') }}</DialogDescription>
           </div>

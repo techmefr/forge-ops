@@ -99,7 +99,7 @@ function changeState(event: Event): void {
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
         <button
           type="button"
-          class="rounded-md text-left text-sm font-semibold text-txt-hi hover:underline"
+          class="rounded-md py-1.5 text-left text-sm font-semibold text-txt-hi hover:underline min-[760px]:py-0"
           :aria-label="t('subjects.row.open', { title: subject.title })"
           data-test-id="subject-open"
           @click="emit('open', subject.id)"
@@ -219,7 +219,7 @@ function changeState(event: Event): void {
     <button
       v-if="deleted"
       type="button"
-      class="justify-self-start rounded-md border border-line px-2.5 py-1 text-[11px] font-semibold text-txt-hi uppercase hover:bg-elev"
+      class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-[11px] font-semibold text-txt-hi uppercase hover:bg-elev"
       :aria-label="t('subjects.row.restoreAria', { title: subject.title })"
       data-test-id="subject-restore"
       @click="emit('restore', subject)"
@@ -229,7 +229,7 @@ function changeState(event: Event): void {
     <button
       v-else-if="canTake"
       type="button"
-      class="justify-self-start rounded-md border border-line px-2.5 py-1 text-[11px] font-semibold text-txt-hi uppercase hover:bg-elev"
+      class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-[11px] font-semibold text-txt-hi uppercase hover:bg-elev"
       :aria-label="t('subjects.row.takeAria', { title: subject.title })"
       data-test-id="subject-take"
       @click="emit('take', subject)"
@@ -239,7 +239,7 @@ function changeState(event: Event): void {
     <button
       v-else-if="canRelease"
       type="button"
-      class="justify-self-start rounded-md border border-line px-2.5 py-1 text-[11px] font-semibold text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
+      class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-[11px] font-semibold text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
       :aria-label="t('subjects.row.releaseAria', { title: subject.title })"
       data-test-id="subject-release"
       @click="emit('release', subject)"

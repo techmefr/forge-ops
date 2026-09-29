@@ -340,3 +340,11 @@ body {
     transparent 3px 7px
   );
 }
+
+@media (max-width: 639px) {
+  button:not([data-dense]),
+  select,
+  input:not([type="checkbox"], [type="radio"], [type="range"]) {
+    min-height: 40px;
+  }
+}

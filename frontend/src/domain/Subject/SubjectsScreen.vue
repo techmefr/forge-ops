@@ -363,10 +363,10 @@ onMounted(() => {
       empty-key="subjects.empty"
       @retry="subjects.reload()"
     >
-      <div class="grid flex-none grid-cols-1 items-start gap-4 min-[760px]:grid-cols-[232px_1fr] min-[760px]:gap-8">
+      <div class="grid flex-none grid-cols-[minmax(0,1fr)] items-start gap-4 min-[760px]:grid-cols-[232px_1fr] min-[760px]:gap-8">
         <div
           ref="peopleRoot"
-          class="flex min-w-0 flex-row gap-0.5 overflow-x-auto border-b border-line pb-2 min-[760px]:flex-col min-[760px]:overflow-x-visible min-[760px]:border-r min-[760px]:border-b-0 min-[760px]:pr-4 min-[760px]:pb-0"
+          class="relative flex min-w-0 flex-row gap-0.5 overflow-x-auto border-b border-line pb-2 min-[760px]:flex-col min-[760px]:overflow-x-visible min-[760px]:border-r min-[760px]:border-b-0 min-[760px]:pr-4 min-[760px]:pb-0"
           role="group"
           :aria-label="t('subjects.teamAria')"
           data-test-id="subjects-people"
@@ -379,7 +379,7 @@ onMounted(() => {
             v-for="view in viewRows"
             :key="view.key"
             type="button"
-            class="flex flex-none items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm min-[760px]:w-full"
+            class="flex min-h-10 flex-none items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm min-[760px]:min-h-0 min-[760px]:w-full"
             :class="selection === view.key ? SELECTED_CLASSES : IDLE_CLASSES"
             :tabindex="selection === view.key ? 0 : -1"
             :aria-current="selection === view.key ? 'true' : undefined"
@@ -405,7 +405,7 @@ onMounted(() => {
             v-for="row in rows"
             :key="row.person.login"
             type="button"
-            class="flex flex-none items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm min-[760px]:w-full"
+            class="flex min-h-10 flex-none items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm min-[760px]:min-h-0 min-[760px]:w-full"
             :class="selection === row.person.login ? SELECTED_CLASSES : IDLE_CLASSES"
             :tabindex="selection === row.person.login ? 0 : -1"
             :aria-current="selection === row.person.login ? 'true' : undefined"
