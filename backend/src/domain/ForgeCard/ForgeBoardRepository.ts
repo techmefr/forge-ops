@@ -50,7 +50,7 @@ export type ForgeBoardRepository = {
   list: (projectId: number) => readonly ForgeCardView[]
   view: (forgeCardId: number) => ForgeCardView
   placementOf: (storyId: number) => StoryPlacement
-  ensureCards: (projectId: number) => void
+  backfillCards: () => number
 }
 
 const CARD_SELECT = `
@@ -72,12 +72,10 @@ export function createForgeBoardRepository(
 ): ForgeBoardRepository {
   const selectOfProject = db.prepare<[number], CardRow>(`${CARD_SELECT} WHERE epic.project_id = ? ORDER BY fc.id`)
   const selectOne = db.prepare<[number], CardRow>(`${CARD_SELECT} WHERE fc.id = ?`)
-  const selectStoriesWithoutCard = db.prepare<[number], { id: number }>(
+  const selectStoriesWithoutCard = db.prepare<[], { id: number }>(
     `SELECT story.id AS id
        FROM story
-       JOIN epic ON epic.id = story.epic_id
-      WHERE epic.project_id = ?
-        AND story.kind = 'functional'
+      WHERE story.kind = 'functional'
         AND story.state <> 'drafting'
         AND NOT EXISTS (SELECT 1 FROM forge_card_story WHERE forge_card_story.story_id = story.id)
       ORDER BY story.id`,
@@ -140,19 +138,18 @@ export function createForgeBoardRepository(
     }
   }
 
-  function ensureCards(projectId: number): void {
-    db.transaction(() => {
-      for (const story of selectStoriesWithoutCard.all(projectId)) {
-        forgeCards.attachCardToStory(story.id)
-      }
-    })()
-  }
+  const backfillCards = db.transaction((): number => {
+    const missing = selectStoriesWithoutCard.all()
+    for (const story of missing) {
+      forgeCards.attachCardToStory(story.id)
+    }
+    return missing.length
+  })
 
   return {
-    ensureCards,
+    backfillCards,
 
     list: (projectId) => {
-      ensureCards(projectId)
       const steps = columns.list(projectId)
       return selectOfProject.all(projectId).map((row) => viewOf(row, steps))
     },

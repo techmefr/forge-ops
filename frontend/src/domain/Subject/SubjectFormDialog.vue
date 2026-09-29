@@ -116,21 +116,23 @@ async function loadMilestone(): Promise<void> {
 async function writeMilestone(subjectId: number): Promise<void> {
   const existing = milestoneEvent.value
   const step = milestoneStep(existing?.date ?? null, form.value.milestone)
+  let createdId: number | null = null
   if (step === 'create') {
-    await board.send('/api/events', 'POST', {
+    const created = await board.send<ProjectEvent>('/api/events', 'POST', {
       type: MILESTONE_KIND,
       date: form.value.milestone,
       title: form.value.title.trim().slice(0, EVENT_TITLE_LIMIT),
       projectId: form.value.projectId,
       epicId: subjectId,
     })
+    createdId = created.id
   } else if (step === 'change' && existing !== null) {
     await board.send(`/api/events/${existing.id}`, 'PATCH', { date: form.value.milestone })
   } else if (step === 'remove' && existing !== null) {
     await board.send(`/api/events/${existing.id}`, 'DELETE')
   }
   milestoneEvent.value =
-    form.value.milestone === '' ? null : { id: existing?.id ?? 0, date: form.value.milestone }
+    form.value.milestone === '' ? null : { id: createdId ?? existing?.id ?? 0, date: form.value.milestone }
 }
 
 async function writeCore(): Promise<number> {
@@ -190,9 +192,17 @@ function tagMade(tag: Tag): void {
   emit('changed')
 }
 
+async function leave(): Promise<void> {
+  if (!coreDone.value && madeTags.value.length > 0) {
+    await Promise.allSettled(madeTags.value.map((tag) => board.send(`/api/tags/${tag.id}`, 'DELETE')))
+    emit('changed')
+  }
+  emit('close')
+}
+
 function closeWhenClosed(open: boolean): void {
   if (!open) {
-    emit('close')
+    void leave()
   }
 }
 
@@ -400,7 +410,7 @@ onMounted(loadMilestone)
               type="button"
               class="rounded-md border border-line px-3 py-1.5 text-[11px] font-semibold text-txt-mid uppercase hover:bg-elev"
               data-test-id="subject-form-cancel"
-              @click="emit('close')"
+              @click="leave"
             >
               {{ t('subjects.form.cancel') }}
             </button>

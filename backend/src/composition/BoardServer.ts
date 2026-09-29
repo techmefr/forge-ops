@@ -176,7 +176,11 @@ export function startBoardServer({
   const token = resolveBoardToken(tokenPath)
   const events = createEventBus()
   const allowedCheckoutRoots = [...checkoutRoots, resolve(worktreeRoot)]
-  const stories = createStoryRepository(db, { checkoutRoots: allowedCheckoutRoots })
+  const forgeCards = createForgeCardRepository(db)
+  const stories = createStoryRepository(db, {
+    checkoutRoots: allowedCheckoutRoots,
+    onBacklog: (story) => forgeCards.attachCardToStory(story.id),
+  })
   stories.epics.purgeExpired()
   setInterval(() => stories.epics.purgeExpired(), PURGE_EVERY_MS).unref()
   const readEvidence = createEvidenceFileReader({
@@ -238,7 +242,6 @@ export function startBoardServer({
   const templates = createTemplateRepository(db)
   const outbox = createOutboxRepository(db)
   const organisations = createOrganisationRepository(db)
-  const forgeCards = createForgeCardRepository(db)
   function cwdForStory(storyId: number): string {
     const worktree = worktrees.findForStory(storyId)
     if (worktree !== null) {
@@ -452,6 +455,7 @@ export function startBoardServer({
   guarded.route('/', createWorktreeApi({ worktrees, events }))
   guarded.route('/', createForgeCardApi({ forgeCards, worktrees }))
   const forgeBoard = createForgeBoardRepository(db, { forgeCards, columns: workflowColumns })
+  forgeBoard.backfillCards()
   guarded.route(
     '/',
     createForgeBoardApi({
