@@ -209,3 +209,26 @@ describe('team', () => {
     expect(read('/api/tags')).toEqual([])
   })
 })
+
+describe('forms', () => {
+  it('creates a subject with its owner, priority and tags in one call', () => {
+    const tag = store.handle('POST', '/api/tags', { label: 'ux', colour: '#a855f7' }).body as { id: number }
+    const created = store.handle('POST', '/api/epics', { projectId: 1, title: 'Full', assignee: 'ada', priority: 'high', tagIds: [tag.id] })
+
+    expect(created.body).toMatchObject({ assignee: 'ada', priority: 'high', tags: [{ label: 'ux' }] })
+  })
+
+  it('hands a subject over and renames it', () => {
+    store.handle('PUT', '/api/epics/1/assignee', { login: null })
+    store.handle('PATCH', '/api/epics/1', { title: 'Renamed' })
+
+    expect(read('/api/epics?q=renamed')).toMatchObject([{ assignee: null }])
+  })
+
+  it('derives a free slug from the name of a new project', () => {
+    store.handle('POST', '/api/projects', { name: 'A', colour: '#00ff00', repository: '' })
+    const second = store.handle('POST', '/api/projects', { name: 'A', colour: '#00ff00', repository: '' })
+
+    expect((second.body as { slug: string }).slug).toBe('a-3')
+  })
+})

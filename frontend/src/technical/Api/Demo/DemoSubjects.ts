@@ -113,6 +113,10 @@ function numbersOf(value: unknown): number[] {
 function applyPatch(context: DemoContext, epic: EpicOverview): DemoReply | null {
   const { body, state } = context
   const priority = bodyText(body, 'priority')
+  const title = bodyText(body, 'title')?.trim() ?? ''
+  if (title !== '') {
+    epic.title = title
+  }
   if ('priority' in body) {
     if (priority === null || !PRIORITIES.includes(priority)) {
       return refusal(422, 'InvalidEpicPatch', 'Unknown priority')
@@ -189,8 +193,8 @@ export const SUBJECT_ROUTES: readonly DemoRoute[] = [
     const projectId = bodyNumber(context.body, 'projectId')
     const title = bodyText(context.body, 'title')?.trim() ?? ''
     const intent = bodyText(context.body, 'businessIntent')?.trim() ?? ''
-    if (projectId === null || title === '' || intent === '') {
-      return refusal(422, 'InvalidEpic', 'A subject needs a project, a title and an intent')
+    if (projectId === null || title === '') {
+      return refusal(422, 'InvalidEpic', 'A subject needs a project and a title')
     }
     const created: EpicOverview = {
       id: nextIdentifier(context.state),
@@ -215,8 +219,14 @@ export const SUBJECT_ROUTES: readonly DemoRoute[] = [
       waitingOn: [],
       deletedAt: null,
     }
+    const refused = applyPatch(context, created)
+    if (refused !== null) {
+      return refused
+    }
+    created.assignee = bodyText(context.body, 'assignee')
     context.state.epics.push(created)
     recordState(context, created)
+    refreshWaiting(context.state)
     return reply(created, 201)
   }),
   route('PATCH', '/api/epics/(\\d+)', (context) =>
@@ -229,6 +239,12 @@ export const SUBJECT_ROUTES: readonly DemoRoute[] = [
   route('POST', '/api/epics/(\\d+)/claim', (context) =>
     withEpic(context, (epic) => {
       epic.assignee = context.state.self.login
+      return reply(epic)
+    }),
+  ),
+  route('PUT', '/api/epics/(\\d+)/assignee', (context) =>
+    withEpic(context, (epic) => {
+      epic.assignee = bodyText(context.body, 'login')
       return reply(epic)
     }),
   ),

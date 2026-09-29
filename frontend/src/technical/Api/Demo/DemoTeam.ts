@@ -76,20 +76,33 @@ function updateProject(context: DemoContext): DemoReply {
 
 function createProject(context: DemoContext): DemoReply {
   const { state, body } = context
-  const slug = bodyText(body, 'slug')?.trim() ?? ''
   const name = bodyText(body, 'name')?.trim() ?? ''
   const colour = bodyText(body, 'colour') ?? '#5b8def'
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(slug) || name === '') {
-    return refusal(422, 'InvalidProject', 'A project needs a slug (lowercase) and a name')
+  const asked = bodyText(body, 'slug')?.trim() ?? ''
+  const base =
+    asked !== ''
+      ? asked
+      : name
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(base) || name === '') {
+    return refusal(422, 'InvalidProject', 'A project needs a name')
   }
-  if (state.projects.some((project) => project.slug === slug)) {
-    return refusal(409, 'ProjectSlugTaken', 'This slug is already used')
+  if (asked !== '' && state.projects.some((project) => project.slug === asked)) {
+    return refusal(409, 'ProjectSlugTakenError', 'This slug is already used')
+  }
+  let slug = base
+  for (let suffix = 2; state.projects.some((project) => project.slug === slug); suffix += 1) {
+    slug = `${base}-${suffix}`
   }
   const project: Project = {
     id: nextIdentifier(state),
     slug,
     name,
-    repositoryUrl: bodyText(body, 'repositoryUrl') ?? '',
+    repositoryUrl: bodyText(body, 'repositoryUrl') ?? bodyText(body, 'repository') ?? '',
     integrationBranch: bodyText(body, 'integrationBranch') ?? 'main',
     colour,
     checkoutPath: null,

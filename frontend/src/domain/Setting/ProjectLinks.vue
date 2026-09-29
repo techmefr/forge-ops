@@ -33,14 +33,14 @@ function drop(index: number): void {
       <li
         v-for="(link, index) in links"
         :key="`${link.kind}-${link.url}-${index}`"
-        class="flex items-center gap-1.5 rounded-md border border-line bg-panel px-2 py-1 text-[11px]"
+        class="relative flex max-w-full items-center gap-1.5 rounded-md border border-line bg-panel px-2 py-1 text-[11px]"
       >
         <span class="font-mono text-txt-mid uppercase">{{ t(`linkKind.${link.kind}`) }}</span>
         <a
           :href="safeHref(link.url)"
           target="_blank"
           rel="noopener noreferrer"
-          class="max-w-[16rem] truncate text-txt-hi underline"
+          class="min-w-0 max-w-[16rem] truncate text-txt-hi underline"
           >{{ link.url }}<span class="sr-only"> {{ t('team.opensNewTab') }}</span></a
         >
         <button
