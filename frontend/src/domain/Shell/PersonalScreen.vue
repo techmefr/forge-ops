@@ -19,7 +19,11 @@ import {
 import type { Project } from '@/domain/Board/BoardModel'
 
 const route = useRoute()
-const current = computed(() => tabOfRoute(PERSONAL_TABS, route.params.tab))
+const STORY_ROUTE = 'personal.story'
+
+const current = computed(() =>
+  route.name === STORY_ROUTE ? 'stories' : tabOfRoute(PERSONAL_TABS, route.params.tab),
+)
 
 const projects = useResource<readonly Project[]>(() => board.read('/api/projects'))
 const hasNoProject = computed(

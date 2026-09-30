@@ -69,3 +69,9 @@ export class UnknownStepError extends DispatchViolationError {
     super(`Le pas ${columnId} n'existe pas dans le projet de la story`, 'UnknownStepError')
   }
 }
+
+export class CheckoutMissingError extends DispatchViolationError {
+  constructor(project: string) {
+    super(`Le projet ${project} n'a pas de dossier de travail : declarez-le avant de lancer une session`, 'CheckoutMissingError')
+  }
+}

@@ -19,7 +19,7 @@ vi.mock('@anthropic-ai/claude-agent-sdk', () => ({
   resolveSettings: (input: unknown) => resolved(input),
 }))
 
-const { createSdkSessionRunner } = await import('../../../src/technical/ClaudeCode/SdkSessionRunner.js')
+const { createSdkSessionRunner, failureOf } = await import('../../../src/technical/ClaudeCode/SdkSessionRunner.js')
 const { createLiveSessions } = await import('../../../src/technical/ClaudeCode/LiveSessions.js')
 import type { SdkUserTurn } from '../../../src/technical/ClaudeCode/TurnDelivery.js'
 
@@ -272,5 +272,45 @@ describe('createSdkSessionRunner', () => {
     await new Promise((resolve) => setTimeout(resolve, 0))
 
     expect(live.find('sess-7')).toBeNull()
+  })
+})
+
+describe('failureOf', () => {
+  it('reads a failed result', () => {
+    expect(failureOf({ type: 'result', is_error: true, result: 'Failed to authenticate' })).toBe('Failed to authenticate')
+    expect(failureOf({ type: 'result', subtype: 'error_max_turns' })).toBe('error_max_turns')
+  })
+
+  it('reads an assistant message that reports an error', () => {
+    const message = { type: 'assistant', error: 'authentication_failed', message: { content: [{ type: 'text', text: 'Failed to authenticate' }] } }
+    expect(failureOf(message)).toBe('Failed to authenticate')
+  })
+
+  it('leaves normal messages alone', () => {
+    expect(failureOf({ type: 'result', subtype: 'success', is_error: false, result: 'ok' })).toBeNull()
+    expect(failureOf({ type: 'assistant', message: { content: [{ type: 'text', text: 'hi' }] } })).toBeNull()
+    expect(failureOf(null)).toBeNull()
+  })
+})
+
+describe('a session that fails after it started', () => {
+  it('reports the failure with the session id so the ledger can close it', async () => {
+    const events: { name: string; payload: Record<string, unknown> }[] = []
+    resolved.mockResolvedValue(REGISTERED)
+    queried.mockReturnValue(
+      conversationOf([
+        { type: 'system', session_id: 'sess-9' },
+        { type: 'result', session_id: 'sess-9', is_error: true, result: 'Failed to authenticate' },
+      ]),
+    )
+    const runner = createSdkSessionRunner({
+      cwdFor: () => '/tmp',
+      onEvent: (event) => events.push(event),
+      live: createLiveSessions<SdkUserTurn>(),
+    })
+    await runner.launch(ORDER)
+    await vi.waitFor(() => expect(events.some((event) => event.name === 'session.result')).toBe(true))
+    const result = events.find((event) => event.name === 'session.result')
+    expect(result?.payload).toMatchObject({ claudeSessionId: 'sess-9', isError: true })
   })
 })
