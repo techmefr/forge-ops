@@ -1,0 +1,1073 @@
+<!doctype html>
+<html lang="fr"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Forge Ops - laissez vos agents coder, gardez la preuve</title>
+    <meta name="description" content="Forge Ops orchestre des sessions Claude Code story par story. Aucune étape n'avance sans preuve sur disque, la dernière porte reste humaine. Gratuit, libre, sur votre machine ou votre serveur.">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="../fonts/fonts.css">
+    <style>
+      :root {
+        --bg: #191a21;
+        --panel: #21222c;
+        --card: #282a36;
+        --elev: #303244;
+        --line: #3b3d52;
+        --txt: #f8f8f2;
+        --mid: #cfd1e4;
+        --low: #a3a8c6;
+        --acc: #bd93f9;
+        --acc-ink: #1b1530;
+        --green: #50fa7b;
+        --orange: #ffb86c;
+        --pink: #ff79c6;
+        --cyan: #8be9fd;
+        --display: 'Archivo', system-ui, sans-serif;
+        --body: 'Barlow', system-ui, sans-serif;
+        --mono: 'JetBrains Mono', ui-monospace, monospace;
+        --gutter: clamp(16px, 4vw, 32px);
+      }
+      @media (prefers-color-scheme: light) {
+        :root:not([data-theme='dark']) {
+          --bg: #fbf9f1;
+          --panel: #f4f1e6;
+          --card: #ffffff;
+          --elev: #ece8d9;
+          --line: #d6d1bd;
+          --txt: #1d1b2b;
+          --mid: #433f58;
+          --low: #5c5873;
+          --acc: #6d3fd6;
+          --acc-ink: #ffffff;
+          --green: #0b7a36;
+          --orange: #9a5a00;
+          --pink: #b3237a;
+          --cyan: #0a6a86;
+        }
+      }
+      :root[data-theme='light'] {
+        --bg: #fbf9f1;
+        --panel: #f4f1e6;
+        --card: #ffffff;
+        --elev: #ece8d9;
+        --line: #d6d1bd;
+        --txt: #1d1b2b;
+        --mid: #433f58;
+        --low: #5c5873;
+        --acc: #6d3fd6;
+        --acc-ink: #ffffff;
+        --green: #0b7a36;
+        --orange: #9a5a00;
+        --pink: #b3237a;
+        --cyan: #0a6a86;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--txt);
+        font-family: var(--body);
+        font-size: 1.0625rem;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+      }
+      a {
+        color: inherit;
+      }
+      .wrap {
+        width: min(1180px, 100% - 2 * var(--gutter));
+        margin-inline: auto;
+      }
+      .display {
+        font-family: var(--display);
+        font-weight: 900;
+        font-style: italic;
+        font-variation-settings: 'wdth' 112;
+        letter-spacing: -0.01em;
+        text-transform: uppercase;
+        line-height: 1;
+      }
+      :lang(zh) .display {
+        font-style: normal;
+        letter-spacing: 0;
+        font-variation-settings: normal;
+      }
+      .mono {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--low);
+      }
+      .eyebrow {
+        color: var(--acc);
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        margin: 0 0 14px;
+      }
+      h1,
+      h2,
+      h3 {
+        text-wrap: balance;
+        margin: 0;
+        overflow-wrap: break-word;
+        hyphens: auto;
+      }
+      h2 {
+        font-size: clamp(1.9rem, 4.2vw, 3rem);
+      }
+      h3 {
+        font-size: 1.15rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0;
+      }
+      .lead {
+        font-size: clamp(1.1rem, 2vw, 1.3rem);
+        color: var(--mid);
+        max-width: 60ch;
+      }
+
+      header.top {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: color-mix(in srgb, var(--bg) 86%, transparent);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line);
+      }
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        min-height: 64px;
+      }
+      .brand {
+        font-size: 1.4rem;
+        text-decoration: none;
+      }
+      .brand span {
+        color: var(--acc);
+      }
+      nav.links {
+        display: flex;
+        gap: 22px;
+        margin-left: auto;
+        align-items: center;
+      }
+      nav.links a {
+        text-decoration: none;
+        color: var(--mid);
+        font-weight: 500;
+        padding: 10px 2px;
+      }
+      nav.links a:hover {
+        color: var(--txt);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 48px;
+        padding: 0 22px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: var(--txt);
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform 0.15s ease, border-color 0.15s ease;
+      }
+      .btn:hover {
+        border-color: var(--acc);
+        transform: translateY(-1px);
+      }
+      .btn.primary {
+        background: var(--acc);
+        border-color: var(--acc);
+        color: var(--acc-ink);
+      }
+      .btn.small {
+        min-height: 40px;
+        padding: 0 16px;
+      }
+      :focus-visible {
+        outline: 2px solid var(--acc);
+        outline-offset: 3px;
+      }
+      @media (max-width: 820px) {
+        nav.links a:not(.btn) {
+          display: none;
+        }
+      }
+
+      .lang {
+        min-height: 40px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: var(--txt);
+        font: inherit;
+        font-size: 0.95rem;
+        padding: 0 10px;
+      }
+      @media (max-width: 820px) {
+        .bar {
+          gap: 12px;
+        }
+      }
+      @media (max-width: 560px) {
+        nav.links .btn {
+          display: none;
+        }
+      }
+      .hero {
+        padding: clamp(48px, 9vw, 110px) 0 40px;
+        text-align: center;
+      }
+      .hero h1 {
+        font-size: clamp(2.05rem, 8vw, 5.6rem);
+        max-width: 16ch;
+        margin-inline: auto;
+      }
+      .hero h1 em {
+        color: var(--acc);
+        font-style: inherit;
+      }
+      .hero .lead {
+        margin: 24px auto 0;
+      }
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 34px;
+      }
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 26px;
+      }
+      .badge {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--mid);
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 0.9rem;
+      }
+      .badge b {
+        color: var(--green);
+      }
+      .frame {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+        overflow: hidden;
+        box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.6);
+      }
+      .frame .dots {
+        display: flex;
+        gap: 7px;
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+      .frame .dots i {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--line);
+      }
+      .hero .frame {
+        margin-top: 56px;
+      }
+
+      section {
+        padding: clamp(56px, 9vw, 110px) 0;
+      }
+      section.alt {
+        background: var(--panel);
+        border-block: 1px solid var(--line);
+      }
+      .head {
+        max-width: 720px;
+        margin-bottom: 48px;
+      }
+      .head .lead {
+        margin-top: 16px;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .stat {
+        background: var(--card);
+        padding: 26px 20px;
+      }
+      .stat strong {
+        display: block;
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        color: var(--acc);
+      }
+
+      .grid3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 18px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 26px;
+      }
+      .card p {
+        color: var(--mid);
+        margin-top: 10px;
+      }
+      .card .tag {
+        display: inline-block;
+        margin-bottom: 14px;
+      }
+
+      ol.steps {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 14px;
+        counter-reset: step;
+      }
+      ol.steps li {
+        counter-increment: step;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 22px 20px;
+        position: relative;
+      }
+      ol.steps li::before {
+        content: counter(step, decimal-leading-zero);
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        color: var(--acc);
+        letter-spacing: 0.16em;
+      }
+      ol.steps h3 {
+        margin: 8px 0 6px;
+        font-family: var(--display);
+        font-style: italic;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      ol.steps p {
+        color: var(--mid);
+        font-size: 0.97rem;
+      }
+      ol.steps code {
+        display: block;
+        margin-top: 12px;
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        color: var(--green);
+        overflow-wrap: anywhere;
+      }
+
+      .feature {
+        display: grid;
+        grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+        gap: clamp(28px, 5vw, 64px);
+        align-items: center;
+        padding: 40px 0;
+      }
+      .feature.flip .copy {
+        order: 2;
+      }
+      .feature > * {
+        min-width: 0;
+      }
+      .feature .copy p {
+        color: var(--mid);
+        margin-top: 14px;
+      }
+      .feature .copy ul {
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+      }
+      .feature .copy li {
+        padding-left: 28px;
+        position: relative;
+        color: var(--mid);
+      }
+      .feature .copy li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0.55em;
+        width: 14px;
+        height: 8px;
+        border-left: 2px solid var(--green);
+        border-bottom: 2px solid var(--green);
+        transform: rotate(-45deg);
+      }
+      @media (max-width: 860px) {
+        .feature {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .feature.flip .copy {
+          order: 0;
+        }
+      }
+
+      .themes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+      .themes figure {
+        margin: 0;
+      }
+      .themes figcaption {
+        margin-top: 10px;
+      }
+      .phones {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 36px;
+      }
+      .phones img {
+        width: min(260px, 70vw);
+        border-radius: 22px;
+        border: 1px solid var(--line);
+      }
+
+      .roles {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 18px;
+      }
+      .role h3 {
+        font-family: var(--display);
+        font-style: italic;
+        font-weight: 900;
+        text-transform: uppercase;
+        font-size: 1.3rem;
+      }
+
+      pre.code {
+        background: #12131a;
+        color: #f8f8f2;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 20px 22px;
+        font-family: var(--mono);
+        font-size: 0.9rem;
+        line-height: 1.7;
+        overflow-x: auto;
+        margin: 22px 0 0;
+      }
+      pre.code .c {
+        color: #8b8fb0;
+      }
+      pre.code .g {
+        color: #50fa7b;
+      }
+
+      .topo {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+      }
+      .topo .card h3 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .topo .n {
+        display: inline-grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: var(--acc);
+        color: var(--acc-ink);
+        font-family: var(--mono);
+        font-size: 0.8rem;
+      }
+
+      table.versus {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      table.versus th,
+      table.versus td {
+        padding: 16px 18px;
+        text-align: left;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      table.versus tr:last-child td {
+        border-bottom: 0;
+      }
+      table.versus th {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--low);
+        background: var(--panel);
+      }
+      table.versus td:nth-child(3) {
+        color: var(--green);
+        font-weight: 600;
+      }
+      table.versus td:nth-child(2) {
+        color: var(--mid);
+      }
+      .scroll {
+        overflow-x: auto;
+      }
+
+      details {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 4px 20px;
+        margin-bottom: 10px;
+      }
+      summary {
+        cursor: pointer;
+        font-weight: 700;
+        padding: 16px 0;
+        min-height: 48px;
+      }
+      details p {
+        color: var(--mid);
+        padding-bottom: 18px;
+      }
+
+      .final {
+        text-align: center;
+      }
+      .final h2 {
+        max-width: 18ch;
+        margin-inline: auto;
+      }
+      footer {
+        border-top: 1px solid var(--line);
+        padding: 36px 0 56px;
+        color: var(--low);
+        font-size: 0.95rem;
+      }
+      footer .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px 32px;
+        justify-content: space-between;
+      }
+      footer a {
+        margin-right: 18px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        .btn {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap bar">
+        <a class="brand display" href="#top">Forge<span>.</span>ops</a>
+        <nav class="links" aria-label="Sections">
+          <a href="#pourquoi" data-i18n="k001">Pourquoi</a>
+          <a href="#methode" data-i18n="k002">La méthode</a>
+          <a href="#ecrans" data-i18n="k003">Les écrans</a>
+          <a href="#deployer" data-i18n="k004">Déployer</a>
+          <a href="#gratuit" data-i18n="k005">Gratuit</a>
+          <select id="lang" class="lang" aria-label="Language">
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+            <option value="es">Español</option>
+            <option value="it">Italiano</option>
+            <option value="pt">Português</option>
+            <option value="zh">中文</option>
+          </select>
+          <a class="btn small primary" href="https://techmefr.github.io/forge-ops/" data-i18n="k006">Essayer la démo</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <div class="hero wrap">
+        <p class="eyebrow" data-i18n="k007">Gratuit · libre · sur votre machine</p>
+        <h1 class="display" data-i18n="k008">Laissez vos agents coder. <em>Gardez la preuve.</em></h1>
+        <p class="lead" data-i18n="k009">
+          Forge Ops orchestre des sessions Claude Code story par story. Aucune étape n'avance sans un fichier de preuve
+          sur le disque, et la dernière porte reste toujours humaine.
+        </p>
+        <div class="cta-row">
+          <a class="btn primary" href="https://techmefr.github.io/forge-ops/" data-i18n="k010">Essayer la démo interactive</a>
+          <a class="btn" href="https://github.com/techmefr/forge-ops/releases/latest" data-i18n="k011">Télécharger l'app</a>
+          <a class="btn" href="https://github.com/techmefr/forge-ops" data-i18n="k012">Voir le code</a>
+        </div>
+        <div class="badges">
+          <span class="badge" data-i18n="k013"><b>0 €</b> pour toujours</span>
+          <span class="badge" data-i18n="k014">AGPL-3.0</span>
+          <span class="badge" data-i18n="k015">Windows · macOS · Linux</span>
+          <span class="badge" data-i18n="k016">Web et app de bureau</span>
+          <span class="badge" data-i18n="k017">6 thèmes · 7 langues</span>
+        </div>
+        <div class="frame">
+          <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <img src="../screenshots/board.png" width="1440" height="900" alt="Le tableau de Forge Ops : colonnes Réserve, Plan, Plan à valider, Dev et Test, avec des stories colorées par projet" data-i18n-alt="k167">
+        </div>
+      </div>
+
+      <section class="wrap" style="padding-top: 24px">
+        <div class="stats">
+          <div class="stat"><strong class="display">6</strong><span class="mono" data-i18n="k018">preuves à fournir par story</span></div>
+          <div class="stat"><strong class="display">4</strong><span class="mono" data-i18n="k019">écrans, pas un de plus</span></div>
+          <div class="stat"><strong class="display">3</strong><span class="mono" data-i18n="k020">façons de l'installer</span></div>
+          <div class="stat"><strong class="display">0 €</strong><span class="mono" data-i18n="k021">par siège, par mois</span></div>
+        </div>
+      </section>
+
+      <section id="pourquoi" class="alt">
+        <div class="wrap">
+          <div class="head">
+            <p class="eyebrow" data-i18n="k022">Le problème</p>
+            <h2 class="display" data-i18n="k023">Un agent qui code seul fait trois bêtises.</h2>
+            <p class="lead" data-i18n="k024">Forge Ops les rend impossibles, pas simplement déconseillées.</p>
+          </div>
+          <div class="grid3">
+            <div class="card">
+              <span class="mono tag">01</span>
+              <h3 data-i18n="k025">Le test écrit après coup</h3>
+              <p data-i18n="k026">
+                Un test rédigé une fois le code fini, ou modifié pour passer, coûte plus cher que pas de test : il
+                rassure. Ici, le test est écrit rouge d'abord, et la story refuse d'avancer tant qu'elle n'a pas son
+                jumeau de test.
+              </p>
+            </div>
+            <div class="card">
+              <span class="mono tag">02</span>
+              <h3 data-i18n="k027">L'état affiché n'est pas l'état réel</h3>
+              <p data-i18n="k028">
+                Un agent qui plante en plein milieu laisse une base cohérente avec elle-même et fausse par rapport au
+                disque. Chaque étape doit pointer vers un fichier réel, sinon elle n'existe pas.
+              </p>
+            </div>
+            <div class="card">
+              <span class="mono tag">03</span>
+              <h3 data-i18n="k029">Les agents se marchent dessus</h3>
+              <p data-i18n="k030">
+                Deux sessions qui touchent le même fichier sans le savoir, c'est un conflit découvert au merge. Les zones
+                sont réservées avant l'écriture, et refusées si quelqu'un d'autre les tient.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="methode">
+        <div class="wrap">
+          <div class="head">
+            <p class="eyebrow" data-i18n="k031">La méthode</p>
+            <h2 class="display" data-i18n="k032">Une story, un jumeau de test, six preuves.</h2>
+            <p class="lead" data-i18n="k033">
+              Le directeur écrit des épiques. Les architectes IA les découpent en stories. Chaque étape produit un fichier
+              que le serveur lit avant de la valider, dans l'ordre, sans raccourci.
+            </p>
+          </div>
+          <ol class="steps">
+            <li>
+              <h3 data-i18n="k034">Spec</h3>
+              <p data-i18n="k035">Périmètre, critères d'acceptation, hors périmètre, jumeau de test écrit.</p>
+              <code>evidence/STORY/spec.md</code>
+            </li>
+            <li>
+              <h3 data-i18n="k036">Plan</h3>
+              <p data-i18n="k037">Découpage, placement dans les couches, risques.</p>
+              <code>evidence/STORY/arch.md</code>
+            </li>
+            <li>
+              <h3 data-i18n="k038">Test</h3>
+              <p data-i18n="k039">Les tests rouges, avec leur sortie collée. Un échec de comportement, pas d'import.</p>
+              <code>evidence/STORY/tests.md</code>
+            </li>
+            <li>
+              <h3 data-i18n="k040">Build</h3>
+              <p data-i18n="k041">Les mêmes tests au vert. Si une mutation survit, le build est refusé.</p>
+              <code>evidence/STORY/build.md</code>
+            </li>
+            <li>
+              <h3 data-i18n="k042">Verify</h3>
+              <p data-i18n="k043">Le parcours de la story déroulé pour de vrai dans un navigateur piloté.</p>
+              <code>evidence/STORY/verified.md</code>
+            </li>
+            <li>
+              <h3 data-i18n="k044">Review</h3>
+              <p data-i18n="k045">Qualité, puis sécurité, puis accessibilité. Un constat fort bloque.</p>
+              <code>evidence/STORY/reviewed.md</code>
+            </li>
+            <li>
+              <h3 data-i18n="k046">Ship</h3>
+              <p data-i18n="k047">Un humain valide. Aucun agent ne passe une story à terminé.</p>
+              <code data-i18n="k048">porte humaine</code>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="ecrans" class="alt">
+        <div class="wrap">
+          <div class="head">
+            <p class="eyebrow" data-i18n="k049">Les écrans</p>
+            <h2 class="display" data-i18n="k050">Quatre écrans pour tout suivre.</h2>
+            <p class="lead" data-i18n="k051">Projets, Ma forge, Réglages, Statistiques. Chacun répond à une question.</p>
+          </div>
+
+          <div class="feature">
+            <div class="copy">
+              <p class="eyebrow" data-i18n="k052">Projets · Sujets</p>
+              <h2 class="display" data-i18n="k053">Où en est chaque projet, qui a pris quoi.</h2>
+              <p data-i18n="k054">
+                La vue du directeur : tous les projets d'un coup d'œil, leur météo, les sujets en retard, ceux qui n'ont
+                pas de responsable, et la charge de chaque personne de l'équipe.
+              </p>
+              <ul>
+                <li data-i18n="k055">Météo par projet : beau temps, nuageux, orageux</li>
+                <li data-i18n="k056">Retards et sujets non attribués en un clic</li>
+                <li data-i18n="k057">Charge de l'équipe en sujets en cours sur capacité</li>
+              </ul>
+            </div>
+            <div class="frame">
+              <img src="../screenshots/subjects.png" width="1440" height="900" loading="lazy" alt="L'écran Sujets : six projets avec leur météo, une liste de sujets avec avancement, et la charge de l'équipe" data-i18n-alt="k168">
+            </div>
+          </div>
+
+          <div class="feature flip">
+            <div class="copy">
+              <p class="eyebrow" data-i18n="k058">Projets · Roadmap</p>
+              <h2 class="display" data-i18n="k059">Une frise pour le daily.</h2>
+              <p data-i18n="k060">
+                Le chef de projet présente la roadmap en direct pendant le daily : début, jalon, dépendances entre sujets.
+                Ce que l'on montre est l'état réel, pas une diapositive.
+              </p>
+              <ul>
+                <li data-i18n="k061">Barres de début à jalon par sujet</li>
+                <li data-i18n="k062">Dépendances visibles entre sujets</li>
+                <li data-i18n="k063">Tout se modifie sur place</li>
+              </ul>
+            </div>
+            <div class="frame">
+              <img src="../screenshots/roadmap.png" width="1440" height="900" loading="lazy" alt="La roadmap : des barres de sujets sur une frise temporelle" data-i18n-alt="k169">
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="copy">
+              <p class="eyebrow" data-i18n="k064">Projets · Tableau</p>
+              <h2 class="display" data-i18n="k065">Des colonnes que votre équipe écrit.</h2>
+              <p data-i18n="k066">
+                Les colonnes sont un modèle propre à chaque organisation : quel agent travaille la story, avec quelle
+                commande, quel modèle. Les preuves, elles, ne sont pas négociables.
+              </p>
+              <ul>
+                <li data-i18n="k067">Workflow libre par colonne : agent, skill, préprompt</li>
+                <li data-i18n="k068">Stories bloquées avec leur raison, dépendances visibles</li>
+                <li data-i18n="k069">Une story en attente de vous est signalée</li>
+              </ul>
+            </div>
+            <div class="frame">
+              <img src="../screenshots/board.png" width="1440" height="900" loading="lazy" alt="Le tableau kanban avec des stories bloquées et en attente de validation humaine" data-i18n-alt="k170">
+            </div>
+          </div>
+
+          <div class="feature flip">
+            <div class="copy">
+              <p class="eyebrow" data-i18n="k070">Ma forge</p>
+              <h2 class="display" data-i18n="k071">Votre poste de travail.</h2>
+              <p data-i18n="k072">
+                Vos épiques, vos fichiers, vos rendus, et ce que votre machine peut encore prendre. Chacun développe avec
+                son propre Claude Code, sur son PC ou sur son VPS.
+              </p>
+              <ul>
+                <li data-i18n="k073">Kanban ou pipeline selon votre préférence</li>
+                <li data-i18n="k074">Budget du jour et sessions restantes affichés</li>
+                <li data-i18n="k075">Ressources machine en direct avant de lancer un groupe de stories</li>
+              </ul>
+            </div>
+            <div class="frame">
+              <img src="../screenshots/my-forge.png" width="1440" height="900" loading="lazy" alt="L'écran Ma forge avec les indicateurs personnels et le kanban de ses stories" data-i18n-alt="k171">
+            </div>
+          </div>
+
+          <div class="feature">
+            <div class="copy">
+              <p class="eyebrow" data-i18n="k076">Ma forge · Stories</p>
+              <h2 class="display" data-i18n="k077">Écrivez la story avec Claude.</h2>
+              <p data-i18n="k078">
+                Choisissez une épique, Claude propose le découpage et rédige. Vous lui répondez, la carte se réécrit en
+                direct, puis vient la story de test jumelle.
+              </p>
+              <ul>
+                <li data-i18n="k079">Ticket en direct à côté de la conversation</li>
+                <li data-i18n="k080">Score de complétude : rien ne part sous 60</li>
+                <li data-i18n="k081">Envoi groupé en réserve une fois les deux parties écrites</li>
+              </ul>
+            </div>
+            <div class="frame">
+              <img src="../screenshots/stories.png" width="1440" height="900" loading="lazy" alt="L'écran de rédaction des stories avec le choix des épiques" data-i18n-alt="k172">
+            </div>
+          </div>
+
+          <div class="feature flip">
+            <div class="copy">
+              <p class="eyebrow" data-i18n="k082">Statistiques</p>
+              <h2 class="display" data-i18n="k083">Ce que ça coûte, où ça passe.</h2>
+              <p data-i18n="k084">
+                Sessions, coût total, temps machine, agents les plus sollicités, temps par étape, et comment les sessions
+                se terminent. Un plafond de coût coupe la session, pas seulement une alerte.
+              </p>
+              <ul>
+                <li data-i18n="k085">Coût et temps par story</li>
+                <li data-i18n="k086">Plafond de dépense qui coupe vraiment</li>
+                <li data-i18n="k087">Historique lu dans votre propre base</li>
+              </ul>
+            </div>
+            <div class="frame">
+              <img src="../screenshots/statistics.png" width="1440" height="900" loading="lazy" alt="L'écran Statistiques : sessions, coût total, temps machine et agents les plus sollicités" data-i18n-alt="k173">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="roles">
+        <div class="wrap">
+          <div class="head">
+            <p class="eyebrow" data-i18n="k088">Pour qui</p>
+            <h2 class="display" data-i18n="k089">Chacun son rôle, le même tableau.</h2>
+          </div>
+          <div class="roles">
+            <div class="card role">
+              <h3 data-i18n="k090">Chef de projet</h3>
+              <p data-i18n="k091">Présente le daily sur la version web : sujets, roadmap, blocages. Pas de diapositives à préparer.</p>
+            </div>
+            <div class="card role">
+              <h3 data-i18n="k092">Directeur</h3>
+              <p data-i18n="k093">Suit tous les projets, leur météo et la charge de l'équipe. N'écrit que des épiques.</p>
+            </div>
+            <div class="card role">
+              <h3 data-i18n="k094">Développeur</h3>
+              <p data-i18n="k095">Développe depuis l'app avec son Claude Code, sur son PC ou son VPS, et valide la dernière porte.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="alt">
+        <div class="wrap">
+          <div class="head">
+            <p class="eyebrow" data-i18n="k096">Sur tous vos écrans</p>
+            <h2 class="display" data-i18n="k097">Six thèmes, clair et sombre, toutes les tailles.</h2>
+            <p class="lead" data-i18n="k098">
+              Volt, Dracula, Nord, Gruvbox, Tokyo Night, Solarized. Quatre tailles de texte, quatre polices, et un
+              contraste vérifié pour chaque palette. Utilisable au téléphone pour le daily.
+            </p>
+          </div>
+          <div class="themes">
+            <figure class="frame"><img src="../screenshots/theme-volt.png" width="1200" height="720" loading="lazy" alt="Thème Volt" data-i18n-alt="k174"><figcaption class="mono" style="padding: 10px 14px" data-i18n="k099">Volt</figcaption></figure>
+            <figure class="frame"><img src="../screenshots/theme-dracula.png" width="1200" height="720" loading="lazy" alt="Thème Dracula" data-i18n-alt="k175"><figcaption class="mono" style="padding: 10px 14px" data-i18n="k100">Dracula</figcaption></figure>
+            <figure class="frame"><img src="../screenshots/theme-nord.png" width="1200" height="720" loading="lazy" alt="Thème Nord" data-i18n-alt="k176"><figcaption class="mono" style="padding: 10px 14px" data-i18n="k101">Nord</figcaption></figure>
+            <figure class="frame"><img src="../screenshots/theme-gruvbox.png" width="1200" height="720" loading="lazy" alt="Thème Gruvbox" data-i18n-alt="k177"><figcaption class="mono" style="padding: 10px 14px" data-i18n="k102">Gruvbox</figcaption></figure>
+            <figure class="frame"><img src="../screenshots/theme-tokyo.png" width="1200" height="720" loading="lazy" alt="Thème Tokyo Night" data-i18n-alt="k178"><figcaption class="mono" style="padding: 10px 14px" data-i18n="k103">Tokyo Night</figcaption></figure>
+            <figure class="frame"><img src="../screenshots/theme-solarized.png" width="1200" height="720" loading="lazy" alt="Thème Solarized" data-i18n-alt="k179"><figcaption class="mono" style="padding: 10px 14px" data-i18n="k104">Solarized</figcaption></figure>
+          </div>
+          <div class="frame" style="margin-top: 28px">
+            <img src="../screenshots/board-light.png" width="1440" height="900" loading="lazy" alt="Le tableau en thème clair Solarized" data-i18n-alt="k180">
+          </div>
+          <div class="phones">
+            <img src="../screenshots/mobile-board.png" width="390" height="844" loading="lazy" alt="Le tableau sur un téléphone" data-i18n-alt="k181">
+            <img src="../screenshots/mobile-forge.png" width="390" height="844" loading="lazy" alt="Ma forge sur un téléphone, thème Nord" data-i18n-alt="k182">
+          </div>
+        </div>
+      </section>
+
+      <section id="deployer">
+        <div class="wrap">
+          <div class="head">
+            <p class="eyebrow" data-i18n="k105">Déployer</p>
+            <h2 class="display" data-i18n="k106">Une seule question : où tournent les agents ?</h2>
+            <p class="lead" data-i18n="k107">
+              Installez l'app de bureau qui se met à jour toute seule, ou lancez les conteneurs. Tout le reste découle de
+              la réponse.
+            </p>
+          </div>
+          <div class="topo">
+            <div class="card"><h3 data-i18n="k108"><span class="n">1</span>Tout sur votre laptop</h3><p data-i18n="k109">Pour essayer en dix minutes. Un seul utilisateur, aucun compte, rien de partagé.</p></div>
+            <div class="card"><h3 data-i18n="k110"><span class="n">2</span>Instance ici, serveur sur un VPS</h3><p data-i18n="k111">Le tableau est partagé, le code et les agents restent sur la machine de celui qui les écrit.</p></div>
+            <div class="card"><h3 data-i18n="k112"><span class="n">3</span>Tout sur un VPS</h3><p data-i18n="k113">Instance et serveur hébergés, votre poste n'est qu'un écran.</p></div>
+            <div class="card"><h3 data-i18n="k114"><span class="n">4</span>Serveur hébergé, instances à vous</h3><p data-i18n="k115">Pour une équipe : un serveur commun, chacun son instance où il veut.</p></div>
+          </div>
+
+          <div class="feature" style="padding-bottom: 0">
+            <div class="copy">
+              <p class="eyebrow" data-i18n="k116">L'app de bureau</p>
+              <h2 class="display" data-i18n="k117">Installez-la, oubliez-la.</h2>
+              <p data-i18n="k118">
+                Windows, macOS et Linux. L'app se met à jour toute seule et vit dans la barre système. Un menu de serveurs
+                permet de passer de votre VPS à celui de l'équipe, avec une session par serveur.
+              </p>
+              <ul>
+                <li data-i18n="k119">Connexion avec Google ou Microsoft, ou un compte local</li>
+                <li data-i18n="k120">Plusieurs serveurs enregistrés, une session chacun</li>
+                <li data-i18n="k121">Lancement au démarrage, mise à jour automatique</li>
+              </ul>
+            </div>
+            <div>
+              <p class="mono" data-i18n="k122">Installation guidée en ligne de commande</p>
+              <pre class="code"><span class="c" data-i18n="k123"># choisit la topologie, génère les secrets, configure Google et Microsoft</span>
+<span class="g">npm run</span> forge-ops -- init
+
+<span class="c" data-i18n="k124"># vérifie Docker, les secrets et la santé de l'instance</span>
+<span class="g">npm run</span> forge-ops -- doctor</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="gratuit" class="alt">
+        <div class="wrap">
+          <div class="head">
+            <p class="eyebrow" data-i18n="k125">Gratuit</p>
+            <h2 class="display" data-i18n="k126">Gratuit pour de vrai, pas en période d'essai.</h2>
+            <p class="lead" data-i18n="k127">
+              Forge Ops est un logiciel libre sous licence AGPL-3.0. Pas d'abonnement, pas de siège à payer, pas de compte à
+              créer chez nous. Vous l'exécutez, vous le modifiez, vous l'hébergez.
+            </p>
+          </div>
+          <div class="scroll">
+            <table class="versus">
+              <thead>
+                <tr><th scope="col" data-i18n="k128">Ce qui compte</th><th scope="col" data-i18n="k129">Un outil SaaS classique</th><th scope="col">Forge Ops</th></tr>
+              </thead>
+              <tbody>
+                <tr><td data-i18n="k130">Prix</td><td data-i18n="k131">Par siège, par mois</td><td data-i18n="k132">0 €, toujours</td></tr>
+                <tr><td data-i18n="k133">Où vivent vos données</td><td data-i18n="k134">Chez l'éditeur</td><td data-i18n="k135">Chez vous</td></tr>
+                <tr><td data-i18n="k136">Où tournent les agents</td><td data-i18n="k137">Dans leur cloud</td><td data-i18n="k138">Sur votre PC ou votre VPS</td></tr>
+                <tr><td data-i18n="k139">Validation d'une étape</td><td data-i18n="k140">Une case à cocher</td><td data-i18n="k141">Un fichier de preuve lu par le serveur</td></tr>
+                <tr><td data-i18n="k142">Dernière porte</td><td data-i18n="k143">Automatique</td><td data-i18n="k144">Toujours un humain</td></tr>
+                <tr><td data-i18n="k145">Code source</td><td data-i18n="k146">Fermé</td><td data-i18n="k147">Ouvert, modifiable</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap" style="max-width: 820px">
+          <div class="head">
+            <p class="eyebrow" data-i18n="k148">Questions</p>
+            <h2 class="display" data-i18n="k149">Ce qu'on nous demande.</h2>
+          </div>
+          <details>
+            <summary data-i18n="k150">Faut-il un compte Claude ?</summary>
+            <p data-i18n="k151">
+              Les sessions d'agent utilisent le Claude Code installé sur la machine qui exécute l'instance, avec votre
+              propre connexion. Forge Ops n'envoie rien à un service tiers de son côté.
+            </p>
+          </details>
+          <details>
+            <summary data-i18n="k152">Puis-je utiliser un autre agent que Claude Code ?</summary>
+            <p data-i18n="k153">
+              L'agent est un pilote interchangeable. Claude Code et Codex sont branchés aujourd'hui, et l'idée est de ne
+              dépendre d'aucun éditeur.
+            </p>
+          </details>
+          <details>
+            <summary data-i18n="k154">Mes données quittent-elles ma machine ?</summary>
+            <p data-i18n="k155">
+              Non, sauf si vous choisissez un serveur partagé. La base est un fichier SQLite chez vous, et ce que l'outil
+              stocke sur les personnes peut être effacé.
+            </p>
+          </details>
+          <details>
+            <summary data-i18n="k156">Que signifie AGPL pour mon entreprise ?</summary>
+            <p data-i18n="k157">
+              Vous pouvez l'utiliser, le modifier et l'héberger librement. Seule obligation : si vous faites tourner une
+              copie modifiée comme un service, vous publiez vos modifications.
+            </p>
+          </details>
+        </div>
+      </section>
+
+      <section class="final alt">
+        <div class="wrap">
+          <h2 class="display" data-i18n="k158">Voyez-le tourner, sans rien installer.</h2>
+          <p class="lead" style="margin: 18px auto 0" data-i18n="k159">
+            La démo est un vrai tableau, figé sur des données d'exemple, avec sa visite guidée en six langues.
+          </p>
+          <div class="cta-row">
+            <a class="btn primary" href="https://techmefr.github.io/forge-ops/" data-i18n="k160">Essayer la démo</a>
+            <a class="btn" href="https://github.com/techmefr/forge-ops/releases/latest" data-i18n="k161">Télécharger l'app</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <p class="display" style="font-size: 1.2rem; color: var(--txt)">Forge<span style="color: var(--acc)">.</span>ops</p>
+        <p>
+          <a href="https://github.com/techmefr/forge-ops" data-i18n="k162">Code source</a>
+          <a href="https://github.com/techmefr/forge-ops/releases/latest" data-i18n="k163">Téléchargements</a>
+          <a href="https://github.com/techmefr/forge-ops/blob/main/docs/Deployment.md" data-i18n="k164">Déploiement</a>
+          <a href="https://github.com/techmefr/forge-ops/blob/main/docs/Architecture.md" data-i18n="k165">Architecture</a>
+        </p>
+        <p data-i18n="k166">Licence AGPL-3.0 · © 2026 Gaetan Compigni</p>
+      </div>
+    </footer>
+  
+
+<script src="i18n.js"></script>
+<script src="lang.js"></script>
+</body></html>

@@ -47,6 +47,30 @@ Without these variables the server still starts, logs a warning, and nobody can 
 
 Prefer the file form: `docker/super_admin_password.secret` is mounted as a secret in `docker/compose.vps.yml`.
 
+## Guided setup
+
+`npm run forge-ops -- init` asks where the agents run and writes what the chosen topology needs: the secret files under `docker/` (mode `0600`, never overwritten) and `docker/.env`. `npm run forge-ops -- doctor` checks Docker, the secrets and the health of the instance and says what to fix. Only the `laptop` and `vps` topologies generate their tokens; `split` and `hosted` take the instance token minted by the server.
+
+## Signing in with Google or Microsoft
+
+The accounts live on the `server`, or on the `instance` when there is no server, so that is where the provider variables go (`compose.vps.yml` forwards them to both):
+
+| Variable | Meaning |
+|---|---|
+| `FORGE_PUBLIC_ORIGIN` | Public address of the board. The redirect URI to register is `<origin>/api/auth/oidc/google/callback` or `…/microsoft/callback` |
+| `FORGE_OIDC_GOOGLE_CLIENT_ID` / `_CLIENT_SECRET` | Google OAuth client. `_CLIENT_SECRET_FILE` reads the secret from a mounted file |
+| `FORGE_OIDC_MICROSOFT_CLIENT_ID` / `_CLIENT_SECRET` | Microsoft Entra app registration |
+| `FORGE_OIDC_MICROSOFT_TENANT` | A tenant id (a UUID). The multi-tenant values `common`, `organizations` and `consumers` are refused because the email is not verified by the provider |
+| `FORGE_OIDC_ALLOWED_DOMAINS` | Email domains that may create an account on first sign-in, as architects. Empty means nobody can: only existing accounts sign in |
+
+The server runs the authorization code flow with PKCE, a one-time `state` and a `nonce`, and checks the audience, the nonce, the expiry and, for Google and a specific Microsoft tenant, the issuer. An account is matched by `provider:subject`, else linked to the account with the same verified email, else created when the domain is allowed, else the sign-in is refused. Only accounts that were already active can sign in.
+
+The desktop app ends the flow differently: the server redirects to `forgeops://auth?code=…` with a single-use code valid for sixty seconds, and the app trades it for its session. No cookie is set on that path. A client that sends `x-forge-client: desktop` gets its session token in the login response (browsers never do: they keep the `HttpOnly` cookie).
+
+## The desktop app
+
+The installers attached to each GitHub release wrap the same front and update themselves from `latest.json`. They keep a list of servers (instance address, optional board server address, one session each) and reach them through the Tauri HTTP plugin, so there is no CORS to configure on the instance. Releases are cut by pushing a `v*` tag; the repository holds `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, and the public key is in `src-tauri/tauri.conf.json`.
+
 ## What to run
 
 | Topology | File |

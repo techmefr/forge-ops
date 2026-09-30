@@ -2,9 +2,34 @@
 
 Branch `main`. Complete rewrite: the unit of work is no longer the task, it is the **story**, always accompanied by its **twin test story**. The board orchestrates Claude Code sessions on those stories and refuses to let a story move forward without proof.
 
-**Look at it without installing anything:** [techmefr.github.io/forge-ops](https://techmefr.github.io/forge-ops/) — the demonstration board, frozen, with its guided tour in six languages. Nothing runs there; it is a visit, not a trial.
+**Look at it without installing anything:** [techmefr.github.io/forge-ops](https://techmefr.github.io/forge-ops/) — the demonstration board, frozen, with its guided tour in seven languages. Nothing runs there; it is a visit, not a trial. A presentation page, in the same seven languages, is at [techmefr.github.io/forge-ops/about](https://techmefr.github.io/forge-ops/about/).
+
+**Install the desktop app:** Windows, macOS and Linux installers are on the [releases page](https://github.com/techmefr/forge-ops/releases/latest). The app updates itself, signs in with Google or Microsoft, and keeps a list of servers you can switch between. See [the desktop app](#the-desktop-app).
+
+![The board: stories in their columns, coloured by project, with blocked and waiting-for-you cards marked](frontend/public/screenshots/board.png)
+
+It speaks French, English, German, Spanish, Italian, Portuguese and Chinese, in six colour themes (light and dark) and four text sizes, down to a phone screen.
 
 **Where this is going.** A rework was decided on 2026-09-18: the tool splits into a shared server and an executing instance, the interface comes down to four screens, the kanban columns become a template an organisation writes for itself, and the agent behind a card becomes a driver. [docs/Architecture.md](docs/Architecture.md) says what is being built and why; [docs/Deployment.md](docs/Deployment.md) says how it is run. This README describes what exists today — section 11 is the honest state of it.
+
+## 0. What it looks like
+
+| | |
+|---|---|
+| ![Subjects: every project with its weather, late and unassigned subjects, the team's load](frontend/public/screenshots/subjects.png) **Subjects** — every project at a glance, who took what. | ![Roadmap: subjects as bars on a timeline](frontend/public/screenshots/roadmap.png) **Roadmap** — what a project manager shows at the daily. |
+| ![My forge: personal indicators and the kanban of my stories](frontend/public/screenshots/my-forge.png) **My forge** — your epics, your files, what your machine can still take. | ![Writing stories with Claude: pick an epic, Claude drafts the cards](frontend/public/screenshots/stories.png) **Stories** — pick an epic, write with Claude, then the twin test story. |
+| ![Statistics: sessions, cost, machine time, most used agents](frontend/public/screenshots/statistics.png) **Statistics** — what it costs and where it goes. | ![Settings: palette, mode, font, text size](frontend/public/screenshots/settings.png) **Settings** — six palettes, light and dark, four fonts, four sizes. |
+
+| Volt | Dracula | Nord |
+|---|---|---|
+| ![Volt](frontend/public/screenshots/theme-volt.png) | ![Dracula](frontend/public/screenshots/theme-dracula.png) | ![Nord](frontend/public/screenshots/theme-nord.png) |
+| **Gruvbox** | **Tokyo Night** | **Solarized** |
+| ![Gruvbox](frontend/public/screenshots/theme-gruvbox.png) | ![Tokyo Night](frontend/public/screenshots/theme-tokyo.png) | ![Solarized](frontend/public/screenshots/theme-solarized.png) |
+
+<p align="center">
+  <img src="frontend/public/screenshots/mobile-board.png" alt="The board on a phone" width="240" />
+  <img src="frontend/public/screenshots/mobile-forge.png" alt="My forge on a phone" width="240" />
+</p>
 
 ## 1. The problem addressed
 
@@ -208,6 +233,47 @@ FORGE_PORT=8899 npm run demo
 | `FORGE_SHOT_DIR` | `../forge-shots` (screenshots of the piloted browser) |
 | `FORGE_PILOT_HEADED` | `false` (`true` to see the Chromium on screen) |
 | `FORGE_OTEL_METRICS_URL` | empty — without it, the resources screen says it has no collector |
+| `FORGE_PUBLIC_ORIGIN`, `FORGE_OIDC_*` | see *Signing in with Google or Microsoft* |
+
+### The desktop app
+
+Installers for Windows (`.exe`, `.msi`), macOS (Apple Silicon `.dmg`) and Linux (`.AppImage`, `.deb`, `.rpm`) are attached to every [release](https://github.com/techmefr/forge-ops/releases/latest). The app wraps the same web front; nothing about the board changes.
+
+- **It updates itself.** It reads `latest.json` from the latest GitHub release and installs signed updates, like a chat client. The public half of the signing key is in `src-tauri/tauri.conf.json`.
+- **It keeps a list of servers.** The first launch asks for the address of an instance (your laptop, your VPS, your team's server) and an optional board server. The menu in the header adds, removes and switches servers; each one keeps its own session.
+- **It lives in the system tray**, closes to the tray, and can start at login.
+- **Signing in with Google or Microsoft** opens your system browser and comes back to the app through a `forgeops://` link.
+- Only servers in hub mode are supported from the app today.
+
+Maintainers publish a release by pushing a `v*` tag: `.github/workflows/desktop.yml` builds the three platforms and uploads the installers and the updater manifest. The repository needs the secrets `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. A manual run of the workflow builds without publishing.
+
+```bash
+npm run desktop:dev      # app in development
+npm run desktop:build    # local installer (needs Rust and the Tauri system libraries)
+```
+
+### Guided setup
+
+```bash
+npm run forge-ops -- init      # where do the agents run? writes secrets and docker/.env, offers to start compose
+npm run forge-ops -- doctor    # docker, secrets, instance health, with a hint for each failure
+```
+
+`init` asks for the topology, the folder holding your repositories, the addresses, the first super admin, the email domains allowed to create an account on first sign-in, and the Google and Microsoft client settings (it prints the exact redirect URI to register). Secrets are written with mode `0600` and an existing secret is never overwritten; the generated admin password is shown once.
+
+### Signing in with Google or Microsoft
+
+Set the provider variables on the process that holds the accounts (the `server`, or the `instance` when there is no server). A provider is enabled only when both its client id and its secret are set, and its button then appears on the sign-in screen.
+
+| Variable | Meaning |
+|---|---|
+| `FORGE_PUBLIC_ORIGIN` | The address people reach the board at; the redirect URI is `<origin>/api/auth/oidc/<google or microsoft>/callback` |
+| `FORGE_OIDC_GOOGLE_CLIENT_ID`, `FORGE_OIDC_GOOGLE_CLIENT_SECRET` | Google OAuth client (the secret may come from `…_CLIENT_SECRET_FILE`) |
+| `FORGE_OIDC_MICROSOFT_CLIENT_ID`, `FORGE_OIDC_MICROSOFT_CLIENT_SECRET` | Microsoft Entra app (or `…_CLIENT_SECRET_FILE`) |
+| `FORGE_OIDC_MICROSOFT_TENANT` | A **specific tenant id**. `common` and `organizations` are refused: Microsoft does not vouch for the email there |
+| `FORGE_OIDC_ALLOWED_DOMAINS` | Comma-separated email domains whose holders get an account on first sign-in (architect role) |
+
+The flow is authorization code with PKCE, state and nonce. An account is found by its provider subject, else linked to the existing account with the same verified email, else created when its domain is allowed, else refused.
 
 ## 9. Structure
 
@@ -292,6 +358,12 @@ Low-level orchestration is not rewritten: it leans on the first party — the `c
 | Fine-grained machine metrics | Done, read from an OpenTelemetry collector (`FORGE_OTEL_METRICS_URL`), never collected here |
 | Feature flags | To be delegated to OpenFeature, the board keeps only the percentage |
 | Browser piloting of step 6 (slow motion, pause, inspection) | Done, a real Chromium through `playwright-core`, screenshot at every step |
+| Desktop app (Windows, macOS, Linux) with self-update, tray and a list of servers | Done, built and released by CI; install and update flow not yet exercised on every OS |
+| Sign-in with Google and Microsoft, on the web and from the desktop app | Done and unit tested; not yet run against real provider credentials |
+| Guided setup (`forge-ops init`, `doctor`) | Done; `init` not yet run on a real VPS |
+| Seven interface languages (fr, en, de, es, it, pt, zh) | Done; Chinese is a first translation, a native review is welcome |
+| Layout on phone widths and every text size | Checked with a headless browser across widths, sizes and palettes |
+| Presentation page in seven languages | Done, served with the demo at `/about/` |
 
 The architecture being built towards is in [docs/Architecture.md](docs/Architecture.md) and the ways to run it in [docs/Deployment.md](docs/Deployment.md). The step-by-step survey of the existing tooling is in [docs/Tooling.md](docs/Tooling.md), and the exhaustive listing of the landscape — around 120 projects, licenses and mechanisms — in [docs/Landscape.md](docs/Landscape.md). What the tool stores about people, and how to erase it, is in [docs/Privacy.md](docs/Privacy.md).
 
