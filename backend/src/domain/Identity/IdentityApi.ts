@@ -26,6 +26,9 @@ import { createLoginRateLimit, type LoginRateLimit } from '../../technical/Auth/
 
 export { IDENTITY_COOKIE }
 
+export const DESKTOP_CLIENT_HEADER = 'x-forge-client'
+export const DESKTOP_CLIENT_VALUE = 'desktop'
+
 const credentialsSchema = z.object({
   login: z.string().min(1).max(120),
   password: z.string().min(1).max(256),
@@ -123,7 +126,8 @@ export function createIdentityApi({
       secure: cookieSecure(context),
       expires: new Date(opened.expiresAt),
     })
-    return context.json({ user: opened.user })
+    const isDesktopClient = context.req.header(DESKTOP_CLIENT_HEADER) === DESKTOP_CLIENT_VALUE
+    return context.json(isDesktopClient ? { user: opened.user, token: opened.token } : { user: opened.user })
   })
 
   api.post('/api/auth/logout', (context) => {

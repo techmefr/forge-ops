@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { board } from '@/technical/Api/Board'
 import { isDesktop, readAddresses } from '@/technical/Api/Addresses'
+import { activeServer, rememberToken } from '@/technical/Api/Servers'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import type { Phrase } from '@/technical/Language/Phrase'
@@ -71,7 +72,14 @@ async function pushToLanding(): Promise<void> {
 
 function signIn(): Promise<void> {
   return guard(async () => {
-    await board.send('/api/auth/login', 'POST', { login: login.value, password: password.value })
+    const opened = await board.send<{ token?: string }>('/api/auth/login', 'POST', {
+      login: login.value,
+      password: password.value,
+    })
+    const server = activeServer()
+    if (isDesktop() && server !== null && typeof opened.token === 'string') {
+      rememberToken(server.id, opened.token)
+    }
     password.value = ''
     await pushToLanding()
   })

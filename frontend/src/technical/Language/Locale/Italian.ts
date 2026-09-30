@@ -1328,7 +1328,13 @@ export const ITALIAN: Message = {
     large: 'Grande',
     huge: 'Molto grande',
   },
+  servers: {
+    title: 'Server',
+    add: 'Aggiungi un server',
+    remove: 'Rimuovi',
+  },
   connect: {
+    name: 'Nome (facoltativo)',
     title: 'Collegarsi a un server',
     hint: 'Indica l’indirizzo dell’istanza con cui parla l’app: il tuo computer, il tuo VPS o il server del tuo team.',
     instance: 'Indirizzo dell’istanza',

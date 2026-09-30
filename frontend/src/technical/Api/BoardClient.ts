@@ -21,6 +21,7 @@ export type BoardClientInput = {
   baseUrl?: string
   fetcher?: typeof fetch
   onUnauthorized?: () => void
+  headers?: () => Record<string, string>
 }
 
 export function isRejection(error: unknown): boolean {
@@ -46,11 +47,13 @@ export function createBoardClient({
   baseUrl = '',
   fetcher = fetch,
   onUnauthorized,
+  headers = () => ({}),
 }: BoardClientInput = {}): BoardClient {
   async function call<T>(path: string, init: RequestInit): Promise<T> {
     const response = await fetcher(`${baseUrl}${path}`, {
       credentials: 'same-origin',
       ...init,
+      headers: { ...headers(), ...(init.headers as Record<string, string> | undefined) },
     })
     const raw = await response.text()
     const payload: unknown = raw === '' ? null : (JSON.parse(raw) as unknown)

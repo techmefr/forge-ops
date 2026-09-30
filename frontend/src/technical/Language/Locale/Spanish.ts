@@ -1328,7 +1328,13 @@ export const SPANISH: Message = {
     large: 'Grande',
     huge: 'Muy grande',
   },
+  servers: {
+    title: 'Servidores',
+    add: 'Añadir un servidor',
+    remove: 'Quitar',
+  },
   connect: {
+    name: 'Nombre (opcional)',
     title: 'Conectar a un servidor',
     hint: 'Indica la dirección de la instancia con la que habla la app: tu equipo, tu VPS o el servidor de tu equipo.',
     instance: 'Dirección de la instancia',

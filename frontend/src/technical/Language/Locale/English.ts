@@ -1315,7 +1315,13 @@ export const ENGLISH = {
     large: 'Large',
     huge: 'Very large',
   },
+  servers: {
+    title: 'Servers',
+    add: 'Add a server',
+    remove: 'Remove',
+  },
   connect: {
+    name: 'Name (optional)',
     title: 'Connect to a server',
     hint: 'Give the address of the instance this app talks to: your laptop, your VPS, or your team’s server.',
     instance: 'Instance address',
