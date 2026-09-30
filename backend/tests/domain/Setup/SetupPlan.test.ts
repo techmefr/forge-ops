@@ -1,0 +1,63 @@
+import { describe, expect, it } from 'vitest'
+import {
+  composeFileOf,
+  envLinesOf,
+  generatedSecretsOf,
+  redirectUriOf,
+  validateAnswers,
+  type SetupAnswers,
+} from '../../../src/domain/Setup/SetupPlan.js'
+
+const TENANT = '11111111-2222-3333-4444-555555555555'
+
+const VPS: SetupAnswers = {
+  topology: 'vps',
+  publicInstanceUrl: 'https://forge.acme.com/',
+  serverUrl: '',
+  superAdminLogin: 'root',
+  repositories: '',
+  allowedDomains: ['acme.com'],
+  google: { clientId: 'gid', clientSecret: 'gsecret' },
+  microsoft: { clientId: 'mid', clientSecret: 'msecret', tenant: TENANT },
+}
+
+describe('setup plan', () => {
+  it('choisit le bon fichier compose et les secrets a generer', () => {
+    expect(composeFileOf('vps')).toBe('compose.vps.yml')
+    expect(generatedSecretsOf('laptop')).toEqual(['board_token'])
+    expect(generatedSecretsOf('vps')).toContain('super_admin_password')
+  })
+
+  it('construit l adresse de retour a declarer chez le fournisseur', () => {
+    expect(redirectUriOf('https://forge.acme.com/', 'google')).toBe(
+      'https://forge.acme.com/api/auth/oidc/google/callback',
+    )
+  })
+
+  it('ecrit les variables du vps avec OIDC', () => {
+    expect(envLinesOf(VPS)).toEqual([
+      'FORGE_PUBLIC_INSTANCE_URL=https://forge.acme.com',
+      'FORGE_SUPER_ADMIN_LOGIN=root',
+      'FORGE_OIDC_ALLOWED_DOMAINS=acme.com',
+      'FORGE_OIDC_GOOGLE_CLIENT_ID=gid',
+      'FORGE_OIDC_GOOGLE_CLIENT_SECRET=gsecret',
+      'FORGE_OIDC_MICROSOFT_CLIENT_ID=mid',
+      'FORGE_OIDC_MICROSOFT_CLIENT_SECRET=msecret',
+      `FORGE_OIDC_MICROSOFT_TENANT=${TENANT}`,
+    ])
+  })
+
+  it('accepte une config valide', () => {
+    expect(validateAnswers(VPS)).toEqual([])
+  })
+
+  it('refuse un tenant Microsoft generique', () => {
+    const answers = { ...VPS, microsoft: { clientId: 'm', clientSecret: 's', tenant: 'common' } }
+    expect(validateAnswers(answers)).toHaveLength(1)
+  })
+
+  it('refuse OIDC hors topologie vps et une adresse invalide', () => {
+    const answers: SetupAnswers = { ...VPS, topology: 'split', serverUrl: 'nope' }
+    expect(validateAnswers(answers)).toHaveLength(2)
+  })
+})
