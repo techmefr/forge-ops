@@ -34,7 +34,7 @@ export function createBoardI18n(locale: Language) {
     fallbackLocale: FALLBACK_LANGUAGE,
     messages: MESSAGES,
     datetimeFormats: formatsOfEveryLanguage(),
-    pluralRules: { fr: frenchPluralIndex },
+    pluralRules: { fr: frenchPluralIndex, zh: () => 0 },
     missingWarn: false,
     fallbackWarn: false,
   })
