@@ -20,6 +20,12 @@ export const OPEN_PATHS: readonly string[] = [
   '/api/auth/state',
 ]
 
+export const OIDC_PATH_PREFIX = '/api/auth/oidc/'
+
+function isOpenPath(path: string): boolean {
+  return OPEN_PATHS.includes(path) || path.startsWith(OIDC_PATH_PREFIX)
+}
+
 export type TokenGuardInput = {
   token: string
   hookToken: string
@@ -98,7 +104,7 @@ export function createTokenGuard({
     }
 
     if (requireIdentity) {
-      if (OPEN_PATHS.includes(context.req.path)) {
+      if (isOpenPath(context.req.path)) {
         await next()
         return undefined
       }

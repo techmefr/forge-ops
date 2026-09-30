@@ -1325,6 +1325,9 @@ export const ENGLISH = {
     badScheme: 'The address must start with http:// or https://.',
   },
   access: {
+    continueWith: 'Continue with {provider}',
+    provider: { google: 'Google', microsoft: 'Microsoft' },
+    oidcRefused: 'This account could not be signed in. Ask an admin to allow your address.',
     enterBoard: 'Enter the board',
     tokenHint:
       'The board prints the token on start-up. Pasting it here opens a twelve-hour session; the board never hands it out by itself.',

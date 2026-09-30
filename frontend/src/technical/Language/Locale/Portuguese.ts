@@ -1337,6 +1337,9 @@ export const PORTUGUESE: Message = {
     badScheme: 'O endereço tem de começar por http:// ou https://.',
   },
   access: {
+    continueWith: 'Continuar com {provider}',
+    provider: { google: 'Google', microsoft: 'Microsoft' },
+    oidcRefused: 'Não foi possível iniciar sessão com esta conta. Pede a um admin para autorizar o teu endereço.',
     enterBoard: 'Entrar no board',
     tokenHint:
       'O token é mostrado pelo board no arranque. Colá-lo aqui abre uma sessão de doze horas; o board nunca o entrega por si próprio.',
