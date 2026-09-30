@@ -25,8 +25,8 @@ export function addressesOf(declared: unknown): Addresses {
 
 export const DESKTOP_ADDRESSES_KEY = 'forge.addresses'
 
-function isDesktop(): boolean {
-  return '__TAURI_INTERNALS__' in window
+export function isDesktop(): boolean {
+  return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
 }
 
 function storedAddresses(): unknown {
@@ -45,4 +45,16 @@ export function readAddresses(): Addresses {
     return addressesOf(storedAddresses())
   }
   return addressesOf((window as unknown as Record<string, unknown>).forgeAddresses)
+}
+
+export function hasDesktopAddresses(): boolean {
+  return addressesOf(storedAddresses()).instanceUrl !== SAME_ORIGIN.instanceUrl
+}
+
+export function saveDesktopAddresses(addresses: Addresses): void {
+  window.localStorage.setItem(DESKTOP_ADDRESSES_KEY, JSON.stringify(addresses))
+}
+
+export function isHttpAddress(value: string): boolean {
+  return /^https?:\/\/[^\s/]+/i.test(value.trim())
 }

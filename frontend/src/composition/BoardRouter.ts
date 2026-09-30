@@ -8,6 +8,8 @@ import {
 import { ABSORBED_PATHS, HOME_PATH } from '@/technical/Router/Screen.js'
 import { checkBoardSession } from '@/technical/Api/Board.js'
 import { FROZEN_VISIT } from '@/technical/Api/Visit.js'
+import { hasDesktopAddresses, isDesktop } from '@/technical/Api/Addresses.js'
+import { createConnectGuard } from '@/technical/Router/ConnectGuard.js'
 import { createSessionGuard, type SessionCheck } from '@/technical/Router/SessionGuard.js'
 
 const ABSORBED: readonly RouteRecordRaw[] = Object.entries(ABSORBED_PATHS).map(
@@ -47,6 +49,11 @@ export const ROUTES: readonly RouteRecordRaw[] = [
     component: () => import('@/domain/Setting/SettingScreen.vue'),
   },
   {
+    path: '/connect',
+    name: 'connect',
+    component: () => import('@/domain/Access/ConnectScreen.vue'),
+  },
+  {
     path: '/login',
     name: 'login',
     component: () => import('@/domain/Access/LoginScreen.vue'),
@@ -65,6 +72,7 @@ export function createBoardRouter(
 ): Router {
   const router = createRouter({ history, routes: [...ROUTES] })
   if (!FROZEN_VISIT) {
+    router.beforeEach(createConnectGuard(isDesktop(), hasDesktopAddresses))
     router.beforeEach(createSessionGuard(checkSession))
   }
   return router

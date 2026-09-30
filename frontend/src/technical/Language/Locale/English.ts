@@ -1315,6 +1315,15 @@ export const ENGLISH = {
     large: 'Large',
     huge: 'Very large',
   },
+  connect: {
+    title: 'Connect to a server',
+    hint: 'Give the address of the instance this app talks to: your laptop, your VPS, or your team’s server.',
+    instance: 'Instance address',
+    server: 'Board server address (optional)',
+    submit: 'Connect',
+    unreachable: 'Cannot reach this address. Check it and that the instance is running.',
+    badScheme: 'The address must start with http:// or https://.',
+  },
   access: {
     enterBoard: 'Enter the board',
     tokenHint:

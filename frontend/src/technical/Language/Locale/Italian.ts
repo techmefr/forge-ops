@@ -1328,6 +1328,15 @@ export const ITALIAN: Message = {
     large: 'Grande',
     huge: 'Molto grande',
   },
+  connect: {
+    title: 'Collegarsi a un server',
+    hint: 'Indica l’indirizzo dell’istanza con cui parla l’app: il tuo computer, il tuo VPS o il server del tuo team.',
+    instance: 'Indirizzo dell’istanza',
+    server: 'Indirizzo del server board (facoltativo)',
+    submit: 'Collegati',
+    unreachable: 'Indirizzo non raggiungibile. Controllalo e verifica che l’istanza sia attiva.',
+    badScheme: 'L’indirizzo deve iniziare con http:// o https://.',
+  },
   access: {
     enterBoard: 'Entrare nella board',
     tokenHint:

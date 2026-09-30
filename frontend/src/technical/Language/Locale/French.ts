@@ -1325,6 +1325,15 @@ export const FRENCH: Message = {
     large: 'Grande',
     huge: 'Très grande',
   },
+  connect: {
+    title: 'Se connecter à un serveur',
+    hint: 'Indique l’adresse de l’instance à laquelle l’app parle : ton poste, ton VPS ou le serveur de ton équipe.',
+    instance: 'Adresse de l’instance',
+    server: 'Adresse du serveur board (optionnel)',
+    submit: 'Se connecter',
+    unreachable: 'Adresse injoignable. Vérifie-la et que l’instance tourne.',
+    badScheme: 'L’adresse doit commencer par http:// ou https://.',
+  },
   access: {
     enterBoard: 'Entrer sur le board',
     tokenHint:
