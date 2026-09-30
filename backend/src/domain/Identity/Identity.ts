@@ -23,6 +23,14 @@ export type UserDraft = {
   role: UserRole
 }
 
+export type ExternalUserDraft = {
+  login: string
+  displayName: string
+  email: string
+  role: UserRole
+  subject: string
+}
+
 export type OpenedSession = {
   user: BoardUser
   token: string

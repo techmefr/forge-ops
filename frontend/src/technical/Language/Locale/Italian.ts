@@ -1338,6 +1338,9 @@ export const ITALIAN: Message = {
     badScheme: 'L’indirizzo deve iniziare con http:// o https://.',
   },
   access: {
+    continueWith: 'Continua con {provider}',
+    provider: { google: 'Google', microsoft: 'Microsoft' },
+    oidcRefused: 'Accesso non riuscito con questo account. Chiedi a un admin di autorizzare il tuo indirizzo.',
     enterBoard: 'Entrare nella board',
     tokenHint:
       'Il token è mostrato dalla board all’avvio. Incollarlo qui apre una sessione di dodici ore; la board non lo consegna mai da sola.',

@@ -1335,6 +1335,9 @@ export const FRENCH: Message = {
     badScheme: 'L’adresse doit commencer par http:// ou https://.',
   },
   access: {
+    continueWith: 'Continuer avec {provider}',
+    provider: { google: 'Google', microsoft: 'Microsoft' },
+    oidcRefused: 'Connexion impossible avec ce compte. Demande à un admin d’autoriser ton adresse.',
     enterBoard: 'Entrer sur le board',
     tokenHint:
       'Le jeton est affiché par le board au démarrage. Le coller ici ouvre une session de douze heures ; le board ne le donne jamais de lui-même.',

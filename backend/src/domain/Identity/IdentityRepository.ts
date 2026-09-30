@@ -12,6 +12,7 @@ import {
   type BoardUser,
   type OpenedSession,
   type SuperAdminSeed,
+  type ExternalUserDraft,
   type UserDraft,
   type UserRole,
 } from './Identity.js'
@@ -76,6 +77,11 @@ export type IdentityRepository = {
   changeEmail: (login: string, email: string) => BoardUser
   changeDisplayName: (login: string, displayName: string) => BoardUser
   changePassword: (login: string, current: string, next: string) => void
+  findUserByExternalSubject: (subject: string) => BoardUser | null
+  findUserByEmail: (email: string) => BoardUser | null
+  linkExternalSubject: (login: string, subject: string) => BoardUser
+  enrolExternalUser: (draft: ExternalUserDraft) => BoardUser
+  openSessionFor: (login: string) => OpenedSession
 }
 
 function toUser(row: UserRow): BoardUser {
@@ -133,6 +139,15 @@ export function createIdentityRepository(
   )
   const selectUserByEmail = db.prepare<[string], UserRow>('SELECT * FROM board_user WHERE email = ?')
   const updateEmail = db.prepare<[string, string]>('UPDATE board_user SET email = ? WHERE login = ?')
+  const selectUserBySubject = db.prepare<[string], UserRow>(
+    'SELECT * FROM board_user WHERE external_subject = ?',
+  )
+  const updateSubject = db.prepare<[string, string]>(
+    'UPDATE board_user SET external_subject = ? WHERE login = ?',
+  )
+  const insertExternalUser = db.prepare<[string, string, string, UserRole, string, string]>(
+    'INSERT INTO board_user (login, display_name, password_hash, role, email, external_subject) VALUES (?, ?, ?, ?, ?, ?)',
+  )
   const updateDisplayName = db.prepare<[string, string]>(
     'UPDATE board_user SET display_name = ? WHERE login = ?',
   )
@@ -255,6 +270,52 @@ export function createIdentityRepository(
     },
 
     countUsers: () => countAllUsers.get()?.total ?? 0,
+
+    findUserByExternalSubject: (subject) => {
+      const row = selectUserBySubject.get(subject)
+      return row === undefined ? null : toUser(row)
+    },
+
+    findUserByEmail: (email) => {
+      const row = selectUserByEmail.get(email)
+      return row === undefined ? null : toUser(row)
+    },
+
+    linkExternalSubject: (login, subject) => {
+      demandUser(login)
+      updateSubject.run(subject, login)
+      return toUser(demandUser(login))
+    },
+
+    enrolExternalUser: (draft) => {
+      if (selectUserByLogin.get(draft.login) !== undefined) {
+        throw new LoginTakenError(draft.login)
+      }
+      if (selectUserByEmail.get(draft.email) !== undefined) {
+        throw new EmailTakenError(draft.email)
+      }
+      const unusablePassword = hashPassword(randomBytes(TOKEN_BYTES).toString('hex'))
+      insertExternalUser.run(
+        draft.login,
+        draft.displayName,
+        unusablePassword,
+        draft.role,
+        draft.email,
+        draft.subject,
+      )
+      return toUser(demandUser(draft.login))
+    },
+
+    openSessionFor: (login) => {
+      const row = demandUser(login)
+      if (row.disabled_at !== null) {
+        throw new AccountDisabledError(login)
+      }
+      const token = randomBytes(TOKEN_BYTES).toString('hex')
+      const expiresAt = new Date(clock() + SESSION_LIFETIME_MS).toISOString()
+      insertSession.run(digest(token), row.id, expiresAt)
+      return { user: toUser(row), token, expiresAt }
+    },
 
     openSession: (login, password) => {
       const row = selectUserByLogin.get(login)

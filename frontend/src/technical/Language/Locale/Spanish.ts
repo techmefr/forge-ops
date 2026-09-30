@@ -1338,6 +1338,9 @@ export const SPANISH: Message = {
     badScheme: 'La dirección debe empezar por http:// o https://.',
   },
   access: {
+    continueWith: 'Continuar con {provider}',
+    provider: { google: 'Google', microsoft: 'Microsoft' },
+    oidcRefused: 'No se pudo iniciar sesión con esta cuenta. Pide a un administrador que autorice tu dirección.',
     enterBoard: 'Entrar en el tablero',
     tokenHint:
       'El tablero muestra el token al arrancar. Pegarlo aquí abre una sesión de doce horas; el tablero nunca lo entrega por sí mismo.',

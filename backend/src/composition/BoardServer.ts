@@ -23,6 +23,9 @@ import { createBoardApi } from '../domain/Board/BoardApi.js'
 import { advanceCascade } from '../domain/Checkpoint/ReviewCascade.js'
 import { createIdentityRepository } from '../domain/Identity/IdentityRepository.js'
 import { createIdentityApi } from '../domain/Identity/IdentityApi.js'
+import { createOidcApi } from '../domain/Identity/OidcApi.js'
+import { readAllowedDomains } from '../domain/Identity/ExternalIdentity.js'
+import { readOidcProviders } from '../technical/Auth/OidcProvider.js'
 import { createWorktreeRepository } from '../domain/Worktree/WorktreeRepository.js'
 import { createWorktreeApi } from '../domain/Worktree/WorktreeApi.js'
 import { createForgeCardRepository } from '../domain/ForgeCard/ForgeCardRepository.js'
@@ -365,6 +368,15 @@ export function startBoardServer({
   guarded.route(
     '/',
     createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
+  )
+  guarded.route(
+    '/',
+    createOidcApi({
+      identities,
+      providers: readOidcProviders(),
+      allowedDomains: readAllowedDomains(),
+      publicOrigin,
+    }),
   )
   guarded.route('/', createDriverApi({ drivers }))
   guarded.route(

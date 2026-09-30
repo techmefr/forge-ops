@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { board } from '@/technical/Api/Board'
+import { isDesktop, readAddresses } from '@/technical/Api/Addresses'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import type { Phrase } from '@/technical/Language/Phrase'
@@ -20,6 +21,28 @@ const mode = useResource<{ mode: 'local' | 'hub'; localTrusted?: boolean }>(() =
   board.read('/api/board/mode'),
 )
 const state = useResource<{ users: number; enrolmentOpen: boolean }>(() => board.read('/api/auth/state'))
+
+const providers = ref<string[]>([])
+const isOidcRefused = new URLSearchParams(window.location.search).get('oidc') === 'refused'
+
+function labelOf(provider: string): string {
+  return provider === 'google' ? t('access.provider.google') : t('access.provider.microsoft')
+}
+
+function startUrlOf(provider: string): string {
+  return `${readAddresses().instanceUrl}/api/auth/oidc/${provider}/start`
+}
+
+async function loadProviders(): Promise<void> {
+  if (isDesktop()) {
+    return
+  }
+  try {
+    providers.value = await board.read<string[]>('/api/auth/oidc/providers')
+  } catch {
+    providers.value = []
+  }
+}
 
 const boardToken = ref('')
 const login = ref('')
@@ -85,6 +108,7 @@ async function attemptLocalAutologin(): Promise<void> {
 
 onMounted(async () => {
   await mode.reload()
+  await loadProviders()
   if (mode.data.value?.mode !== 'local') {
     await state.reload()
     return
@@ -225,6 +249,15 @@ useRefusalFocus(refusal, signForm)
         </button>
 
         <RequiredNote />
+        <a
+          v-for="provider in providers"
+          :key="provider"
+          :href="startUrlOf(provider)"
+          class="rounded-lg border border-line bg-elev px-4 py-2.5 text-center text-[11px] font-bold text-txt-hi uppercase"
+        >
+          {{ t('access.continueWith', { provider: labelOf(provider) }) }}
+        </a>
+        <p v-if="isOidcRefused" class="text-[11px] text-red" role="alert">{{ t('access.oidcRefused') }}</p>
         <p id="login-refusal" v-if="refusal !== null" class="text-[11px] text-red" role="alert">{{ say(refusal) }}</p>
       </form>
     </section>
