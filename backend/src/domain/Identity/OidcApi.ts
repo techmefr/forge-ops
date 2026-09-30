@@ -9,12 +9,16 @@ import {
   type OidcFetch,
   type OidcProvider,
 } from '../../technical/Auth/OidcProvider.js'
+import { createOidcHandoffs, type OidcHandoffs } from '../../technical/Auth/OidcHandoffs.js'
 import { createOidcTransactions, type OidcTransactions } from '../../technical/Auth/OidcTransactions.js'
+import type { OpenedSession } from './Identity.js'
 import type { IdentityRepository } from './IdentityRepository.js'
 import { resolveExternalUser } from './ExternalIdentity.js'
 
 const LANDING_PATH = '/'
 const REFUSED_PATH = '/login?oidc=refused'
+const DESKTOP_RETURN = 'forgeops://auth'
+const DESKTOP_REFUSED = `${DESKTOP_RETURN}?error=refused`
 
 export type OidcApiInput = {
   identities: IdentityRepository
@@ -23,6 +27,7 @@ export type OidcApiInput = {
   publicOrigin: string | null
   send?: OidcFetch
   transactions?: OidcTransactions
+  handoffs?: OidcHandoffs<OpenedSession>
 }
 
 export function createOidcApi({
@@ -32,6 +37,7 @@ export function createOidcApi({
   publicOrigin,
   send = fetch,
   transactions = createOidcTransactions(),
+  handoffs = createOidcHandoffs<OpenedSession>(),
 }: OidcApiInput): Hono {
   const api = new Hono()
 
@@ -51,7 +57,12 @@ export function createOidcApi({
     }
     const pkce = newPkce()
     const nonce = crypto.randomUUID()
-    const state = transactions.open({ provider: provider.name, nonce, verifier: pkce.verifier })
+    const state = transactions.open({
+      provider: provider.name,
+      nonce,
+      verifier: pkce.verifier,
+      isDesktop: context.req.query('client') === 'desktop',
+    })
     return context.redirect(
       authorizeUrlOf(provider, redirectUriOf(context.req.url, provider.name), state, nonce, pkce.challenge),
     )
@@ -62,7 +73,7 @@ export function createOidcApi({
     const transaction = transactions.take(context.req.query('state') ?? '')
     const code = context.req.query('code') ?? ''
     if (provider === undefined || transaction === null || transaction.provider !== provider.name || code === '') {
-      return context.redirect(REFUSED_PATH)
+      return context.redirect(transaction?.isDesktop === true ? DESKTOP_REFUSED : REFUSED_PATH)
     }
     try {
       const claims = await exchangeCode(
@@ -77,6 +88,9 @@ export function createOidcApi({
       )
       const user = resolveExternalUser(identities, claims, allowedDomains)
       const opened = identities.openSessionFor(user.login)
+      if (transaction.isDesktop) {
+        return context.redirect(`${DESKTOP_RETURN}?code=${handoffs.put(opened)}`)
+      }
       setCookie(context, IDENTITY_COOKIE, opened.token, {
         path: '/',
         httpOnly: true,
@@ -86,8 +100,17 @@ export function createOidcApi({
       })
       return context.redirect(LANDING_PATH)
     } catch {
-      return context.redirect(REFUSED_PATH)
+      return context.redirect(transaction.isDesktop ? DESKTOP_REFUSED : REFUSED_PATH)
     }
+  })
+
+  api.post('/api/auth/oidc/exchange', async (context) => {
+    const body = (await context.req.json().catch(() => null)) as { code?: unknown } | null
+    const session = typeof body?.code === 'string' ? handoffs.take(body.code) : null
+    if (session === null) {
+      return context.json({ error: 'UnknownHandoff' }, 401)
+    }
+    return context.json({ user: session.user, token: session.token })
   })
 
   return api

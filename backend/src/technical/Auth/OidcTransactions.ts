@@ -7,6 +7,7 @@ export type OidcTransaction = {
   provider: string
   nonce: string
   verifier: string
+  isDesktop: boolean
 }
 
 export type OidcTransactions = {
