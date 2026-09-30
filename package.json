@@ -25,6 +25,7 @@
     "test:watch": "vitest",
     "demo:snapshot": "tsx backend/src/demoSnapshot.ts",
     "build:demo": "npm run demo:snapshot && VITE_FORGE_DEMO=true vite build --base=/forge-ops/",
+    "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build"
   },
