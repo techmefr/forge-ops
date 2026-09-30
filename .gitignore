@@ -13,3 +13,6 @@ CLAUDE.md
 test-results.json
 dist/web/
 frontend/public/demo-snapshot.json
+src-tauri/target/
+src-tauri/gen/
+src-tauri/icons/

@@ -23,9 +23,26 @@ export function addressesOf(declared: unknown): Addresses {
   }
 }
 
+export const DESKTOP_ADDRESSES_KEY = 'forge.addresses'
+
+function isDesktop(): boolean {
+  return '__TAURI_INTERNALS__' in window
+}
+
+function storedAddresses(): unknown {
+  try {
+    return JSON.parse(window.localStorage.getItem(DESKTOP_ADDRESSES_KEY) ?? 'null')
+  } catch {
+    return null
+  }
+}
+
 export function readAddresses(): Addresses {
   if (typeof window === 'undefined') {
     return SAME_ORIGIN
+  }
+  if (isDesktop()) {
+    return addressesOf(storedAddresses())
   }
   return addressesOf((window as unknown as Record<string, unknown>).forgeAddresses)
 }
