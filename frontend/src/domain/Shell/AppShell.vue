@@ -96,14 +96,16 @@ watch(
 
 <template>
   <div class="flex h-dvh flex-col overflow-hidden bg-deep text-txt-hi">
-    <header class="flex flex-none items-stretch gap-3 border-b border-line bg-panel px-4 sm:gap-6 sm:px-6">
+    <header
+      class="flex flex-none flex-wrap items-stretch gap-x-3 border-b border-line bg-panel px-4 sm:gap-x-6 sm:px-6 lg:flex-nowrap"
+    >
       <div class="flex flex-none items-center gap-3 py-3 sm:py-4">
         <p class="display-italic text-[22px] leading-none">Forge<span class="text-acc">.</span>ops</p>
       </div>
       <nav
         ref="strip"
         data-tour="shell-pipeline"
-        class="scrollbar-none flex min-w-0 items-stretch gap-0.5 overflow-x-auto"
+        class="scrollbar-none order-last grid basis-full grid-cols-2 gap-0.5 min-[480px]:grid-cols-4 lg:order-none lg:flex lg:min-w-0 lg:basis-auto lg:items-stretch lg:overflow-x-auto"
         :aria-label="t('shell.pipeline')"
         @keydown="ride"
       >
@@ -113,7 +115,7 @@ watch(
           :to="screen.path"
           :aria-keyshortcuts="`Alt+Shift+${screen.digit}`"
           :title="t('shell.shortcut', { digit: screen.digit })"
-          class="flex flex-col justify-center gap-[3px] border-b-2 px-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc"
+          class="flex min-h-11 flex-col justify-center gap-[3px] border-b-2 px-2 transition-colors lg:px-3 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc"
           :class="
             current?.key === screen.key
               ? 'border-acc text-txt-hi'
@@ -126,9 +128,9 @@ watch(
             aria-hidden="true"
             >{{ screen.digit }}</span
           >
-          <span class="flex items-center gap-1.5 whitespace-nowrap">
-            <Glyph :name="screen.key" :size="14" />
-            <span class="display-italic text-sm uppercase">{{
+          <span class="flex min-w-0 items-center gap-1.5 lg:whitespace-nowrap">
+            <Glyph :name="screen.key" :size="14" class="max-[400px]:hidden" />
+            <span class="display-italic min-w-0 text-xs uppercase [overflow-wrap:anywhere] sm:text-sm lg:[overflow-wrap:normal]">{{
               t(`screen.${screen.key}.label`)
             }}</span>
           </span>
