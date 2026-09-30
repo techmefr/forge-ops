@@ -1,4 +1,5 @@
 import type { Language } from '../Language.js'
+import { CHINESE } from './Chinese.js'
 import { ENGLISH } from './English.js'
 import { FRENCH } from './French.js'
 import { GERMAN } from './German.js'
@@ -14,4 +15,5 @@ export const MESSAGES: Readonly<Record<Language, Message>> = {
   fr: FRENCH,
   it: ITALIAN,
   pt: PORTUGUESE,
+  zh: CHINESE,
 }

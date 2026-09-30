@@ -9,6 +9,7 @@ export const FRENCH: Message = {
     fr: 'Français',
     it: 'Italiano',
     pt: 'Português',
+    zh: '中文',
   },
   common: {
     requiredNote: 'champ obligatoire',
