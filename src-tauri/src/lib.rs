@@ -10,6 +10,14 @@ const TRAY_QUIT: &str = "quit";
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
+        .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_http::init())
@@ -18,6 +26,11 @@ pub fn run() {
             Some(vec!["--minimized"]),
         ))
         .setup(|app| {
+            #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
+            {
+                use tauri_plugin_deep_link::DeepLinkExt;
+                app.deep_link().register_all()?;
+            }
             let show = MenuItem::with_id(app, TRAY_SHOW, "Open Forge Ops", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, TRAY_QUIT, "Quit", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show, &quit])?;

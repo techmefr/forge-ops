@@ -113,3 +113,50 @@ describe('oidc login', () => {
     expect(loginOf('+Jean_Luc@x.com')).toBe('jean_luc')
   })
 })
+
+describe('oidc login from the desktop app', () => {
+  async function desktopCallback() {
+    const api = createOidcApi({
+      identities,
+      providers: [google],
+      allowedDomains: ['acme.com'],
+      publicOrigin: ORIGIN,
+      send: fakeGoogle({ sub: '9', email: 'sam@acme.com', email_verified: true }),
+    })
+    const start = await api.request('/api/auth/oidc/google/start?client=desktop')
+    const location = new URL(start.headers.get('location') ?? '')
+    ;(globalThis as { __nonce?: string }).__nonce = location.searchParams.get('nonce') ?? ''
+    const state = location.searchParams.get('state') ?? ''
+    const callback = await api.request(`/api/auth/oidc/google/callback?code=abc&state=${state}`)
+    return { api, callback }
+  }
+
+  it('rend la main a l app par lien profond sans poser de cookie', async () => {
+    const { callback } = await desktopCallback()
+    expect(callback.headers.get('location')).toMatch(/^forgeops:\/\/auth\?code=/)
+    expect(callback.headers.get('set-cookie')).toBeNull()
+  })
+
+  it('echange le code une seule fois contre la session', async () => {
+    const { api, callback } = await desktopCallback()
+    const code = new URL(callback.headers.get('location') ?? '').searchParams.get('code')
+    const exchange = () =>
+      api.request('/api/auth/oidc/exchange', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ code }),
+      })
+    const first = await exchange()
+    expect(((await first.json()) as { token: string }).token).toHaveLength(64)
+    expect((await exchange()).status).toBe(401)
+  })
+
+  it('renvoie un refus par lien profond', async () => {
+    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN, send: fakeGoogle({ sub: '1', email: 'x@evil.com', email_verified: true }) })
+    const start = await api.request('/api/auth/oidc/google/start?client=desktop')
+    const location = new URL(start.headers.get('location') ?? '')
+    ;(globalThis as { __nonce?: string }).__nonce = location.searchParams.get('nonce') ?? ''
+    const callback = await api.request(`/api/auth/oidc/google/callback?code=abc&state=${location.searchParams.get('state')}`)
+    expect(callback.headers.get('location')).toBe('forgeops://auth?error=refused')
+  })
+})
