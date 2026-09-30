@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "forge": "tsx backend/src/forge.ts",
+    "forge-ops": "tsx backend/src/forgeCli.ts",
     "hook:install": "tsx backend/src/installHook.ts",
     "demo": "tsx backend/src/demo.ts",
     "token:rotate": "tsx backend/src/rotateToken.ts",
@@ -29,6 +30,7 @@
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.266",
+    "@clack/prompts": "^0.11.0",
     "@hono/node-server": "^2.1.1",
     "@openai/codex": "^0.156.1",
     "@shikijs/langs": "^4.4.3",
