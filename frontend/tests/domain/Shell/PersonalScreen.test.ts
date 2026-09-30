@@ -5,6 +5,7 @@ import { createBoardI18n } from '@/technical/Language/I18n'
 import PersonalScreen from '@/domain/Shell/PersonalScreen.vue'
 
 const read = vi.fn()
+const routeState: { name: string; params: Record<string, string> } = { name: 'personal', params: {} }
 
 vi.mock('@/technical/Api/Board', () => ({
   board: {
@@ -14,7 +15,7 @@ vi.mock('@/technical/Api/Board', () => ({
 
 vi.mock('vue-router', async (importOriginal) => {
   const actual = await importOriginal<typeof VueRouter>()
-  return { ...actual, useRoute: () => ({ params: {} }) }
+  return { ...actual, useRoute: () => routeState }
 })
 
 function onPath(path: string, response: unknown): void {
@@ -66,5 +67,19 @@ describe('PersonalScreen', () => {
     const screen = mounted()
 
     expect(screen.find('[data-tour="project-empty-state"]').exists()).toBe(false)
+  })
+
+  it('ouvre Mes stories sur la page d\'une story, pas le kanban', async () => {
+    onPath('/api/projects', [{ id: 1, slug: 'demo' }])
+    routeState.name = 'personal.story'
+    routeState.params = { id: '3' }
+
+    const screen = mounted()
+    await flushPromises()
+
+    expect(screen.find('story-screen-stub').exists()).toBe(true)
+    expect(screen.find('forge-screen-stub').exists()).toBe(false)
+    routeState.name = 'personal'
+    routeState.params = {}
   })
 })

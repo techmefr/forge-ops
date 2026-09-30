@@ -203,6 +203,26 @@ export function usageOf(message: unknown): Record<string, number> {
   return collected
 }
 
+export function failureOf(message: unknown): string | null {
+  if (typeof message !== 'object' || message === null) {
+    return null
+  }
+  const record = message as Record<string, unknown>
+  if (record.type === 'assistant' && typeof record.error === 'string' && record.error !== '') {
+    return textOf(message) ?? record.error
+  }
+  const isFailedResult =
+    record.type === 'result' &&
+    (record.is_error === true || (typeof record.subtype === 'string' && record.subtype.startsWith('error')))
+  if (!isFailedResult) {
+    return null
+  }
+  if (typeof record.result === 'string' && record.result !== '') {
+    return record.result
+  }
+  return typeof record.subtype === 'string' ? record.subtype : 'the session ended in error'
+}
+
 async function drain(
   spoken: AsyncIterator<{ type: string }>,
   order: LaunchOrder & { claudeSessionId: string },
@@ -210,6 +230,7 @@ async function drain(
 ): Promise<void> {
   try {
     for await (const message of { [Symbol.asyncIterator]: () => spoken }) {
+      const failure = failureOf(message)
       onEvent({
         name: `session.${message.type}`,
         payload: {
@@ -219,8 +240,20 @@ async function drain(
           ...usageOf(message),
           ...(textOf(message) === null ? {} : { text: textOf(message) }),
           ...(toolsOf(message).length === 0 ? {} : { tools: toolsOf(message) }),
+          ...(failure !== null && message.type === 'result' ? { isError: true } : {}),
         },
       })
+      if (failure !== null && message.type !== 'result') {
+        onEvent({
+          name: 'session.failed',
+          payload: {
+            reference: order.reference,
+            phase: order.phase,
+            claudeSessionId: order.claudeSessionId,
+            message: failure,
+          },
+        })
+      }
     }
   } catch (error) {
     onEvent({
@@ -228,6 +261,7 @@ async function drain(
       payload: {
         reference: order.reference,
         phase: order.phase,
+        claudeSessionId: order.claudeSessionId,
         message: error instanceof Error ? error.message : String(error),
       },
     })

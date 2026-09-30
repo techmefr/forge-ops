@@ -62,6 +62,7 @@ import { mayAdministerWorkflow } from '../domain/Workflow/WorkflowAuthority.js'
 import { readSuperAdminConfiguration } from '../technical/Auth/SuperAdminConfiguration.js'
 import { createTemplateRepository } from '../domain/Template/TemplateRepository.js'
 import { createTemplateApi } from '../domain/Template/TemplateApi.js'
+import { workingDirectoryOf } from '../domain/Dispatch/WorkingDirectory.js'
 import { createOutboxRepository } from '../domain/Boundary/OutboxRepository.js'
 import { createBoundaryApi } from '../domain/Boundary/BoundaryApi.js'
 import { createOrganisationRepository } from '../domain/Organisation/OrganisationRepository.js'
@@ -252,12 +253,9 @@ export function startBoardServer({
   const organisations = createOrganisationRepository(db)
   function cwdForStory(storyId: number): string {
     const worktree = worktrees.findForStory(storyId)
-    if (worktree !== null) {
-      return worktree.path
-    }
     const projectId = stories.projectOfStory(storyId)
     const project = stories.listProjects().find((candidate) => candidate.id === projectId)
-    return project?.checkoutPath ?? process.cwd()
+    return workingDirectoryOf(worktree?.path ?? null, project?.checkoutPath, project?.name ?? String(projectId))
   }
   const drivers = [
     claudeCodeDriver(
