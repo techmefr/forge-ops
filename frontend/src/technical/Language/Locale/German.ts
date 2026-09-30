@@ -9,6 +9,7 @@ export const GERMAN: Message = {
     fr: 'Français',
     it: 'Italiano',
     pt: 'Português',
+    zh: '中文',
   },
   common: {
     requiredNote: 'Pflichtfeld',

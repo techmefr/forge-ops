@@ -7,6 +7,7 @@ export const ENGLISH = {
     fr: 'Français',
     it: 'Italiano',
     pt: 'Português',
+    zh: '中文',
   },
   common: {
     requiredNote: 'required field',

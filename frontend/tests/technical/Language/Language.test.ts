@@ -8,8 +8,8 @@ import {
 } from '@/technical/Language/Language'
 
 describe('les langues proposees', () => {
-  it('en propose six', () => {
-    expect([...LANGUAGES]).toEqual(['de', 'en', 'es', 'fr', 'it', 'pt'])
+  it('en propose sept', () => {
+    expect([...LANGUAGES]).toEqual(['de', 'en', 'es', 'fr', 'it', 'pt', 'zh'])
   })
 
   it('reconnait une langue du lot', () => {
