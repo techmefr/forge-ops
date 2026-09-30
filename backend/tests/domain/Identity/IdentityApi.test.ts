@@ -158,6 +158,18 @@ describe('POST /api/auth/login', () => {
     await expect(response.text()).resolves.not.toContain(token)
   })
 
+  it('rend le jeton au client desktop qui le demande, pour les cookies cross-site', async () => {
+    const response = await post(
+      '/api/auth/login',
+      { login: 'gaetan', password: MOT_DE_PASSE },
+      { 'x-forge-client': 'desktop' },
+    )
+    const cookie = response.headers.get('set-cookie') ?? ''
+    const token = cookie.split('forge_identity=')[1]?.split(';')[0] ?? 'absent'
+
+    expect(((await response.json()) as { token: string }).token).toBe(token)
+  })
+
   it('refuse un mot de passe faux en 401', async () => {
     const response = await post('/api/auth/login', { login: 'gaetan', password: 'un autre mot de passe' })
 

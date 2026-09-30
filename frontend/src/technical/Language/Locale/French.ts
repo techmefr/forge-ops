@@ -1325,7 +1325,13 @@ export const FRENCH: Message = {
     large: 'Grande',
     huge: 'Très grande',
   },
+  servers: {
+    title: 'Serveurs',
+    add: 'Ajouter un serveur',
+    remove: 'Retirer',
+  },
   connect: {
+    name: 'Nom (optionnel)',
     title: 'Se connecter à un serveur',
     hint: 'Indique l’adresse de l’instance à laquelle l’app parle : ton poste, ton VPS ou le serveur de ton équipe.',
     instance: 'Adresse de l’instance',

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { isHttpAddress, saveDesktopAddresses } from '@/technical/Api/Addresses'
+import { isHttpAddress } from '@/technical/Api/Addresses'
+import { addServer } from '@/technical/Api/Servers'
 import { checkInstanceReachable } from '@/technical/Api/Reachable'
 import { HOME_PATH } from '@/technical/Router/Screen'
 
 const { t } = useI18n()
 
+const name = ref('')
 const instanceUrl = ref('')
 const serverUrl = ref('')
 const refusalKey = ref<string | null>(null)
@@ -27,7 +29,8 @@ async function connect(): Promise<void> {
     refusalKey.value = 'connect.unreachable'
     return
   }
-  saveDesktopAddresses({
+  addServer({
+    name: name.value,
     instanceUrl: instanceUrl.value.trim().replace(/\/+$/, ''),
     serverUrl: serverUrl.value.trim() === '' ? null : serverUrl.value.trim().replace(/\/+$/, ''),
   })
@@ -42,6 +45,17 @@ async function connect(): Promise<void> {
       <p class="mt-1 text-[11px] text-txt-low">{{ t('connect.hint') }}</p>
 
       <form class="mt-5 flex flex-col gap-3" @submit.prevent="connect()">
+        <label class="flex flex-col gap-1">
+          <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+            {{ t('connect.name') }}
+          </span>
+          <input
+            id="connect-name"
+            v-model="name"
+            type="text"
+            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          />
+        </label>
         <label class="flex flex-col gap-1">
           <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
             {{ t('connect.instance') }}

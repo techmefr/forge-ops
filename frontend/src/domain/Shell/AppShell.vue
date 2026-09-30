@@ -9,6 +9,7 @@ import { useAppearance } from '@/technical/Appearance/UseAppearance'
 import { useTheme } from '@/technical/Theme/UseTheme'
 import { useFleet } from './UseFleet'
 import MachineBadge from '@/domain/Resource/MachineBadge.vue'
+import ServerMenu from './ServerMenu.vue'
 import LanguageSwitch from '@/technical/Language/LanguageSwitch.vue'
 import Glyph from '@/technical/Ui/Glyph.vue'
 import TourGuide from '@/domain/Tour/TourGuide.vue'
@@ -148,6 +149,7 @@ watch(
       </div>
 
       <div class="ml-auto flex flex-wrap items-center gap-3">
+        <ServerMenu />
         <LanguageSwitch />
         <MachineBadge class="hidden sm:flex" />
         <span class="flex items-center gap-2 font-mono text-[11px] text-txt-low uppercase">

@@ -1,3 +1,5 @@
+import { activeServer } from './Servers.js'
+
 export type Addresses = {
   instanceUrl: string
   serverUrl: string | null
@@ -23,18 +25,8 @@ export function addressesOf(declared: unknown): Addresses {
   }
 }
 
-export const DESKTOP_ADDRESSES_KEY = 'forge.addresses'
-
 export function isDesktop(): boolean {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
-}
-
-function storedAddresses(): unknown {
-  try {
-    return JSON.parse(window.localStorage.getItem(DESKTOP_ADDRESSES_KEY) ?? 'null')
-  } catch {
-    return null
-  }
 }
 
 export function readAddresses(): Addresses {
@@ -42,17 +34,16 @@ export function readAddresses(): Addresses {
     return SAME_ORIGIN
   }
   if (isDesktop()) {
-    return addressesOf(storedAddresses())
+    const server = activeServer()
+    return server === null
+      ? SAME_ORIGIN
+      : { instanceUrl: server.instanceUrl, serverUrl: server.serverUrl }
   }
   return addressesOf((window as unknown as Record<string, unknown>).forgeAddresses)
 }
 
 export function hasDesktopAddresses(): boolean {
-  return addressesOf(storedAddresses()).instanceUrl !== SAME_ORIGIN.instanceUrl
-}
-
-export function saveDesktopAddresses(addresses: Addresses): void {
-  window.localStorage.setItem(DESKTOP_ADDRESSES_KEY, JSON.stringify(addresses))
+  return activeServer() !== null
 }
 
 export function isHttpAddress(value: string): boolean {
