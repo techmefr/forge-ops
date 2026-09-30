@@ -1327,6 +1327,15 @@ export const PORTUGUESE: Message = {
     large: 'Grande',
     huge: 'Muito grande',
   },
+  connect: {
+    title: 'Ligar a um servidor',
+    hint: 'Indica o endereço da instância com que a app fala: o teu computador, o teu VPS ou o servidor da tua equipa.',
+    instance: 'Endereço da instância',
+    server: 'Endereço do servidor do board (opcional)',
+    submit: 'Ligar',
+    unreachable: 'Endereço inacessível. Verifica-o e se a instância está a correr.',
+    badScheme: 'O endereço tem de começar por http:// ou https://.',
+  },
   access: {
     enterBoard: 'Entrar no board',
     tokenHint:

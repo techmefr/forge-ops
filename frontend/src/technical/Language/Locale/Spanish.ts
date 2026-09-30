@@ -1328,6 +1328,15 @@ export const SPANISH: Message = {
     large: 'Grande',
     huge: 'Muy grande',
   },
+  connect: {
+    title: 'Conectar a un servidor',
+    hint: 'Indica la dirección de la instancia con la que habla la app: tu equipo, tu VPS o el servidor de tu equipo.',
+    instance: 'Dirección de la instancia',
+    server: 'Dirección del servidor del tablero (opcional)',
+    submit: 'Conectar',
+    unreachable: 'No se puede alcanzar esta dirección. Revísala y comprueba que la instancia esté en marcha.',
+    badScheme: 'La dirección debe empezar por http:// o https://.',
+  },
   access: {
     enterBoard: 'Entrar en el tablero',
     tokenHint:

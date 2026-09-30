@@ -1329,6 +1329,15 @@ export const GERMAN: Message = {
     large: 'Groß',
     huge: 'Sehr groß',
   },
+  connect: {
+    title: 'Mit einem Server verbinden',
+    hint: 'Gib die Adresse der Instanz an, mit der die App spricht: dein Rechner, dein VPS oder der Server deines Teams.',
+    instance: 'Adresse der Instanz',
+    server: 'Adresse des Board-Servers (optional)',
+    submit: 'Verbinden',
+    unreachable: 'Adresse nicht erreichbar. Prüfe sie und ob die Instanz läuft.',
+    badScheme: 'Die Adresse muss mit http:// oder https:// beginnen.',
+  },
   access: {
     enterBoard: 'Das Board betreten',
     tokenHint:
