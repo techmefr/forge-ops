@@ -20,6 +20,7 @@ import { createGitWorktree } from '../../src/technical/Git/GitWorktree.js'
 import { PERMISSIVE_CHECKPOINT_GATES } from '../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 import { createCheckoutResolver } from '../../src/composition/ProjectCheckout.js'
 import { createStoryWorkspace } from '../../src/composition/StoryWorkspace.js'
+import type { WorkflowColumnDraft } from '../../../contract/WorkflowColumnContract.js'
 
 const BODY = [
   'En tant que gestionnaire, je veux voir la liste des mails du client',
@@ -104,7 +105,7 @@ function boot(withCheckout: boolean) {
   return { worktrees, columns, enterStep: createStepEntry({ dispatcher, columns }) }
 }
 
-function agentStep(label: string) {
+function agentStep(label: string): WorkflowColumnDraft {
   return {
     label,
     colour: '#7C3AED',
