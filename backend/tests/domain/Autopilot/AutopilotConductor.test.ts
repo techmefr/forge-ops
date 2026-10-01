@@ -183,6 +183,7 @@ function boot(steps: readonly WorkflowColumnDraft[], concurrencyCap = 5): void {
     board,
     forgeCards,
     stories,
+    criteria: createCriterionRepository(db),
     columns,
     sessions,
     checkpoints,
@@ -319,6 +320,58 @@ describe('auto-launch from the backlog', () => {
 
     expect(cardOf(storyId).stepKey).toBe('backlog')
     expect(launched).toHaveLength(0)
+  })
+})
+
+describe('a story without acceptance criteria', () => {
+  function backlogStoryWithoutCriteria(): number {
+    const story = stories.writeStory({ epicId, title: 'see the mails for the customer concerned', body: BODY })
+    stories.writeTwin({ storyId: story.id, title: 'tests see the mails', body: 'cases...' })
+    stories.sendToBacklog(story.id)
+    return story.id
+  }
+
+  it('waits in the backlog with a clear state and spends nothing', async () => {
+    const storyId = backlogStoryWithoutCriteria()
+
+    await conductor.tick()
+
+    expect(cardOf(storyId).stepKey).toBe('backlog')
+    expect(cardOf(storyId).auto).toEqual({ state: 'paused', reason: 'Needs acceptance criteria' })
+    expect(launched).toHaveLength(0)
+  })
+
+  it('does not block the other cards of the backlog', async () => {
+    const waiting = backlogStoryWithoutCriteria()
+    const ready = backlogStory('export the contacts')
+
+    await conductor.tick()
+
+    expect(cardOf(waiting).stepKey).toBe('backlog')
+    expect(cardOf(ready).stepKey).toBe('spec')
+  })
+
+  it('starts by itself once a criterion is declared', async () => {
+    const storyId = backlogStoryWithoutCriteria()
+    await conductor.tick()
+
+    createCriterionRepository(db).declareCriterion({ storyId, reference: 'AC-1', statement: 'the expected behaviour' })
+    await conductor.tick()
+
+    expect(cardOf(storyId)).toMatchObject({ stepKey: 'spec', status: 'running' })
+    expect(cardOf(storyId).auto).toEqual({ state: 'running', reason: null })
+  })
+
+  it('does not retry the step when the criteria vanish before the proof', async () => {
+    const storyId = backlogStory('see the mails')
+    await startFromBacklog(storyId)
+    proof(storyId, 'spec_done')
+    db.prepare('DELETE FROM acceptance_criterion WHERE story_id = ?').run(storyId)
+
+    await finishTurn(storyId, { status: 'pass' })
+
+    expect(launched).toHaveLength(1)
+    expect(cardOf(storyId).auto).toEqual({ state: 'paused', reason: 'Blocked: Needs acceptance criteria' })
   })
 })
 
@@ -481,6 +534,28 @@ describe('a failing step', () => {
 
     expect(cardOf(storyId).stepKey).toBe('spec')
     expect(cardOf(storyId).auto ?? null).toBeNull()
+  })
+})
+
+describe('a step that did not start by itself', () => {
+  it('is picked up by the next tick once the step starts automatically', async () => {
+    boot([{ ...AGENT_STEP, label: 'Spec' }, { ...AGENT_STEP, label: 'Plan', autoStart: false }])
+    const storyId = backlogStory('see the mails')
+    await startFromBacklog(storyId)
+    proof(storyId, 'spec_done')
+    await finishTurn(storyId, { status: 'pass' })
+    expect(cardOf(storyId)).toMatchObject({ stepKey: 'plan', status: 'idle' })
+    expect(cardOf(storyId).auto).toEqual({ state: 'paused', reason: 'This step does not start automatically' })
+
+    await conductor.tick()
+    expect(cardOf(storyId).status).toBe('idle')
+
+    const plan = columns.list(projectId).find((step) => step.key === 'plan')
+    columns.update(projectId, plan?.id ?? 0, { ...AGENT_STEP, label: 'Plan', autoStart: true })
+    await conductor.tick()
+
+    expect(cardOf(storyId)).toMatchObject({ stepKey: 'plan', status: 'running' })
+    expect(launched.map((order) => order.phase)).toEqual(['spec', 'architecture'])
   })
 })
 

@@ -11,8 +11,10 @@ import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js
 import {
   CheckpointAlreadyProvenError,
   CheckpointOutOfOrderError,
+  CriteriaRequiredError,
 } from '../Checkpoint/CheckpointViolation.js'
 import { BudgetExhaustedError } from '../Budget/BudgetViolation.js'
+import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
 import { contractOfPhase } from '../Dispatch/Dispatch.js'
 import {
   CheckoutMissingError,
@@ -46,6 +48,7 @@ export type AutopilotConductorInput = {
   board: ForgeBoardRepository
   forgeCards: Pick<ForgeCardRepository, 'openCardOfStory'>
   stories: Pick<StoryRepository, 'findStory' | 'listProjects'>
+  criteria: Pick<CriterionRepository, 'listCriteria'>
   columns: WorkflowColumnRepository
   sessions: Pick<AgentSessionRepository, 'findByClaudeSessionId' | 'listRecentActivity'>
   checkpoints: Pick<CheckpointRepository, 'definitionOfDone' | 'proveCheckpoint'>
@@ -68,6 +71,8 @@ export type AutopilotConductor = {
 }
 
 const PREVIOUS_OUTPUT_LIMIT = 1500
+
+export const NEEDS_CRITERIA_REASON = 'Needs acceptance criteria'
 
 type Handling = 'wait' | 'budget' | 'red'
 
@@ -92,6 +97,7 @@ export function createAutopilotConductor({
   board,
   forgeCards,
   stories,
+  criteria,
   columns,
   sessions,
   checkpoints,
@@ -174,6 +180,9 @@ export function createAutopilotConductor({
       if (error instanceof CheckpointOutOfOrderError || error instanceof CheckpointAlreadyProvenError) {
         return { kind: 'pass' }
       }
+      if (error instanceof CriteriaRequiredError) {
+        return { kind: 'blocked', reason: NEEDS_CRITERIA_REASON }
+      }
       return { kind: 'fail', reason: messageOf(error) }
     }
   }
@@ -200,6 +209,10 @@ export function createAutopilotConductor({
       return { kind: 'fail', reason: reading.verdict.reason ?? 'The agent reported that the step failed' }
     }
     return proveOwnCheckpoint(view, step, story.reference)
+  }
+
+  function lacksCriteria(storyId: number): boolean {
+    return stories.findStory(storyId).kind === 'functional' && criteria.listCriteria(storyId).length === 0
   }
 
   function parkOnError(forgeCardId: number, error: unknown, keepPending: boolean): void {
@@ -341,6 +354,9 @@ export function createAutopilotConductor({
         .list(project.id)
         .filter((card) => card.stepKey === BACKLOG_STEP_KEY && autopilot.cardOf(card.id).state === null)
       for (const card of waiting) {
+        if (lacksCriteria(card.storyId)) {
+          continue
+        }
         try {
           const moved = await mover.move(card.id, first.key)
           announce(moved)
@@ -351,6 +367,40 @@ export function createAutopilotConductor({
           }
           const handling = handlingOf(error)
           if (handling !== 'red') {
+            return
+          }
+          patch(card.id, { state: 'red', reason: messageOf(error), pending: null })
+        }
+      }
+    }
+  }
+
+  async function launchIdle(): Promise<void> {
+    for (const project of stories.listProjects()) {
+      const settings = autopilot.settingsOf(project.id)
+      if (!settings.enabled || !settings.autoLaunch) {
+        continue
+      }
+      const steps = columns.list(project.id)
+      const idle = board.list(project.id).filter((card) => {
+        const step = steps.find((candidate) => candidate.key === card.stepKey)
+        return (
+          card.status === 'idle' &&
+          step !== undefined &&
+          step.provider !== 'human' &&
+          step.autoStart &&
+          autopilot.cardOf(card.id).state === null &&
+          autopilot.cardOf(card.id).pending === null
+        )
+      })
+      for (const card of idle) {
+        try {
+          announce(await mover.launch(card.id))
+        } catch (error) {
+          if (error instanceof StoryTooThinError || error instanceof StoryBlockedError || error instanceof CheckoutMissingError) {
+            continue
+          }
+          if (handlingOf(error) !== 'red') {
             return
           }
           patch(card.id, { state: 'red', reason: messageOf(error), pending: null })
@@ -379,6 +429,7 @@ export function createAutopilotConductor({
           await runPending(record.forgeCardId)
         }
         await launchBacklog()
+        await launchIdle()
       }),
 
     resume: (forgeCardId) => {
@@ -402,7 +453,13 @@ export function createAutopilotConductor({
       }
       if (view.stepKey === BACKLOG_STEP_KEY || view.stepKey === DONE_STEP_KEY) {
         const record = autopilot.cardOf(view.id)
-        return record.state === 'red' ? { state: 'red', reason: record.reason } : null
+        if (record.state === 'red') {
+          return { state: 'red', reason: record.reason }
+        }
+        if (view.stepKey === BACKLOG_STEP_KEY && lacksCriteria(view.storyId)) {
+          return { state: 'paused', reason: NEEDS_CRITERIA_REASON }
+        }
+        return null
       }
       const record = autopilot.cardOf(view.id)
       if (record.state === 'red') {
