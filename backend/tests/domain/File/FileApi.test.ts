@@ -108,6 +108,15 @@ describe('GET /api/projects/:id/tree', () => {
 })
 
 describe('GET /api/projects/:id/file', () => {
+  it('does not leak an absolute server path when the file cannot be read', async () => {
+    const answer = await api.request(`/api/projects/${projectId}/file?path=src/missing.txt`)
+    const text = await answer.text()
+
+    expect(answer.status).toBe(404)
+    expect(text).not.toMatch(/realpath|\/home\/|\/tmp\//)
+    expect(JSON.parse(text)).toMatchObject({ error: 'FileUnreadable' })
+  })
+
   it('rend le contenu du fichier et qui le tient', async () => {
     const answer = await api.request(`/api/projects/${projectId}/file?path=src/UserModal.vue`)
     expect(answer.status).toBe(200)
