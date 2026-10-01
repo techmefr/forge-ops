@@ -58,8 +58,8 @@ The accounts live on the `server`, or on the `instance` when there is no server,
 | Variable | Meaning |
 |---|---|
 | `FORGE_PUBLIC_ORIGIN` | Public address of the board. The redirect URI to register is `<origin>/api/auth/oidc/google/callback` or `…/microsoft/callback` |
-| `FORGE_OIDC_GOOGLE_CLIENT_ID` / `_CLIENT_SECRET` | Google OAuth client. `_CLIENT_SECRET_FILE` reads the secret from a mounted file |
-| `FORGE_OIDC_MICROSOFT_CLIENT_ID` / `_CLIENT_SECRET` | Microsoft Entra app registration |
+| `FORGE_OIDC_GOOGLE_CLIENT_ID` / `_CLIENT_SECRET_FILE` | Google OAuth client. The wizard writes the secret to a 0600 file mounted as a compose secret, never to the environment |
+| `FORGE_OIDC_MICROSOFT_CLIENT_ID` / `_CLIENT_SECRET_FILE` | Microsoft Entra app registration, same secret handling |
 | `FORGE_OIDC_MICROSOFT_TENANT` | A tenant id (a UUID). The multi-tenant values `common`, `organizations` and `consumers` are refused because the email is not verified by the provider |
 | `FORGE_OIDC_ALLOWED_DOMAINS` | Email domains that may create an account on first sign-in, as architects. Empty means nobody can: only existing accounts sign in |
 
