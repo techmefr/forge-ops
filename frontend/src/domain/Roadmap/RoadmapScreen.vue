@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { safeHref } from '@/technical/Ui/SafeHref'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import { tintOf } from '@/technical/Ui/Tint'
@@ -12,6 +12,7 @@ import {
   barOf,
   extentOf,
   labelPlacement,
+  labelWidthPercent,
   lanesOf,
   localDay,
   percentOf,
@@ -27,6 +28,26 @@ import {
 import { useRoadmap, type RoadmapProject } from './UseRoadmap'
 
 const LANE_HEIGHT_PX = 16
+const DEFAULT_TRACK_PX = 900
+
+const trackPx = ref(DEFAULT_TRACK_PX)
+let trackObserver: ResizeObserver | undefined
+
+function watchTrack(element: unknown): void {
+  if (!(element instanceof HTMLElement) || trackObserver !== undefined) {
+    return
+  }
+  const measure = (): void => {
+    trackPx.value = element.clientWidth || DEFAULT_TRACK_PX
+  }
+  measure()
+  if (typeof ResizeObserver !== 'undefined') {
+    trackObserver = new ResizeObserver(measure)
+    trackObserver.observe(element)
+  }
+}
+
+onBeforeUnmount(() => trackObserver?.disconnect())
 const BAND_BASE_PX = 44
 const BAND_LABEL_TOP_PX = 30
 const UPCOMING_LIMIT = 8
@@ -107,7 +128,10 @@ function rowsOf(entry: RoadmapProject): readonly SubjectRow[] {
 const blocks = computed<readonly ProjectBlock[]>(() =>
   projects.value.map((entry) => {
     const rows = rowsOf(entry)
-    const lanes = lanesOf(entry.events, view.value)
+    const widths = new Map(
+      entry.events.map((event) => [event.id, labelWidthPercent(typeLabel(event), trackPx.value)] as const),
+    )
+    const lanes = lanesOf(entry.events, view.value, widths)
     return {
       entry,
       rows,
@@ -341,7 +365,7 @@ onMounted(() => {
                     </li>
                   </ul>
                 </div>
-                <div class="relative" :style="{ minHeight: `${block.height}px` }">
+                <div :ref="watchTrack" class="relative" :style="{ minHeight: `${block.height}px` }">
                   <span
                     class="absolute top-0 bottom-0 w-0.5 bg-txt-hi/60"
                     :style="{ left: `${todayLeft}%` }"

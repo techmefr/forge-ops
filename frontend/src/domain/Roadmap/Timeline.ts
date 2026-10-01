@@ -10,6 +10,8 @@ const LABEL_INSIDE_FROM_PERCENT = 14
 const LABEL_FLIPS_FROM_PERCENT = 78
 const LABEL_GAP_PERCENT = 0.6
 const LANE_GAP_PERCENT = 9
+const LABEL_CHAR_PX = 6
+const LABEL_PADDING_PX = 12
 const MONDAY = 1
 
 export type RoadmapSubject = {
@@ -167,19 +169,27 @@ export function labelPlacement({ left, width, lateWidth }: Extent): LabelPlaceme
   return { inside: false, flip: false, at: rounded(end + LABEL_GAP_PERCENT) }
 }
 
+export function labelWidthPercent(text: string, trackPx: number): number {
+  return rounded(((text.length * LABEL_CHAR_PX + LABEL_PADDING_PX) / Math.max(trackPx, 1)) * 100)
+}
+
 export function lanesOf(
   events: readonly ProjectEvent[],
   view: TimelineWindow,
+  widths: ReadonlyMap<number, number> = new Map(),
 ): ReadonlyMap<number, number> {
-  const lastAt: number[] = []
+  const lastEnd: number[] = []
   const lanes = new Map<number, number>()
-  for (const event of events) {
-    const at = percentOf(event.date, view)
+  const ordered = events
+    .map((event) => ({ event, at: percentOf(event.date, view) }))
+    .sort((one, other) => one.at - other.at || one.event.id - other.event.id)
+  for (const { event, at } of ordered) {
+    const half = (widths.get(event.id) ?? LANE_GAP_PERCENT) / 2
     let lane = 0
-    while (lastAt[lane] !== undefined && at - (lastAt[lane] ?? 0) < LANE_GAP_PERCENT) {
+    while (lastEnd[lane] !== undefined && at - half < (lastEnd[lane] ?? 0)) {
       lane += 1
     }
-    lastAt[lane] = at
+    lastEnd[lane] = at + half
     lanes.set(event.id, lane)
   }
   return lanes

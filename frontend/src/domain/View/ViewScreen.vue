@@ -74,7 +74,7 @@ onMounted(() => stories.reload())
             :class="openStoryId === story.id ? 'border-acc' : 'border-line hover:border-acc'"
             @click="choose(story.id)"
           >
-            <span class="font-mono text-[11px] text-acc">{{ story.reference }}</span>
+            <span class="font-mono whitespace-nowrap text-[11px] text-acc">{{ story.reference }}</span>
             <span class="mt-1 block text-sm text-txt-hi">{{ story.title }}</span>
             <span class="mt-1 block font-mono text-[11px] text-txt-low uppercase">{{
               t(`state.${story.state}`)

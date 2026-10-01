@@ -123,7 +123,7 @@ async function move(offset: number): Promise<void> {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 border-b border-line bg-elev px-4 py-3">
+  <div class="flex flex-col gap-2 border-b border-line bg-elev px-4 py-3" @keydown.esc.stop="emit('close')">
     <div class="flex items-center gap-2">
       <p class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
         {{ t('template.whoWorksIt') }}
@@ -177,7 +177,9 @@ async function move(offset: number): Promise<void> {
           v-model="colour"
           class="w-40 rounded-lg border border-line bg-card px-2 py-1.5 font-mono text-[11px] text-txt-hi"
         >
-          <option v-for="tone in COLUMN_COLOURS" :key="tone" :value="tone">{{ tone }}</option>
+          <option v-for="tone in COLUMN_COLOURS" :key="tone" :value="tone">
+            {{ t(`template.colourNames.${tone}`) }}
+          </option>
         </select>
         <span
           class="mt-1 inline-block h-2 w-8 rounded-full"
