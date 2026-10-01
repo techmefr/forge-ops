@@ -38,18 +38,22 @@ function runGit(argv: readonly string[], cwd: string): string {
 
 export function createGitWorktree({ repositoryRoot, run = runGit }: GitWorktreeInput) {
   return {
-    headSha: (baseRef: string) => run(['rev-parse', '--verify', '--end-of-options', baseRef], repositoryRoot),
+    headSha: (baseRef: string, root: string = repositoryRoot) =>
+      run(['rev-parse', '--verify', '--end-of-options', baseRef], root),
 
-    addWorktree: ({ path, branch, baseRef }: { path: string; branch: string; baseRef: string }) => {
-      run(['worktree', 'add', '-b', branch, '--end-of-options', path, baseRef], repositoryRoot)
+    addWorktree: (
+      { path, branch, baseRef }: { path: string; branch: string; baseRef: string },
+      root: string = repositoryRoot,
+    ) => {
+      run(['worktree', 'add', '-b', branch, '--end-of-options', path, baseRef], root)
     },
 
-    removeWorktree: (path: string) => {
-      run(['worktree', 'remove', '--force', path], repositoryRoot)
+    removeWorktree: (path: string, root: string = repositoryRoot) => {
+      run(['worktree', 'remove', '--force', path], root)
     },
 
-    deleteBranch: (branch: string) => {
-      run(['branch', '--delete', branch], repositoryRoot)
+    deleteBranch: (branch: string, root: string = repositoryRoot) => {
+      run(['branch', '--delete', branch], root)
     },
 
     isDirty: (path: string) => run(['status', '--porcelain'], path) !== '',

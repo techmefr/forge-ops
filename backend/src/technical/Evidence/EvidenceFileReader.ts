@@ -25,12 +25,10 @@ function reasonOf(error: unknown): string {
   return error instanceof Error ? error.message : 'lecture impossible'
 }
 
-export function createEvidenceFileReader({ root, evidenceRoot }: EvidenceFileReaderInput): EvidenceReader {
-  const confinedRoot = join(root, evidenceRoot)
-
-  return (path): EvidenceRead => {
+export function createEvidenceFileReader({ root: defaultRoot, evidenceRoot }: EvidenceFileReaderInput): EvidenceReader {
+  return (path, root = defaultRoot): EvidenceRead => {
     try {
-      const walked = realPathInsideSync(confinedRoot, join(root, path))
+      const walked = realPathInsideSync(join(root, evidenceRoot), join(root, path))
       if (!statSync(walked).isFile()) {
         return { kind: 'unreadable', reason: "le chemin n'est pas un fichier" }
       }
