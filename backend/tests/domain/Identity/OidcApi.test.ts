@@ -418,3 +418,54 @@ describe('oidc transaction binding', () => {
     expect(answer.headers.get('set-cookie') ?? '').not.toContain('forge_identity')
   })
 })
+
+describe('oidc public endpoint limits', () => {
+  const forwarded = (address: string) => ({ headers: { 'x-forwarded-for': address } })
+
+  it('rate-limits the start endpoint per address', async () => {
+    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN })
+    let last = 0
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      last = (await api.request('/api/auth/oidc/google/start', forwarded('203.0.113.1'))).status
+    }
+    expect(last).toBe(429)
+    expect((await api.request('/api/auth/oidc/google/start', forwarded('203.0.113.2'))).status).toBe(302)
+  })
+
+  it('rate-limits the callback and the exchange per address', async () => {
+    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN })
+    let callback = 0
+    let exchange = 0
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      callback = (await api.request('/api/auth/oidc/google/callback?code=a&state=b', forwarded('203.0.113.3'))).status
+      exchange = (
+        await api.request('/api/auth/oidc/exchange', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-forwarded-for': '203.0.113.3' },
+          body: '{}',
+        })
+      ).status
+    }
+    expect(callback).toBe(429)
+    expect(exchange).toBe(429)
+  })
+
+  it('tells the caller when to retry', async () => {
+    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN })
+    let answer = await api.request('/api/auth/oidc/google/start', forwarded('203.0.113.4'))
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      answer = await api.request('/api/auth/oidc/google/start', forwarded('203.0.113.4'))
+    }
+    expect(Number(answer.headers.get('retry-after'))).toBeGreaterThan(0)
+  })
+
+  it('refuses to be created with a provider and no fixed public origin', () => {
+    expect(() => createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: null })).toThrow(
+      /FORGE_PUBLIC_ORIGIN/,
+    )
+  })
+
+  it('accepts a missing public origin when no provider is configured', () => {
+    expect(() => createOidcApi({ identities, providers: [], allowedDomains: [], publicOrigin: null })).not.toThrow()
+  })
+})
