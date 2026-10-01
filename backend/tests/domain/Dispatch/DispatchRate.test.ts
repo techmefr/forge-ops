@@ -17,6 +17,7 @@ let stories: StoryRepository
 let dispatcher: Dispatcher
 let now: number
 let launches: number
+let launchFailure: Error | null
 let storyIds: number[]
 
 function build(rate = DEFAULT_DISPATCH_RATE): Dispatcher {
@@ -31,6 +32,9 @@ function build(rate = DEFAULT_DISPATCH_RATE): Dispatcher {
     foremerge: createForemergeRepository(db, { stories }),
     runner: {
       launch: () => {
+        if (launchFailure !== null) {
+          return Promise.reject(launchFailure)
+        }
         launches += 1
         return Promise.resolve({ claudeSessionId: `session-${launches}` })
       },
@@ -47,6 +51,7 @@ beforeEach(() => {
   stories = createStoryRepository(db)
   now = 1_000_000
   launches = 0
+  launchFailure = null
   const project = stories.createProject({
     slug: 'forge',
     name: 'Forge',
@@ -118,6 +123,20 @@ describe('le dispatch a un debit plafonne', () => {
     await dispatcher.dispatch({ storyId: storyIds[0] ?? 0, phase: 'code' }).catch(() => null)
     await dispatchNext(1)
     await dispatchNext(2)
+
+    expect(launches).toBe(2)
+  })
+
+  it("ne consomme pas de jeton quand le lanceur refuse le lancement", async () => {
+    dispatcher = build({ burst: 2, windowMs: 60_000 })
+    launchFailure = new Error("garde-fou absent")
+
+    await dispatchNext(0).catch(() => null)
+    await dispatchNext(1).catch(() => null)
+    await dispatchNext(2).catch(() => null)
+    launchFailure = null
+    await dispatchNext(3)
+    await dispatchNext(4)
 
     expect(launches).toBe(2)
   })
