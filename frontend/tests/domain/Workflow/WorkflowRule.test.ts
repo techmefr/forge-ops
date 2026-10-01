@@ -35,6 +35,7 @@ const COLUMN: WorkflowColumn = {
   command: '/speckit.plan',
   preprompt: 'Go.',
   autoStart: true,
+  maxRetries: 2,
 }
 
 describe('the values offered', () => {

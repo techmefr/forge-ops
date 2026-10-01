@@ -30,7 +30,7 @@ export type ForgeCardMoverInput = {
 
 export type ForgeCardMover = {
   move: (forgeCardId: number, stepKey: string) => Promise<ForgeCardMoved>
-  launch: (forgeCardId: number) => Promise<ForgeCardMoved>
+  launch: (forgeCardId: number, options?: { feedback?: string }) => Promise<ForgeCardMoved>
 }
 
 export function createForgeCardMover({
@@ -51,6 +51,10 @@ export function createForgeCardMover({
     for (const [storyId, placement] of placements) {
       stories.setPlacement(storyId, placement)
     }
+  }
+
+  function feedbackOf(feedback: string | undefined): { feedback?: string } {
+    return feedback === undefined ? {} : { feedback }
   }
 
   function stepOf(view: ForgeCardView, stepKey: string): WorkflowColumn {
@@ -128,7 +132,7 @@ export function createForgeCardMover({
       })
     },
 
-    launch: async (forgeCardId) => {
+    launch: async (forgeCardId, options = {}) => {
       const view = board.view(forgeCardId)
       if (view.stepKey === BACKLOG_STEP_KEY || view.stepKey === DONE_STEP_KEY) {
         throw new LaunchNeedsAStepError(view.reference)
@@ -137,7 +141,9 @@ export function createForgeCardMover({
         throw new StepBusyError(view.reference)
       }
       const step = stepOf(view, view.stepKey)
-      return guarded(forgeCardId, async () => moved(forgeCardId, await launchStep(entryOf(view, step))))
+      return guarded(forgeCardId, async () =>
+        moved(forgeCardId, await launchStep({ ...entryOf(view, step), ...feedbackOf(options.feedback) })),
+      )
     },
   }
 }

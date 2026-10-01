@@ -93,6 +93,14 @@ function start(event: DragEvent): void {
       <span>{{ t(`forge.status.${card.status}`) }}</span>
       <span v-if="effort !== ''" class="font-mono text-txt-low">{{ effort }}</span>
     </p>
+    <p
+      v-if="card.auto && card.auto.state !== 'running'"
+      class="m-0 text-[11px]"
+      :class="card.auto.state === 'red' ? 'text-red' : 'text-orange'"
+      data-test="auto-note"
+    >
+      {{ t(card.auto.state === 'red' ? 'autopilot.red' : 'autopilot.paused', { reason: card.auto.reason ?? '' }) }}
+    </p>
     <div class="flex items-center gap-1">
       <button
         type="button"

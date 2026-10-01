@@ -128,6 +128,13 @@ function effort(card: ForgeCardView): string {
               >{{ labelOf(card) }}</span
             >
             <span v-if="effort(card) !== ''" class="block font-mono text-txt-low">{{ effort(card) }}</span>
+            <span
+              v-if="card.auto && card.auto.state !== 'running'"
+              class="block"
+              :class="card.auto.state === 'red' ? 'text-red' : 'text-orange'"
+              data-test="auto-note"
+              >{{ t(card.auto.state === 'red' ? 'autopilot.red' : 'autopilot.paused', { reason: card.auto.reason ?? '' }) }}</span
+            >
           </td>
           <td class="px-3 py-2 text-right align-top">
             <button

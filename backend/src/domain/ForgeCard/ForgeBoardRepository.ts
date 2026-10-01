@@ -5,6 +5,7 @@ import {
   type ForgeCardProvider,
   type ForgeCardView,
 } from '../../../../contract/ForgeCardContract.js'
+import type { AutoCardView } from '../../../../contract/AutopilotContract.js'
 import type { WorkflowColumn } from '../../../../contract/WorkflowColumnContract.js'
 import type { AgentPhase } from '../Agent/AgentSession.js'
 import type { StoryPlacement } from '../Story/StoryRepository.js'
@@ -68,7 +69,15 @@ const CARD_SELECT = `
 
 export function createForgeBoardRepository(
   db: Database.Database,
-  { forgeCards, columns }: { forgeCards: ForgeCardRepository; columns: WorkflowColumnRepository },
+  {
+    forgeCards,
+    columns,
+    autoOf,
+  }: {
+    forgeCards: ForgeCardRepository
+    columns: WorkflowColumnRepository
+    autoOf?: (view: ForgeCardView) => AutoCardView | null
+  },
 ): ForgeBoardRepository {
   const selectOfProject = db.prepare<[number], CardRow>(
     `${CARD_SELECT} WHERE epic.project_id = ? AND epic.deleted_at IS NULL ORDER BY fc.id`,
@@ -117,7 +126,7 @@ export function createForgeBoardRepository(
     )
     const session: LatestSession | null =
       latest === undefined ? null : { phase: latest.phase, lifecycle: latest.lifecycle, outcome: latest.outcome }
-    return {
+    const view: ForgeCardView = {
       id: row.id,
       reference: row.reference,
       storyId: row.story_id,
@@ -138,6 +147,8 @@ export function createForgeBoardRepository(
       durationSeconds: totals?.seconds ?? 0,
       costUsd: Number((totals?.cost ?? 0).toFixed(4)),
     }
+    const auto = autoOf?.(view) ?? null
+    return auto === null ? view : { ...view, auto }
   }
 
   const backfillCards = db.transaction((): number => {

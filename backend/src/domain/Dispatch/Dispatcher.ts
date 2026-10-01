@@ -26,6 +26,7 @@ import {
   type SessionRunner,
 } from './Dispatch.js'
 import { EVIDENCE_SHAPE } from '../Evidence/EvidenceShape.js'
+import { stepBriefOf } from '../Autopilot/StepBrief.js'
 import { LENS_AGENTS, nextLensOf } from '../Checkpoint/ReviewCascade.js'
 import { createRateBucket, DEFAULT_DISPATCH_RATE, type Clock, type DispatchRate } from './DispatchRate.js'
 import { LensOutOfOrderError } from '../Checkpoint/CheckpointViolation.js'
@@ -75,6 +76,7 @@ function promptFor(
   lens: string | undefined,
   preprompt: string,
   doctrineText: string | null,
+  brief: readonly string[],
 ): string {
   const doctrine = contract.command.endsWith('.md')
     ? doctrineText === null
@@ -97,6 +99,7 @@ function promptFor(
       ? `Phase: ${contract.phase}. ${doctrine}`
       : `Phase: ${contract.phase}, lens ${lens}. ${doctrine} Read only this lens.`,
     ...sections,
+    ...brief,
   ].join('\n')
 }
 
@@ -264,7 +267,23 @@ export function createDispatcher({
           : `${forgeCard.reference} (${forgeCard.storyIds.map((cardStoryId) => stories.findStory(cardStoryId).reference).join(', ')})`
       const resumeSessionId = forgeCard?.claudeSessionId ?? undefined
 
-      const prompt = promptFor(story, contract, order.lens, step === null ? (configured?.preprompt ?? '') : step.preprompt, contract.command.endsWith('.md') ? doctrineFor(order.storyId, contract.command) : null)
+      const brief =
+        step === null || order.lens !== undefined
+          ? []
+          : stepBriefOf({
+              storyReference: story.reference,
+              stepKey: step.key,
+              proves: contract.proves,
+              feedback: order.feedback,
+            })
+      const prompt = promptFor(
+        story,
+        contract,
+        order.lens,
+        step === null ? (configured?.preprompt ?? '') : step.preprompt,
+        contract.command.endsWith('.md') ? doctrineFor(order.storyId, contract.command) : null,
+        brief,
+      )
       const model = decision.model ?? (step === null || step.model === '' ? undefined : step.model)
       const stepSettings = {
         ...(step === null ? {} : { provider: step.provider }),

@@ -53,6 +53,7 @@ const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'agent_session', column: 'cost_base_usd', declaration: 'REAL NOT NULL DEFAULT 0' },
   { table: 'agent_session', column: 'idle_since', declaration: 'TEXT' },
   { table: 'agent_session', column: 'wait_seconds', declaration: 'REAL NOT NULL DEFAULT 0' },
+  { table: 'workflow_column', column: 'max_retries', declaration: 'INTEGER NOT NULL DEFAULT 2' },
   { table: 'story', column: 'blocked_reason', declaration: 'TEXT' },
   { table: 'story', column: 'workflow_column_id', declaration: 'INTEGER REFERENCES workflow_column(id)' },
   { table: 'worktree', column: 'forge_card_id', declaration: 'INTEGER' },

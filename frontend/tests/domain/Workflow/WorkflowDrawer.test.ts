@@ -33,6 +33,7 @@ function column(id: number, key: string, label: string, overrides: Partial<Workf
     preprompt: 'Read the epic.',
     autoStart: true,
     behaviouralKind: 'ordinary',
+    maxRetries: 2,
     ...overrides,
   }
 }

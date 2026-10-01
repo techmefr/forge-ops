@@ -342,6 +342,7 @@ CREATE TABLE IF NOT EXISTS workflow_column (
   command TEXT NOT NULL DEFAULT '',
   preprompt TEXT NOT NULL DEFAULT '',
   auto_start INTEGER NOT NULL DEFAULT 0,
+  max_retries INTEGER NOT NULL DEFAULT 2,
   behavioural_kind TEXT NOT NULL DEFAULT 'ordinary',
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE (project_id, key),
@@ -596,4 +597,24 @@ CREATE TABLE IF NOT EXISTS user_preference (
   key TEXT NOT NULL,
   value TEXT NOT NULL,
   PRIMARY KEY (user_id, key)
+);
+
+CREATE TABLE IF NOT EXISTS autopilot_setting (
+  project_id INTEGER PRIMARY KEY REFERENCES project(id),
+  enabled INTEGER NOT NULL DEFAULT 1,
+  auto_launch INTEGER NOT NULL DEFAULT 1,
+  auto_publish INTEGER NOT NULL DEFAULT 1,
+  auto_merge INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS autopilot_card (
+  forge_card_id INTEGER PRIMARY KEY REFERENCES forge_card(id),
+  step_key TEXT NOT NULL DEFAULT '',
+  attempts INTEGER NOT NULL DEFAULT 0,
+  advances INTEGER NOT NULL DEFAULT 0,
+  state TEXT CHECK (state IN ('paused', 'red')),
+  reason TEXT,
+  pending TEXT CHECK (pending IN ('advance', 'retry')),
+  feedback TEXT,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

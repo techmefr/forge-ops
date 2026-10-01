@@ -64,6 +64,7 @@ export const workflowColumnDraftSchema = z
     command: z.string().trim().max(200).regex(SAFE_REFERENCE),
     preprompt: z.string().max(8000),
     autoStart: z.boolean(),
+    maxRetries: z.number().int().min(0).max(5).optional(),
   })
   .strict()
 
@@ -71,7 +72,8 @@ export type WorkflowColumnDraft = z.infer<typeof workflowColumnDraftSchema>
 
 export const workflowColumnOrderSchema = z.object({ keysInOrder: z.array(z.string().min(1)).min(1) }).strict()
 
-export type WorkflowColumn = WorkflowColumnDraft & {
+export type WorkflowColumn = Omit<WorkflowColumnDraft, 'maxRetries'> & {
+  maxRetries: number
   id: number
   projectId: number
   key: string

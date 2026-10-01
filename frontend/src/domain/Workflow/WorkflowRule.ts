@@ -51,6 +51,7 @@ export function draftOf(column: WorkflowColumn): WorkflowColumnDraft {
     command: column.command,
     preprompt: column.preprompt,
     autoStart: column.autoStart,
+    maxRetries: column.maxRetries,
   }
 }
 

@@ -1,3 +1,4 @@
+import { DEFAULT_STEP_RETRIES } from '@contract/AutopilotContract'
 import {
   RESERVED_STEP_LABELS,
   WORKFLOW_EFFORTS,
@@ -106,6 +107,7 @@ function addColumn(current: DemoState, projectId: number, draft: WorkflowColumnD
   const taken = columnsOf(current, projectId)
   const column: WorkflowColumn = {
     ...draft,
+    maxRetries: draft.maxRetries ?? DEFAULT_STEP_RETRIES,
     id: nextIdentifier(current),
     projectId,
     key: keyOf(
