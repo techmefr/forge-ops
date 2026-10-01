@@ -103,7 +103,7 @@ export function decideOnScopePayload(
 }
 
 export function decideOnWriteToolCall(raw: string, { phase, ...question }: WriteToolCallQuestion): WriteDecision {
-  const byPhase = decideOnPhasePayload(raw, phase)
+  const byPhase = decideOnPhasePayload(raw, phase, question.root)
   if (!byPhase.allowed) {
     return { allowed: false, reason: byPhase.reason }
   }

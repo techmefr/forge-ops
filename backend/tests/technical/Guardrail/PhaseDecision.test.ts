@@ -26,6 +26,36 @@ describe('decideOnPhasePayload', () => {
     expect(decision.allowed === false && decision.reason).toContain('spec')
   })
 
+  it('lets a spec session write its evidence file', () => {
+    const payload = { tool_name: 'Write', tool_input: { file_path: '.claude/evidence/FORGE-1/spec.md' } }
+
+    expect(decideOnPhasePayload(JSON.stringify(payload), 'spec', '/work/project')).toEqual({ allowed: true })
+  })
+
+  it('lets an architecture session write its evidence file through an absolute path', () => {
+    const payload = { tool_name: 'Edit', tool_input: { file_path: '/work/project/.claude/evidence/FORGE-1/plan.md' } }
+
+    expect(decideOnPhasePayload(JSON.stringify(payload), 'architecture', '/work/project')).toEqual({ allowed: true })
+  })
+
+  it('still blocks a spec session writing outside the evidence folder', () => {
+    for (const file_path of ['src/app.ts', '.claude/evidence/../../src/app.ts', '/etc/passwd', '.claude/evidence/']) {
+      const payload = { tool_name: 'Write', tool_input: { file_path } }
+
+      expect(decideOnPhasePayload(JSON.stringify(payload), 'spec', '/work/project').allowed).toBe(false)
+    }
+  })
+
+  it('blocks a spec session writing without a path', () => {
+    expect(decideOnPhasePayload(JSON.stringify({ tool_name: 'Write' }), 'spec', '/work/project').allowed).toBe(false)
+  })
+
+  it('does not let a review session write evidence', () => {
+    const payload = { tool_name: 'Write', tool_input: { file_path: '.claude/evidence/FORGE-1/review.md' } }
+
+    expect(decideOnPhasePayload(JSON.stringify(payload), 'review', '/work/project').allowed).toBe(false)
+  })
+
   it('lets a code session write code', () => {
     expect(phase({ tool_name: 'Write', tool_input: { file_path: 'backend/src/forge.ts' } }, 'code')).toEqual({
       allowed: true,
