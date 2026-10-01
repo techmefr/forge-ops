@@ -79,6 +79,8 @@ export type IdentityRepository = {
   changePassword: (login: string, current: string, next: string) => void
   findUserByExternalSubject: (subject: string) => BoardUser | null
   findUserByEmail: (email: string) => BoardUser | null
+  findVerifiedUserByEmail: (email: string) => BoardUser | null
+  verifyEmail: (login: string) => BoardUser
   linkExternalSubject: (login: string, subject: string) => BoardUser
   enrolExternalUser: (draft: ExternalUserDraft) => BoardUser
   openSessionFor: (login: string) => OpenedSession
@@ -137,8 +139,16 @@ export function createIdentityRepository(
   const revokeSessionsOfUser = db.prepare<[number]>(
     "UPDATE board_session SET revoked_at = datetime('now') WHERE user_id = ? AND revoked_at IS NULL",
   )
-  const selectUserByEmail = db.prepare<[string], UserRow>('SELECT * FROM board_user WHERE email = ?')
-  const updateEmail = db.prepare<[string, string]>('UPDATE board_user SET email = ? WHERE login = ?')
+  const selectUserByEmail = db.prepare<[string], UserRow>('SELECT * FROM board_user WHERE lower(email) = ?')
+  const selectVerifiedUserByEmail = db.prepare<[string], UserRow>(
+    'SELECT * FROM board_user WHERE lower(email) = ? AND email_verified_at IS NOT NULL',
+  )
+  const updateEmail = db.prepare<[string, string]>(
+    'UPDATE board_user SET email = ?, email_verified_at = NULL WHERE login = ?',
+  )
+  const markEmailVerified = db.prepare<[string]>(
+    "UPDATE board_user SET email_verified_at = datetime('now') WHERE login = ? AND email IS NOT NULL",
+  )
   const selectUserBySubject = db.prepare<[string], UserRow>(
     'SELECT * FROM board_user WHERE external_subject = ?',
   )
@@ -146,7 +156,7 @@ export function createIdentityRepository(
     'UPDATE board_user SET external_subject = ? WHERE login = ?',
   )
   const insertExternalUser = db.prepare<[string, string, string, UserRole, string, string]>(
-    'INSERT INTO board_user (login, display_name, password_hash, role, email, external_subject) VALUES (?, ?, ?, ?, ?, ?)',
+    "INSERT INTO board_user (login, display_name, password_hash, role, email, external_subject, email_verified_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))",
   )
   const updateDisplayName = db.prepare<[string, string]>(
     'UPDATE board_user SET display_name = ? WHERE login = ?',
@@ -163,7 +173,7 @@ export function createIdentityRepository(
   )
   const eraseAccount = db.prepare<[string, string, string, number]>(
     `UPDATE board_user
-        SET login = ?, display_name = ?, password_hash = ?, email = NULL, external_subject = NULL,
+        SET login = ?, display_name = ?, password_hash = ?, email = NULL, email_verified_at = NULL, external_subject = NULL,
             capacity = NULL, super_admin = 0, disabled_at = COALESCE(disabled_at, datetime('now'))
       WHERE id = ?`,
   )
@@ -277,8 +287,19 @@ export function createIdentityRepository(
     },
 
     findUserByEmail: (email) => {
-      const row = selectUserByEmail.get(email)
+      const row = selectUserByEmail.get(email.toLowerCase())
       return row === undefined ? null : toUser(row)
+    },
+
+    findVerifiedUserByEmail: (email) => {
+      const row = selectVerifiedUserByEmail.get(email.toLowerCase())
+      return row === undefined ? null : toUser(row)
+    },
+
+    verifyEmail: (login) => {
+      demandUser(login)
+      markEmailVerified.run(login)
+      return toUser(demandUser(login))
     },
 
     linkExternalSubject: (login, subject) => {
@@ -291,7 +312,7 @@ export function createIdentityRepository(
       if (selectUserByLogin.get(draft.login) !== undefined) {
         throw new LoginTakenError(draft.login)
       }
-      if (selectUserByEmail.get(draft.email) !== undefined) {
+      if (selectUserByEmail.get(draft.email.toLowerCase()) !== undefined) {
         throw new EmailTakenError(draft.email)
       }
       const unusablePassword = hashPassword(randomBytes(TOKEN_BYTES).toString('hex'))
@@ -300,7 +321,7 @@ export function createIdentityRepository(
         draft.displayName,
         unusablePassword,
         draft.role,
-        draft.email,
+        draft.email.toLowerCase(),
         draft.subject,
       )
       return toUser(demandUser(draft.login))
@@ -355,9 +376,10 @@ export function createIdentityRepository(
       return row === undefined ? null : toUser(row)
     },
 
-    changeEmail: (login, email) => {
+    changeEmail: (login, rawEmail) => {
+      const email = rawEmail.toLowerCase()
       const row = demandUser(login)
-      const worn = selectUserByEmail.get(email)
+      const worn = selectUserByEmail.get(email.toLowerCase())
       if (worn !== undefined && worn.id !== row.id) {
         throw new EmailTakenError(email)
       }
