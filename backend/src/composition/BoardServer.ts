@@ -545,6 +545,7 @@ export function startBoardServer({
     forgeCards,
     stories,
     criteria: pilotCriteria,
+    budget,
     columns: workflowColumns,
     sessions,
     checkpoints: cascadeCheckpoints,
