@@ -19,6 +19,7 @@ import {
 import {
   AccountDisabledError,
   EmailTakenError,
+  ExternalSubjectTakenError,
   LastSuperAdminError,
   LoginRefusedError,
   LoginTakenError,
@@ -48,6 +49,7 @@ type UserRow = {
   password_hash: string
   role: UserRole
   email: string | null
+  external_subject: string | null
   super_admin: number
   capacity: number | null
   disabled_at: string | null
@@ -155,8 +157,8 @@ export function createIdentityRepository(
   const updateSubject = db.prepare<[string, string]>(
     'UPDATE board_user SET external_subject = ? WHERE login = ?',
   )
-  const insertExternalUser = db.prepare<[string, string, string, UserRole, string, string]>(
-    "INSERT INTO board_user (login, display_name, password_hash, role, email, external_subject, email_verified_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))",
+  const insertExternalUser = db.prepare<[string, string, string, UserRole, string, string, number]>(
+    "INSERT INTO board_user (login, display_name, password_hash, role, email, external_subject, email_verified_at) VALUES (?, ?, ?, ?, ?, ?, CASE WHEN ? = 1 THEN datetime('now') END)",
   )
   const updateDisplayName = db.prepare<[string, string]>(
     'UPDATE board_user SET display_name = ? WHERE login = ?',
@@ -303,7 +305,10 @@ export function createIdentityRepository(
     },
 
     linkExternalSubject: (login, subject) => {
-      demandUser(login)
+      const row = demandUser(login)
+      if (row.external_subject !== null && row.external_subject !== subject) {
+        throw new ExternalSubjectTakenError(login)
+      }
       updateSubject.run(subject, login)
       return toUser(demandUser(login))
     },
@@ -323,6 +328,7 @@ export function createIdentityRepository(
         draft.role,
         draft.email.toLowerCase(),
         draft.subject,
+        draft.isEmailVerified ? 1 : 0,
       )
       return toUser(demandUser(draft.login))
     },
