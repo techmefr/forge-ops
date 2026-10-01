@@ -14,6 +14,7 @@ import {
   CriteriaRequiredError,
 } from '../Checkpoint/CheckpointViolation.js'
 import { BudgetExhaustedError } from '../Budget/BudgetViolation.js'
+import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
 import { contractOfPhase } from '../Dispatch/Dispatch.js'
 import {
@@ -49,6 +50,7 @@ export type AutopilotConductorInput = {
   forgeCards: Pick<ForgeCardRepository, 'openCardOfStory'>
   stories: Pick<StoryRepository, 'findStory' | 'listProjects'>
   criteria: Pick<CriterionRepository, 'listCriteria'>
+  budget: Pick<BudgetRepository, 'decideConduct'>
   columns: WorkflowColumnRepository
   sessions: Pick<AgentSessionRepository, 'findByClaudeSessionId' | 'listRecentActivity'>
   checkpoints: Pick<CheckpointRepository, 'definitionOfDone' | 'proveCheckpoint'>
@@ -66,6 +68,7 @@ export type AutopilotConductor = {
   tick: () => Promise<void>
   resume: (forgeCardId: number) => Promise<boolean>
   reset: (forgeCardId: number) => void
+  suspend: (forgeCardId: number) => () => void
   autoViewOf: (view: ForgeCardView) => AutoCardView | null
   idle: () => Promise<void>
 }
@@ -73,6 +76,8 @@ export type AutopilotConductor = {
 const PREVIOUS_OUTPUT_LIMIT = 1500
 
 export const NEEDS_CRITERIA_REASON = 'Needs acceptance criteria'
+
+export const WAITING_BUDGET_REASON = 'Waiting: budget exhausted'
 
 type Handling = 'wait' | 'budget' | 'red'
 
@@ -98,6 +103,7 @@ export function createAutopilotConductor({
   forgeCards,
   stories,
   criteria,
+  budget,
   columns,
   sessions,
   checkpoints,
@@ -215,6 +221,21 @@ export function createAutopilotConductor({
     return stories.findStory(storyId).kind === 'functional' && criteria.listCriteria(storyId).length === 0
   }
 
+  function budgetBlocks(): boolean {
+    return budget.decideConduct().conduct === 'stop'
+  }
+
+  function backlogEntryOf(projectId: number): WorkflowColumn | null {
+    const project = stories.listProjects().find((candidate) => candidate.id === projectId)
+    const settings = autopilot.settingsOf(projectId)
+    const first = columns.list(projectId)[0]
+    const hasCheckout = project?.checkoutPath !== null && project?.checkoutPath !== undefined && project.checkoutPath !== ''
+    if (!settings.enabled || !settings.autoLaunch || !hasCheckout) {
+      return null
+    }
+    return first === undefined || first.provider === 'human' || !first.autoStart ? null : first
+  }
+
   function parkOnError(forgeCardId: number, error: unknown, keepPending: boolean): void {
     const handling = handlingOf(error)
     if (handling === 'red') {
@@ -228,7 +249,7 @@ export function createAutopilotConductor({
     }
     patch(forgeCardId, {
       state: 'paused',
-      reason: handling === 'budget' ? 'Budget exhausted, waiting to resume' : 'Waiting for a free session slot',
+      reason: handling === 'budget' ? WAITING_BUDGET_REASON : 'Waiting for a free session slot',
     })
   }
 
@@ -341,13 +362,8 @@ export function createAutopilotConductor({
 
   async function launchBacklog(): Promise<void> {
     for (const project of stories.listProjects()) {
-      const settings = autopilot.settingsOf(project.id)
-      const first = columns.list(project.id)[0]
-      const hasCheckout = project.checkoutPath !== null && project.checkoutPath !== undefined && project.checkoutPath !== ''
-      if (!settings.enabled || !settings.autoLaunch || !hasCheckout) {
-        continue
-      }
-      if (first === undefined || first.provider === 'human' || !first.autoStart) {
+      const first = backlogEntryOf(project.id)
+      if (first === null) {
         continue
       }
       const waiting = board
@@ -384,11 +400,12 @@ export function createAutopilotConductor({
       const steps = columns.list(project.id)
       const idle = board.list(project.id).filter((card) => {
         const step = steps.find((candidate) => candidate.key === card.stepKey)
+        const resumable =
+          card.status === 'budget_exhausted' ? !budgetBlocks() : card.status === 'idle' && step?.autoStart === true
         return (
-          card.status === 'idle' &&
+          resumable &&
           step !== undefined &&
           step.provider !== 'human' &&
-          step.autoStart &&
           autopilot.cardOf(card.id).state === null &&
           autopilot.cardOf(card.id).pending === null
         )
@@ -447,6 +464,16 @@ export function createAutopilotConductor({
       autopilot.resetCard(forgeCardId)
     },
 
+    suspend: (forgeCardId) => {
+      const previous = autopilot.cardOf(forgeCardId)
+      autopilot.resetCard(forgeCardId)
+      return () => {
+        if (previous.stepKey !== '') {
+          autopilot.patchCard(forgeCardId, previous)
+        }
+      }
+    },
+
     autoViewOf: (view) => {
       if (!autopilot.settingsOf(view.projectId).enabled) {
         return null
@@ -458,6 +485,9 @@ export function createAutopilotConductor({
         }
         if (view.stepKey === BACKLOG_STEP_KEY && lacksCriteria(view.storyId)) {
           return { state: 'paused', reason: NEEDS_CRITERIA_REASON }
+        }
+        if (view.stepKey === BACKLOG_STEP_KEY && backlogEntryOf(view.projectId) !== null && budgetBlocks()) {
+          return { state: 'paused', reason: WAITING_BUDGET_REASON }
         }
         return null
       }
@@ -472,7 +502,10 @@ export function createAutopilotConductor({
         return { state: 'running', reason: null }
       }
       if (view.status === 'budget_exhausted') {
-        return { state: 'paused', reason: 'Budget exhausted, press Retry to resume' }
+        return {
+          state: 'paused',
+          reason: autopilot.settingsOf(view.projectId).autoLaunch ? WAITING_BUDGET_REASON : 'Budget exhausted, press Retry to resume',
+        }
       }
       if (view.status === 'stopped') {
         return { state: 'paused', reason: 'Stopped by a user, press Retry to resume' }

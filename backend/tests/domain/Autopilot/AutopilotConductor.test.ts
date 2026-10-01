@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { Hono } from 'hono'
 import type Database from 'better-sqlite3'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { createStoryRepository, type StoryRepository } from '../../../src/domain/Story/StoryRepository.js'
@@ -22,6 +23,7 @@ import {
   type ForgeBoardRepository,
 } from '../../../src/domain/ForgeCard/ForgeBoardRepository.js'
 import { createForgeCardMover } from '../../../src/domain/ForgeCard/ForgeCardMover.js'
+import { createForgeBoardApi } from '../../../src/domain/ForgeCard/ForgeBoardApi.js'
 import { createForgeCardCloser, type ForgeCardCloser } from '../../../src/domain/ForgeCard/ForgeCardCloser.js'
 import {
   createAutopilotConductor,
@@ -83,6 +85,7 @@ let autopilot: AutopilotRepository
 let conductor: AutopilotConductor
 let closer: ForgeCardCloser
 let closed: number[]
+let app: Hono
 let launched: LaunchOrder[]
 let evidence: Map<string, string>
 let projectId: number
@@ -184,6 +187,7 @@ function boot(steps: readonly WorkflowColumnDraft[], concurrencyCap = 5): void {
     forgeCards,
     stories,
     criteria: createCriterionRepository(db),
+    budget,
     columns,
     sessions,
     checkpoints,
@@ -197,6 +201,23 @@ function boot(steps: readonly WorkflowColumnDraft[], concurrencyCap = 5): void {
     lastAgentMessage: () => 'I could not finish the step',
   })
   holder.conductor = conductor
+  app = new Hono()
+  app.use('*', async (context, next) => {
+    context.set('login', 'local')
+    await next()
+  })
+  app.route(
+    '/',
+    createForgeBoardApi({
+      board,
+      mover,
+      closer,
+      forgeCards,
+      stories,
+      events: { publish: () => undefined },
+      autopilot: conductor,
+    }),
+  )
 }
 
 function backlogStory(title: string): number {
@@ -559,6 +580,126 @@ describe('a step that did not start by itself', () => {
   })
 })
 
+const STOP_AT_ONE = {
+  capUsd: 1,
+  conduct: 'stop',
+  downgradeModel: 'claude-haiku-4-5-20251001',
+  rerouteBaseUrl: null,
+} as const
+
+function spend(storyId: number, costUsd: number): void {
+  sessions.registerSession({
+    storyId,
+    claudeSessionId: `spent-${storyId}`,
+    phase: 'spec',
+    agentName: 'neo',
+    claudeCodeVersion: '2.1.224',
+  })
+  sessions.recordUsage(`spent-${storyId}`, { costUsd, inputTokens: 1, outputTokens: 1 })
+}
+
+describe('budget exhaustion', () => {
+  it('shows a backlog card waiting for the budget and starts it when the cap is raised', async () => {
+    budget.writePolicy(STOP_AT_ONE)
+    const other = backlogStory('export the contacts')
+    spend(other, 5)
+    db.prepare("UPDATE agent_session SET lifecycle = 'finished', outcome = 'succeeded'").run()
+    const storyId = backlogStory('see the mails')
+
+    await conductor.tick()
+
+    expect(cardOf(storyId).stepKey).toBe('backlog')
+    expect(cardOf(storyId).auto).toEqual({ state: 'paused', reason: 'Waiting: budget exhausted' })
+
+    budget.writePolicy({ ...STOP_AT_ONE, capUsd: 100 })
+    await conductor.tick()
+
+    expect(cardOf(storyId)).toMatchObject({ stepKey: 'spec', status: 'running' })
+  })
+
+  it('does not label a backlog card as waiting for the budget when the autopilot would not start it anyway', async () => {
+    budget.writePolicy(STOP_AT_ONE)
+    autopilot.settle(projectId, { enabled: true, autoLaunch: false, autoPublish: true, autoMerge: false })
+    const other = backlogStory('export the contacts')
+    spend(other, 5)
+
+    expect(cardOf(backlogStory('see the mails')).auto ?? null).toBeNull()
+  })
+
+  it('keeps the previous state of a card when a manual launch is refused by the budget', async () => {
+    const storyId = backlogStory('see the mails')
+    await startFromBacklog(storyId)
+    await finishTurn(storyId, { status: 'blocked', reason: 'Which mailbox?' })
+    const before = cardOf(storyId).auto
+    expect(before).toEqual({ state: 'paused', reason: 'Blocked: Which mailbox?' })
+    budget.writePolicy(STOP_AT_ONE)
+    spend(storyId, 5)
+
+    const response = await app.request(`/api/forge-cards/${cardOf(storyId).id}/launch`, { method: 'POST' })
+
+    expect(response.status).toBe(409)
+    expect(cardOf(storyId).auto).toEqual(before)
+  })
+
+  it('still clears the previous state when a manual launch succeeds', async () => {
+    const storyId = backlogStory('see the mails')
+    await startFromBacklog(storyId)
+    await finishTurn(storyId, { status: 'blocked', reason: 'Which mailbox?' })
+
+    const response = await app.request(`/api/forge-cards/${cardOf(storyId).id}/launch`, { method: 'POST' })
+
+    expect(response.status).toBe(201)
+    expect(cardOf(storyId).auto).toEqual({ state: 'running', reason: null })
+  })
+
+  it('resumes by itself a card stopped by the budget once the cap is raised', async () => {
+    const storyId = backlogStory('see the mails')
+    await startFromBacklog(storyId)
+    budget.writePolicy(STOP_AT_ONE)
+    const latest = sessions.latestSessionOf(storyId)
+    sessions.recordUsage(latest?.claudeSessionId ?? '', { costUsd: 5, inputTokens: 1, outputTokens: 1 })
+    sessions.closeSession(latest?.claudeSessionId ?? '', { exitCode: null, reason: 'budget' })
+    await conductor.tick()
+
+    expect(cardOf(storyId).auto).toEqual({ state: 'paused', reason: 'Waiting: budget exhausted' })
+    expect(launched).toHaveLength(1)
+
+    budget.writePolicy({ ...STOP_AT_ONE, capUsd: 100 })
+    await conductor.tick()
+
+    expect(launched).toHaveLength(2)
+    expect(cardOf(storyId)).toMatchObject({ stepKey: 'spec', status: 'running' })
+  })
+
+  it('resumes by itself a card stopped by the budget when the day rolls over', async () => {
+    const storyId = backlogStory('see the mails')
+    await startFromBacklog(storyId)
+    budget.writePolicy(STOP_AT_ONE)
+    const latest = sessions.latestSessionOf(storyId)
+    sessions.recordUsage(latest?.claudeSessionId ?? '', { costUsd: 5, inputTokens: 1, outputTokens: 1 })
+    sessions.closeSession(latest?.claudeSessionId ?? '', { exitCode: null, reason: 'budget' })
+    await conductor.tick()
+    expect(launched).toHaveLength(1)
+
+    db.prepare("UPDATE agent_session SET started_at = datetime('now', '-1 day')").run()
+    await conductor.tick()
+
+    expect(launched).toHaveLength(2)
+  })
+
+  it('leaves the card to the Retry button when the autopilot does not launch by itself', async () => {
+    const storyId = backlogStory('see the mails')
+    await startFromBacklog(storyId)
+    autopilot.settle(projectId, { enabled: true, autoLaunch: false, autoPublish: true, autoMerge: false })
+    const latest = sessions.latestSessionOf(storyId)
+    sessions.closeSession(latest?.claudeSessionId ?? '', { exitCode: null, reason: 'budget' })
+    await conductor.tick()
+
+    expect(cardOf(storyId).auto).toEqual({ state: 'paused', reason: 'Budget exhausted, press Retry to resume' })
+    expect(launched).toHaveLength(1)
+  })
+})
+
 describe('pauses', () => {
   it('pauses when the next step is a human one and does not start an agent', async () => {
     boot([{ ...AGENT_STEP, label: 'Spec' }, HUMAN_STEP, { ...AGENT_STEP, label: 'Build' }])
@@ -608,7 +749,7 @@ describe('pauses', () => {
     await finishTurn(storyId, { status: 'pass' })
 
     expect(cardOf(storyId)).toMatchObject({ stepKey: 'spec' })
-    expect(cardOf(storyId).auto).toEqual({ state: 'paused', reason: 'Budget exhausted, waiting to resume' })
+    expect(cardOf(storyId).auto).toEqual({ state: 'paused', reason: 'Waiting: budget exhausted' })
 
     budget.writePolicy({ capUsd: 100, conduct: 'stop', downgradeModel: 'claude-haiku-4-5-20251001', rerouteBaseUrl: null })
     await conductor.tick()
@@ -622,7 +763,7 @@ describe('pauses', () => {
     const latest = sessions.latestSessionOf(storyId)
     sessions.closeSession(latest?.claudeSessionId ?? '', { exitCode: null, reason: 'budget' })
 
-    expect(cardOf(storyId).auto).toEqual({ state: 'paused', reason: 'Budget exhausted, press Retry to resume' })
+    expect(cardOf(storyId).auto).toEqual({ state: 'paused', reason: 'Waiting: budget exhausted' })
     expect(cardOf(storyId).stepKey).toBe('spec')
   })
 

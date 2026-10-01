@@ -30,7 +30,11 @@ export type ForgeBoardApiInput = {
   forgeCards: ForgeCardRepository
   stories: StoryRepository
   events: Pick<EventBus, 'publish'>
-  autopilot?: { reset: (forgeCardId: number) => void; resume: (forgeCardId: number) => Promise<boolean> }
+  autopilot?: {
+    reset: (forgeCardId: number) => void
+    suspend: (forgeCardId: number) => () => void
+    resume: (forgeCardId: number) => Promise<boolean>
+  }
 }
 
 export function createForgeBoardApi({
@@ -100,10 +104,15 @@ export function createForgeBoardApi({
     }
     const current = board.view(forgeCardId.data)
     assertHand(context, current.subjectId, current.reference)
-    autopilot?.reset(forgeCardId.data)
-    const moved = await mover.move(forgeCardId.data, order.data.stepKey)
-    announce(moved)
-    return context.json(moved)
+    const restore = autopilot?.suspend(forgeCardId.data)
+    try {
+      const moved = await mover.move(forgeCardId.data, order.data.stepKey)
+      announce(moved)
+      return context.json(moved)
+    } catch (error) {
+      restore?.()
+      throw error
+    }
   })
 
   api.post('/api/forge-cards/:id/done', (context) => {
@@ -132,10 +141,15 @@ export function createForgeBoardApi({
     if ((await autopilot?.resume(forgeCardId.data)) === true) {
       return context.json({ card: board.view(forgeCardId.data), started: false, claudeSessionId: null }, 201)
     }
-    autopilot?.reset(forgeCardId.data)
-    const moved = await mover.launch(forgeCardId.data)
-    announce(moved)
-    return context.json(moved, 201)
+    const restore = autopilot?.suspend(forgeCardId.data)
+    try {
+      const moved = await mover.launch(forgeCardId.data)
+      announce(moved)
+      return context.json(moved, 201)
+    } catch (error) {
+      restore?.()
+      throw error
+    }
   })
 
   return api
