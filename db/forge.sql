@@ -199,6 +199,7 @@ CREATE TABLE IF NOT EXISTS agent_session (
     'unknown'
   )),
   cost_usd REAL,
+  cost_base_usd REAL NOT NULL DEFAULT 0,
   input_tokens INTEGER,
   output_tokens INTEGER,
   context_tokens INTEGER,

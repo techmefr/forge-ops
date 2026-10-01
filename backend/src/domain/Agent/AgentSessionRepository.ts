@@ -26,6 +26,7 @@ type AgentSessionRow = {
   lifecycle: AgentLifecycle
   claude_code_version: string
   cost_usd: number | null
+  cost_base_usd: number
   context_tokens: number | null
   context_window: number | null
   outcome: OutcomeClass | null
@@ -103,6 +104,13 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
     `INSERT INTO agent_session (story_id, claude_session_id, phase, agent_name, claude_code_version)
      VALUES (?, ?, ?, ?, ?)`,
   )
+  const resumeSessionRow = db.prepare<[number, AgentPhase, string, string, string]>(
+    `UPDATE agent_session
+        SET story_id = ?, phase = ?, agent_name = ?, claude_code_version = ?,
+            lifecycle = 'starting', outcome = NULL, ended_at = NULL,
+            last_heartbeat_at = NULL, cost_base_usd = COALESCE(cost_usd, 0)
+      WHERE claude_session_id = ?`,
+  )
   const selectLatestOfStory = db.prepare<[number], AgentSessionRow>(
     'SELECT * FROM agent_session WHERE story_id = ? ORDER BY id DESC LIMIT 1',
   )
@@ -129,7 +137,7 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
       WHERE claude_session_id = ?`,
   )
   const updateUsage = db.prepare<[number, number, number, number | null, number | null, string]>(
-    `UPDATE agent_session SET cost_usd = ?, input_tokens = ?, output_tokens = ?,
+    `UPDATE agent_session SET cost_usd = cost_base_usd + ?, input_tokens = ?, output_tokens = ?,
         context_tokens = COALESCE(?, context_tokens), context_window = COALESCE(?, context_window)
       WHERE claude_session_id = ?`,
   )
@@ -185,6 +193,16 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
     registerSession: (draft) => {
       if (selectStory.get(draft.storyId) === undefined) {
         throw new StoryNotFoundError(draft.storyId)
+      }
+      if (selectSession.get(draft.claudeSessionId) !== undefined) {
+        resumeSessionRow.run(
+          draft.storyId,
+          draft.phase,
+          draft.agentName,
+          draft.claudeCodeVersion,
+          draft.claudeSessionId,
+        )
+        return requireSession(draft.claudeSessionId)
       }
       insertSession.run(draft.storyId, draft.claudeSessionId, draft.phase, draft.agentName, draft.claudeCodeVersion)
       return requireSession(draft.claudeSessionId)

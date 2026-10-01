@@ -272,16 +272,22 @@ export function createDispatcher({
         throw error
       }
 
-      sessions.registerSession({
-        storyId: order.storyId,
-        claudeSessionId,
-        phase: order.phase,
-        agentName,
-        claudeCodeVersion,
-      })
+      try {
+        sessions.registerSession({
+          storyId: order.storyId,
+          claudeSessionId,
+          phase: order.phase,
+          agentName,
+          claudeCodeVersion,
+        })
 
-      if (forgeCard !== null) {
-        forgeCards.recordDispatch(forgeCard.id, { claudeSessionId, phase: order.phase })
+        if (forgeCard !== null) {
+          forgeCards.recordDispatch(forgeCard.id, { claudeSessionId, phase: order.phase })
+        }
+      } catch (error) {
+        runner.abandon?.(claudeSessionId)
+        bucket.refund(takenAt)
+        throw error
       }
 
       if (order.lens !== undefined) {

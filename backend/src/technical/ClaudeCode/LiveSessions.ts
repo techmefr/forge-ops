@@ -19,12 +19,14 @@ export class LiveSessionCapReachedError extends Error {
 export type LiveSession<T> = {
   channel: InputChannel<T>
   adopt: (claudeSessionId: string) => void
+  onTerminate: (stop: () => void) => void
 }
 
 export type LiveSessions<T> = {
   start: () => LiveSession<T>
   find: (claudeSessionId: string) => InputChannel<T> | null
   close: (claudeSessionId: string) => boolean
+  terminate: (claudeSessionId: string) => boolean
   closeAll: () => void
   count: () => number
 }
@@ -35,18 +37,24 @@ export type LiveSessionsInput = {
 
 export function createLiveSessions<T>({ cap = DEFAULT_LIVE_SESSION_CAP }: LiveSessionsInput = {}): LiveSessions<T> {
   const channels = new Map<string, InputChannel<T>>()
+  const stoppers = new Map<string, () => void>()
 
   function forget(claudeSessionId: string, channel: InputChannel<T>): void {
     if (channels.get(claudeSessionId) === channel) {
       channels.delete(claudeSessionId)
+      stoppers.delete(claudeSessionId)
     }
   }
 
   return {
     start: () => {
       const channel = createInputChannel<T>()
+      let stop: () => void = () => undefined
       return {
         channel,
+        onTerminate: (handler) => {
+          stop = handler
+        },
         adopt: (claudeSessionId) => {
           const held = channels.get(claudeSessionId)
           if (held !== undefined && held.open) {
@@ -56,6 +64,7 @@ export function createLiveSessions<T>({ cap = DEFAULT_LIVE_SESSION_CAP }: LiveSe
             throw new LiveSessionCapReachedError(cap)
           }
           channels.set(claudeSessionId, channel)
+          stoppers.set(claudeSessionId, () => stop())
           channel.onClose(() => forget(claudeSessionId, channel))
         },
       }
@@ -80,6 +89,19 @@ export function createLiveSessions<T>({ cap = DEFAULT_LIVE_SESSION_CAP }: LiveSe
       }
       channel.close()
       channels.delete(claudeSessionId)
+      return true
+    },
+
+    terminate: (claudeSessionId) => {
+      const channel = channels.get(claudeSessionId)
+      const stop = stoppers.get(claudeSessionId)
+      if (channel === undefined) {
+        return false
+      }
+      channel.close()
+      channels.delete(claudeSessionId)
+      stoppers.delete(claudeSessionId)
+      stop?.()
       return true
     },
 
