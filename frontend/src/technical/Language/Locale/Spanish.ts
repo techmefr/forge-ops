@@ -1162,7 +1162,7 @@ export const SPANISH: Message = {
       'El tablero funciona en modo local, sin cuentas: el acceso se hace con el token de la máquina. Las cuentas solo existen en modo hub.',
     displayName: 'Nombre mostrado',
     emailAddress: 'Dirección de correo',
-    emailPlaceholder: 'persona@ejemplo.es',
+    emailPlaceholder: 'persona{\'@\'}ejemplo.es',
     accountSaved: 'Cuenta guardada',
     currentPassword: 'Contraseña actual',
     newPassword: 'Nueva contraseña',

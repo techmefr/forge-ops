@@ -144,7 +144,7 @@ describe('the hover panel', () => {
     await zone.trigger('mouseenter')
     const panel = zone.find('[data-test-id="weather-panel"]')
     expect(panel.isVisible()).toBe(true)
-    expect(panel.text()).toContain('2 late · 1 blocked · 1 high risk · 1 minutes to write')
+    expect(panel.text()).toContain('2 late · 1 blocked · 1 high risk · 1 set of minutes to write')
     expect(panel.text()).toContain('Next: client meeting on')
     expect(panel.text()).toContain('Client review')
     expect(panel.text()).toContain('Weather computed')
