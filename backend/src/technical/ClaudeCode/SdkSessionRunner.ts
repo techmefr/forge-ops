@@ -4,6 +4,7 @@ import type { SessionTalker, SpokenTurn } from '../../domain/Conversation/Conver
 import type { LiveSessions } from './LiveSessions.js'
 import { deliverTurn, userTurn, type SdkUserTurn } from './TurnDelivery.js'
 import { WORKFLOW_EFFORTS, type WorkflowEffort } from '../../../../contract/WorkflowColumnContract.js'
+import { agentEnvironmentOf } from '../Guardrail/AgentEnvironment.js'
 import { assertGuardrailRegistered, forgeSettingSources } from '../Guardrail/GuardrailRegistration.js'
 
 function effortOptionOf(order: LaunchOrder): { effort?: WorkflowEffort } {
@@ -41,7 +42,7 @@ export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunn
           ...effortOptionOf(order),
           ...(order.resumeSessionId === undefined ? {} : { resume: order.resumeSessionId }),
           env: {
-            ...process.env,
+            ...agentEnvironmentOf({ source: process.env }),
             FORGE_STORY_REFERENCE: order.reference,
             FORGE_PHASE: order.phase,
             ...(order.baseUrl === undefined ? {} : { ANTHROPIC_BASE_URL: order.baseUrl }),

@@ -331,3 +331,24 @@ describe('a session that fails after it started', () => {
     expect(result?.payload).toMatchObject({ claudeSessionId: 'sess-9', isError: true })
   })
 })
+
+describe('createSdkSessionRunner environment', () => {
+  it('does not hand the server secrets to the agent process', async () => {
+    resolved.mockResolvedValue(REGISTERED)
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    process.env.FORGE_SUPER_ADMIN_PASSWORD = 'leak-me'
+    const runner = createSdkSessionRunner({
+      cwdFor: () => '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: () => undefined,
+    })
+
+    await runner.launch(ORDER)
+    delete process.env.FORGE_SUPER_ADMIN_PASSWORD
+
+    const env = (queried.mock.calls.at(-1)?.[0] as { options: { env: Record<string, string> } }).options.env
+    expect(env.FORGE_SUPER_ADMIN_PASSWORD).toBeUndefined()
+    expect(env.FORGE_STORY_REFERENCE).toBe('FORGE-7')
+    expect(env.FORGE_PHASE).toBe('spec')
+  })
+})
