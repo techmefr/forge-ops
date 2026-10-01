@@ -15,6 +15,7 @@ import {
   referenceLabel,
   pipelineOrder,
   primaryActionOf,
+  secondaryActionOf,
   gapCodesOf,
   isLastStep,
 } from '@/domain/Forge/ForgeRule'
@@ -187,6 +188,19 @@ describe('primaryActionOf', () => {
   it('offers no launch in a human step and nothing when done', () => {
     expect(primaryActionOf(card(1, 'done', 'done'), STEPS)).toBeNull()
     expect(primaryActionOf(card(1, 'spec', 'idle'), STEPS)).toBe('launch')
+  })
+})
+
+describe('secondaryActionOf', () => {
+  it('offers Stop on a card that only waits to be validated', () => {
+    expect(secondaryActionOf(card(1, 'spec', 'to_validate'))).toBe('stop')
+  })
+
+  it('offers nothing on the other states', () => {
+    expect(secondaryActionOf(card(1, 'spec', 'running'))).toBeNull()
+    expect(secondaryActionOf(card(1, 'spec', 'failed'))).toBeNull()
+    expect(secondaryActionOf(card(1, 'spec', 'idle'))).toBeNull()
+    expect(secondaryActionOf(card(1, 'done', 'done'))).toBeNull()
   })
 })
 
