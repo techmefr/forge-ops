@@ -36,6 +36,7 @@
     "@openai/codex": "^0.156.1",
     "@shikijs/langs": "^4.4.3",
     "@shikijs/themes": "^4.4.3",
+    "@tauri-apps/api": "^2.12.1",
     "better-sqlite3": "^11.9.1",
     "hono": "^4.13.7",
     "pinia": "^4.0.3",
