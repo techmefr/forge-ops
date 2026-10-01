@@ -99,6 +99,7 @@ import { securityHeaders } from '../technical/Http/SecurityHeaders.js'
 import { boardOrigins, isLocalOrigin } from '../technical/Auth/BoardOrigin.js'
 import { isLoopbackPeer } from '../technical/Auth/ClientAddress.js'
 import { ALLOW_REMOTE_LOCAL_ENV, assertLocalModeBinding } from '../technical/Auth/LocalBinding.js'
+import { installedVersion, offeredVersion } from '../technical/Version/ForgeVersion.js'
 
 const DEFAULT_SESSION_CAP = 5
 
@@ -408,8 +409,8 @@ export function startBoardServer({
     '/',
     createBoundaryApi({
       outbox,
-      installedVersion: process.env.FORGE_VERSION ?? '0.1.0',
-      offeredVersion: () => process.env.FORGE_OFFERED_VERSION ?? process.env.FORGE_VERSION ?? '0.1.0',
+      installedVersion: installedVersion(),
+      offeredVersion,
     }),
   )
   guarded.route(
