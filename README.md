@@ -207,6 +207,18 @@ npm run hook:install
 
 `.claude/settings.json`, for its part, stays versioned and now contains only the `PreToolUse` guardrail, which needs no secret. Since hooks are read at session startup, Claude Code must be restarted after the installation.
 
+### Registering an external project
+
+A project checkout other than forge-ops itself needs the same guardrails, with absolute paths to this forge-ops install:
+
+```bash
+npm run guardrails:install -- /path/to/project-checkout
+```
+
+or `POST /api/projects/:id/guardrails` (project administrator). It writes the `PreToolUse` DenyHook and ScopeHook into the checkout `.claude/settings.json` (no secret, can be committed so worktrees carry it) and the `PostToolUse` hook with its token into `.claude/settings.local.json` (keep it out of version control). Existing settings are preserved and the command is idempotent. Without these hooks the board refuses to start a session (`409 GuardrailNotRegisteredError`).
+
+The step prompts embed the doctrine text (`SPEC.md`, `BUILD.md`, ...) read from the project `.claude/commands/` when it ships one, otherwise from the forge-ops install, so the project needs no command files.
+
 Evidence paths are confined: `evidencePath` must live under `.claude/evidence/`, with no `..`, no absolute path, no backslash, no null byte. A `../../../.ssh/id_rsa` leaves with a `409`.
 
 The `PostToolUse` hook on `Edit|Write|NotebookEdit` is of type `http` and posts to `POST /api/hooks`. Hooks are read at session startup: modifying `.claude/settings.json` only takes effect on the next session.
@@ -255,6 +267,7 @@ FORGE_PORT=8899 npm run demo
 | `npm run demo` | Fresh demonstration database, web bundle guaranteed, board started |
 | `npm run forge` | Starts the board (schema applied at startup) |
 | `npm run hook:install` | Writes the hook with its token into `.claude/settings.local.json` |
+| `npm run guardrails:install -- <checkout>` | Registers the guardrail hooks on an external project checkout |
 | `npm test` | Full suite (vitest) |
 | `npm run build` | Compiles the TypeScript |
 

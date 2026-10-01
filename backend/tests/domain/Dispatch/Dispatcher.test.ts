@@ -152,6 +152,30 @@ describe('dispatch', () => {
     expect(launched[0]?.prompt).toContain('FORGE-1')
   })
 
+  it('inlines the doctrine text the source returns, so the project needs no command files', async () => {
+    const withDoctrine = createDispatcher({
+      database: db,
+      stories,
+      checkpoints: createCheckpointRepository(db, {
+        ...PERMISSIVE_CHECKPOINT_GATES,
+        takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
+      }),
+      criteria: createCriterionRepository(db),
+      sessions,
+      budget: createBudgetRepository(db),
+      foremerge: createForemergeRepository(db, { stories }),
+      runner: fakeRunner(),
+      concurrencyCap: 3,
+      claudeCodeVersion: '2.1.224',
+      doctrineFor: (_story, command) => `DOCTRINE OF ${command}`,
+    })
+
+    const dispatched = await withDoctrine.dispatch({ storyId, phase: 'spec' })
+
+    expect(dispatched.prompt).toContain('DOCTRINE OF SPEC.md')
+    expect(dispatched.prompt).not.toMatch(/Suis la|Prouve/)
+  })
+
   it('refuses a phase whose checkpoints are not proven yet', async () => {
     await expect(dispatcher.dispatch({ storyId, phase: 'code' })).rejects.toThrow(PhaseNotReadyError)
   })
