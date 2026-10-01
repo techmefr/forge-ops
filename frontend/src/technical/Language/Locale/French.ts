@@ -1343,6 +1343,8 @@ export const FRENCH: Message = {
     submit: 'Se connecter',
     unreachable: 'Adresse injoignable. Vérifie-la et que l’instance tourne.',
     badScheme: 'L’adresse doit commencer par http:// ou https://.',
+    hasCredentials: 'L’adresse ne doit pas contenir d’identifiant ni de mot de passe.',
+    cleartext: 'Le http:// simple n’est accepté que pour localhost et les adresses de réseau privé. Utilisez https://.',
   },
   access: {
     continueWith: 'Continuer avec {provider}',
