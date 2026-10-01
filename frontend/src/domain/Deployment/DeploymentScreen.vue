@@ -222,7 +222,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
                   min="0"
                   max="100"
                   :value="percents.get(story.id) ?? story.rolloutPercent ?? 0"
-                  class="flex-1"
+                  class="flex-1 max-sm:h-10"
                   :aria-label="t('deployment.rolloutAria', { reference: story.reference })"
                   @input="setPercent(story.id, ($event.target as HTMLInputElement).value)"
                 />

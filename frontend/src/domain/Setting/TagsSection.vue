@@ -91,7 +91,7 @@ void tags.reload()
           <input
             type="color"
             :value="tag.colour"
-            class="h-8 w-9 rounded-md border border-line bg-transparent p-0.5"
+            class="h-8 w-9 max-sm:h-10 max-sm:w-10 rounded-md border border-line bg-transparent p-0.5"
             @change="recolour(tag, $event)"
           />
         </label>
@@ -111,7 +111,7 @@ void tags.reload()
         </div>
         <RouterLink
           :to="{ path: '/projects/subjects', query: { tag: String(tag.id) } }"
-          class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+          class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc max-sm:inline-flex max-sm:min-h-10 max-sm:items-center"
           >{{ t('team.seeSubjects') }}<span class="sr-only"> #{{ tag.label }}</span></RouterLink
         >
         <button
@@ -132,7 +132,7 @@ void tags.reload()
         <input
           v-model="colour"
           type="color"
-          class="h-8 w-9 rounded-md border border-line bg-transparent p-0.5"
+          class="h-8 w-9 max-sm:h-10 max-sm:w-10 rounded-md border border-line bg-transparent p-0.5"
         />
       </label>
       <label class="sr-only" for="new-tag-label">{{ t('team.newTag') }}</label>

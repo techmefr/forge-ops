@@ -145,7 +145,7 @@ onMounted(async () => {
     </div>
 
     <details class="mt-6 max-h-[40vh] flex-none overflow-auto border-t border-line pt-4">
-      <summary class="cursor-pointer font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+      <summary class="cursor-pointer max-sm:flex max-sm:min-h-10 max-sm:items-center font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
         {{ t('project.zonesSummary') }}
       </summary>
 

@@ -204,7 +204,7 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
                 </button>
                 <label
                   v-if="column.key === 'backlog'"
-                  class="absolute top-3 right-3 z-10 flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1.5 font-mono text-[11px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
+                  class="absolute top-3 right-3 z-10 flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1.5 max-sm:min-h-10 max-sm:min-w-10 font-mono text-[11px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
                 >
                   <input
                     type="checkbox"
