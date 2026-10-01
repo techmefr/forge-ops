@@ -6,6 +6,7 @@ import { board } from '@/technical/Api/Board'
 import { isDesktop, readAddresses } from '@/technical/Api/Addresses'
 import { activeServer, rememberToken } from '@/technical/Api/Servers'
 import {
+  createDesktopHandoff,
   listenForHandoff,
   openInSystemBrowser,
   startUrlOf,
@@ -35,19 +36,32 @@ function labelOf(provider: string): string {
   return provider === 'google' ? t('access.provider.google') : t('access.provider.microsoft')
 }
 
+const desktopHandoff = createDesktopHandoff()
+
 async function continueWith(provider: string): Promise<void> {
-  const url = startUrlOf(readAddresses().instanceUrl, provider, isDesktop())
   if (!isDesktop()) {
-    window.location.assign(url)
+    window.location.assign(startUrlOf(readAddresses().instanceUrl, provider, false))
     return
   }
   isOidcRefused.value = false
-  await openInSystemBrowser(url)
+  const challenge = await desktopHandoff.begin()
+  stopListening ??= await listenForHandoff(answer => {
+    const accepted = desktopHandoff.accept(answer)
+    if (accepted === null) {
+      return
+    }
+    if ('code' in accepted) {
+      void finishDesktopSignIn(accepted.code, accepted.verifier)
+      return
+    }
+    isOidcRefused.value = true
+  })
+  await openInSystemBrowser(startUrlOf(readAddresses().instanceUrl, provider, true, challenge))
 }
 
-async function finishDesktopSignIn(code: string): Promise<void> {
+async function finishDesktopSignIn(code: string, verifier: string): Promise<void> {
   await guard(async () => {
-    const opened = await board.send<{ token: string }>('/api/auth/oidc/exchange', 'POST', { code })
+    const opened = await board.send<{ token: string }>('/api/auth/oidc/exchange', 'POST', { code, verifier })
     const server = activeServer()
     if (server !== null) {
       rememberToken(server.id, opened.token)
@@ -138,15 +152,6 @@ async function attemptLocalAutologin(): Promise<void> {
 onMounted(async () => {
   await mode.reload()
   await loadProviders()
-  if (isDesktop()) {
-    stopListening = await listenForHandoff(answer => {
-      if ('code' in answer) {
-        void finishDesktopSignIn(answer.code)
-        return
-      }
-      isOidcRefused.value = true
-    })
-  }
   if (mode.data.value?.mode !== 'local') {
     await state.reload()
     return
