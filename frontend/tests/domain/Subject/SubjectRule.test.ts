@@ -110,12 +110,14 @@ describe('the counts next to the views', () => {
     subject({ state: 'todo' }),
     subject({ state: 'todo', lateDays: 4 }),
     subject({ assignee: 'anna', state: 'done' }),
+    subject({ state: 'doing' }),
+    subject({ state: 'blocked' }),
   ]
   const trash = [subject({ state: 'trash', deletedAt: '2026-09-01' })]
 
   it('match the lists they open', () => {
     const counts = viewCounts(all)
-    expect(counts).toEqual({ all: 3, late: 2, none: 2 })
+    expect(counts).toEqual({ all: 5, late: 2, none: 4 })
     expect(subjectsOfView(VIEW_ALL, all, trash, 'open')).toHaveLength(counts.all)
     expect(subjectsOfView(VIEW_LATE, all, trash, 'open')).toHaveLength(counts.late)
     expect(subjectsOfView(VIEW_NONE, all, trash, 'open')).toHaveLength(counts.none)
@@ -123,11 +125,11 @@ describe('the counts next to the views', () => {
 
   it('give a count to every state filter, deleted ones included', () => {
     expect(filterCounts(all, trash)).toEqual({
-      open: 3,
+      open: 5,
       late: 2,
       todo: 2,
-      doing: 1,
-      blocked: 0,
+      doing: 2,
+      blocked: 1,
       done: 1,
       trash: 1,
     })
