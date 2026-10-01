@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { migrate } from '../../../src/technical/Database/Migration.js'
+import { PROMPT_TEMPLATES } from '../../../../contract/WorkflowColumnContract.js'
 import { LEGACY_STARTER_PROMPTS } from '../../../src/technical/Database/LegacyStarterPrompts.js'
 
 const OLD_BOARD_USER = `CREATE TABLE board_user (
@@ -780,6 +781,37 @@ describe('opening a base whose starter workflows only started the first step', (
     const db = openDatabase(path)
 
     expect(autoStartOf(db, starter)).toEqual([1, 0])
+    db.close()
+  })
+})
+
+describe('opening a base whose steps still carry a legacy starter prompt', () => {
+  function writeStep(db: Database.Database, projectId: number, position: number, preprompt: string): void {
+    db.prepare(
+      `INSERT INTO workflow_column (project_id, key, label, colour, position, provider, preprompt, auto_start, behavioural_kind)
+       VALUES (?, ?, ?, '#112233', ?, 'claude', ?, 1, 'ordinary')`,
+    ).run(projectId, `step${position}`, `Step ${position}`, position, preprompt)
+  }
+
+  it('replaces an untouched legacy prompt by the current one and leaves edited prompts alone', () => {
+    const first = openDatabase(path)
+    const projectId = Number(
+      first
+        .prepare('INSERT INTO project (slug, name, repository_url, integration_branch, colour) VALUES (?, ?, ?, ?, ?)')
+        .run('p', 'P', 'url', 'main', '#112233').lastInsertRowid,
+    )
+    writeStep(first, projectId, 1, LEGACY_STARTER_PROMPTS[4] ?? '')
+    writeStep(first, projectId, 2, `${LEGACY_STARTER_PROMPTS[0] ?? ''} Also check the mails.`)
+    first.prepare("DELETE FROM schema_step WHERE name = 'workflow-column/verdict-step-prompts'").run()
+    first.close()
+
+    const db = openDatabase(path)
+
+    const prompts = db
+      .prepare<[], { preprompt: string }>('SELECT preprompt FROM workflow_column ORDER BY position')
+      .all()
+      .map((row) => row.preprompt)
+    expect(prompts).toEqual([PROMPT_TEMPLATES.ship, `${LEGACY_STARTER_PROMPTS[0] ?? ''} Also check the mails.`])
     db.close()
   })
 })
