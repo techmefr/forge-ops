@@ -89,12 +89,46 @@ describe('oidc login', () => {
     expect(identities.findUser('jane.doe')?.email).toBe('jane.doe@acme.com')
   })
 
-  it('relie un compte existant par email', async () => {
+  it('relie un compte existant par email verifie', async () => {
     identities.enrolUser({ login: 'jane', displayName: 'Jane', password: PASSWORD, role: 'director' })
     identities.changeEmail('jane', 'jane@acme.com')
+    identities.verifyEmail('jane')
     const answer = await signIn([], { sub: '7', email: 'jane@acme.com', email_verified: true })
     expect(answer.headers.get('location')).toBe('/')
     expect(identities.findUserByExternalSubject('google:7')?.login).toBe('jane')
+  })
+
+  it('relie un compte verifie malgre une casse differente', async () => {
+    identities.enrolUser({ login: 'jane', displayName: 'Jane', password: PASSWORD, role: 'director' })
+    identities.changeEmail('jane', 'Jane@Acme.com')
+    identities.verifyEmail('jane')
+    const answer = await signIn([], { sub: '7', email: 'JANE@acme.com', email_verified: true })
+    expect(answer.headers.get('location')).toBe('/')
+    expect(identities.findUserByExternalSubject('google:7')?.login).toBe('jane')
+  })
+
+  it('ne relie pas un compte dont l email est auto-declare', async () => {
+    identities.enrolUser({ login: 'mallory', displayName: 'Mallory', password: PASSWORD, role: 'architect' })
+    identities.changeEmail('mallory', 'victim@acme.com')
+    const answer = await signIn(['acme.com'], { sub: '7', email: 'victim@acme.com', email_verified: true })
+    expect(answer.headers.get('location')).toBe('/login?oidc=refused')
+    expect(answer.headers.get('set-cookie')).toBeNull()
+    expect(identities.findUserByExternalSubject('google:7')).toBeNull()
+  })
+
+  it('met l email en minuscules et le marque non verifie au changement', () => {
+    identities.enrolUser({ login: 'jane', displayName: 'Jane', password: PASSWORD, role: 'director' })
+    identities.changeEmail('jane', 'Jane@Acme.com')
+    identities.verifyEmail('jane')
+    expect(identities.findVerifiedUserByEmail('jane@acme.com')?.login).toBe('jane')
+    identities.changeEmail('jane', 'Other@Acme.com')
+    expect(identities.findUser('jane')?.email).toBe('other@acme.com')
+    expect(identities.findVerifiedUserByEmail('other@acme.com')).toBeNull()
+  })
+
+  it('cree un compte dont l email est verifie', async () => {
+    await signIn(['acme.com'], { sub: '7', email: 'jane@acme.com', email_verified: true })
+    expect(identities.findVerifiedUserByEmail('jane@acme.com')?.login).toBe('jane')
   })
 
   it('refuse un domaine inconnu sans compte', async () => {

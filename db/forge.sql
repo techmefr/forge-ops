@@ -292,6 +292,7 @@ CREATE TABLE IF NOT EXISTS board_user (
   role TEXT NOT NULL DEFAULT 'architect' CHECK (role IN ('director', 'architect')),
   external_subject TEXT UNIQUE,
   email TEXT,
+  email_verified_at TEXT,
   super_admin INTEGER NOT NULL DEFAULT 0 CHECK (super_admin IN (0, 1)),
   capacity INTEGER CHECK (capacity IS NULL OR capacity >= 1),
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,

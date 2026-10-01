@@ -14,6 +14,7 @@ export type MigrationStep = {
 
 const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'board_user', column: 'email', declaration: 'TEXT' },
+  { table: 'board_user', column: 'email_verified_at', declaration: 'TEXT' },
   { table: 'board_user', column: 'super_admin', declaration: 'INTEGER NOT NULL DEFAULT 0' },
   { table: 'epic', column: 'assignee', declaration: 'TEXT' },
   {
