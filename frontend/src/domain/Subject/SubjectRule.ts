@@ -83,7 +83,7 @@ export function flagsOf(subjects: readonly EpicOverview[], login: string): Flags
 }
 
 function isUnassigned(subject: EpicOverview): boolean {
-  return subject.assignee === null && subject.state === 'todo'
+  return subject.assignee === null && OPEN_STATES.includes(subject.state)
 }
 
 export function viewCounts(live: readonly EpicOverview[]): ViewCounts {
