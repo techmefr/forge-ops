@@ -41,14 +41,15 @@ export const PROMPT_TEMPLATE_KEYS = ['spec', 'plan', 'build', 'review', 'ship'] 
 
 export type PromptTemplateKey = (typeof PROMPT_TEMPLATE_KEYS)[number]
 
+const VERDICT_CLOSING =
+  'Finish by writing the step verdict file, the only thing the orchestrator reads to move the card on: JSON of the form {"status":"pass","reason":"one sentence"} or {"status":"fail","reason":"one sentence"}, at .claude/evidence/<story reference>/<step key>.verdict.json (the Pipeline contract at the end of this brief gives the exact path). Write pass when the goal of this step is met and fail when it is not. A step without a verdict file counts as failed.'
+
 export const PROMPT_TEMPLATES: Readonly<Record<PromptTemplateKey, string>> = {
-  spec: "Read the epic and its links (the project's speckit, graphify). Write the story spec with /speckit.specify: goal, acceptance criteria, out of scope. List the open questions and wait for the answers before concluding.",
-  plan: 'Start from the approved spec. Propose a plan in short steps, each testable, with the files touched. Flag the risks and the dependencies on other stories.',
-  build:
-    'Follow the approved plan. Write the failing test first, then the code, one commit per step (conventional commits). Run the targeted tests before handing back.',
-  review:
-    'Read the diff as a reviewer: bugs, security, readability, missing tests. One line per finding, with file and line. Do not change the code.',
-  ship: 'Rebase on the integration branch and run the full gate again. Open the MR as a draft with a symptom / cause / what changes description.',
+  spec: `Read the epic and its links (the project's speckit, graphify). Write the story spec with /speckit.specify: goal, acceptance criteria, out of scope. List the open questions and answer them yourself when the epic allows it; write a blocked verdict with the question only when a human decision is truly missing. ${VERDICT_CLOSING}`,
+  plan: `Start from the approved spec. Propose a plan in short steps, each testable, with the files touched. Flag the risks and the dependencies on other stories. ${VERDICT_CLOSING}`,
+  build: `Follow the approved plan. Write the failing test first, then the code, one commit per step (conventional commits). Run the targeted tests before finishing. ${VERDICT_CLOSING}`,
+  review: `Read the diff as a reviewer: bugs, security, readability, missing tests. One line per finding, with file and line, written in the proof of the step. Do not change the code. Write pass once the review is complete, even when it lists findings, and fail only when you could not complete it. ${VERDICT_CLOSING}`,
+  ship: `Rebase on the integration branch and run the full gate again. Push the branch to origin. Do not open the MR, do not merge and do not wait for a merge: publishing and the merge belong to the autopilot, and a human merge is already guaranteed when auto-merge is off, so never write a blocked verdict for it. Write pass once the branch is rebased, pushed and the gate is green, and fail when the rebase, the push or the gate fails. ${VERDICT_CLOSING}`,
 }
 
 const SAFE_REFERENCE = /^(\/?[A-Za-z0-9][A-Za-z0-9._-]*(:[A-Za-z0-9][A-Za-z0-9._-]*)?)?$/
