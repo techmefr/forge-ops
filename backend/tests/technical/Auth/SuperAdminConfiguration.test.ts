@@ -49,4 +49,20 @@ describe('readSuperAdminConfiguration', () => {
 
     expect(configuration).toBeNull()
   })
+
+  it('warns and carries on when the password file cannot be read', () => {
+    const warnings: string[] = []
+
+    const configuration = readSuperAdminConfiguration(
+      { FORGE_SUPER_ADMIN_LOGIN: 'root', FORGE_SUPER_ADMIN_PASSWORD_FILE: '/run/secrets/missing' },
+      () => {
+        throw new Error('ENOENT')
+      },
+      (message) => warnings.push(message),
+    )
+
+    expect(configuration).toBeNull()
+    expect(warnings).toHaveLength(1)
+    expect(warnings[0]).toContain('/run/secrets/missing')
+  })
 })

@@ -311,8 +311,8 @@ describe('SubjectsScreen actions', () => {
     await screen.find('[data-test-id="view-none"]').trigger('click')
     await screen.find('[data-test-id="subject-take"]').trigger('click')
     await flushPromises()
-    expect(send).toHaveBeenCalledWith('/api/epics/1/claim', 'POST')
-    expect(send).toHaveBeenCalledWith('/api/epics/1', 'PATCH', { state: 'doing' })
+    expect(send).toHaveBeenCalledWith('/api/epics/1/claim', 'POST', { state: 'doing' })
+    expect(send).toHaveBeenCalledTimes(1)
   })
 
   it('does not touch the state of a subject whose state comes from its stories', async () => {
@@ -335,8 +335,8 @@ describe('SubjectsScreen actions', () => {
     const screen = await mounted()
     await screen.find('[data-test-id="subject-release"]').trigger('click')
     await flushPromises()
-    expect(send).toHaveBeenCalledWith('/api/epics/1/claim', 'DELETE')
-    expect(send).toHaveBeenCalledWith('/api/epics/1', 'PATCH', { state: 'todo' })
+    expect(send).toHaveBeenCalledWith('/api/epics/1/claim?state=todo', 'DELETE')
+    expect(send).toHaveBeenCalledTimes(1)
     await screen.find('[data-test-id="person-bob"]').trigger('click')
     expect(screen.find('[data-test-id="subject-release"]').exists()).toBe(false)
   })

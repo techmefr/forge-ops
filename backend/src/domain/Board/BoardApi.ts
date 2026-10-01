@@ -2,7 +2,12 @@ import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { z } from 'zod'
 import { projectCreateSchema } from '../../../../contract/ProjectContract.js'
-import { epicAssignmentSchema, epicCreateSchema, epicQuerySchema } from '../../../../contract/EpicContract.js'
+import {
+  MANUAL_EPIC_STATES,
+  epicAssignmentSchema,
+  epicCreateSchema,
+  epicQuerySchema,
+} from '../../../../contract/EpicContract.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { ProjectSlugTakenError } from '../Story/StoryViolation.js'
@@ -69,6 +74,8 @@ function freeSlug(base: string, taken: ReadonlySet<string>): string {
 }
 
 const identifierSchema = z.coerce.number().int().positive()
+
+const stateWithClaimSchema = z.enum(MANUAL_EPIC_STATES).optional()
 
 const hookPayloadSchema = z.object({
   session_id: z.string().min(1),
@@ -192,21 +199,24 @@ export function createBoardApi({
     return context.json({ login, superAdmin: isSuperAdmin(login), director: isDirector(login) })
   })
 
-  api.post('/api/epics/:id/claim', (context) => {
+  api.post('/api/epics/:id/claim', async (context) => {
     const epicId = identifierSchema.safeParse(context.req.param('id'))
-    if (!epicId.success) {
+    const body = (await context.req.json().catch(() => ({}))) as { state?: unknown } | null
+    const state = stateWithClaimSchema.safeParse(body?.state)
+    if (!epicId.success || !state.success) {
       return context.json({ error: 'InvalidEpicIdentifier' }, 422)
     }
-    repository.claimEpic(epicId.data, operatorOf(context))
+    repository.claimEpic(epicId.data, operatorOf(context), state.data)
     return context.json({ claimed: true })
   })
 
   api.delete('/api/epics/:id/claim', (context) => {
     const epicId = identifierSchema.safeParse(context.req.param('id'))
-    if (!epicId.success) {
+    const state = stateWithClaimSchema.safeParse(context.req.query('state'))
+    if (!epicId.success || !state.success) {
       return context.json({ error: 'InvalidEpicIdentifier' }, 422)
     }
-    repository.releaseEpic(epicId.data, operatorOf(context))
+    repository.releaseEpic(epicId.data, operatorOf(context), state.data)
     return context.json({ released: true })
   })
 

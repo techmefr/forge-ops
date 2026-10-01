@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3'
-import type { EpicCreate, EpicPatch, EpicQuery } from '../../../../contract/EpicContract.js'
+import type { EpicCreate, EpicPatch, EpicQuery, ManualEpicState } from '../../../../contract/EpicContract.js'
 import { matchesQuery } from '../../../../contract/SubjectQuery.js'
 import type {
   Dependency,
@@ -87,8 +87,8 @@ export type StoryRepository = {
   findEpic: (epicId: number) => Epic
   listHumanGateWaits: () => readonly HumanGateWait[]
   projectOfStory: (storyId: number) => number
-  claimEpic: (epicId: number, login: string) => void
-  releaseEpic: (epicId: number, login: string) => void
+  claimEpic: (epicId: number, login: string, state?: ManualEpicState) => void
+  releaseEpic: (epicId: number, login: string, state?: ManualEpicState) => void
   writeStory: (draft: StoryDraft) => Story
   writeTwin: (draft: TwinDraft) => Story
   findStory: (storyId: number) => Story
@@ -599,7 +599,7 @@ export function createStoryRepository(
         waitingSeconds: row.waiting_seconds,
       })),
 
-    claimEpic: (epicId, login) => {
+    claimEpic: db.transaction((epicId: number, login: string, state?: ManualEpicState) => {
       const epic = selectEpicById.get(epicId)
       if (epic === undefined) {
         throw new EpicNotFoundError(epicId)
@@ -609,9 +609,12 @@ export function createStoryRepository(
       }
       assertAssignable(login)
       updateEpicAssignee.run(login, epicId)
-    },
+      if (state !== undefined) {
+        epics.plan(epicId, { state }, login)
+      }
+    }),
 
-    releaseEpic: (epicId, login) => {
+    releaseEpic: db.transaction((epicId: number, login: string, state?: ManualEpicState) => {
       const epic = selectEpicById.get(epicId)
       if (epic === undefined) {
         throw new EpicNotFoundError(epicId)
@@ -620,7 +623,10 @@ export function createStoryRepository(
         throw new EpicTakenError(epicId, epic.assignee)
       }
       updateEpicAssignee.run(null, epicId)
-    },
+      if (state !== undefined) {
+        epics.plan(epicId, { state }, login)
+      }
+    }),
 
     writeStory: (draft) => {
       const info = insertStory.run(draft.epicId, null, nextReference(draft.epicId), draft.title, draft.body, 'functional')

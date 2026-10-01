@@ -195,10 +195,8 @@ async function run(action: () => Promise<void>): Promise<void> {
 
 function take(subject: EpicOverview): Promise<void> {
   return run(async () => {
-    await board.send(`/api/epics/${subject.id}/claim`, 'POST')
-    if (subject.storyCount === 0 && subject.state === 'todo') {
-      await board.send(`/api/epics/${subject.id}`, 'PATCH', { state: 'doing' })
-    }
+    const startsNow = subject.storyCount === 0 && subject.state === 'todo'
+    await board.send(`/api/epics/${subject.id}/claim`, 'POST', startsNow ? { state: 'doing' } : undefined)
     if (self.value !== null && order.value.includes(self.value)) {
       select(self.value)
     }
@@ -207,10 +205,8 @@ function take(subject: EpicOverview): Promise<void> {
 
 function release(subject: EpicOverview): Promise<void> {
   return run(async () => {
-    await board.send(`/api/epics/${subject.id}/claim`, 'DELETE')
-    if (subject.storyCount === 0 && subject.state === 'doing') {
-      await board.send(`/api/epics/${subject.id}`, 'PATCH', { state: 'todo' })
-    }
+    const backToTodo = subject.storyCount === 0 && subject.state === 'doing'
+    await board.send(`/api/epics/${subject.id}/claim${backToTodo ? '?state=todo' : ''}`, 'DELETE')
   })
 }
 

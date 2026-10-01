@@ -59,6 +59,18 @@ describe('bootstrapSuperAdmin', () => {
     expect(() => identities.openSession('root', AUTRE_MOT_DE_PASSE)).toThrow()
   })
 
+  it('reactive un compte desactive avec le drapeau, sinon le super admin configure ne peut plus entrer', () => {
+    enrol('root')
+    enrol('other')
+    identities.changeActive('root', false)
+
+    const user = identities.bootstrapSuperAdmin({ login: 'root', password: AUTRE_MOT_DE_PASSE })
+
+    expect(user.active).toBe(true)
+    expect(identities.findUser('root')).toMatchObject({ superAdmin: true, active: true })
+    expect(() => identities.openSession('root', MOT_DE_PASSE)).not.toThrow()
+  })
+
   it('ne change rien au deuxieme demarrage', () => {
     identities.bootstrapSuperAdmin({ login: 'root', password: MOT_DE_PASSE })
     identities.bootstrapSuperAdmin({ login: 'root', password: MOT_DE_PASSE })

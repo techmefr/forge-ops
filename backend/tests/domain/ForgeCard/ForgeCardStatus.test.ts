@@ -45,8 +45,13 @@ describe('statusOf', () => {
     expect(statusOf({ ...base, stepKey: 'backlog', latest: session('working') })).toBe('idle')
   })
 
-  it('is a human review in a human step, whatever the sessions say', () => {
+  it('is a human review in a human step, whatever a finished or failed session says', () => {
     expect(statusOf({ ...base, stepIsHuman: true, latest: session('failed') })).toBe('human_review')
+  })
+
+  it('keeps showing a running session when its step is switched to a human one', () => {
+    expect(statusOf({ ...base, stepIsHuman: true, latest: session('working') })).toBe('running')
+    expect(statusOf({ ...base, stepIsHuman: true, latest: session('starting') })).toBe('running')
   })
 
   it('is running while the agent starts or works', () => {
