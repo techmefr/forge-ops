@@ -18,6 +18,7 @@ export type OidcProvider = {
 export type OidcClaims = {
   subject: string
   email: string
+  isEmailVerified: boolean
   displayName: string
 }
 
@@ -139,6 +140,15 @@ export async function exchangeCode(
   return claimsOf(provider, payloadOf(body.id_token), input.nonce, now())
 }
 
+function subjectOf(provider: OidcProvider, payload: Record<string, unknown>, subject: string): string {
+  const tenant = typeof payload.tid === 'string' ? payload.tid : ''
+  const object = typeof payload.oid === 'string' ? payload.oid : ''
+  if (provider.name === 'microsoft' && tenant !== '' && object !== '') {
+    return `microsoft:${tenant}:${object}`
+  }
+  return `${provider.name}:${subject}`
+}
+
 export function claimsOf(
   provider: OidcProvider,
   payload: Record<string, unknown>,
@@ -164,10 +174,13 @@ export function claimsOf(
   if (subject === '' || email === '') {
     throw new OidcRefusedError('id_token carries no subject or email')
   }
-  const isVerified = provider.name === 'google' ? payload.email_verified === true : provider.isEmailVerifiable
-  if (!isVerified) {
+  if (provider.name === 'microsoft' && !provider.isEmailVerifiable) {
+    throw new OidcRefusedError('microsoft tenant is not specific')
+  }
+  const isEmailVerified = provider.name === 'google' ? payload.email_verified === true : payload.xms_edov === true
+  if (provider.name === 'google' && !isEmailVerified) {
     throw new OidcRefusedError('email not verified by the provider')
   }
   const displayName = typeof payload.name === 'string' && payload.name !== '' ? payload.name : email
-  return { subject: `${provider.name}:${subject}`, email, displayName }
+  return { subject: subjectOf(provider, payload, subject), email, isEmailVerified, displayName }
 }
