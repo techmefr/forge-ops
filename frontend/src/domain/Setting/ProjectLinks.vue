@@ -40,12 +40,12 @@ function drop(index: number): void {
           :href="safeHref(link.url)"
           target="_blank"
           rel="noopener noreferrer"
-          class="min-w-0 max-w-[16rem] truncate text-txt-hi underline"
+          class="min-w-0 max-w-[16rem] truncate text-txt-hi underline max-sm:py-3"
           >{{ link.url }}<span class="sr-only"> {{ t('team.opensNewTab') }}</span></a
         >
         <button
           type="button"
-          class="rounded px-1 text-txt-mid hover:text-red"
+          class="rounded px-1 text-txt-mid hover:text-red max-sm:min-h-10 max-sm:min-w-10"
           :aria-label="t('team.removeLink', { kind: t(`linkKind.${link.kind}`), name })"
           @click="drop(index)"
         >

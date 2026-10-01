@@ -334,7 +334,7 @@ onMounted(() => {
                         :href="safeHref(link.url)"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="rounded border border-line px-1.5 py-0.5 text-[11px] text-info hover:border-acc"
+                        class="rounded border border-line px-1.5 py-0.5 text-[11px] text-info hover:border-acc max-sm:inline-flex max-sm:min-h-10 max-sm:items-center"
                       >
                         {{ t(`linkKind.${link.kind}`) }}
                       </a>

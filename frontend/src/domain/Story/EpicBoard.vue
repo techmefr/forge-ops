@@ -174,7 +174,7 @@ onMounted(async () => {
               projectOf(epic.projectId)?.name ?? t('epic.unknownProject')
             }}</span>
             <label
-              class="ml-auto flex min-h-[32px] cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
+              class="ml-auto flex min-h-[32px] max-sm:min-h-10 max-sm:min-w-10 cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
             >
               <input
                 type="checkbox"

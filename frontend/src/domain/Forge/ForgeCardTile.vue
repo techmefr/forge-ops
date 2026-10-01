@@ -95,7 +95,7 @@ function start(event: DragEvent): void {
     <div class="flex items-center gap-1">
       <button
         type="button"
-        class="h-7 w-7 rounded-md border border-line bg-transparent text-txt-mid hover:bg-elev disabled:opacity-30"
+        class="h-7 w-7 rounded-md border border-line bg-transparent text-txt-mid hover:bg-elev disabled:opacity-30 max-sm:h-10 max-sm:w-10"
         :disabled="previous === null || busy"
         :aria-label="previous === null ? t('forge.previous') : t('forge.moveTo', { title: card.title, step: previous.label })"
         @click="previous !== null && emit('move', previous.key)"
@@ -104,7 +104,7 @@ function start(event: DragEvent): void {
       </button>
       <button
         type="button"
-        class="h-7 w-7 rounded-md border border-line bg-transparent text-txt-mid hover:bg-elev disabled:opacity-30"
+        class="h-7 w-7 rounded-md border border-line bg-transparent text-txt-mid hover:bg-elev disabled:opacity-30 max-sm:h-10 max-sm:w-10"
         :disabled="next === null || busy"
         :aria-label="next === null ? t('forge.next') : t('forge.moveTo', { title: card.title, step: next.label })"
         @click="next !== null && emit('move', next.key)"

@@ -53,7 +53,7 @@ function relink(links: readonly SubjectLink[]): void {
         <input
           type="color"
           :value="sheet.colour"
-          class="h-8 w-9 rounded-md border border-line bg-transparent p-0.5"
+          class="h-8 w-9 max-sm:h-10 max-sm:w-10 rounded-md border border-line bg-transparent p-0.5"
           @change="pickColour"
         />
       </label>
@@ -92,7 +92,7 @@ function relink(links: readonly SubjectLink[]): void {
           type="button"
           :disabled="index === 0"
           :aria-label="t('team.moveUp', { name: sheet.name })"
-          class="rounded-md border border-line px-2 py-1 text-txt-mid hover:border-acc disabled:opacity-40"
+          class="rounded-md border border-line px-2 py-1 max-sm:min-h-10 max-sm:min-w-10 text-txt-mid hover:border-acc disabled:opacity-40"
           @click="emit('move', -1)"
         >
           <span aria-hidden="true">↑</span>
@@ -101,7 +101,7 @@ function relink(links: readonly SubjectLink[]): void {
           type="button"
           :disabled="index === total - 1"
           :aria-label="t('team.moveDown', { name: sheet.name })"
-          class="rounded-md border border-line px-2 py-1 text-txt-mid hover:border-acc disabled:opacity-40"
+          class="rounded-md border border-line px-2 py-1 max-sm:min-h-10 max-sm:min-w-10 text-txt-mid hover:border-acc disabled:opacity-40"
           @click="emit('move', 1)"
         >
           <span aria-hidden="true">↓</span>

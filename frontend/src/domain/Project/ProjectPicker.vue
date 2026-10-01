@@ -202,7 +202,7 @@ function createLabel(name: string): string {
         tabindex="-1"
         :disabled="disabled"
         :aria-label="t('projectPicker.toggle')"
-        class="-ml-px rounded-r-md border border-line px-2 text-txt-mid hover:bg-elev disabled:opacity-60"
+        class="-ml-px max-sm:min-w-10 rounded-r-md border border-line px-2 text-txt-mid hover:bg-elev disabled:opacity-60"
         @mousedown.prevent
         @click="toggle"
       >
