@@ -213,7 +213,7 @@ watch(here, () => void look())
               <span v-if="depth > 0" class="font-mono text-[11px] text-txt-low" aria-hidden="true">/</span>
               <button
                 type="button"
-                class="min-h-[24px] rounded px-1 font-mono text-[11px]"
+                class="min-h-[24px] max-sm:min-h-10 max-sm:min-w-10 rounded px-1 font-mono text-[11px]"
                 :class="depth === crumbs.length - 1 ? 'text-txt-hi' : 'text-txt-low hover:text-acc'"
                 @click="here = crumb.path"
               >
