@@ -36,7 +36,7 @@ Build order: #195 first (priority), then #186, #191, then #187 / #189 / #192 in 
 
 The mockup is the reference for layout, wording and behaviour: read `mockup.html` next to the issue, not only the screenshots. Its sample data and French labels are not part of the spec.
 
-- **Languages**: every string goes through `frontend/src/technical/Language`, in the six locales (English, French, German, Italian, Portuguese, Spanish). No hardcoded text.
+- **Languages**: every string goes through `frontend/src/technical/Language`, in the seven locales (English, French, German, Spanish, Italian, Portuguese, Chinese). No hardcoded text.
 - **Themes**: colours only from the `--forge-*` palette variables. Works in the six themes, dark and light, with the `MINIMUM_CONTRAST_RATIO` of `Palette.ts`.
 - **Accessibility (RGAA)**: everything reachable and usable with the keyboard, visible focus, dialogs and drawers trap focus and Escape closes the top-most one, icon buttons have an accessible name, a state is never shown by colour alone, animations respect `prefers-reduced-motion`.
 - **Mobile**: usable at 375 px wide without horizontal scroll. Under 760 px, forms go to one column and the people list becomes a horizontal strip above the subjects (screenshot 17).
