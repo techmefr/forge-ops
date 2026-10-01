@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   createLiveSessions,
   LiveSessionCapReachedError,
@@ -64,6 +64,31 @@ describe('createLiveSessions', () => {
     live.closeAll()
 
     expect([first.channel.open, second.channel.open, live.find('sess-1')]).toEqual([false, false, null])
+  })
+
+  it('terminating a session closes its channel and runs the stop handler once', () => {
+    const live = createLiveSessions<string>()
+    const started = live.start()
+    const stop = vi.fn()
+    started.onTerminate(stop)
+    started.adopt('sess-1')
+
+    expect(live.terminate('sess-1')).toBe(true)
+    expect(live.terminate('sess-1')).toBe(false)
+
+    expect([started.channel.open, stop.mock.calls.length, live.find('sess-1')]).toEqual([false, 1, null])
+  })
+
+  it('closing every session also stops their processes', () => {
+    const live = createLiveSessions<string>()
+    const first = live.start()
+    const stop = vi.fn()
+    first.onTerminate(stop)
+    first.adopt('sess-1')
+
+    live.closeAll()
+
+    expect(stop).toHaveBeenCalledTimes(1)
   })
 
   it('forgets a channel that died on its own, without waiting for a lookup', () => {

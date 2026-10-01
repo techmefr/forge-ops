@@ -56,13 +56,16 @@ import type { BoardEvent } from '../../src/technical/Http/EventBus.js'
 
 function conversationOf(
   sessionId: string,
-): AsyncIterable<{ type: string; session_id: string }> & { close: () => void } {
+): AsyncIterable<{ type: string; session_id: string }> & {
+  close: () => void
+  interrupt: () => Promise<undefined>
+} {
   async function* once(): AsyncGenerator<{ type: string; session_id: string }> {
     yield { type: 'system', session_id: sessionId }
     yield { type: 'result', session_id: sessionId }
   }
   const walking = once()
-  return { [Symbol.asyncIterator]: () => walking, close: () => undefined }
+  return { [Symbol.asyncIterator]: () => walking, close: () => undefined, interrupt: () => Promise.resolve(undefined) }
 }
 
 function initGitRepo(root: string): void {
@@ -141,7 +144,7 @@ function bootBoard(repositoryRoot: string, worktreeRoot: string): Board {
           stories,
           budget,
           hangUp: (identifier) => {
-            live.close(identifier)
+            live.terminate(identifier)
           },
         },
         claudeSessionId,

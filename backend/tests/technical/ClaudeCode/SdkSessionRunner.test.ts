@@ -19,7 +19,7 @@ vi.mock('@anthropic-ai/claude-agent-sdk', () => ({
   resolveSettings: (input: unknown) => resolved(input),
 }))
 
-const { createSdkSessionRunner, failureOf } = await import('../../../src/technical/ClaudeCode/SdkSessionRunner.js')
+const { createSdkSessionRunner, createSdkSessionTalker, failureOf, STOP_GRACE_MS } = await import('../../../src/technical/ClaudeCode/SdkSessionRunner.js')
 const { createLiveSessions } = await import('../../../src/technical/ClaudeCode/LiveSessions.js')
 import type { SdkUserTurn } from '../../../src/technical/ClaudeCode/TurnDelivery.js'
 
@@ -33,17 +33,18 @@ const ORDER = {
 }
 
 const closed = vi.fn()
+const interrupted = vi.fn()
 
 function conversationOf(
   messages: readonly Record<string, unknown>[],
-): AsyncIterable<{ type: string }> & { close: () => void } {
+): AsyncIterable<{ type: string }> & { close: () => void; interrupt: () => Promise<undefined> } {
   async function* once(): AsyncGenerator<{ type: string }> {
     for (const message of messages) {
       yield message as { type: string }
     }
   }
   const walking = once()
-  return { [Symbol.asyncIterator]: () => walking, close: closed }
+  return { [Symbol.asyncIterator]: () => walking, close: closed, interrupt: interrupted }
 }
 
 const SPOKEN = [
@@ -56,6 +57,8 @@ describe('createSdkSessionRunner', () => {
   beforeEach(() => {
     queried.mockReset()
     closed.mockReset()
+    interrupted.mockReset()
+    interrupted.mockResolvedValue(undefined)
     resolved.mockReset()
     resolved.mockResolvedValue(REGISTERED)
   })
@@ -257,7 +260,7 @@ describe('createSdkSessionRunner', () => {
     )
   })
 
-  it('closes the started conversation when its session is abandoned', async () => {
+  it('interrupts the started conversation when its session is abandoned', async () => {
     queried.mockReturnValue(conversationOf(SPOKEN))
     const live = createLiveSessions<SdkUserTurn>()
     const runner = createSdkSessionRunner({ cwdFor: () => '/tmp', live, onEvent: () => undefined })
@@ -265,8 +268,56 @@ describe('createSdkSessionRunner', () => {
 
     runner.abandon?.('sess-7')
 
-    expect(closed).toHaveBeenCalledTimes(1)
+    expect(interrupted).toHaveBeenCalledTimes(1)
     expect(live.find('sess-7')).toBeNull()
+  })
+
+  it('hanging up a session interrupts its process and forces it closed when it does not end', async () => {
+    vi.useFakeTimers()
+    try {
+      const neverEnding: AsyncIterable<{ type: string; session_id: string }> & {
+        close: () => void
+        interrupt: () => Promise<undefined>
+      } = {
+        async *[Symbol.asyncIterator] () {
+          yield { type: 'system', session_id: 'sess-9' }
+          await new Promise(() => undefined)
+        },
+        close: closed,
+        interrupt: interrupted,
+      }
+      queried.mockReturnValue(neverEnding)
+      const live = createLiveSessions<SdkUserTurn>()
+      const runner = createSdkSessionRunner({ cwdFor: () => '/tmp', live, onEvent: () => undefined })
+      const talker = createSdkSessionTalker({ live, onEvent: () => undefined })
+      await runner.launch(ORDER)
+
+      talker.hangUp('sess-9')
+
+      expect(interrupted).toHaveBeenCalledTimes(1)
+      expect(closed).not.toHaveBeenCalled()
+      await vi.advanceTimersByTimeAsync(STOP_GRACE_MS)
+      expect(closed).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not force a conversation closed once it ended by itself after the interrupt', async () => {
+    vi.useFakeTimers()
+    try {
+      queried.mockReturnValue(conversationOf(SPOKEN))
+      const live = createLiveSessions<SdkUserTurn>()
+      const runner = createSdkSessionRunner({ cwdFor: () => '/tmp', live, onEvent: () => undefined })
+      await runner.launch(ORDER)
+      runner.abandon?.('sess-7')
+
+      await vi.advanceTimersByTimeAsync(STOP_GRACE_MS * 2)
+
+      expect(closed).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('refuses a conversation that never announced an identifier', async () => {
