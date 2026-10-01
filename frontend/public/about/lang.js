@@ -48,6 +48,12 @@
         node.setAttribute('alt', text)
       }
     })
+    document.querySelectorAll('[data-i18n-label]').forEach(function (node) {
+      var text = words[node.getAttribute('data-i18n-label')]
+      if (text !== undefined) {
+        node.setAttribute('aria-label', text)
+      }
+    })
     if (words.title) {
       document.title = words.title
     }

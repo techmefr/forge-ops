@@ -181,7 +181,12 @@ watch(here, () => void look())
         {{ t('browser.closeNames') }}
       </p>
       <p class="mt-1 text-[13px] text-txt-low">{{ t('browser.closeNamesHint') }}</p>
-      <ul class="mt-2 flex max-h-[16vh] flex-col gap-1.5 overflow-y-auto">
+      <ul
+        tabindex="0"
+        role="region"
+        :aria-label="t('browser.closeNames')"
+        class="mt-2 flex max-h-[16vh] flex-col gap-1.5 overflow-y-auto"
+      >
         <li v-for="clash in clashes.clashes" :key="clash.name" class="text-[13px] text-txt-hi">
           <span class="font-mono text-[11px] text-orange">{{ clash.name }}</span>
           <span class="ml-2 font-mono text-[11px] text-txt-low">{{ clash.paths.join('  ·  ') }}</span>
@@ -307,6 +312,9 @@ watch(here, () => void look())
               {{ t('browser.noHighlight') }}
             </p>
             <pre
+              tabindex="0"
+              role="region"
+              :aria-label="t('browser.fileContent')"
               class="min-h-0 flex-1 overflow-auto px-4 py-3 font-mono text-[11px] leading-relaxed text-txt-mid"
             ><code v-html="painted" /></pre>
             <p v-if="opened.truncated" class="border-t border-line px-4 py-2 text-[11px] text-txt-low">

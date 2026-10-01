@@ -703,6 +703,7 @@ export const GERMAN: Message = {
     collapse: 'Die Karte einklappen',
     expand: 'Die Karte aufklappen',
     noHighlight: 'Keine Farbmarkierung für diesen Dateityp.',
+    fileContent: "Dateiinhalt",
   },
   view: {
     sessionsToWatch: 'Sitzungen zum Anschauen',
@@ -715,6 +716,7 @@ export const GERMAN: Message = {
     provenBy: 'geprüft, nachgewiesen durch {path}',
   },
   pilot: {
+    sightDetail: "Details der Prüfung",
     paceLabel: 'Tempo des Durchlaufs',
     stepKindLabel: 'Art des Schritts',
     reason: {

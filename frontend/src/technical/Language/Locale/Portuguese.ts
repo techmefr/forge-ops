@@ -702,6 +702,7 @@ export const PORTUGUESE: Message = {
     collapse: 'Recolher o cartão',
     expand: 'Expandir o cartão',
     noHighlight: 'Sem coloração para este tipo de ficheiro.',
+    fileContent: "Conteúdo do ficheiro",
   },
   view: {
     sessionsToWatch: 'Sessões para ver',
@@ -714,6 +715,7 @@ export const PORTUGUESE: Message = {
     provenBy: 'verificado provado por {path}',
   },
   pilot: {
+    sightDetail: "Detalhe da inspeção",
     paceLabel: 'Ritmo do percurso',
     stepKindLabel: 'Tipo de passo',
     reason: {

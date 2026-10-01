@@ -703,6 +703,7 @@ export const SPANISH: Message = {
     collapse: 'Plegar la tarjeta',
     expand: 'Desplegar la tarjeta',
     noHighlight: 'Sin coloreado para este tipo de archivo.',
+    fileContent: "Contenido del archivo",
   },
   view: {
     sessionsToWatch: 'Sesiones que mirar',
@@ -715,6 +716,7 @@ export const SPANISH: Message = {
     provenBy: 'verificado probado por {path}',
   },
   pilot: {
+    sightDetail: "Detalle de la inspección",
     paceLabel: 'Ritmo del recorrido',
     stepKindLabel: 'Tipo de paso',
     reason: {

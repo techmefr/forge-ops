@@ -695,6 +695,7 @@ export const ENGLISH = {
     collapse: 'Collapse the card',
     expand: 'Expand the card',
     noHighlight: 'No colour highlighting for this file type.',
+    fileContent: "File content",
   },
   view: {
     sessionsToWatch: 'Sessions to watch',
@@ -707,6 +708,7 @@ export const ENGLISH = {
     provenBy: 'verified proven by {path}',
   },
   pilot: {
+    sightDetail: "Inspection detail",
     paceLabel: 'Pace of the walk',
     stepKindLabel: 'Kind of step',
     reason: {
