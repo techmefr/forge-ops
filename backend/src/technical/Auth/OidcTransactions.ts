@@ -8,6 +8,7 @@ export type OidcTransaction = {
   nonce: string
   verifier: string
   isDesktop: boolean
+  challenge: string | null
 }
 
 export type OidcTransactions = {
