@@ -29,7 +29,7 @@ function importedPackages(directory: string): Map<string, string> {
   const found = new Map<string, string>()
   for (const file of sourcesUnder(join(root, directory))) {
     const text = readFileSync(file, 'utf-8')
-    for (const match of text.matchAll(/(?:^|\s)from\s+['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/g)) {
+    for (const match of text.matchAll(/(?:^|\s)from\s+['"]([^'"]+)['"]|\bimport\(\s*['"]([^'"]+)['"]\s*\)/g)) {
       const specifier = match[1] ?? match[2] ?? ''
       const bare = !specifier.startsWith('.') && !specifier.startsWith('@/') && !specifier.startsWith('@contract/') && !specifier.startsWith('/')
       if (bare && !specifier.startsWith('node:') && !builtinModules.includes(specifier)) {
