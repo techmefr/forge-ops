@@ -1,5 +1,5 @@
 import { timingSafeEqual } from 'node:crypto'
-import type { MiddlewareHandler } from 'hono'
+import type { Context, MiddlewareHandler } from 'hono'
 import { getCookie } from 'hono/cookie'
 
 export const BOARD_COOKIE = 'forge_token'
@@ -36,6 +36,7 @@ export type TokenGuardInput = {
   allowSessionExchange?: boolean
   allowLocalAutologin?: boolean
   isLocalOrigin?: (origin: string | undefined) => boolean
+  isLoopbackPeer?: (context: Context) => boolean
 }
 
 export function sameSecret(offered: string, expected: string): boolean {
@@ -71,6 +72,7 @@ export function createTokenGuard({
   allowSessionExchange = false,
   allowLocalAutologin = false,
   isLocalOrigin,
+  isLoopbackPeer,
 }: TokenGuardInput): MiddlewareHandler {
   return async (context, next) => {
     const origin = context.req.header('origin')
@@ -88,7 +90,12 @@ export function createTokenGuard({
       return undefined
     }
 
-    if (allowLocalAutologin && context.req.path === LOCAL_SESSION_PATH && (isLocalOrigin?.(origin) ?? false)) {
+    if (
+      allowLocalAutologin &&
+      context.req.path === LOCAL_SESSION_PATH &&
+      (isLocalOrigin?.(origin) ?? false) &&
+      (origin !== undefined || (isLoopbackPeer?.(context) ?? false))
+    ) {
       await next()
       return undefined
     }

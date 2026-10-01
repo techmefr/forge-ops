@@ -91,6 +91,8 @@ import { createSessionApi } from '../technical/Http/SessionApi.js'
 import { deriveHookToken, resolveBoardToken } from '../technical/Auth/BoardToken.js'
 import { securityHeaders } from '../technical/Http/SecurityHeaders.js'
 import { boardOrigins, isLocalOrigin } from '../technical/Auth/BoardOrigin.js'
+import { isLoopbackPeer } from '../technical/Auth/ClientAddress.js'
+import { ALLOW_REMOTE_LOCAL_ENV, assertLocalModeBinding } from '../technical/Auth/LocalBinding.js'
 
 const DEFAULT_SESSION_CAP = 5
 
@@ -182,6 +184,7 @@ export function startBoardServer({
   mode,
   environmentMode,
 }: BoardServerInput): Promise<BoardServer> {
+  assertLocalModeBinding(mode, host, process.env[ALLOW_REMOTE_LOCAL_ENV])
   const db = openDatabase(dbPath)
   const token = resolveBoardToken(tokenPath)
   const events = createEventBus()
@@ -355,6 +358,7 @@ export function startBoardServer({
       allowSessionExchange: mode === 'local',
       allowLocalAutologin: mode === 'local',
       isLocalOrigin: (origin) => isLocalOrigin(origin, host, port),
+      isLoopbackPeer,
     }),
   )
   guarded.get('/api/auth/whoami', (context) => context.json({ authenticated: true }))

@@ -16,7 +16,7 @@ One built front serves every deployment: its addresses are read when the page st
 
 **1. Everything on one laptop.** Instance and web, no server. One person, no account, nothing shared. This is how someone tries the tool in ten minutes, and it has to keep working forever.
 
-**2. Instance on the laptop, server on a VPS.** The shared board exists; the code and the agents stay on the machine of whoever wrote them. The instance opens no port - it calls out.
+**2. Instance on the laptop, server on a VPS.** The shared board exists; the code and the agents stay on the machine of whoever wrote them. The server never connects to the instance, which calls out. The hub compose files still publish port 4311 on every interface for the board and the hooks, so put a firewall or a reverse proxy in front of it; hub mode requires an identity on every route.
 
 **3. Everything on a VPS.** Instance and server hosted, the laptop is a screen. The agent then runs on the VPS, so the repositories and the git identity live there.
 
