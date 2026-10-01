@@ -14,6 +14,7 @@ export type CheckoutResolverInput = {
 export type CheckoutResolver = {
   checkoutOfStory: (storyId: number) => string
   cwdForStory: (storyId: number) => string
+  hasCheckout: (storyId: number) => boolean
 }
 
 export function createCheckoutResolver({ stories, worktreePathOf }: CheckoutResolverInput): CheckoutResolver {
@@ -26,6 +27,11 @@ export function createCheckoutResolver({ stories, worktreePathOf }: CheckoutReso
   return {
     checkoutOfStory,
     cwdForStory: (storyId) => worktreePathOf(storyId) ?? checkoutOfStory(storyId),
+    hasCheckout: (storyId) => {
+      const projectId = stories.projectOfStory(storyId)
+      const checkoutPath = stories.listProjects().find((candidate) => candidate.id === projectId)?.checkoutPath
+      return checkoutPath !== null && checkoutPath !== undefined && checkoutPath !== ''
+    },
   }
 }
 
