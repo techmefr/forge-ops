@@ -8,5 +8,6 @@ export function codexDriver(runner: SessionRunner): AgentDriver {
     name: CODEX_DRIVER,
     abilities: ['stream'],
     launch: runner.launch,
+    ...(runner.abandon === undefined ? {} : { abandon: runner.abandon }),
   }
 }

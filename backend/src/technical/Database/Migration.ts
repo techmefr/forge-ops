@@ -50,6 +50,7 @@ const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'agent_session', column: 'last_heartbeat_at', declaration: 'TEXT' },
   { table: 'agent_session', column: 'context_tokens', declaration: 'INTEGER' },
   { table: 'agent_session', column: 'context_window', declaration: 'INTEGER' },
+  { table: 'agent_session', column: 'cost_base_usd', declaration: 'REAL NOT NULL DEFAULT 0' },
   { table: 'story', column: 'blocked_reason', declaration: 'TEXT' },
   { table: 'story', column: 'workflow_column_id', declaration: 'INTEGER REFERENCES workflow_column(id)' },
   { table: 'worktree', column: 'forge_card_id', declaration: 'INTEGER' },

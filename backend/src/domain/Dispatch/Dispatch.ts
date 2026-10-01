@@ -91,6 +91,7 @@ export type Dispatched = {
 
 export type SessionRunner = {
   launch: (order: LaunchOrder) => Promise<{ claudeSessionId: string }>
+  abandon?: (claudeSessionId: string) => void
 }
 
 export type LaunchOrder = {

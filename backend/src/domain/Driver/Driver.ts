@@ -66,5 +66,10 @@ export function createDrivenRunner({ drivers, providerOf, columnAgentOf }: Drive
       const agentName = columnAgent === null || columnAgent.trim() === '' ? order.agentName : columnAgent.trim()
       return chosen.launch({ ...order, agentName })
     },
+    abandon: (claudeSessionId) => {
+      for (const driver of drivers) {
+        driver.abandon?.(claudeSessionId)
+      }
+    },
   }
 }
