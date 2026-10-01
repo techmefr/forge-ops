@@ -61,6 +61,10 @@ An email typed in the profile is unverified. It never blocks a single sign-on en
 
 Links on epics and subjects must be http or https without embedded credentials. Workflow `command` and `agentName` are limited to a slash command, a file name such as `BUILD.md`, or `namespace:name`.
 
+
+## Client address and login limits
+
+Sign-in is limited per client address and per login-and-client pair, so a stranger cannot lock an account out for its owner. The client address is the TCP peer. `X-Forwarded-For` is read only when `FORGE_TRUST_PROXY=true`, and only the last entry, the one the closest proxy appended. Leave it unset when the board is reached directly, since any client can forge the header; set it when a reverse proxy sits in front. `docker/compose.laptop.yml` sets it because its `web` container proxies `/api/` to the instance. The other compose files publish the board directly, so they leave it off.
 ## Security headers
 
 The page is served with a Content-Security-Policy, `nosniff`, frame denial and no referrer. `style-src` keeps `'unsafe-inline'` on purpose: the front binds inline `style` attributes at runtime (colours of workflow steps, progress widths), which a nonce or hash cannot cover. Scripts have no such exception. HSTS and Permissions-Policy belong to the reverse proxy in front of the board, which is the component that terminates TLS. The guided setup creates the secrets directory with mode `0700`.

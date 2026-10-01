@@ -23,6 +23,7 @@ import {
   PASSWORD_MIN_LENGTH,
   PasswordUnhashableError,
 } from '../../technical/Auth/PasswordHash.js'
+import { clientAddressOf, trustProxyFromEnv } from '../../technical/Auth/ClientAddress.js'
 import { createLoginRateLimit, type LoginRateLimit } from '../../technical/Auth/LoginRateLimit.js'
 
 export { IDENTITY_COOKIE }
@@ -30,6 +31,8 @@ export { IDENTITY_COOKIE }
 export const SETUP_TOKEN_HEADER = 'x-forge-setup-token'
 export const DESKTOP_CLIENT_HEADER = 'x-forge-client'
 export const DESKTOP_CLIENT_VALUE = 'desktop'
+
+const CLIENT_ATTEMPT_CAP = 30
 
 const credentialsSchema = z.object({
   login: z.string().min(1).max(120),
@@ -76,6 +79,8 @@ export type IdentityApiInput = {
   allowEnrolment: () => boolean
   setupToken?: string | null
   loginLimit?: LoginRateLimit
+  clientLimit?: LoginRateLimit
+  trustProxy?: boolean
 }
 
 function matchesToken(expected: string, given: string | undefined): boolean {
@@ -89,6 +94,8 @@ export function createIdentityApi({
   allowEnrolment,
   setupToken = null,
   loginLimit = createLoginRateLimit(),
+  clientLimit = createLoginRateLimit({ attemptCap: CLIENT_ATTEMPT_CAP }),
+  trustProxy = trustProxyFromEnv(),
 }: IdentityApiInput): Hono {
   const api = new Hono()
 
@@ -117,18 +124,23 @@ export function createIdentityApi({
       return context.json({ error: 'InvalidCredentials' }, 422)
     }
     const { login, password } = credentials.data
-    if (loginLimit.refuses(login)) {
-      context.header('retry-after', String(Math.ceil(loginLimit.retryAfterMs(login) / 1000)))
+    const client = clientAddressOf(context, trustProxy)
+    const clientKey = `client:${client}`
+    const pairKey = `login:${login}|${client}`
+    const waitMs = Math.max(clientLimit.retryAfterMs(clientKey), loginLimit.retryAfterMs(pairKey))
+    if (clientLimit.refuses(clientKey) || loginLimit.refuses(pairKey)) {
+      context.header('retry-after', String(Math.ceil(waitMs / 1000)))
       return context.json({ error: 'TooManyLoginAttempts' }, 429)
     }
     let opened: OpenedSession
     try {
       opened = identities.openSession(login, password)
     } catch (error) {
-      loginLimit.recordFailure(login)
+      clientLimit.recordFailure(clientKey)
+      loginLimit.recordFailure(pairKey)
       throw error
     }
-    loginLimit.forget(login)
+    loginLimit.forget(pairKey)
     setCookie(context, IDENTITY_COOKIE, opened.token, {
       path: '/',
       httpOnly: true,
