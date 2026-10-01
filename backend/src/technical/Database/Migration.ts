@@ -1,4 +1,5 @@
 import type Database from 'better-sqlite3'
+import { LEGACY_STARTER_PROMPTS } from './LegacyStarterPrompts.js'
 import { checkedDigestOf, checkedListsOf, createStatementOf } from './SchemaTable.js'
 
 type AddedColumn = {
@@ -277,6 +278,33 @@ function dropUnconditionalEmailIndex(db: Database.Database): void {
   db.exec('DROP INDEX IF EXISTS idx_board_user_email')
 }
 
+function switchStarterWorkflowsToAutoStart(db: Database.Database): void {
+  if (!tableExists(db, 'workflow_column') || !columnExists(db, 'workflow_column', 'auto_start')) {
+    return
+  }
+  const rows = db
+    .prepare<[], { id: number; project_id: number; provider: string; preprompt: string; auto_start: number }>(
+      'SELECT id, project_id, provider, preprompt, auto_start FROM workflow_column ORDER BY project_id, position',
+    )
+    .all()
+  const projects = new Map<number, typeof rows>()
+  for (const row of rows) {
+    projects.set(row.project_id, [...(projects.get(row.project_id) ?? []), row])
+  }
+  const enable = db.prepare<[number]>('UPDATE workflow_column SET auto_start = 1 WHERE id = ?')
+  for (const steps of projects.values()) {
+    const agents = steps.filter((step) => step.provider !== 'human')
+    const untouched =
+      agents.length > 1 &&
+      agents.every((step) => LEGACY_STARTER_PROMPTS.includes(step.preprompt)) &&
+      agents[0]?.auto_start === 1 &&
+      agents.slice(1).every((step) => step.auto_start === 0)
+    if (untouched) {
+      agents.slice(1).forEach((step) => enable.run(step.id))
+    }
+  }
+}
+
 export function migrationSteps(schema: string): readonly MigrationStep[] {
   return [
     { name: 'zone/keyed-on-project', apply: rekeyZoneOnProject },
@@ -285,6 +313,7 @@ export function migrationSteps(schema: string): readonly MigrationStep[] {
     { name: 'workflow-column/per-project', apply: scopeWorkflowColumnsToProjects(schema) },
     { name: 'story/workflow-column', apply: placeStoriesOnTheirStep },
     { name: 'board-user/email-unique-when-verified', apply: dropUnconditionalEmailIndex },
+    { name: 'workflow-column/starter-auto-start', apply: switchStarterWorkflowsToAutoStart },
     ...checkedTableSteps(schema),
   ]
 }

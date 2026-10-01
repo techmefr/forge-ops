@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { migrate } from '../../../src/technical/Database/Migration.js'
+import { LEGACY_STARTER_PROMPTS } from '../../../src/technical/Database/LegacyStarterPrompts.js'
 
 const OLD_BOARD_USER = `CREATE TABLE board_user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -704,6 +705,81 @@ describe('opening a base that unique-indexed every email', () => {
     insert.run('c', 'y@example.com', '2026-10-01')
 
     expect(() => insert.run('d', 'y@example.com', '2026-10-01')).toThrow(/UNIQUE/)
+    db.close()
+  })
+})
+
+describe('opening a base whose starter workflows only started the first step', () => {
+  const SPEC = LEGACY_STARTER_PROMPTS[0] ?? ''
+  const PLAN = LEGACY_STARTER_PROMPTS[1] ?? ''
+  const BUILD = LEGACY_STARTER_PROMPTS[2] ?? ''
+
+  function writeProject(db: Database.Database, slug: string, steps: readonly [string, number, string][]): number {
+    const projectId = Number(
+      db
+        .prepare('INSERT INTO project (slug, name, repository_url, integration_branch, colour) VALUES (?, ?, ?, ?, ?)')
+        .run(slug, slug, 'url', 'main', '#112233').lastInsertRowid,
+    )
+    steps.forEach(([preprompt, autoStart, provider], index) => {
+      db.prepare(
+        `INSERT INTO workflow_column (project_id, key, label, colour, position, provider, preprompt, auto_start, behavioural_kind)
+         VALUES (?, ?, ?, '#112233', ?, ?, ?, ?, 'ordinary')`,
+      ).run(projectId, `step${index}`, `Step ${index}`, index + 1, provider, preprompt, autoStart)
+    })
+    return projectId
+  }
+
+  function autoStartOf(db: Database.Database, projectId: number): readonly number[] {
+    return db
+      .prepare<[number], { auto_start: number }>('SELECT auto_start FROM workflow_column WHERE project_id = ? ORDER BY position')
+      .all(projectId)
+      .map((row) => row.auto_start)
+  }
+
+  it('starts every agent step of an untouched starter workflow and leaves the others alone', () => {
+    const first = openDatabase(path)
+    const starter = writeProject(first, 'starter', [
+      [SPEC, 1, 'claude'],
+      [PLAN, 0, 'claude'],
+      ['', 0, 'human'],
+      [BUILD, 0, 'claude'],
+    ])
+    const customised = writeProject(first, 'custom', [
+      ['my own prompt', 1, 'claude'],
+      [PLAN, 0, 'claude'],
+    ])
+    const chosen = writeProject(first, 'chosen', [
+      [SPEC, 1, 'claude'],
+      [PLAN, 1, 'claude'],
+      [BUILD, 0, 'claude'],
+    ])
+    first.prepare("DELETE FROM schema_step WHERE name = 'workflow-column/starter-auto-start'").run()
+    first.close()
+
+    const db = openDatabase(path)
+
+    expect(autoStartOf(db, starter)).toEqual([1, 1, 0, 1])
+    expect(autoStartOf(db, customised)).toEqual([1, 0])
+    expect(autoStartOf(db, chosen)).toEqual([1, 1, 0])
+    db.close()
+  })
+
+  it('does not flip a step switched off by hand once the migration ran', () => {
+    const first = openDatabase(path)
+    const starter = writeProject(first, 'starter', [
+      [SPEC, 1, 'claude'],
+      [PLAN, 0, 'claude'],
+    ])
+    first.prepare("DELETE FROM schema_step WHERE name = 'workflow-column/starter-auto-start'").run()
+    first.close()
+    openDatabase(path).close()
+    const edited = openDatabase(path)
+    edited.prepare('UPDATE workflow_column SET auto_start = 0 WHERE project_id = ? AND position = 2').run(starter)
+    edited.close()
+
+    const db = openDatabase(path)
+
+    expect(autoStartOf(db, starter)).toEqual([1, 0])
     db.close()
   })
 })
