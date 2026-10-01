@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type Database from 'better-sqlite3'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
+import { GitCommandFailedError } from '../../../src/technical/Git/GitWorktree.js'
 import { createStoryRepository, type StoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import {
   createWorktreeRepository,
@@ -25,6 +26,7 @@ let worktrees: WorktreeRepository
 let added: Added[]
 let removed: string[]
 let dirty: Set<string>
+let refuseBranchDeletion: boolean
 let deletedBranches: string[]
 let refusedPorts: Set<number>
 let first: number
@@ -40,6 +42,9 @@ function fakeGit() {
       removed.push(path)
     },
     deleteBranch: (branch: string) => {
+      if (refuseBranchDeletion) {
+        throw new GitCommandFailedError(['branch', '--delete', branch], 'not fully merged')
+      }
       deletedBranches.push(branch)
     },
     isDirty: (path: string) => dirty.has(path),
@@ -53,6 +58,7 @@ beforeEach(() => {
   removed = []
   deletedBranches = []
   dirty = new Set()
+  refuseBranchDeletion = false
   const project = stories.createProject({
     slug: 'forge',
     name: 'Forge',
@@ -288,6 +294,15 @@ describe('close', () => {
     worktrees.close(first, { deleteBranch: true })
 
     expect(deletedBranches).toEqual(['story/forge-1-visualiser-les-mails'])
+  })
+
+  it('closes the worktree and keeps an unmerged branch rather than failing the close', () => {
+    refuseBranchDeletion = true
+    worktrees.open({ storyId: first, baseRef: 'forge' })
+
+    expect(() => worktrees.close(first, { deleteBranch: true })).not.toThrow()
+    expect(worktrees.findForStory(first)).toBeNull()
+    expect(removed).toHaveLength(1)
   })
 
   it('does not delete the branch of a worktree it refused to remove', () => {

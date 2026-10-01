@@ -22,6 +22,8 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- A card reaches Done on the default template without a click: the autopilot proves `tests_written`, `build_done`, `verified`, the review cascade, the criteria and `reviewed` from its own checks (commits, the project test command, red then green on a scratch copy without the production code, the reviewer lens verdict) instead of stopping red on `DoneNotEarned`. The Done gate itself is unchanged.
+- Publication: a missing or signed-out `gh`/`glab` pushes the branch and asks for a manual request instead of failing, and closing a story removes its worktree even though `.claude` is untracked.
 - Resuming a card session no longer fails with a unique session id error.
 - The phase of default template steps is derived, so spec phases can write evidence.
 - Minor bundle: deployment branch, event dates, stale state, a path leak, translations, thin stories.

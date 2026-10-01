@@ -71,8 +71,13 @@ type ProofRow = {
   evidence_path: string
 }
 
+export type ProofOptions = {
+  redObservedByOrchestrator?: boolean
+  touchedPaths?: readonly string[]
+}
+
 export type CheckpointRepository = {
-  proveCheckpoint: (draft: CheckpointDraft) => Checkpoint
+  proveCheckpoint: (draft: CheckpointDraft, options?: ProofOptions) => Checkpoint
   revokeCheckpoints: (storyId: number, names: readonly CheckpointName[]) => readonly CheckpointName[]
   definitionOfDone: (storyId: number) => readonly DefinitionOfDoneStep[]
   listProofs: (storyId: number) => readonly ThreadProof[]
@@ -213,7 +218,7 @@ export function createCheckpointRepository(
   }
 
   return {
-    proveCheckpoint: (draft) => {
+    proveCheckpoint: (draft, options = {}) => {
       const story = selectStory.get(draft.storyId)
       if (story === undefined) {
         throw new StoryNotFoundError(draft.storyId)
@@ -250,7 +255,7 @@ export function createCheckpointRepository(
         }
       }
 
-      if (draft.name === 'tests_written') {
+      if (draft.name === 'tests_written' && options.redObservedByOrchestrator !== true) {
         const verdict = redVerdictOf(surveyRed(root))
         if (verdict.kind !== 'assertion') {
           throw new RedNotAssertedError(describeRedVerdict(verdict))
@@ -263,7 +268,7 @@ export function createCheckpointRepository(
       }
 
       if (draft.name === 'build_done') {
-        const touched = selectTouchedPaths.all(draft.storyId).map((row) => row.path)
+        const touched = options.touchedPaths ?? selectTouchedPaths.all(draft.storyId).map((row) => row.path)
         const survivors = survivorsOf(surveyMutations(filesWorthMutating(touched), root))
         if (survivors.length > 0) {
           throw new MutationSurvivedError(survivors.map(describeSurvivor))

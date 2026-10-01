@@ -37,6 +37,8 @@ import type { WorkflowColumnRepository } from '../Workflow/WorkflowColumnReposit
 import { PublicationFailedError } from '../../technical/Git/StoryPublication.js'
 import { proofPathOf } from './StepBrief.js'
 import { readVerdict, safeVerdictPath } from './StepVerdict.js'
+import type { StepProver } from './StepProver.js'
+import type { StepVerdict } from '../../../../contract/AutopilotContract.js'
 import type { AutopilotCardPatch, AutopilotCardRecord, AutopilotRepository } from './AutopilotRepository.js'
 
 export type StepOutcome =
@@ -60,6 +62,8 @@ export type AutopilotConductorInput = {
   mover: Pick<ForgeCardMover, 'move' | 'launch'>
   closer: Pick<ForgeCardCloser, 'close'>
   lastAgentMessage: (storyId: number) => string | null
+  prover?: StepProver
+  baseShaOf?: (storyId: number) => string | null
   publish?: (name: string, payload: Record<string, unknown>) => void
 }
 
@@ -113,6 +117,8 @@ export function createAutopilotConductor({
   mover,
   closer,
   lastAgentMessage,
+  prover,
+  baseShaOf,
   publish,
 }: AutopilotConductorInput): AutopilotConductor {
   let queue: Promise<void> = Promise.resolve()
@@ -193,6 +199,36 @@ export function createAutopilotConductor({
     }
   }
 
+  function proveByOrchestrator(
+    view: ForgeCardView,
+    step: WorkflowColumn,
+    storyReference: string,
+    verdict: StepVerdict,
+    activeProver: StepProver,
+  ): StepOutcome {
+    const keys = columns.list(view.projectId).map((candidate) => candidate.key)
+    const baseSha = baseShaOf?.(view.storyId) ?? null
+    if (baseSha === null) {
+      return { kind: 'fail', reason: 'The story has no live worktree to inspect, so nothing can be proven' }
+    }
+    const outcome = activeProver.prove({
+      storyId: view.storyId,
+      storyReference,
+      root: cwdOf(view.storyId),
+      baseSha,
+      stepKey: step.key,
+      proves: contractOfPhase(phaseOfStep(step.key, keys)).proves,
+      verdict,
+    })
+    if (outcome.kind === 'fail') {
+      return outcome
+    }
+    for (const checkpoint of outcome.proven) {
+      publish?.('checkpoint.proven', { ...checkpoint })
+    }
+    return { kind: 'pass' }
+  }
+
   function verify(view: ForgeCardView, step: WorkflowColumn): StepOutcome {
     if (view.status === 'failed') {
       const latest = sessions.listRecentActivity(view.storyId, 1)[0]
@@ -214,7 +250,9 @@ export function createAutopilotConductor({
     if (reading.verdict.status === 'fail') {
       return { kind: 'fail', reason: reading.verdict.reason ?? 'The agent reported that the step failed' }
     }
-    return proveOwnCheckpoint(view, step, story.reference)
+    return prover === undefined
+      ? proveOwnCheckpoint(view, step, story.reference)
+      : proveByOrchestrator(view, step, story.reference, reading.verdict, prover)
   }
 
   function lacksCriteria(storyId: number): boolean {
