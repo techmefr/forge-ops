@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const folder = fileURLToPath(new URL('../../../public/about/', import.meta.url))
-const page = readFileSync(`${folder}index.html`, 'utf8')
-const dictionary = new Function(`const window = {}; ${readFileSync(`${folder}i18n.js`, 'utf8')}; return window.ABOUT_I18N`)() as Record<
+const folder = join(process.cwd(), 'frontend', 'public', 'about')
+const page = readFileSync(`${folder}/index.html`, 'utf8')
+const dictionary = new Function(`const window = {}; ${readFileSync(`${folder}/i18n.js`, 'utf8')}; return window.ABOUT_I18N`)() as Record<
   string,
   Record<string, string>
 >
@@ -26,7 +26,7 @@ describe('the about page scrollable regions', () => {
   it.each(Object.keys(dictionary))('names every scrollable region in %s', (language) => {
     for (const tag of scrollable) {
       const key = /data-i18n-label="(k\d+)"/.exec(tag)?.[1] ?? ''
-      expect(dictionary[language][key]?.length ?? 0).toBeGreaterThan(0)
+      expect(dictionary[language]?.[key]?.length ?? 0).toBeGreaterThan(0)
     }
   })
 
