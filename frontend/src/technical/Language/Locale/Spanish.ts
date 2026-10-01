@@ -392,6 +392,7 @@ export const SPANISH: Message = {
   shell: {
     pipeline: 'Etapas del pipeline',
     access: 'Acceso',
+    skipToContent: 'Saltar al contenido',
     accessSub: 'Abrir una sesión en el tablero',
     agentCount: '{count} agente | {count} agentes',
     shortcut: 'z z y luego {digit}, o Alt+Mayús+{digit}',

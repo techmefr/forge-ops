@@ -392,6 +392,7 @@ export const CHINESE: Message = {
   shell: {
     pipeline: '流水线步骤',
     access: '入口',
+    skipToContent: '跳到内容',
     accessSub: '在看板上打开会话',
     agentCount: '{count} 个智能体',
     shortcut: 'z z 然后按 {digit}，或 Alt+Shift+{digit}',

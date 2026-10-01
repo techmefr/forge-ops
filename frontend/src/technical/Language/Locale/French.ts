@@ -392,6 +392,7 @@ export const FRENCH: Message = {
   shell: {
     pipeline: 'Étapes du pipeline',
     access: 'Accès',
+    skipToContent: 'Aller au contenu',
     accessSub: 'Ouvrir une session sur le board',
     agentCount: '{count} agent | {count} agents',
     shortcut: 'z z puis {digit}, ou Alt+Maj+{digit}',
