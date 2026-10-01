@@ -53,4 +53,6 @@ Passwords are hashed with scrypt; login attempts are rate limited per account an
 
 - `npm audit --omit=dev` reports no known vulnerability in the production dependencies (checked 2026-09-29). Re-run it before each release.
 - Tenancy is flat: every signed-in person can read every project. Writes are limited by the project admin, the subject holder and the super admin, not by a per-project membership.
+- Project administration has one rule, `mayAdministerProject`, shared by the project routes (admin, links, delete, weather) and the workflow routes. The local operator and a super admin may always administer. Otherwise the project admin may. A project with no admin can be claimed, edited, deleted and given a workflow only by a director or a super admin; a director cannot override an existing admin.
+- These writes stay open to every signed-in member on purpose, because the board is flat and trust-based inside one organisation: subject fields (`PATCH /api/epics/:id`), subject assignment and claim, tags, creating a project, and a project colour or position.
 - A subject stays in the project it was created in. Moving it would rewrite story references, workflow steps, milestones, risks and decisions, so it is deliberately not offered.

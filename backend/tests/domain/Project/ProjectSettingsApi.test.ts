@@ -56,6 +56,7 @@ beforeEach(() => {
       projects: stories.projects,
       events: createEventBus(),
       isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
+      isDirector: (login) => identities.findUser(login)?.role === 'director',
     }),
   )
 })
@@ -121,11 +122,15 @@ describe('PUT /api/projects/:id', () => {
     expect((await call('PUT', '/api/projects/999', { position: 1 })).status).toBe(404)
   })
 
-  it('names an admin on a project that has none, for anyone', async () => {
-    const response = await call('PUT', `/api/projects/${alphaId}`, { adminId: anaId }, 'bob')
+  it('names an admin on a project that has none, for a super admin', async () => {
+    const response = await call('PUT', `/api/projects/${alphaId}`, { adminId: anaId }, 'root')
 
     expect(response.status).toBe(200)
     expect(await response.json()).toMatchObject({ adminUserId: anaId, adminLogin: 'ana', adminName: 'Ana' })
+  })
+
+  it('refuses a plain member naming an admin on a project that has none', async () => {
+    expect((await call('PUT', `/api/projects/${alphaId}`, { adminId: anaId }, 'bob')).status).toBe(403)
   })
 
   it('lets the current admin hand the project over', async () => {

@@ -41,8 +41,15 @@ describe('mayChangeAdmin', () => {
     expect(mayChangeAdmin(sheet(), { login: 'local', superAdmin: false })).toBe(true)
   })
 
-  it('lets anyone name the first admin', () => {
-    expect(mayChangeAdmin(sheet({ adminUserId: null, adminLogin: null }), { login: 'bob', superAdmin: false })).toBe(true)
+  it('lets only a director or a super admin name the first admin', () => {
+    const open = sheet({ adminUserId: null, adminLogin: null })
+    expect(mayChangeAdmin(open, { login: 'dir', superAdmin: false, director: true })).toBe(true)
+    expect(mayChangeAdmin(open, { login: 'root', superAdmin: true })).toBe(true)
+    expect(mayChangeAdmin(open, { login: 'bob', superAdmin: false })).toBe(false)
+  })
+
+  it('does not let a director override an existing admin', () => {
+    expect(mayChangeAdmin(sheet(), { login: 'dir', superAdmin: false, director: true })).toBe(false)
   })
 
   it('refuses everyone else, and the unknown visitor', () => {

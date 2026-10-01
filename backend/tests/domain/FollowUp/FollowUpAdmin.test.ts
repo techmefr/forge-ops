@@ -55,6 +55,7 @@ beforeEach(() => {
       events: createEventBus(),
       today: () => '2026-09-29',
       isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
+      isDirector: (login) => identities.findUser(login)?.role === 'director',
     }),
   )
 })
