@@ -123,7 +123,6 @@ export const ENGLISH = {
       restore: 'Restore',
       restoreAria: 'Restore {title}',
       take: 'Take it',
-      takeAria: 'Take {title}',
       release: 'Release',
       releaseAria: 'Release {title}',
     },
@@ -291,7 +290,6 @@ export const ENGLISH = {
   },
   followUp: {
     cardsAria: 'Project weather',
-    cardLabel: 'Open the follow-up of {project}, weather {weather}',
     panelNothing: 'Nothing to report',
     alertLate: '{count} late',
     alertBlocked: '{count} blocked',
@@ -598,7 +596,6 @@ export const ENGLISH = {
     writeStories: 'Write the story | Write the stories',
     mixedProjects: 'One batch cannot mix two projects. Remove an epic.',
     empty: 'No epic under this filter.',
-    choose: 'Choose {title}',
     unknownProject: 'Unknown project',
     storyCount: '{count} story | {count} stories',
     free: 'Free',
@@ -1067,7 +1064,6 @@ export const ENGLISH = {
   },
   workflowSettings: {
     openWithCount: 'Workflow settings · {count} step | Workflow settings · {count} steps',
-    openFor: 'Workflow settings of {name}',
     setBy: 'Workflow set by {name}',
     noAdmin: 'No admin is set for this project: nobody can define its workflow yet.',
     title: 'Workflow {name}',

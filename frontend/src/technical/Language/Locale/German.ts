@@ -125,7 +125,6 @@ export const GERMAN: Message = {
       restore: 'Wiederherstellen',
       restoreAria: '{title} wiederherstellen',
       take: 'Übernehmen',
-      takeAria: '{title} übernehmen',
       release: 'Abgeben',
       releaseAria: '{title} abgeben',
     },
@@ -293,7 +292,6 @@ export const GERMAN: Message = {
   },
   followUp: {
     cardsAria: 'Wetter der Projekte',
-    cardLabel: 'Nachverfolgung von {project} öffnen, Wetter {weather}',
     panelNothing: 'Nichts zu melden',
     alertLate: '{count} verspätet',
     alertBlocked: '{count} blockiert',
@@ -604,7 +602,6 @@ export const GERMAN: Message = {
     writeStories: 'Die Story schreiben | Die Storys schreiben',
     mixedProjects: 'Eine Charge kann nicht zwei Projekte mischen. Nimm ein Epic heraus.',
     empty: 'Kein Epic unter diesem Filter.',
-    choose: '{title} wählen',
     unknownProject: 'Unbekanntes Projekt',
     storyCount: '{count} Story | {count} Storys',
     free: 'Frei',
@@ -1079,7 +1076,6 @@ export const GERMAN: Message = {
   },
   workflowSettings: {
     openWithCount: 'Workflow-Einstellungen · {count} Schritt | Workflow-Einstellungen · {count} Schritte',
-    openFor: 'Workflow-Einstellungen von {name}',
     setBy: 'Workflow festgelegt von {name}',
     noAdmin: 'Für dieses Projekt ist kein Admin gesetzt: Niemand kann seinen Workflow bisher festlegen.',
     title: 'Workflow {name}',

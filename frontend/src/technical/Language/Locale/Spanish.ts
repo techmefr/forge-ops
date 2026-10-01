@@ -125,7 +125,6 @@ export const SPANISH: Message = {
       restore: 'Restaurar',
       restoreAria: 'Restaurar {title}',
       take: 'Me lo quedo',
-      takeAria: 'Coger {title}',
       release: 'Liberar',
       releaseAria: 'Liberar {title}',
     },
@@ -293,7 +292,6 @@ export const SPANISH: Message = {
   },
   followUp: {
     cardsAria: 'Tiempo de los proyectos',
-    cardLabel: 'Abrir el seguimiento de {project}, tiempo {weather}',
     panelNothing: 'Nada que señalar',
     alertLate: '{count} con retraso',
     alertBlocked: '{count} bloqueados',
@@ -604,7 +602,6 @@ export const SPANISH: Message = {
     writeStories: 'Escribir la historia | Escribir las historias',
     mixedProjects: 'Una misma tanda no puede mezclar dos proyectos. Quita una épica.',
     empty: 'Ninguna épica bajo este filtro.',
-    choose: 'Elegir {title}',
     unknownProject: 'Proyecto desconocido',
     storyCount: '{count} historia | {count} historias',
     free: 'Libre',
@@ -1078,7 +1075,6 @@ export const SPANISH: Message = {
   },
   workflowSettings: {
     openWithCount: 'Ajustes del workflow · {count} paso | Ajustes del workflow · {count} pasos',
-    openFor: 'Ajustes del workflow de {name}',
     setBy: 'Workflow fijado por {name}',
     noAdmin: 'Este proyecto no tiene admin: nadie puede todavía definir su workflow.',
     title: 'Workflow {name}',

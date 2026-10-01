@@ -188,7 +188,7 @@ function changeState(event: Event): void {
       class="justify-self-start rounded-md bg-elev px-2 py-1 text-[11px] font-semibold"
       :class="STATE_TONES[subject.state]"
       :value="subject.state"
-      :aria-label="t('subjects.row.stateOf', { title: subject.title })"
+      :aria-label="`${t(`epicState.${subject.state}`)}, ${t('subjects.row.stateOf', { title: subject.title })}`"
       data-test-id="subject-state"
       @change="changeState"
     >
@@ -230,7 +230,7 @@ function changeState(event: Event): void {
       v-else-if="canTake"
       type="button"
       class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-[11px] font-semibold text-txt-hi uppercase hover:bg-elev"
-      :aria-label="t('subjects.row.takeAria', { title: subject.title })"
+      :aria-label="`${t('subjects.row.take')}, ${subject.title}`"
       data-test-id="subject-take"
       @click="emit('take', subject)"
     >

@@ -180,7 +180,7 @@ onMounted(async () => {
                 type="checkbox"
                 class="h-[18px] w-[18px] accent-acc"
                 :checked="picked.includes(epic.id)"
-                :aria-label="t('epic.choose', { title: epic.title })"
+                :aria-label="`${t('common.take')}, ${epic.title}`"
                 @change="toggle(epic.id)"
               />
               {{ t('common.take') }}

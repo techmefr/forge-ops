@@ -123,10 +123,11 @@ describe('the weather cards', () => {
 
   it('puts the weather word in the accessible name of the card', async () => {
     const cards = await mounted()
-    expect(cards.find('[data-test-id="weather-card-1"] button').attributes('aria-label')).toBe(
-      'Open the follow-up of Skera, weather Stormy',
-    )
-    expect(cards.find('[data-test-id="weather-card-2"] button').attributes('aria-label')).toContain('Sunny')
+    const stormy = cards.find('[data-test-id="weather-card-1"] button')
+    expect(stormy.attributes('aria-label')).toBeUndefined()
+    expect(stormy.text()).toContain('Skera')
+    expect(stormy.text()).toContain('Stormy')
+    expect(cards.find('[data-test-id="weather-card-2"] button').text()).toContain('Sunny')
   })
 
   it('keeps only the asked project when given a project', async () => {

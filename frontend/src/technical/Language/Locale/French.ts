@@ -125,7 +125,6 @@ export const FRENCH: Message = {
       restore: 'Restaurer',
       restoreAria: 'Restaurer {title}',
       take: 'Je le prends',
-      takeAria: 'Prendre {title}',
       release: 'Libérer',
       releaseAria: 'Libérer {title}',
     },
@@ -293,7 +292,6 @@ export const FRENCH: Message = {
   },
   followUp: {
     cardsAria: 'Météo des projets',
-    cardLabel: 'Ouvrir le suivi du projet {project}, météo {weather}',
     panelNothing: 'Rien à signaler',
     alertLate: '{count} en retard',
     alertBlocked: '{count} bloqué(s)',
@@ -602,7 +600,6 @@ export const FRENCH: Message = {
     writeStories: 'Écrire la story | Écrire les stories',
     mixedProjects: 'Une même fournée ne peut pas mélanger deux projets. Retire une épique.',
     empty: 'Aucune épique sous ce filtre.',
-    choose: 'Choisir {title}',
     unknownProject: 'Projet inconnu',
     storyCount: '{count} story | {count} stories',
     free: 'Libre',
@@ -1075,7 +1072,6 @@ export const FRENCH: Message = {
   },
   workflowSettings: {
     openWithCount: 'Réglages du workflow · {count} étape | Réglages du workflow · {count} étapes',
-    openFor: 'Réglages du workflow de {name}',
     setBy: 'Workflow fixé par {name}',
     noAdmin: 'Ce projet n’a pas d’admin : personne ne peut encore définir son workflow.',
     title: 'Workflow {name}',
