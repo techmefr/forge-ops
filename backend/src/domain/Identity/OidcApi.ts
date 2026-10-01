@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { createHash } from 'node:crypto'
+import { createHash, timingSafeEqual } from 'node:crypto'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { IDENTITY_COOKIE } from '../../technical/Auth/TokenGuard.js'
 import { cookieSecure } from '../../technical/Auth/SecureCookie.js'
@@ -19,10 +19,13 @@ import { resolveExternalUser } from './ExternalIdentity.js'
 const TRANSACTION_COOKIE = 'oidc_tx'
 const TRANSACTION_COOKIE_PATH = '/api/auth/oidc'
 const TRANSACTION_COOKIE_MAX_AGE_SECONDS = 600
+const CHALLENGE_PATTERN = /^[A-Za-z0-9_-]{43}$/
 const LANDING_PATH = '/'
 const REFUSED_PATH = '/login?oidc=refused'
 const DESKTOP_RETURN = 'forgeops://auth'
 const DESKTOP_REFUSED = `${DESKTOP_RETURN}?error=refused`
+
+type DesktopHandoff = { session: OpenedSession; challenge: string }
 
 export type OidcApiInput = {
   identities: IdentityRepository
@@ -31,11 +34,17 @@ export type OidcApiInput = {
   publicOrigin: string | null
   send?: OidcFetch
   transactions?: OidcTransactions
-  handoffs?: OidcHandoffs<OpenedSession>
+  handoffs?: OidcHandoffs<DesktopHandoff>
 }
 
 function bindingOf(state: string): string {
   return createHash('sha256').update(state).digest('hex')
+}
+
+function isVerifierOf(challenge: string, verifier: string): boolean {
+  const expected = Buffer.from(challenge)
+  const actual = Buffer.from(createHash('sha256').update(verifier).digest('base64url'))
+  return expected.length === actual.length && timingSafeEqual(expected, actual)
 }
 
 export function createOidcApi({
@@ -45,7 +54,7 @@ export function createOidcApi({
   publicOrigin,
   send = fetch,
   transactions = createOidcTransactions(),
-  handoffs = createOidcHandoffs<OpenedSession>(),
+  handoffs = createOidcHandoffs<DesktopHandoff>(),
 }: OidcApiInput): Hono {
   const api = new Hono()
 
@@ -63,13 +72,19 @@ export function createOidcApi({
     if (provider === undefined) {
       return context.json({ error: 'UnknownOidcProvider' }, 404)
     }
+    const isDesktop = context.req.query('client') === 'desktop'
+    const challenge = context.req.query('challenge') ?? ''
+    if (isDesktop && !CHALLENGE_PATTERN.test(challenge)) {
+      return context.json({ error: 'InvalidChallenge' }, 400)
+    }
     const pkce = newPkce()
     const nonce = crypto.randomUUID()
     const state = transactions.open({
       provider: provider.name,
       nonce,
       verifier: pkce.verifier,
-      isDesktop: context.req.query('client') === 'desktop',
+      isDesktop,
+      challenge: isDesktop ? challenge : null,
     })
     setCookie(context, TRANSACTION_COOKIE, bindingOf(state), {
       path: TRANSACTION_COOKIE_PATH,
@@ -107,7 +122,7 @@ export function createOidcApi({
       const user = resolveExternalUser(identities, claims, allowedDomains)
       const opened = identities.openSessionFor(user.login)
       if (transaction.isDesktop) {
-        return context.redirect(`${DESKTOP_RETURN}?code=${handoffs.put(opened)}`)
+        return context.redirect(`${DESKTOP_RETURN}?code=${handoffs.put({ session: opened, challenge: transaction.challenge ?? '' })}`)
       }
       setCookie(context, IDENTITY_COOKIE, opened.token, {
         path: '/',
@@ -123,12 +138,12 @@ export function createOidcApi({
   })
 
   api.post('/api/auth/oidc/exchange', async (context) => {
-    const body = (await context.req.json().catch(() => null)) as { code?: unknown } | null
-    const session = typeof body?.code === 'string' ? handoffs.take(body.code) : null
-    if (session === null) {
+    const body = (await context.req.json().catch(() => null)) as { code?: unknown; verifier?: unknown } | null
+    const handoff = typeof body?.code === 'string' ? handoffs.take(body.code) : null
+    if (handoff === null || typeof body?.verifier !== 'string' || !isVerifierOf(handoff.challenge, body.verifier)) {
       return context.json({ error: 'UnknownHandoff' }, 401)
     }
-    return context.json({ user: session.user, token: session.token })
+    return context.json({ user: handoff.session.user, token: handoff.session.token })
   })
 
   return api
