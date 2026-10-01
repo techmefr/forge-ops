@@ -51,6 +51,8 @@ export const PROMPT_TEMPLATES: Readonly<Record<PromptTemplateKey, string>> = {
   ship: 'Rebase on the integration branch and run the full gate again. Open the MR as a draft with a symptom / cause / what changes description.',
 }
 
+const SAFE_REFERENCE = /^(\/?[A-Za-z0-9][A-Za-z0-9._-]*(:[A-Za-z0-9][A-Za-z0-9._-]*)?)?$/
+
 export const workflowColumnDraftSchema = z
   .object({
     label: z.string().trim().min(1).max(60),
@@ -58,8 +60,8 @@ export const workflowColumnDraftSchema = z
     provider: z.enum(WORKFLOW_PROVIDERS),
     model: z.string().max(80),
     effort: z.union([z.enum(WORKFLOW_EFFORTS), z.literal(NO_EFFORT)]),
-    agentName: z.string().trim().max(120),
-    command: z.string().trim().max(200),
+    agentName: z.string().trim().max(120).regex(SAFE_REFERENCE),
+    command: z.string().trim().max(200).regex(SAFE_REFERENCE),
     preprompt: z.string().max(8000),
     autoStart: z.boolean(),
   })

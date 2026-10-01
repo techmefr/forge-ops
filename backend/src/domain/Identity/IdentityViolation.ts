@@ -30,8 +30,8 @@ export class AccountDisabledError extends IdentityViolationError {
 }
 
 export class EmailTakenError extends IdentityViolationError {
-  constructor(email: string) {
-    super(`L adresse ${email} est deja portee par un autre compte`, 'EmailTakenError')
+  constructor() {
+    super('Cette adresse ne peut pas etre utilisee', 'EmailTakenError')
   }
 }
 

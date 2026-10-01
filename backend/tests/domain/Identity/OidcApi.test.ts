@@ -119,13 +119,13 @@ describe('oidc login', () => {
     expect(identities.findUserByExternalSubject('google:7')?.login).toBe('jane')
   })
 
-  it('ne relie pas un compte dont l email est auto-declare', async () => {
+  it('cree un compte distinct plutot que de relier un email auto-declare', async () => {
     identities.enrolUser({ login: 'mallory', displayName: 'Mallory', password: PASSWORD, role: 'architect' })
     identities.changeEmail('mallory', 'victim@acme.com')
     const answer = await signIn(['acme.com'], { sub: '7', email: 'victim@acme.com', email_verified: true })
-    expect(answer.headers.get('location')).toBe('/login?oidc=refused')
-    expect(answer.headers.get('set-cookie') ?? '').not.toContain('forge_identity')
-    expect(identities.findUserByExternalSubject('google:7')).toBeNull()
+    expect(answer.headers.get('location')).toBe('/')
+    expect(identities.findUserByExternalSubject('google:7')?.login).not.toBe('mallory')
+    expect(identities.findUser('mallory')?.email).toBe('victim@acme.com')
   })
 
   it('met l email en minuscules et le marque non verifie au changement', () => {

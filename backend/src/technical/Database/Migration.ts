@@ -269,6 +269,10 @@ function placeStoriesOnTheirStep(db: Database.Database): void {
   )
 }
 
+function dropUnconditionalEmailIndex(db: Database.Database): void {
+  db.exec('DROP INDEX IF EXISTS idx_board_user_email')
+}
+
 export function migrationSteps(schema: string): readonly MigrationStep[] {
   return [
     { name: 'zone/keyed-on-project', apply: rekeyZoneOnProject },
@@ -276,6 +280,7 @@ export function migrationSteps(schema: string): readonly MigrationStep[] {
     { name: 'project/position-by-name', apply: numberProjectsByName },
     { name: 'workflow-column/per-project', apply: scopeWorkflowColumnsToProjects(schema) },
     { name: 'story/workflow-column', apply: placeStoriesOnTheirStep },
+    { name: 'board-user/email-unique-when-verified', apply: dropUnconditionalEmailIndex },
     ...checkedTableSteps(schema),
   ]
 }

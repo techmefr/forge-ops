@@ -37,12 +37,13 @@ export function resolveExternalUser(
   if (linked !== null) {
     return linked
   }
-  const sameEmail = identities.findUserByEmail(claims.email)
-  if (sameEmail !== null && (!claims.isEmailVerified || identities.findVerifiedUserByEmail(claims.email) === null)) {
+  if (claims.isEmailVerified) {
+    const verifiedHolder = identities.findVerifiedUserByEmail(claims.email)
+    if (verifiedHolder !== null) {
+      return identities.linkExternalSubject(verifiedHolder.login, claims.subject)
+    }
+  } else if (identities.findUserByEmail(claims.email) !== null) {
     throw new ExternalIdentityRefusedError('this address cannot be linked to its account')
-  }
-  if (sameEmail !== null) {
-    return identities.linkExternalSubject(sameEmail.login, claims.subject)
   }
   const domain = claims.email.split('@')[1] ?? ''
   if (!allowedDomains.includes(domain)) {
