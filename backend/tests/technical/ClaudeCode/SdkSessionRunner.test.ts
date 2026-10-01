@@ -32,14 +32,18 @@ const ORDER = {
   lens: null,
 }
 
-function conversationOf(messages: readonly Record<string, unknown>[]): AsyncIterable<{ type: string }> {
+const closed = vi.fn()
+
+function conversationOf(
+  messages: readonly Record<string, unknown>[],
+): AsyncIterable<{ type: string }> & { close: () => void } {
   async function* once(): AsyncGenerator<{ type: string }> {
     for (const message of messages) {
       yield message as { type: string }
     }
   }
   const walking = once()
-  return { [Symbol.asyncIterator]: () => walking }
+  return { [Symbol.asyncIterator]: () => walking, close: closed }
 }
 
 const SPOKEN = [
@@ -51,6 +55,7 @@ const SPOKEN = [
 describe('createSdkSessionRunner', () => {
   beforeEach(() => {
     queried.mockReset()
+    closed.mockReset()
     resolved.mockReset()
     resolved.mockResolvedValue(REGISTERED)
   })
@@ -252,6 +257,18 @@ describe('createSdkSessionRunner', () => {
     )
   })
 
+  it('closes the started conversation when its session is abandoned', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    const live = createLiveSessions<SdkUserTurn>()
+    const runner = createSdkSessionRunner({ cwdFor: () => '/tmp', live, onEvent: () => undefined })
+    await runner.launch(ORDER)
+
+    runner.abandon?.('sess-7')
+
+    expect(closed).toHaveBeenCalledTimes(1)
+    expect(live.find('sess-7')).toBeNull()
+  })
+
   it('refuses a conversation that never announced an identifier', async () => {
     queried.mockReturnValue(conversationOf([{ type: 'system' }]))
     const runner = createSdkSessionRunner({
@@ -312,5 +329,26 @@ describe('a session that fails after it started', () => {
     await vi.waitFor(() => expect(events.some((event) => event.name === 'session.result')).toBe(true))
     const result = events.find((event) => event.name === 'session.result')
     expect(result?.payload).toMatchObject({ claudeSessionId: 'sess-9', isError: true })
+  })
+})
+
+describe('createSdkSessionRunner environment', () => {
+  it('does not hand the server secrets to the agent process', async () => {
+    resolved.mockResolvedValue(REGISTERED)
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    process.env.FORGE_SUPER_ADMIN_PASSWORD = 'leak-me'
+    const runner = createSdkSessionRunner({
+      cwdFor: () => '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: () => undefined,
+    })
+
+    await runner.launch(ORDER)
+    delete process.env.FORGE_SUPER_ADMIN_PASSWORD
+
+    const env = (queried.mock.calls.at(-1)?.[0] as { options: { env: Record<string, string> } }).options.env
+    expect(env.FORGE_SUPER_ADMIN_PASSWORD).toBeUndefined()
+    expect(env.FORGE_STORY_REFERENCE).toBe('FORGE-7')
+    expect(env.FORGE_PHASE).toBe('spec')
   })
 })
