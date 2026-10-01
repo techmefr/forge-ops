@@ -1161,7 +1161,7 @@ export const FRENCH: Message = {
       'Le board tourne en mode local, sans compte : l’accès se fait par le jeton de la machine. Les comptes n’existent qu’en mode hub.',
     displayName: 'Nom affiché',
     emailAddress: 'Adresse mail',
-    emailPlaceholder: 'personne@exemple.fr',
+    emailPlaceholder: 'personne{\'@\'}exemple.fr',
     accountSaved: 'Compte enregistré',
     currentPassword: 'Mot de passe actuel',
     newPassword: 'Nouveau mot de passe',

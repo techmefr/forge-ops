@@ -1154,7 +1154,7 @@ export const CHINESE: Message = {
       '看板运行在本地模式，没有账号：访问通过机器令牌进行。账号仅在中心模式下存在。',
     displayName: '显示名称',
     emailAddress: '邮箱地址',
-    emailPlaceholder: 'person@example.com',
+    emailPlaceholder: 'person{\'@\'}example.com',
     accountSaved: '账号已保存',
     currentPassword: '当前密码',
     newPassword: '新密码',

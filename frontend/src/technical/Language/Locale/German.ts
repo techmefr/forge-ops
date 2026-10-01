@@ -1165,7 +1165,7 @@ export const GERMAN: Message = {
       'Das Board läuft im lokalen Modus, ohne Konten: der Zugang geht über das Maschinen-Token. Konten gibt es nur im Hub-Modus.',
     displayName: 'Angezeigter Name',
     emailAddress: 'Mail-Adresse',
-    emailPlaceholder: 'person@beispiel.de',
+    emailPlaceholder: 'person{\'@\'}beispiel.de',
     accountSaved: 'Konto gespeichert',
     currentPassword: 'Aktuelles Passwort',
     newPassword: 'Neues Passwort',

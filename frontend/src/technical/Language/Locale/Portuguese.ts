@@ -1163,7 +1163,7 @@ export const PORTUGUESE: Message = {
       'O board corre em modo local, sem contas: o acesso faz-se pelo token da máquina. As contas só existem em modo hub.',
     displayName: 'Nome apresentado',
     emailAddress: 'Endereço de correio',
-    emailPlaceholder: 'pessoa@exemplo.pt',
+    emailPlaceholder: 'pessoa{\'@\'}exemplo.pt',
     accountSaved: 'Conta guardada',
     currentPassword: 'Palavra-passe atual',
     newPassword: 'Nova palavra-passe',
