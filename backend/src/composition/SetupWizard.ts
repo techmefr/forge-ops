@@ -79,7 +79,8 @@ export async function askAnswers(): Promise<SetupAnswers> {
     const serverUrl = await ask('Address of the board server', 'https://board.example.com', (value) =>
       isHttpUrl(value) ? undefined : 'start with http:// or https://',
     )
-    return { ...base, serverUrl }
+    const superAdminLogin = await ask('Login of the first super admin', 'admin')
+    return { ...base, serverUrl, superAdminLogin }
   }
   if (!hasAccounts(topology) || topology === 'laptop') {
     return base

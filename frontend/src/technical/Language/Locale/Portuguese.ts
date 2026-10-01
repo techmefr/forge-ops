@@ -1355,6 +1355,8 @@ export const PORTUGUESE: Message = {
     submit: 'Ligar',
     unreachable: 'Endereço inacessível. Verifica-o e se a instância está a correr.',
     badScheme: 'O endereço tem de começar por http:// ou https://.',
+    hasCredentials: 'O endereço não pode conter utilizador nem palavra-passe.',
+    cleartext: 'O http:// simples só é aceite para localhost e endereços de rede privada. Use https://.',
   },
   access: {
     continueWith: 'Continuar com {provider}',

@@ -1,3 +1,5 @@
+mod keychain;
+
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
@@ -21,6 +23,11 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_http::init())
+        .invoke_handler(tauri::generate_handler![
+            keychain::token_get,
+            keychain::token_set,
+            keychain::token_delete
+        ])
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             Some(vec!["--minimized"]),

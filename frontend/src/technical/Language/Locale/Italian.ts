@@ -1356,6 +1356,8 @@ export const ITALIAN: Message = {
     submit: 'Collegati',
     unreachable: 'Indirizzo non raggiungibile. Controllalo e verifica che l’istanza sia attiva.',
     badScheme: 'L’indirizzo deve iniziare con http:// o https://.',
+    hasCredentials: 'L’indirizzo non deve contenere nome utente o password.',
+    cleartext: 'Il semplice http:// è accettato solo per localhost e gli indirizzi di rete privata. Usa https://.',
   },
   access: {
     continueWith: 'Continua con {provider}',

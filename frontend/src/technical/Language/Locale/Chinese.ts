@@ -1345,6 +1345,8 @@ export const CHINESE: Message = {
     submit: '连接',
     unreachable: '无法访问该地址。请检查地址是否正确，以及实例是否在运行。',
     badScheme: '地址必须以 http:// 或 https:// 开头。',
+    hasCredentials: '地址不能包含用户名或密码。',
+    cleartext: '纯 http:// 仅适用于 localhost 和私有网络地址，请使用 https://。',
   },
   access: {
     continueWith: '使用 {provider} 继续',
