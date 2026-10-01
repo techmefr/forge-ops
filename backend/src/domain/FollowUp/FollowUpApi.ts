@@ -20,9 +20,10 @@ export type FollowUpApiInput = {
   events: EventBus
   today: () => string
   isSuperAdmin: (login: string) => boolean
+  isDirector: (login: string) => boolean
 }
 
-export function createFollowUpApi({ followUps, projects, events, today, isSuperAdmin }: FollowUpApiInput): Hono {
+export function createFollowUpApi({ followUps, projects, events, today, isSuperAdmin, isDirector }: FollowUpApiInput): Hono {
   const api = new Hono()
 
   api.get('/api/projects/:id/follow-up', (context) => {
@@ -87,7 +88,7 @@ export function createFollowUpApi({ followUps, projects, events, today, isSuperA
     const admin = projects.find(projectId.data)
     if (admin !== null) {
       const login = operatorOf(context)
-      if (!mayAdministerProject({ login, ...admin, isSuperAdmin })) {
+      if (!mayAdministerProject({ login, ...admin, isSuperAdmin, isDirector })) {
         return context.json({ error: 'ProjectAdminRequired' }, 403)
       }
     }

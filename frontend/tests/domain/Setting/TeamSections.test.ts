@@ -123,7 +123,7 @@ describe('ProjectsSection', () => {
     expect(send).toHaveBeenCalledWith('/api/projects/1', 'PUT', { position: 1 })
   })
 
-  it('locks the admin select for anyone but the admin or a super admin', async () => {
+  it('locks the admin select for anyone but the admin, and on a project with no admin for anyone but a director or a super admin', async () => {
     const section = mountWith(ProjectsSection, {
       self: { login: 'bob', superAdmin: false },
     })
@@ -131,7 +131,7 @@ describe('ProjectsSection', () => {
 
     const selects = section.findAll('select').filter((select) => select.text().includes('No admin'))
     expect(selects[0]?.attributes('disabled')).toBeDefined()
-    expect(selects[1]?.attributes('disabled')).toBeUndefined()
+    expect(selects[1]?.attributes('disabled')).toBeDefined()
   })
 
   it('offers the workflow settings only where the project says the caller may settle', async () => {
@@ -160,7 +160,7 @@ describe('ProjectsSection', () => {
   })
 
   it('sends the new admin', async () => {
-    const section = mountWith(ProjectsSection, { self })
+    const section = mountWith(ProjectsSection, { self: { login: 'ana', superAdmin: false, director: true } })
     await flushPromises()
 
     const select = section.findAll('select').filter((element) => element.text().includes('No admin'))[1]

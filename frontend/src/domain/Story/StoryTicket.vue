@@ -37,7 +37,7 @@ const scoreColour = computed(() => {
 
     <header v-else class="border-t border-line pt-4">
       <div class="flex items-baseline gap-2">
-        <span class="font-mono text-[11px] font-semibold text-acc">{{ shown.reference }}</span>
+        <span class="font-mono whitespace-nowrap text-[11px] font-semibold text-acc">{{ shown.reference }}</span>
         <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">{{
           t(`state.${shown.state}`)
         }}</span>
@@ -95,7 +95,7 @@ const scoreColour = computed(() => {
               :class="criterion.satisfied ? 'bg-green' : 'bg-line'"
             />
             <span>
-              <span class="font-mono text-[11px] text-txt-low">{{ criterion.reference }}</span>
+              <span class="font-mono whitespace-nowrap text-[11px] text-txt-low">{{ criterion.reference }}</span>
               <span class="ml-1.5 text-txt-hi">{{ criterion.statement }}</span>
               <span v-if="criterion.expectsRefusal" class="ml-1.5 text-orange">{{
                 t('ticket.expectsRefusal')

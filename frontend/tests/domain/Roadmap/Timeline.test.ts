@@ -7,6 +7,7 @@ import {
   eventsToWrite,
   lanesOf,
   labelPlacement,
+  labelWidthPercent,
   localDay,
   percentOf,
   subjectsWithoutDates,
@@ -187,6 +188,39 @@ describe('the labels of the events on a project band', () => {
     expect(lanes.get(2)).toBe(1)
     expect(lanes.get(3)).toBe(2)
     expect(lanes.get(4)).toBe(0)
+  })
+
+  it('moves a label to the next lane when its text would run into the previous one', () => {
+    const view = { from: '2026-09-01', to: '2026-11-01' }
+    const events = [event({ id: 1, date: '2026-09-10' }), event({ id: 2, date: '2026-09-14' }), event({ id: 3, date: '2026-10-05' })]
+    const narrow = new Map(events.map((one) => [one.id, labelWidthPercent('Demo', 800)]))
+    const wide = new Map(events.map((one) => [one.id, labelWidthPercent('Steering committee', 360)]))
+    expect([...lanesOf(events, view, narrow).values()]).toEqual([0, 0, 0])
+    expect([...lanesOf(events, view, wide).values()]).toEqual([0, 1, 0])
+  })
+
+  it('gives every label of a crowded band a lane where it touches no other label', () => {
+    const view = { from: '2026-09-01', to: '2026-10-01' }
+    const events = Array.from({ length: 8 }, (_, index) => event({ id: index + 1, date: addDays('2026-09-05', index * 2) }))
+    const widths = new Map(events.map((one) => [one.id, labelWidthPercent('Client meeting', 340)]))
+    const lanes = lanesOf(events, view, widths)
+    for (const one of events) {
+      for (const other of events) {
+        if (one.id >= other.id || lanes.get(one.id) !== lanes.get(other.id)) {
+          continue
+        }
+        const gap = Math.abs(percentOf(one.date, view) - percentOf(other.date, view))
+        expect(gap).toBeGreaterThanOrEqual(labelWidthPercent('Client meeting', 340))
+      }
+    }
+  })
+
+  it('is stable whatever the order of the events', () => {
+    const view = { from: '2026-09-01', to: '2026-11-01' }
+    const events = [event({ id: 1, date: '2026-09-10' }), event({ id: 2, date: '2026-09-11' }), event({ id: 3, date: '2026-09-12' })]
+    const forward = lanesOf(events, view)
+    const backward = lanesOf([...events].reverse(), view)
+    expect([...forward.entries()].sort()).toEqual([...backward.entries()].sort())
   })
 })
 

@@ -17,9 +17,10 @@ export type EpicApiInput = {
   today: () => string
   projects: ProjectRepository
   isSuperAdmin: (login: string) => boolean
+  isDirector: (login: string) => boolean
 }
 
-export function createEpicApi({ epics, events, today, projects, isSuperAdmin }: EpicApiInput): Hono {
+export function createEpicApi({ epics, events, today, projects, isSuperAdmin, isDirector }: EpicApiInput): Hono {
   const api = new Hono()
 
   api.patch('/api/epics/:id', async (context) => {
@@ -108,7 +109,7 @@ export function createEpicApi({ epics, events, today, projects, isSuperAdmin }: 
       return context.json({ error: 'InvalidProjectLinks' }, 422)
     }
     const project = projects.find(projectId.data)
-    if (project !== null && !mayAdministerProject({ login: operatorOf(context), ...project, isSuperAdmin })) {
+    if (project !== null && !mayAdministerProject({ login: operatorOf(context), ...project, isSuperAdmin, isDirector })) {
       return context.json({ error: 'ProjectAdminRequired' }, 403)
     }
     epics.setProjectLinks(projectId.data, body.data.links)

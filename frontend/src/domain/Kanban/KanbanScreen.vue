@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
@@ -21,6 +21,12 @@ const templates = useResource<{ defaultTemplate: ColumnTemplate; maySettle: bool
   board.read('/api/templates'),
 )
 const settled = ref<string | null>(null)
+
+async function closePanel(key: string): Promise<void> {
+  settled.value = null
+  await nextTick()
+  document.querySelector<HTMLElement>(`[data-column-settings="${key}"]`)?.focus()
+}
 
 const heldStory = computed(() => (storyId: number) => holdOf(holds.data.value ?? [], storyId))
 const drawerId = ref<number | null>(null)
@@ -118,6 +124,7 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
                 type="button"
                 class="rounded-md border border-line px-2.5 py-1.5 font-mono text-[11px] text-txt-low uppercase hover:border-acc hover:text-txt-hi"
                 :aria-expanded="settled === column.key"
+                :data-column-settings="column.key"
                 :aria-label="t('template.openPanel', { column: column.label })"
                 @click="settled = settled === column.key ? null : column.key"
               >
@@ -130,7 +137,7 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
               :template="templates.data.value?.defaultTemplate ?? null"
               :stage="column.key"
               :may-settle="templates.data.value?.maySettle ?? false"
-              @close="settled = null"
+              @close="closePanel(column.key)"
               @written="reloadTemplate()"
             />
             <div
@@ -176,7 +183,7 @@ onMounted(() => Promise.all([columns.reload(), templates.reload(), reloadBoard()
                       :style="{ background: tintOf(story.projectColour), color: textOnTint(story.projectColour) }"
                       >{{ story.projectSlug }}</span
                     >
-                    <span class="font-mono text-[11px] font-semibold text-txt-mid">{{ story.reference }}</span>
+                    <span class="font-mono whitespace-nowrap text-[11px] font-semibold text-txt-mid">{{ story.reference }}</span>
                     <span
                       v-if="story.attention !== null"
                       class="rounded-md border border-orange px-2.5 py-1.5 font-mono text-[11px] text-orange uppercase"

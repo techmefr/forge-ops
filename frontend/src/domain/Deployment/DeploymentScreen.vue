@@ -122,7 +122,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
       </p>
       <ul class="mt-2 flex flex-col gap-2">
         <li v-for="story in conflicted" :key="story.id" class="flex items-center gap-3 text-sm">
-          <span class="font-mono text-[11px] text-red">{{ story.reference }}</span>
+          <span class="font-mono whitespace-nowrap text-[11px] text-red">{{ story.reference }}</span>
           <span class="text-txt-hi">{{ story.title }}</span>
           <button
             type="button"
@@ -159,7 +159,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
             class="border-t border-line pt-4"
           >
             <div class="flex items-center gap-3">
-              <span class="font-mono text-[11px] font-semibold text-acc">{{ story.reference }}</span>
+              <span class="font-mono whitespace-nowrap text-[11px] font-semibold text-acc">{{ story.reference }}</span>
               <span class="ml-auto font-mono text-[11px] text-txt-low uppercase">{{
                 t(`state.${story.state}`)
               }}</span>

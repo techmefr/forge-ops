@@ -12,9 +12,10 @@ export type ProjectApiInput = {
   projects: ProjectRepository
   events: EventBus
   isSuperAdmin: (login: string) => boolean
+  isDirector: (login: string) => boolean
 }
 
-export function createProjectApi({ projects, events, isSuperAdmin }: ProjectApiInput): Hono {
+export function createProjectApi({ projects, events, isSuperAdmin, isDirector }: ProjectApiInput): Hono {
   const api = new Hono()
 
   api.get('/api/projects/sheets', (context) => context.json(projects.list()))
@@ -34,7 +35,7 @@ export function createProjectApi({ projects, events, isSuperAdmin }: ProjectApiI
     }
     const login = operatorOf(context)
     const changesAdmin = patch.data.adminId !== undefined && patch.data.adminId !== current.adminUserId
-    const mayChangeAdmin = mayAdministerProject({ login, ...current, isSuperAdmin })
+    const mayChangeAdmin = mayAdministerProject({ login, ...current, isSuperAdmin, isDirector })
     if ((changesAdmin || patch.data.links !== undefined) && !mayChangeAdmin) {
       return context.json({ error: 'ProjectAdminRequired' }, 403)
     }
@@ -52,7 +53,7 @@ export function createProjectApi({ projects, events, isSuperAdmin }: ProjectApiI
     if (current === null) {
       return context.json({ error: 'ProjectNotFoundError' }, 404)
     }
-    if (!mayAdministerProject({ login: operatorOf(context), ...current, isSuperAdmin })) {
+    if (!mayAdministerProject({ login: operatorOf(context), ...current, isSuperAdmin, isDirector })) {
       return context.json({ error: 'ProjectAdminRequired' }, 403)
     }
     projects.remove(projectId.data)
