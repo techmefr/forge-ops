@@ -222,7 +222,7 @@ export function startBoardServer({
           stories,
           budget,
           hangUp: (identifier) => {
-            live.close(identifier)
+            live.terminate(identifier)
           },
         },
         claudeSessionId,

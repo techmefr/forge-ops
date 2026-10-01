@@ -12,6 +12,8 @@ function effortOptionOf(order: LaunchOrder): { effort?: WorkflowEffort } {
   return effort === undefined ? {} : { effort }
 }
 
+export const STOP_GRACE_MS = 3000
+
 export type SdkSessionRunnerInput = {
   cwdFor: (order: LaunchOrder) => string
   onEvent: (event: { name: string; payload: Record<string, unknown> }) => void
@@ -50,7 +52,12 @@ export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunn
         },
       })
 
-      started.onTerminate(() => conversation.close())
+      let forceClose: ReturnType<typeof setTimeout> | null = null
+      started.onTerminate(() => {
+        forceClose = setTimeout(() => conversation.close(), STOP_GRACE_MS)
+        forceClose.unref()
+        conversation.interrupt().catch(() => conversation.close())
+      })
       const spoken = conversation[Symbol.asyncIterator]()
       let claudeSessionId: string | null = null
       while (claudeSessionId === null) {
@@ -78,9 +85,12 @@ export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunn
         throw error
       }
       const identifier = claudeSessionId
-      void drain(spoken, { ...order, claudeSessionId: identifier }, onEvent).finally(() =>
-        live.close(identifier),
-      )
+      void drain(spoken, { ...order, claudeSessionId: identifier }, onEvent).finally(() => {
+        if (forceClose !== null) {
+          clearTimeout(forceClose)
+        }
+        live.close(identifier)
+      })
       return { claudeSessionId }
     },
     abandon: (claudeSessionId) => {
@@ -285,7 +295,7 @@ export function createSdkSessionTalker({ live, onEvent }: SdkSessionTalkerInput)
     isLive: (claudeSessionId: string) => live.find(claudeSessionId) !== null,
 
     hangUp: (claudeSessionId: string) => {
-      live.close(claudeSessionId)
+      live.terminate(claudeSessionId)
     },
 
     say: (turn: SpokenTurn) => {
