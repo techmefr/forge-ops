@@ -32,8 +32,8 @@ const COMPOSE_FILES: Readonly<Record<Topology, string>> = {
 const SECRETS: Readonly<Record<Topology, readonly SecretNeed[]>> = {
   laptop: ['board_token'],
   vps: ['board_token', 'instance_token', 'super_admin_password'],
-  split: ['board_token'],
-  hosted: ['board_token'],
+  split: ['board_token', 'super_admin_password'],
+  hosted: ['board_token', 'super_admin_password'],
 }
 
 const GUIDED_TENANT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -48,6 +48,10 @@ export function generatedSecretsOf(topology: Topology): readonly SecretNeed[] {
 
 export function hasAccounts(topology: Topology): boolean {
   return topology === 'laptop' || topology === 'vps'
+}
+
+export function hasSuperAdmin(topology: Topology): boolean {
+  return topology !== 'laptop'
 }
 
 export function redirectUriOf(origin: string, provider: 'google' | 'microsoft'): string {
@@ -70,7 +74,7 @@ export function validateAnswers(answers: SetupAnswers): readonly string[] {
   if ((answers.topology === 'split' || answers.topology === 'hosted') && !isHttpUrl(answers.serverUrl)) {
     problems.push('the server address must start with http:// or https://')
   }
-  if (answers.topology === 'vps' && !/^[a-z0-9][a-z0-9._-]*$/.test(answers.superAdminLogin)) {
+  if (hasSuperAdmin(answers.topology) && !/^[a-z0-9][a-z0-9._-]*$/.test(answers.superAdminLogin)) {
     problems.push('the admin login must be lowercase letters, digits, dot, dash or underscore')
   }
   const isOidcWanted = answers.google !== null || answers.microsoft !== null
@@ -113,10 +117,12 @@ export function envLinesOf(answers: SetupAnswers): readonly string[] {
   }
   if (answers.topology === 'vps') {
     lines.push(`FORGE_PUBLIC_INSTANCE_URL=${envValueOf(answers.publicInstanceUrl.replace(/\/+$/, ''))}`)
-    lines.push(`FORGE_SUPER_ADMIN_LOGIN=${envValueOf(answers.superAdminLogin)}`)
   }
   if (answers.topology === 'split' || answers.topology === 'hosted') {
     lines.push(`FORGE_SERVER_URL=${envValueOf(answers.serverUrl.replace(/\/+$/, ''))}`)
+  }
+  if (hasSuperAdmin(answers.topology)) {
+    lines.push(`FORGE_SUPER_ADMIN_LOGIN=${envValueOf(answers.superAdminLogin)}`)
   }
   if (answers.allowedDomains.length > 0) {
     lines.push(`FORGE_OIDC_ALLOWED_DOMAINS=${envValueOf(answers.allowedDomains.join(','))}`)
