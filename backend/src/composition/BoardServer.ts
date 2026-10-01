@@ -14,10 +14,7 @@ import { createWorkflowRepository } from '../domain/Workflow/WorkflowRepository.
 import { createWorkflowColumnRepository } from '../domain/Workflow/WorkflowColumnRepository.js'
 import { createWorkflowColumnApi } from '../domain/Workflow/WorkflowColumnApi.js'
 import { DEFAULT_DISPATCH_RATE } from '../domain/Dispatch/DispatchRate.js'
-import { censusOfTree } from '../technical/Tamper/TestTreeCensus.js'
 import { createEvidenceFileReader } from '../technical/Evidence/EvidenceFileReader.js'
-import { createCommandTestRunner, runMutationCheck } from '../technical/Mutation/MutationRun.js'
-import { runRedReport } from '../technical/RedProof/RedProofRun.js'
 import { createBoardApi } from '../domain/Board/BoardApi.js'
 import { advanceCascade } from '../domain/Checkpoint/ReviewCascade.js'
 import { createIdentityRepository } from '../domain/Identity/IdentityRepository.js'
@@ -35,6 +32,7 @@ import { createForgeCardCloser } from '../domain/ForgeCard/ForgeCardCloser.js'
 import { createForgeBoardApi } from '../domain/ForgeCard/ForgeBoardApi.js'
 import { createStepEntry } from '../domain/Dispatch/StepEntry.js'
 import { cleanUpAfterMerge } from '../domain/Deployment/MergeCleanup.js'
+import { createCheckoutResolver, createProofGates } from './ProjectCheckout.js'
 import { createGitWorktree } from '../technical/Git/GitWorktree.js'
 import { createForemergeRepository } from '../domain/Foremerge/ForemergeRepository.js'
 import { createForemergeApi } from '../domain/Foremerge/ForemergeApi.js'
@@ -63,7 +61,6 @@ import { mayAdministerProject } from '../domain/Project/ProjectAuthority.js'
 import { readSuperAdminConfiguration } from '../technical/Auth/SuperAdminConfiguration.js'
 import { createTemplateRepository } from '../domain/Template/TemplateRepository.js'
 import { createTemplateApi } from '../domain/Template/TemplateApi.js'
-import { workingDirectoryOf } from '../domain/Dispatch/WorkingDirectory.js'
 import { createOutboxRepository } from '../domain/Boundary/OutboxRepository.js'
 import { createBoundaryApi } from '../domain/Boundary/BoundaryApi.js'
 import { createOrganisationRepository } from '../domain/Organisation/OrganisationRepository.js'
@@ -233,37 +230,27 @@ export function startBoardServer({
     }
     events.publish(event)
   }
-  const checkpointGates = {
-    takeCensus: () => censusOfTree(testsDir),
+  const checkouts = createCheckoutResolver({
+    stories,
+    worktreePathOf: (storyId) => worktrees.findForStory(storyId)?.path ?? null,
+  })
+  const { cwdForStory } = checkouts
+  const checkpointGates = createProofGates({
     readEvidence,
-    surveyRed: () =>
-      runRedReport({
-        command: process.env.FORGE_RED_TEST_COMMAND ?? DEFAULT_RED_TEST_COMMAND,
-        cwd: process.cwd(),
-      }),
-    surveyMutations: (paths: readonly string[]) =>
-      runMutationCheck({
-        paths,
-        runTests: createCommandTestRunner({
-          command: process.env.FORGE_MUTATION_TEST_COMMAND ?? DEFAULT_MUTATION_TEST_COMMAND,
-          cwd: process.cwd(),
-        }),
-      }),
-  }
+    testsDir,
+    redCommand: process.env.FORGE_RED_TEST_COMMAND ?? DEFAULT_RED_TEST_COMMAND,
+    mutationCommand: process.env.FORGE_MUTATION_TEST_COMMAND ?? DEFAULT_MUTATION_TEST_COMMAND,
+    cwdForStory,
+  })
   const worktrees = createWorktreeRepository(db, {
     stories,
     git: createGitWorktree({ repositoryRoot: process.cwd() }),
     root: worktreeRoot,
+    checkoutOf: checkouts.checkoutOfStory,
   })
   const templates = createTemplateRepository(db)
   const outbox = createOutboxRepository(db)
   const organisations = createOrganisationRepository(db)
-  function cwdForStory(storyId: number): string {
-    const worktree = worktrees.findForStory(storyId)
-    const projectId = stories.projectOfStory(storyId)
-    const project = stories.listProjects().find((candidate) => candidate.id === projectId)
-    return workingDirectoryOf(worktree?.path ?? null, project?.checkoutPath, project?.name ?? String(projectId))
-  }
   const drivers = [
     claudeCodeDriver(
       createSdkSessionRunner({ cwdFor: (order) => cwdForStory(order.storyId), live, onEvent: onSessionEvent }),

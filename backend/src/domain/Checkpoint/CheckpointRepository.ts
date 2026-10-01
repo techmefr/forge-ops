@@ -96,15 +96,16 @@ function toFinding(row: FindingRow): ReviewFinding {
 }
 
 export type CheckpointRepositoryInput = {
-  takeCensus: () => TestCensus
+  takeCensus: (root?: string) => TestCensus
   readEvidence: EvidenceReader
-  surveyMutations: (paths: readonly string[]) => readonly MutationOutcome[]
-  surveyRed: () => TestReport
+  surveyMutations: (paths: readonly string[], root?: string) => readonly MutationOutcome[]
+  surveyRed: (root?: string) => TestReport
+  checkoutOf?: (storyId: number) => string
 }
 
 export function createCheckpointRepository(
   db: Database.Database,
-  { takeCensus, readEvidence, surveyMutations, surveyRed }: CheckpointRepositoryInput,
+  { takeCensus, readEvidence, surveyMutations, surveyRed, checkoutOf }: CheckpointRepositoryInput,
 ): CheckpointRepository {
   const upsertCensus = db.prepare<[number, number, number, number]>(
     `INSERT INTO test_census (story_id, tests, skipped, tautologies) VALUES (?, ?, ?, ?)
@@ -221,7 +222,8 @@ export function createCheckpointRepository(
         throw new EvidenceRequiredError(draft.name)
       }
       const evidencePath = assertEvidencePath(draft.evidencePath)
-      const read = readEvidence(evidencePath)
+      const root = checkoutOf?.(draft.storyId)
+      const read = readEvidence(evidencePath, root)
       if (read.kind === 'unreadable') {
         throw new EvidenceUnreadableError(evidencePath, read.reason)
       }
@@ -249,20 +251,20 @@ export function createCheckpointRepository(
       }
 
       if (draft.name === 'tests_written') {
-        const verdict = redVerdictOf(surveyRed())
+        const verdict = redVerdictOf(surveyRed(root))
         if (verdict.kind !== 'assertion') {
           throw new RedNotAssertedError(describeRedVerdict(verdict))
         }
       }
 
       if (draft.name === 'tests_written') {
-        const taken = takeCensus()
+        const taken = takeCensus(root)
         upsertCensus.run(draft.storyId, taken.tests, taken.skipped, taken.tautologies)
       }
 
       if (draft.name === 'build_done') {
         const touched = selectTouchedPaths.all(draft.storyId).map((row) => row.path)
-        const survivors = survivorsOf(surveyMutations(filesWorthMutating(touched)))
+        const survivors = survivorsOf(surveyMutations(filesWorthMutating(touched), root))
         if (survivors.length > 0) {
           throw new MutationSurvivedError(survivors.map(describeSurvivor))
         }
@@ -273,7 +275,7 @@ export function createCheckpointRepository(
         if (written === undefined) {
           throw new TestsTamperedError(["aucun recensement n'a ete pris a l'ecriture des tests"])
         }
-        const drifted = compareCensus(written, takeCensus())
+        const drifted = compareCensus(written, takeCensus(root))
         if (drifted.length > 0) {
           throw new TestsTamperedError(drifted)
         }

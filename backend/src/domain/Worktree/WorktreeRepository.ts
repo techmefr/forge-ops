@@ -22,6 +22,7 @@ export type WorktreeRepositoryInput = {
   stories: StoryRepository
   git: GitWorktreeRunner
   root: string
+  checkoutOf?: (storyId: number) => string
   isPortFree?: (port: number) => boolean
 }
 
@@ -51,7 +52,7 @@ const LIVE_SELECTION = `
 
 export function createWorktreeRepository(
   db: Database.Database,
-  { stories, git, root, isPortFree = isPortBindable }: WorktreeRepositoryInput,
+  { stories, git, root, checkoutOf, isPortFree = isPortBindable }: WorktreeRepositoryInput,
 ): WorktreeRepository {
   const selectLive = db.prepare<[], WorktreeRow>(`${LIVE_SELECTION} ORDER BY worktree.id ASC`)
 
@@ -134,7 +135,8 @@ export function createWorktreeRepository(
         const branch = branchNameFor(story.reference, story.title)
         const folder = worktreeFolderFor(branch)
         const path = join(root, folder)
-        const baseSha = git.headSha(order.baseRef)
+        const repositoryRoot = checkoutOf?.(order.storyId)
+        const baseSha = git.headSha(order.baseRef, repositoryRoot)
 
         const existing = selectRowForStory.get(order.storyId)
         if (existing === undefined) {
@@ -151,7 +153,7 @@ export function createWorktreeRepository(
         dropReservation.run(written.id)
         insertReservation.run(port, written.id, folder)
 
-        git.addWorktree({ path, branch, baseRef: order.baseRef })
+        git.addWorktree({ path, branch, baseRef: order.baseRef }, repositoryRoot)
 
         const live = selectLiveForStory.get(order.storyId)
         if (live === undefined) {
@@ -169,9 +171,10 @@ export function createWorktreeRepository(
       if (options.force !== true && git.isDirty(live.path)) {
         throw new WorktreeNotRemovableError(live.branch, 'du travail non commite y dort encore')
       }
-      git.removeWorktree(live.path)
+      const repositoryRoot = checkoutOf?.(storyId)
+      git.removeWorktree(live.path, repositoryRoot)
       if (options.deleteBranch === true) {
-        git.deleteBranch(live.branch)
+        git.deleteBranch(live.branch, repositoryRoot)
       }
       releaseReservation.run(live.id)
       markRemoved.run(live.id)
