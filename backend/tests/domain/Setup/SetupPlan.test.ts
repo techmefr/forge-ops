@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   composeFileOf,
   envLinesOf,
+  envValueOf,
+  oidcSecretFilesOf,
   generatedSecretsOf,
   redirectUriOf,
   validateAnswers,
@@ -40,9 +42,7 @@ describe('setup plan', () => {
       'FORGE_SUPER_ADMIN_LOGIN=root',
       'FORGE_OIDC_ALLOWED_DOMAINS=acme.com',
       'FORGE_OIDC_GOOGLE_CLIENT_ID=gid',
-      'FORGE_OIDC_GOOGLE_CLIENT_SECRET=gsecret',
       'FORGE_OIDC_MICROSOFT_CLIENT_ID=mid',
-      'FORGE_OIDC_MICROSOFT_CLIENT_SECRET=msecret',
       `FORGE_OIDC_MICROSOFT_TENANT=${TENANT}`,
     ])
   })
@@ -59,5 +59,22 @@ describe('setup plan', () => {
   it('refuse OIDC hors topologie vps et une adresse invalide', () => {
     const answers: SetupAnswers = { ...VPS, topology: 'split', serverUrl: 'nope' }
     expect(validateAnswers(answers)).toHaveLength(2)
+  })
+
+  it('keeps client secrets out of the env lines and into secret files', () => {
+    expect(envLinesOf(VPS).join('\n')).not.toContain('SECRET')
+    expect(oidcSecretFilesOf(VPS)).toEqual([
+      { name: 'oidc_google_client_secret', value: 'gsecret' },
+      { name: 'oidc_microsoft_client_secret', value: 'msecret' },
+    ])
+    expect(oidcSecretFilesOf({ ...VPS, google: null, microsoft: null }).map((file) => file.value)).toEqual(['', ''])
+    expect(oidcSecretFilesOf({ ...VPS, topology: 'laptop' })).toEqual([])
+  })
+
+  it('escapes values for compose', () => {
+    expect(envValueOf('plain/path_1')).toBe('plain/path_1')
+    expect(envValueOf('a$b')).toBe('"a$$b"')
+    expect(envValueOf('say "hi" # x')).toBe('"say \\"hi\\" # x"')
+    expect(() => envValueOf('a\nb')).toThrow()
   })
 })
