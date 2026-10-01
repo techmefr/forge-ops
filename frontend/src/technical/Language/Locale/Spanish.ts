@@ -997,6 +997,8 @@ export const SPANISH: Message = {
     deactivate: 'Desactivar',
     reactivate: 'Reactivar',
     superAdmin: 'super admin',
+    grantSuperAdmin: 'Hacer super admin',
+    revokeSuperAdmin: 'Quitar super admin',
     addUser: 'Añadir una cuenta',
     login: 'Identificador',
     displayName: 'Nombre mostrado',
