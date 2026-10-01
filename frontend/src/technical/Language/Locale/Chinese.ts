@@ -125,7 +125,6 @@ export const CHINESE: Message = {
       restore: '恢复',
       restoreAria: '恢复 {title}',
       take: '认领',
-      takeAria: '认领 {title}',
       release: '释放',
       releaseAria: '释放 {title}',
     },
@@ -293,7 +292,6 @@ export const CHINESE: Message = {
   },
   followUp: {
     cardsAria: '项目天气',
-    cardLabel: '打开 {project} 的跟进，天气 {weather}',
     panelNothing: '暂无可报告的内容',
     alertLate: '{count} 项延期',
     alertBlocked: '{count} 项已阻塞',
@@ -600,7 +598,6 @@ export const CHINESE: Message = {
     writeStories: '撰写用户故事',
     mixedProjects: '一个批次不能混合两个项目。请移除一个史诗。',
     empty: '此筛选条件下没有史诗。',
-    choose: '选择 {title}',
     unknownProject: '未知项目',
     storyCount: '{count} 个用户故事',
     free: '空闲',
@@ -1069,7 +1066,6 @@ export const CHINESE: Message = {
   },
   workflowSettings: {
     openWithCount: '工作流设置 · {count} 个步骤',
-    openFor: '{name} 的工作流设置',
     setBy: '工作流由 {name} 设置',
     noAdmin: '该项目尚未设置管理员：目前没有人可以定义它的工作流。',
     title: '工作流 {name}',

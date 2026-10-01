@@ -141,7 +141,8 @@ describe('ProjectsSection', () => {
     const gears = section.findAll('button').filter((button) => button.text().includes('Workflow settings'))
     expect(gears).toHaveLength(1)
     expect(gears[0]?.text()).toContain('1 step')
-    expect(gears[0]?.attributes('aria-label')).toBe('Workflow settings of Alpha')
+    expect(gears[0]?.attributes('aria-label')).toBe('Workflow settings · 1 step, Alpha')
+    expect(gears[0]?.attributes('aria-label')).toContain(gears[0]?.text().replace('⚙', '').trim())
   })
 
   it('tells a member who set the workflow, and shows no gear', async () => {

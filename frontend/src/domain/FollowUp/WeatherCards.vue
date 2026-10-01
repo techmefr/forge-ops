@@ -33,10 +33,6 @@ function weatherWord(entry: ProjectWeather): string {
   return t(`weather.${entry.followUp.weather}`)
 }
 
-function cardLabel(entry: ProjectWeather): string {
-  return t('followUp.cardLabel', { project: entry.project.name, weather: weatherWord(entry) })
-}
-
 function alertLines(alerts: FollowUpAlerts): readonly string[] {
   return [
     alerts.late > 0 ? t('followUp.alertLate', { count: alerts.late }) : '',
@@ -127,7 +123,6 @@ followUps.reload()
         <button
           type="button"
           class="flex min-h-10 w-full flex-col gap-1 border-b border-line px-1 py-2.5 text-left hover:bg-elev/60"
-          :aria-label="cardLabel(entry)"
           :aria-describedby="panelId(entry)"
           @click="openFollowUp(entry)"
         >
