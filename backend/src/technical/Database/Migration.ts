@@ -1,4 +1,5 @@
 import type Database from 'better-sqlite3'
+import { PROMPT_TEMPLATE_KEYS, PROMPT_TEMPLATES } from '../../../../contract/WorkflowColumnContract.js'
 import { LEGACY_STARTER_PROMPTS } from './LegacyStarterPrompts.js'
 import { checkedDigestOf, checkedListsOf, createStatementOf } from './SchemaTable.js'
 
@@ -305,6 +306,19 @@ function switchStarterWorkflowsToAutoStart(db: Database.Database): void {
   }
 }
 
+function renewLegacyStarterPrompts(db: Database.Database): void {
+  if (!tableExists(db, 'workflow_column')) {
+    return
+  }
+  const renew = db.prepare<[string, string]>('UPDATE workflow_column SET preprompt = ? WHERE preprompt = ?')
+  PROMPT_TEMPLATE_KEYS.forEach((key, index) => {
+    const legacy = LEGACY_STARTER_PROMPTS[index]
+    if (legacy !== undefined) {
+      renew.run(PROMPT_TEMPLATES[key], legacy)
+    }
+  })
+}
+
 export function migrationSteps(schema: string): readonly MigrationStep[] {
   return [
     { name: 'zone/keyed-on-project', apply: rekeyZoneOnProject },
@@ -314,6 +328,7 @@ export function migrationSteps(schema: string): readonly MigrationStep[] {
     { name: 'story/workflow-column', apply: placeStoriesOnTheirStep },
     { name: 'board-user/email-unique-when-verified', apply: dropUnconditionalEmailIndex },
     { name: 'workflow-column/starter-auto-start', apply: switchStarterWorkflowsToAutoStart },
+    { name: 'workflow-column/verdict-step-prompts', apply: renewLegacyStarterPrompts },
     ...checkedTableSteps(schema),
   ]
 }

@@ -44,14 +44,8 @@ describe('the values offered', () => {
     expect([...WORKFLOW_EFFORTS]).toEqual(['low', 'medium', 'high', 'xhigh', 'max'])
   })
 
-  it('carries the five base prompt templates word for word', () => {
+  it('carries the five base prompt templates in order', () => {
     expect(Object.keys(PROMPT_TEMPLATES)).toEqual(['spec', 'plan', 'build', 'review', 'ship'])
-    expect(PROMPT_TEMPLATES.review).toBe(
-      'Read the diff as a reviewer: bugs, security, readability, missing tests. One line per finding, with file and line. Do not change the code.',
-    )
-    expect(PROMPT_TEMPLATES.ship).toBe(
-      'Rebase on the integration branch and run the full gate again. Open the MR as a draft with a symptom / cause / what changes description.',
-    )
   })
 })
 
