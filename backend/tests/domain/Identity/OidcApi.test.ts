@@ -8,7 +8,7 @@ import {
 import { createOidcApi } from '../../../src/domain/Identity/OidcApi.js'
 import { createOidcTransactions } from '../../../src/technical/Auth/OidcTransactions.js'
 import { loginOf } from '../../../src/domain/Identity/ExternalIdentity.js'
-import { claimsOf, readOidcProviders, type OidcProvider } from '../../../src/technical/Auth/OidcProvider.js'
+import { claimsOf, newPkce, readOidcProviders, type OidcProvider } from '../../../src/technical/Auth/OidcProvider.js'
 
 const ORIGIN = 'https://forge.example.com'
 const PASSWORD = 'un mot de passe assez long'
@@ -161,7 +161,9 @@ describe('oidc login', () => {
 })
 
 describe('oidc login from the desktop app', () => {
-  async function desktopCallback() {
+  const pkce = newPkce()
+
+  async function desktopCallback(challenge: string = pkce.challenge) {
     const api = createOidcApi({
       identities,
       providers: [google],
@@ -169,34 +171,53 @@ describe('oidc login from the desktop app', () => {
       publicOrigin: ORIGIN,
       send: fakeGoogle({ sub: '9', email: 'sam@acme.com', email_verified: true }),
     })
-    const start = await api.request('/api/auth/oidc/google/start?client=desktop')
+    const start = await api.request(`/api/auth/oidc/google/start?client=desktop&challenge=${challenge}`)
     const callback = await finish(api, 'google', start)
-    return { api, callback }
+    const code = new URL(callback.headers.get('location') ?? 'http://x').searchParams.get('code')
+    return { api, callback, code }
   }
 
-  it('rend la main a l app par lien profond sans poser de cookie', async () => {
+  function exchangeOf(api: Hono, body: Record<string, unknown>) {
+    return api.request('/api/auth/oidc/exchange', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+  }
+
+  it('hands over to the app by deep link without setting a session cookie', async () => {
     const { callback } = await desktopCallback()
     expect(callback.headers.get('location')).toMatch(/^forgeops:\/\/auth\?code=/)
     expect(callback.headers.get('set-cookie') ?? '').not.toContain('forge_identity')
   })
 
-  it('echange le code une seule fois contre la session', async () => {
-    const { api, callback } = await desktopCallback()
-    const code = new URL(callback.headers.get('location') ?? '').searchParams.get('code')
-    const exchange = () =>
-      api.request('/api/auth/oidc/exchange', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ code }),
-      })
-    const first = await exchange()
+  it('exchanges the code once for the session when the verifier matches', async () => {
+    const { api, code } = await desktopCallback()
+    const first = await exchangeOf(api, { code, verifier: pkce.verifier })
     expect(((await first.json()) as { token: string }).token).toHaveLength(64)
-    expect((await exchange()).status).toBe(401)
+    expect((await exchangeOf(api, { code, verifier: pkce.verifier })).status).toBe(401)
   })
 
-  it('renvoie un refus par lien profond', async () => {
+  it('refuses a code without the verifier', async () => {
+    const { api, code } = await desktopCallback()
+    expect((await exchangeOf(api, { code })).status).toBe(401)
+  })
+
+  it('refuses a code with the wrong verifier and burns it', async () => {
+    const { api, code } = await desktopCallback()
+    expect((await exchangeOf(api, { code, verifier: newPkce().verifier })).status).toBe(401)
+    expect((await exchangeOf(api, { code, verifier: pkce.verifier })).status).toBe(401)
+  })
+
+  it('refuses to start a desktop sign-in without a challenge', async () => {
+    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN })
+    expect((await api.request('/api/auth/oidc/google/start?client=desktop')).status).toBe(400)
+    expect((await api.request('/api/auth/oidc/google/start?client=desktop&challenge=short')).status).toBe(400)
+  })
+
+  it('returns a refusal by deep link', async () => {
     const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN, send: fakeGoogle({ sub: '1', email: 'x@evil.com', email_verified: true }) })
-    const start = await api.request('/api/auth/oidc/google/start?client=desktop')
+    const start = await api.request(`/api/auth/oidc/google/start?client=desktop&challenge=${pkce.challenge}`)
     const callback = await finish(api, 'google', start)
     expect(callback.headers.get('location')).toBe('forgeops://auth?error=refused')
   })
