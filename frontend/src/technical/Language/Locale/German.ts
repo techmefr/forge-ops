@@ -998,6 +998,8 @@ export const GERMAN: Message = {
     deactivate: 'Deaktivieren',
     reactivate: 'Reaktivieren',
     superAdmin: 'Super-Admin',
+    grantSuperAdmin: 'Zum Super-Admin machen',
+    revokeSuperAdmin: 'Super-Admin entziehen',
     addUser: 'Konto hinzufügen',
     login: 'Kennung',
     displayName: 'Anzeigename',
