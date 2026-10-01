@@ -150,6 +150,25 @@ describe('RoadmapScreen', () => {
     expect(upcoming).not.toContain('Old committee')
   })
 
+  it('counts a future date down from today and never as a negative offset', async () => {
+    serve([], [event({ id: 1, title: 'Tomorrow demo', date: '2026-09-29' })])
+    const upcoming = (await mounted()).find('[data-test-id="roadmap-upcoming"]').text()
+    expect(upcoming).toContain('D-1')
+    expect(upcoming).not.toContain('D+')
+  })
+
+  it('uses the plural form of the minutes to write count', async () => {
+    serve(
+      [epic(1, 'Cloudmail', '2026-09-01')],
+      [
+        event({ id: 1, type: 'client', epicId: 1, date: '2026-09-20' }),
+        event({ id: 2, type: 'demo', epicId: 1, date: '2026-09-21' }),
+      ],
+    )
+    const screen = await mounted()
+    expect(screen.find('[data-test-id="roadmap-project-1"]').text()).toContain('2 sets of minutes to write')
+  })
+
   it('speaks french days as J-x', async () => {
     serve([], [event({ id: 1, title: 'Démo', date: '2026-09-30' })])
     expect((await mounted('fr')).find('[data-test-id="roadmap-upcoming"]').text()).toContain('J-2')
@@ -165,7 +184,7 @@ describe('RoadmapScreen', () => {
       ],
     )
     const screen = await mounted()
-    expect(screen.find('[data-test-id="roadmap-project-1"]').text()).toContain('1 minutes to write')
+    expect(screen.find('[data-test-id="roadmap-project-1"]').text()).toContain('1 set of minutes to write')
     expect(screen.text()).toContain('Minutes to write')
   })
 
