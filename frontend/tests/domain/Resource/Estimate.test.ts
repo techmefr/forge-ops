@@ -49,6 +49,19 @@ describe("roomForSessions", () => {
     expect(roomForSessions({ capUsd: 14, spentUsd: 0, memoryFreeMb: null })).toBe(10)
   })
 
+  it("is limited by the sessions the dispatcher still accepts", () => {
+    expect(roomForSessions({ capUsd: 100, spentUsd: 0, memoryFreeMb: 64000, sessions: { running: 3, cap: 5 } })).toBe(2)
+  })
+
+  it("is zero when the dispatcher is saturated, whatever the budget and the memory", () => {
+    expect(roomForSessions({ capUsd: 100, spentUsd: 0, memoryFreeMb: 64000, sessions: { running: 5, cap: 5 } })).toBe(0)
+    expect(roomForSessions({ capUsd: 100, spentUsd: 0, memoryFreeMb: 64000, sessions: { running: 7, cap: 5 } })).toBe(0)
+  })
+
+  it("keeps the smallest of the three limits", () => {
+    expect(roomForSessions({ capUsd: 20, spentUsd: 17.2, memoryFreeMb: 2000, sessions: { running: 0, cap: 5 } })).toBe(2)
+  })
+
   it("is zero once the cap is burst", () => {
     expect(roomForSessions({ capUsd: 20, spentUsd: 25, memoryFreeMb: 64000 })).toBe(0)
   })

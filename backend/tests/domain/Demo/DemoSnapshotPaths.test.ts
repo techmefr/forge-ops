@@ -16,6 +16,7 @@ const OUTSIDE_THE_VISIT: readonly string[] = [
   '/api/auth/me',
   '/api/auth/whoami',
   '/api/batches/:id',
+  '/api/board/preferences',
   '/api/auth/state',
   '/api/auth/oidc/providers',
   '/api/auth/oidc/:provider/start',

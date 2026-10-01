@@ -197,6 +197,39 @@ describe('the view choice', () => {
 
     expect(screen.find('[data-test="forge-kanban"]').exists()).toBe(true)
   })
+
+  it('sends the chosen view to the account', async () => {
+    const screen = await mountScreen()
+    await screen.findAll('button').find((button) => button.text() === 'Pipeline')?.trigger('click')
+
+    expect(send).toHaveBeenCalledWith('/api/board/preferences', 'PUT', { forgeView: 'pipeline' })
+  })
+
+  it('opens on the view saved with the account, whatever this browser remembers', async () => {
+    window.localStorage.setItem(FORGE_VIEW_KEY, 'kanban')
+    const base = read.getMockImplementation()
+    read.mockImplementation((path: string) =>
+      path === '/api/board/preferences' ? Promise.resolve({ forgeView: 'pipeline' }) : base?.(path),
+    )
+
+    const screen = await mountScreen()
+
+    expect(screen.find('[data-test="forge-pipeline"]').exists()).toBe(true)
+    expect(window.localStorage.getItem(FORGE_VIEW_KEY)).toBe('pipeline')
+  })
+
+  it('keeps the browser choice when the account has none or the call fails', async () => {
+    window.localStorage.setItem(FORGE_VIEW_KEY, 'pipeline')
+    const base = read.getMockImplementation()
+    read.mockImplementation((path: string) =>
+      path === '/api/board/preferences' ? Promise.reject(new Error('down')) : base?.(path),
+    )
+    send.mockRejectedValue(new Error('down'))
+
+    const screen = await mountScreen()
+
+    expect(screen.find('[data-test="forge-pipeline"]').exists()).toBe(true)
+  })
 })
 
 describe('the kanban', () => {

@@ -11,7 +11,7 @@ import {
   type MachineReading,
   type Story,
 } from '@/domain/Board/BoardModel'
-import { MEMORY_PER_SESSION_MB, estimateRun } from './Estimate'
+import { MEMORY_PER_SESSION_MB, estimateRun, roomForSessions } from './Estimate'
 import { isWorking } from '@/domain/Shell/UseFleet'
 
 const { t } = useI18n()
@@ -27,6 +27,15 @@ const estimate = computed(() =>
     stories: planned.value,
     capUsd: budget.data.value?.policy.capUsd ?? 0,
     spentUsd: budget.data.value?.spentUsd ?? 0,
+  }),
+)
+
+const room = computed(() =>
+  roomForSessions({
+    capUsd: budget.data.value?.policy.capUsd ?? 0,
+    spentUsd: budget.data.value?.spentUsd ?? 0,
+    memoryFreeMb: machine.data.value?.snapshot?.memoryFreeMb ?? null,
+    sessions: machine.data.value?.sessions ?? null,
   }),
 )
 
@@ -168,6 +177,13 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
           </p>
         </div>
       </div>
+      <p
+        class="mt-3 text-[11px]"
+        :class="room > 0 ? 'text-green' : 'text-red'"
+        data-test="resource-room"
+      >
+        {{ room > 0 ? t('forge.resource.room', { count: room }, room) : t('forge.resource.full') }}
+      </p>
       <p v-if="!estimate.affordable" class="mt-3 text-[11px] text-red">{{ t('resource.overCap') }}</p>
       <p class="mt-2 text-[11px] text-txt-low">
         {{

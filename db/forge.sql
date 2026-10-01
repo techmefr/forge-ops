@@ -587,3 +587,10 @@ CREATE TABLE IF NOT EXISTS batch_story (
 );
 
 CREATE INDEX IF NOT EXISTS idx_batch_story_story ON batch_story(story_id);
+
+CREATE TABLE IF NOT EXISTS user_preference (
+  user_id INTEGER NOT NULL REFERENCES board_user(id),
+  key TEXT NOT NULL,
+  value TEXT NOT NULL,
+  PRIMARY KEY (user_id, key)
+);

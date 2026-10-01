@@ -101,10 +101,16 @@ export type MachineSnapshot = {
   loadAverage: number | null
 }
 
+export type SessionLoad = {
+  running: number
+  cap: number
+}
+
 export type MachineReading = {
   available: boolean
   reason: string | null
   snapshot: MachineSnapshot | null
+  sessions?: SessionLoad | null
 }
 
 export const FLEET_JOB_STATE_SEQUENCE = [

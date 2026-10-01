@@ -45,6 +45,8 @@ import { suggestParcours } from '../domain/Pilot/Parcours.js'
 import { createPlaywrightPilot } from '../technical/Browser/PlaywrightPilot.js'
 import { createPilotShotApi } from '../technical/Http/PilotShotApi.js'
 import { createMachineApi } from '../domain/Resource/MachineApi.js'
+import { createPreferenceApi } from '../domain/Preference/PreferenceApi.js'
+import { createPreferenceRepository } from '../domain/Preference/PreferenceRepository.js'
 import { createFileApi } from '../domain/File/FileApi.js'
 import { createFileRepository } from '../domain/File/FileRepository.js'
 import { createStatisticRepository } from '../domain/Statistic/StatisticRepository.js'
@@ -92,6 +94,8 @@ import { securityHeaders } from '../technical/Http/SecurityHeaders.js'
 import { boardOrigins, isLocalOrigin } from '../technical/Auth/BoardOrigin.js'
 
 const DEFAULT_SESSION_CAP = 5
+
+const sessionCap = Number(process.env.FORGE_SESSION_CAP ?? DEFAULT_SESSION_CAP)
 const PURGE_EVERY_MS = 24 * 60 * 60 * 1000
 
 const DEFAULT_MUTATION_TEST_COMMAND = 'npx vitest run'
@@ -286,7 +290,7 @@ export function startBoardServer({
       columnAgentOf: (order) =>
         columnAgentOfPhase(templates.templateOfProject(stories.projectOfStory(order.storyId)).columns, order.phase),
     }),
-    concurrencyCap: Number(process.env.FORGE_SESSION_CAP ?? DEFAULT_SESSION_CAP),
+    concurrencyCap: sessionCap,
     claudeCodeVersion: process.env.CLAUDE_CODE_VERSION ?? 'unknown',
     rate: {
       burst: Number(process.env.FORGE_DISPATCH_BURST ?? DEFAULT_DISPATCH_RATE.burst),
@@ -524,7 +528,20 @@ export function startBoardServer({
     }),
   )
   guarded.route('/', createPilotShotApi({ shotDir }))
-  guarded.route('/', createMachineApi({ metricsUrl }))
+  guarded.route(
+    '/',
+    createPreferenceApi({
+      preferences: createPreferenceRepository(db),
+      userIdOf: (login) => identities.findUser(login)?.id ?? null,
+    }),
+  )
+  guarded.route(
+    '/',
+    createMachineApi({
+      metricsUrl,
+      sessions: () => ({ running: dispatcher.countRunning(), cap: sessionCap }),
+    }),
+  )
   guarded.route('/', createFileApi({ stories, files: createFileRepository(db), checkoutRoots: allowedCheckoutRoots }))
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
   guarded.route('/', createIncidentApi({ incidents: createIncidentRepository(db, { stories }), events }))
