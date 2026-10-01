@@ -194,3 +194,126 @@ describe('oidc login from the desktop app', () => {
     expect(callback.headers.get('location')).toBe('forgeops://auth?error=refused')
   })
 })
+
+describe('microsoft claims', () => {
+  const TENANT = '11111111-2222-3333-4444-555555555555'
+  const microsoft = readOidcProviders({
+    FORGE_OIDC_MICROSOFT_CLIENT_ID: 'client',
+    FORGE_OIDC_MICROSOFT_CLIENT_SECRET: 'secret',
+    FORGE_OIDC_MICROSOFT_TENANT: TENANT,
+  })[0] as OidcProvider
+  const anyTenant = readOidcProviders({
+    FORGE_OIDC_MICROSOFT_CLIENT_ID: 'client',
+    FORGE_OIDC_MICROSOFT_CLIENT_SECRET: 'secret',
+  })[0] as OidcProvider
+  const payload = {
+    aud: 'client',
+    nonce: 'n',
+    exp: NOW / 1000 + 60,
+    iss: `https://login.microsoftonline.com/${TENANT}/v2.0`,
+    sub: 'pairwise',
+    tid: TENANT,
+    oid: 'object-1',
+    email: 'Jane@Acme.com',
+  }
+
+  it('keys the account on tenant and object id', () => {
+    expect(claimsOf(microsoft, payload, 'n', NOW).subject).toBe(`microsoft:${TENANT}:object-1`)
+  })
+
+  it('does not take the email claim as proof of ownership', () => {
+    expect(claimsOf(microsoft, payload, 'n', NOW).isEmailVerified).toBe(false)
+  })
+
+  it('trusts the email only when the tenant asserts the domain ownership', () => {
+    expect(claimsOf(microsoft, { ...payload, xms_edov: true }, 'n', NOW).isEmailVerified).toBe(true)
+  })
+
+  it('falls back to the sub when the token carries no tenant or object id', () => {
+    expect(claimsOf(microsoft, { ...payload, tid: undefined, oid: undefined }, 'n', NOW).subject).toBe('microsoft:pairwise')
+  })
+
+  it('stays closed for the organizations and common tenants', () => {
+    expect(() => claimsOf(anyTenant, { ...payload, iss: 'https://x' }, 'n', NOW)).toThrow()
+  })
+})
+
+describe('microsoft login', () => {
+  const TENANT = '11111111-2222-3333-4444-555555555555'
+  const microsoft = readOidcProviders({
+    FORGE_OIDC_MICROSOFT_CLIENT_ID: 'client',
+    FORGE_OIDC_MICROSOFT_CLIENT_SECRET: 'secret',
+    FORGE_OIDC_MICROSOFT_TENANT: TENANT,
+  })[0] as OidcProvider
+
+  async function signInWithMicrosoft(claims: Record<string, unknown>) {
+    const api = createOidcApi({
+      identities,
+      providers: [microsoft],
+      allowedDomains: ['acme.com'],
+      publicOrigin: ORIGIN,
+      send: async () => {
+        const nonce = (globalThis as { __nonce?: string }).__nonce ?? ''
+        const token = idToken({
+          aud: 'client',
+          iss: `https://login.microsoftonline.com/${TENANT}/v2.0`,
+          exp: Math.floor(Date.now() / 1000) + 600,
+          nonce,
+          sub: 'pairwise',
+          tid: TENANT,
+          ...claims,
+        })
+        return new Response(JSON.stringify({ id_token: token }), { status: 200 })
+      },
+    })
+    const start = await api.request('/api/auth/oidc/microsoft/start')
+    const location = new URL(start.headers.get('location') ?? '')
+    ;(globalThis as { __nonce?: string }).__nonce = location.searchParams.get('nonce') ?? ''
+    const state = location.searchParams.get('state') ?? ''
+    return api.request(`/api/auth/oidc/microsoft/callback?code=abc&state=${state}`)
+  }
+
+  it('does not hand a verified account to a tenant user carrying its address', async () => {
+    identities.enrolUser({ login: 'jane', displayName: 'Jane', password: PASSWORD, role: 'director' })
+    identities.changeEmail('jane', 'jane@acme.com')
+    identities.verifyEmail('jane')
+    const answer = await signInWithMicrosoft({ oid: 'mallory', email: 'jane@acme.com' })
+    expect(answer.headers.get('location')).toBe('/login?oidc=refused')
+    expect(identities.findUserByExternalSubject(`microsoft:${TENANT}:mallory`)).toBeNull()
+  })
+
+  it('links by email when the tenant asserts the domain ownership', async () => {
+    identities.enrolUser({ login: 'jane', displayName: 'Jane', password: PASSWORD, role: 'director' })
+    identities.changeEmail('jane', 'jane@acme.com')
+    identities.verifyEmail('jane')
+    const answer = await signInWithMicrosoft({ oid: 'jane-oid', email: 'jane@acme.com', xms_edov: true })
+    expect(answer.headers.get('location')).toBe('/')
+    expect(identities.findUserByExternalSubject(`microsoft:${TENANT}:jane-oid`)?.login).toBe('jane')
+  })
+
+  it('enrols a new tenant user whose email is not proven as unverified', async () => {
+    await signInWithMicrosoft({ oid: 'sam-oid', email: 'sam@acme.com' })
+    expect(identities.findUser('sam')?.email).toBe('sam@acme.com')
+    expect(identities.findVerifiedUserByEmail('sam@acme.com')).toBeNull()
+  })
+})
+
+describe('external subject already linked', () => {
+  it('refuses a second subject on an account that already has one', async () => {
+    identities.enrolUser({ login: 'jane', displayName: 'Jane', password: PASSWORD, role: 'director' })
+    identities.changeEmail('jane', 'jane@acme.com')
+    identities.verifyEmail('jane')
+    await signIn([], { sub: '7', email: 'jane@acme.com', email_verified: true })
+    const answer = await signIn([], { sub: '8', email: 'jane@acme.com', email_verified: true })
+    expect(answer.headers.get('location')).toBe('/login?oidc=refused')
+    expect(identities.findUserByExternalSubject('google:7')?.login).toBe('jane')
+    expect(identities.findUserByExternalSubject('google:8')).toBeNull()
+  })
+
+  it('refuses to link a subject that belongs to another login', () => {
+    identities.enrolUser({ login: 'jane', displayName: 'Jane', password: PASSWORD, role: 'director' })
+    identities.enrolUser({ login: 'sam', displayName: 'Sam', password: PASSWORD, role: 'director' })
+    identities.linkExternalSubject('jane', 'google:7')
+    expect(() => identities.linkExternalSubject('sam', 'google:7')).toThrow()
+  })
+})

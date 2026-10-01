@@ -46,3 +46,9 @@ export class UnknownAccountError extends IdentityViolationError {
     super(`Le compte ${login} est introuvable`, 'UnknownAccountError')
   }
 }
+
+export class ExternalSubjectTakenError extends IdentityViolationError {
+  constructor(login: string) {
+    super(`Le compte ${login} est deja relie a une identite externe`, 'ExternalSubjectTakenError')
+  }
+}
