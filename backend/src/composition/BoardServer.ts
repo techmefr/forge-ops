@@ -89,6 +89,7 @@ import { createTokenGuard } from '../technical/Auth/TokenGuard.js'
 import { createBrowserSessions } from '../technical/Auth/BrowserSession.js'
 import { createSessionApi } from '../technical/Http/SessionApi.js'
 import { deriveHookToken, resolveBoardToken } from '../technical/Auth/BoardToken.js'
+import { requestBodyLimit } from '../technical/Http/RequestBodyLimit.js'
 import { securityHeaders } from '../technical/Http/SecurityHeaders.js'
 import { boardOrigins, isLocalOrigin } from '../technical/Auth/BoardOrigin.js'
 import { isLoopbackPeer } from '../technical/Auth/ClientAddress.js'
@@ -344,6 +345,7 @@ export function startBoardServer({
   const browserSessions = createBrowserSessions()
   const guarded = new Hono()
   guarded.use('*', securityHeaders())
+  guarded.use('/api/*', requestBodyLimit())
   guarded.get('/health', (context) =>
     context.json({ role: process.env.FORGE_ROLE ?? 'instance', mode, ready: true }),
   )
