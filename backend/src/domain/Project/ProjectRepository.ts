@@ -57,6 +57,7 @@ export function createProjectRepository(
   const deleteBatchStories = db.prepare<[number]>(
     'DELETE FROM batch_story WHERE batch_id IN (SELECT id FROM merge_batch WHERE project_id = ?)',
   )
+  const deleteEvents = db.prepare<[number]>('DELETE FROM epic_milestone WHERE project_id = ?')
   const deleteBatches = db.prepare<[number]>('DELETE FROM merge_batch WHERE project_id = ?')
   const deleteProject = db.prepare<[number]>('DELETE FROM project WHERE id = ?')
 
@@ -124,6 +125,7 @@ export function createProjectRepository(
     if (sheet.usage > 0) {
       throw new ProjectInUseError(projectId, sheet.usage)
     }
+    deleteEvents.run(projectId)
     deleteLinks.run(projectId)
     deleteTemplate.run(projectId)
     deleteRisks.run(projectId)
