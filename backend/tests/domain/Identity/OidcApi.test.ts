@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import type { Hono } from 'hono'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import {
   createIdentityRepository,
   type IdentityRepository,
 } from '../../../src/domain/Identity/IdentityRepository.js'
 import { createOidcApi } from '../../../src/domain/Identity/OidcApi.js'
+import { createOidcTransactions } from '../../../src/technical/Auth/OidcTransactions.js'
 import { loginOf } from '../../../src/domain/Identity/ExternalIdentity.js'
 import { claimsOf, readOidcProviders, type OidcProvider } from '../../../src/technical/Auth/OidcProvider.js'
 
@@ -39,6 +41,19 @@ function fakeGoogle(claims: Record<string, unknown>) {
   }
 }
 
+function cookieOf(start: Response): string {
+  return (start.headers.get('set-cookie') ?? '').split(';')[0] ?? ''
+}
+
+async function finish(api: Hono, name: string, start: Response, cookie: string = cookieOf(start)) {
+  const location = new URL(start.headers.get('location') ?? '')
+  ;(globalThis as { __nonce?: string }).__nonce = location.searchParams.get('nonce') ?? ''
+  const state = location.searchParams.get('state') ?? ''
+  return api.request(`/api/auth/oidc/${name}/callback?code=abc&state=${state}`, {
+    headers: cookie === '' ? {} : { cookie },
+  })
+}
+
 async function signIn(allowedDomains: string[], claims: Record<string, unknown>) {
   const api = createOidcApi({
     identities,
@@ -48,10 +63,7 @@ async function signIn(allowedDomains: string[], claims: Record<string, unknown>)
     send: fakeGoogle(claims),
   })
   const start = await api.request('/api/auth/oidc/google/start')
-  const location = new URL(start.headers.get('location') ?? '')
-  ;(globalThis as { __nonce?: string }).__nonce = location.searchParams.get('nonce') ?? ''
-  const state = location.searchParams.get('state') ?? ''
-  return api.request(`/api/auth/oidc/google/callback?code=abc&state=${state}`)
+  return finish(api, 'google', start)
 }
 
 beforeEach(() => {
@@ -112,7 +124,7 @@ describe('oidc login', () => {
     identities.changeEmail('mallory', 'victim@acme.com')
     const answer = await signIn(['acme.com'], { sub: '7', email: 'victim@acme.com', email_verified: true })
     expect(answer.headers.get('location')).toBe('/login?oidc=refused')
-    expect(answer.headers.get('set-cookie')).toBeNull()
+    expect(answer.headers.get('set-cookie') ?? '').not.toContain('forge_identity')
     expect(identities.findUserByExternalSubject('google:7')).toBeNull()
   })
 
@@ -158,17 +170,14 @@ describe('oidc login from the desktop app', () => {
       send: fakeGoogle({ sub: '9', email: 'sam@acme.com', email_verified: true }),
     })
     const start = await api.request('/api/auth/oidc/google/start?client=desktop')
-    const location = new URL(start.headers.get('location') ?? '')
-    ;(globalThis as { __nonce?: string }).__nonce = location.searchParams.get('nonce') ?? ''
-    const state = location.searchParams.get('state') ?? ''
-    const callback = await api.request(`/api/auth/oidc/google/callback?code=abc&state=${state}`)
+    const callback = await finish(api, 'google', start)
     return { api, callback }
   }
 
   it('rend la main a l app par lien profond sans poser de cookie', async () => {
     const { callback } = await desktopCallback()
     expect(callback.headers.get('location')).toMatch(/^forgeops:\/\/auth\?code=/)
-    expect(callback.headers.get('set-cookie')).toBeNull()
+    expect(callback.headers.get('set-cookie') ?? '').not.toContain('forge_identity')
   })
 
   it('echange le code une seule fois contre la session', async () => {
@@ -188,9 +197,7 @@ describe('oidc login from the desktop app', () => {
   it('renvoie un refus par lien profond', async () => {
     const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN, send: fakeGoogle({ sub: '1', email: 'x@evil.com', email_verified: true }) })
     const start = await api.request('/api/auth/oidc/google/start?client=desktop')
-    const location = new URL(start.headers.get('location') ?? '')
-    ;(globalThis as { __nonce?: string }).__nonce = location.searchParams.get('nonce') ?? ''
-    const callback = await api.request(`/api/auth/oidc/google/callback?code=abc&state=${location.searchParams.get('state')}`)
+    const callback = await finish(api, 'google', start)
     expect(callback.headers.get('location')).toBe('forgeops://auth?error=refused')
   })
 })
@@ -267,10 +274,7 @@ describe('microsoft login', () => {
       },
     })
     const start = await api.request('/api/auth/oidc/microsoft/start')
-    const location = new URL(start.headers.get('location') ?? '')
-    ;(globalThis as { __nonce?: string }).__nonce = location.searchParams.get('nonce') ?? ''
-    const state = location.searchParams.get('state') ?? ''
-    return api.request(`/api/auth/oidc/microsoft/callback?code=abc&state=${state}`)
+    return finish(api, 'microsoft', start)
   }
 
   it('does not hand a verified account to a tenant user carrying its address', async () => {
@@ -315,5 +319,81 @@ describe('external subject already linked', () => {
     identities.enrolUser({ login: 'sam', displayName: 'Sam', password: PASSWORD, role: 'director' })
     identities.linkExternalSubject('jane', 'google:7')
     expect(() => identities.linkExternalSubject('sam', 'google:7')).toThrow()
+  })
+})
+
+describe('oidc transaction binding', () => {
+  function apiWith(extra: Record<string, unknown> = {}) {
+    return createOidcApi({
+      identities,
+      providers: [google, otherProvider],
+      allowedDomains: ['acme.com'],
+      publicOrigin: ORIGIN,
+      send: fakeGoogle({ sub: '7', email: 'jane@acme.com', email_verified: true }),
+      ...extra,
+    })
+  }
+
+  const otherProvider: OidcProvider = { ...google, name: 'microsoft', isEmailVerifiable: true }
+
+  it('sets a short-lived HttpOnly Lax cookie when a flow starts', async () => {
+    const start = await apiWith().request('/api/auth/oidc/google/start')
+    const cookie = start.headers.get('set-cookie') ?? ''
+    expect(cookie).toContain('oidc_tx=')
+    expect(cookie).toContain('HttpOnly')
+    expect(cookie).toContain('SameSite=Lax')
+    expect(cookie).toMatch(/Max-Age=\d+/)
+  })
+
+  it('refuses a callback that does not carry the cookie of the browser that started the flow', async () => {
+    const api = apiWith()
+    const start = await api.request('/api/auth/oidc/google/start')
+    const answer = await finish(api, 'google', start, '')
+    expect(answer.headers.get('location')).toBe('/login?oidc=refused')
+    expect(answer.headers.get('set-cookie') ?? '').not.toContain('forge_identity')
+    expect(identities.countUsers()).toBe(0)
+  })
+
+  it('refuses a callback carrying the cookie of another flow', async () => {
+    const api = apiWith()
+    const mine = await api.request('/api/auth/oidc/google/start')
+    const theirs = await api.request('/api/auth/oidc/google/start')
+    const answer = await finish(api, 'google', mine, cookieOf(theirs))
+    expect(answer.headers.get('location')).toBe('/login?oidc=refused')
+    expect(identities.countUsers()).toBe(0)
+  })
+
+  it('refuses a state used on another provider', async () => {
+    const api = apiWith()
+    const start = await api.request('/api/auth/oidc/google/start')
+    const answer = await finish(api, 'microsoft', start)
+    expect(answer.headers.get('location')).toBe('/login?oidc=refused')
+    expect(identities.countUsers()).toBe(0)
+  })
+
+  it('refuses an expired transaction', async () => {
+    let now = NOW
+    const api = apiWith({ transactions: createOidcTransactions(() => now) })
+    const start = await api.request('/api/auth/oidc/google/start')
+    now += 11 * 60 * 1000
+    const answer = await finish(api, 'google', start)
+    expect(answer.headers.get('location')).toBe('/login?oidc=refused')
+    expect(identities.countUsers()).toBe(0)
+  })
+
+  it('refuses a callback whose state was already used', async () => {
+    const api = apiWith()
+    const start = await api.request('/api/auth/oidc/google/start')
+    expect((await finish(api, 'google', start)).headers.get('location')).toBe('/')
+    expect((await finish(api, 'google', start)).headers.get('location')).toBe('/login?oidc=refused')
+  })
+
+  it('refuses a linked account that was disabled', async () => {
+    identities.enrolUser({ login: 'jane', displayName: 'Jane', password: PASSWORD, role: 'director' })
+    identities.linkExternalSubject('jane', 'google:7')
+    identities.disableUser('jane')
+    const answer = await signIn([], { sub: '7', email: 'jane@acme.com', email_verified: true })
+    expect(answer.headers.get('location')).toBe('/login?oidc=refused')
+    expect(answer.headers.get('set-cookie') ?? '').not.toContain('forge_identity')
   })
 })
