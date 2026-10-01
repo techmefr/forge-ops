@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { MAX_STEP_RETRIES } from '@contract/AutopilotContract'
 import {
   CLAUDE_MODELS,
   PROMPT_TEMPLATES,
@@ -222,6 +223,19 @@ function pickEffort(event: Event): void {
         <label class="flex items-center gap-2 text-sm text-txt-mid min-[760px]:col-span-2">
           <input v-model="draft.autoStart" type="checkbox" class="h-4 w-4 accent-[var(--forge-acc)]" />
           {{ t('workflowSettings.autoStart') }}
+        </label>
+
+        <label class="flex flex-col gap-1 text-[11px] text-txt-low min-[760px]:col-span-2">
+          {{ t('autopilot.retries') }}
+          <input
+            v-model.number="draft.maxRetries"
+            type="number"
+            min="0"
+            :max="MAX_STEP_RETRIES"
+            :aria-describedby="`${identifier}-retries`"
+            class="w-24 rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
+          />
+          <small :id="`${identifier}-retries`" class="text-[11px] text-txt-low">{{ t('autopilot.retriesHint') }}</small>
         </label>
       </template>
     </div>

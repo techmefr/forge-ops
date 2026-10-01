@@ -39,6 +39,8 @@ export const INSTANCE_HELD: readonly string[] = [
   'board_session',
   'board_setting',
   'workflow_column',
+  'autopilot_setting',
+  'autopilot_card',
   'scope_reservation',
   'worktree',
   'forge_card',

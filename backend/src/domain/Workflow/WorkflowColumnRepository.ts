@@ -6,6 +6,7 @@ import type {
   WorkflowEffort,
   WorkflowProvider,
 } from '../../../../contract/WorkflowColumnContract.js'
+import { DEFAULT_STEP_RETRIES } from '../../../../contract/AutopilotContract.js'
 import { behaviouralKindOf, keyOfLabel, refusalOfDraft } from './WorkflowColumn.js'
 import {
   WorkflowColumnInUseError,
@@ -36,6 +37,7 @@ type ColumnRow = {
   command: string
   preprompt: string
   auto_start: number
+  max_retries: number
   behavioural_kind: BehaviouralKind
 }
 
@@ -54,6 +56,7 @@ function fromRow(row: ColumnRow): WorkflowColumn {
     command: row.command,
     preprompt: row.preprompt,
     autoStart: row.auto_start === 1,
+    maxRetries: row.max_retries,
     behaviouralKind: row.behavioural_kind,
   }
 }
@@ -67,16 +70,16 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
     'SELECT MAX(position) AS max_position FROM workflow_column WHERE project_id = ?',
   )
   const insertColumn = db.prepare<
-    [number, string, string, string, number, string, string, string, string, string, string, number, string]
+    [number, string, string, string, number, string, string, string, string, string, string, number, number, string]
   >(
     `INSERT INTO workflow_column
-       (project_id, key, label, colour, position, provider, model, effort, agent_name, command, preprompt, auto_start, behavioural_kind)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (project_id, key, label, colour, position, provider, model, effort, agent_name, command, preprompt, auto_start, max_retries, behavioural_kind)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
-  const updateColumn = db.prepare<[string, string, string, string, string, string, string, string, number, string, number]>(
+  const updateColumn = db.prepare<[string, string, string, string, string, string, string, string, number, number | null, string, number]>(
     `UPDATE workflow_column
         SET label = ?, colour = ?, provider = ?, model = ?, effort = ?, agent_name = ?, command = ?,
-            preprompt = ?, auto_start = ?, behavioural_kind = ?
+            preprompt = ?, auto_start = ?, max_retries = COALESCE(?, max_retries), behavioural_kind = ?
       WHERE id = ?`,
   )
   const deleteColumn = db.prepare<[number]>('DELETE FROM workflow_column WHERE id = ?')
@@ -133,6 +136,7 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
         draft.command,
         draft.preprompt,
         draft.autoStart ? 1 : 0,
+        draft.maxRetries ?? DEFAULT_STEP_RETRIES,
         behaviouralKindOf(draft),
       )
       return fromRow(selectById.get(Number(lastInsertRowid))!)
@@ -156,6 +160,7 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
         draft.command,
         draft.preprompt,
         draft.autoStart ? 1 : 0,
+        draft.maxRetries ?? null,
         behaviouralKindOf(draft),
         columnId,
       )

@@ -30,6 +30,7 @@ export type ForgeBoardApiInput = {
   forgeCards: ForgeCardRepository
   stories: StoryRepository
   events: Pick<EventBus, 'publish'>
+  autopilot?: { reset: (forgeCardId: number) => void; resume: (forgeCardId: number) => Promise<boolean> }
 }
 
 export function createForgeBoardApi({
@@ -39,6 +40,7 @@ export function createForgeBoardApi({
   forgeCards,
   stories,
   events,
+  autopilot,
 }: ForgeBoardApiInput): Hono {
   const api = new Hono()
 
@@ -98,6 +100,7 @@ export function createForgeBoardApi({
     }
     const current = board.view(forgeCardId.data)
     assertHand(context, current.subjectId, current.reference)
+    autopilot?.reset(forgeCardId.data)
     const moved = await mover.move(forgeCardId.data, order.data.stepKey)
     announce(moved)
     return context.json(moved)
@@ -111,6 +114,7 @@ export function createForgeBoardApi({
     const current = board.view(forgeCardId.data)
     assertHand(context, current.subjectId, current.reference)
     const closed = closer.close(forgeCardId.data)
+    autopilot?.reset(forgeCardId.data)
     for (const story of closed.unblocked) {
       events.publish({ name: 'story.unblocked', payload: { ...story } })
     }
@@ -125,6 +129,10 @@ export function createForgeBoardApi({
     }
     const current = board.view(forgeCardId.data)
     assertHand(context, current.subjectId, current.reference)
+    if ((await autopilot?.resume(forgeCardId.data)) === true) {
+      return context.json({ card: board.view(forgeCardId.data), started: false, claudeSessionId: null }, 201)
+    }
+    autopilot?.reset(forgeCardId.data)
     const moved = await mover.launch(forgeCardId.data)
     announce(moved)
     return context.json(moved, 201)

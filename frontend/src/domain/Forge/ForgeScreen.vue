@@ -9,6 +9,7 @@ import { useResource } from '@/technical/Api/UseResource'
 import { readPreference, writePreference } from '@/technical/Appearance/Preference'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import { tintOf } from '@/technical/Ui/Tint'
+import AutopilotBadge from '@/domain/Workflow/AutopilotBadge.vue'
 import WorkflowBar from '@/domain/Workflow/WorkflowBar.vue'
 import WorkflowEmptyState from '@/domain/Workflow/WorkflowEmptyState.vue'
 import { useProjectWorkflow } from '@/domain/Workflow/UseProjectWorkflow'
@@ -250,6 +251,7 @@ onMounted(async () => {
             {{ subject.title }}
           </option>
         </select>
+        <AutopilotBadge :key="`auto-${projectId}`" :project-id="projectId" />
         <WorkflowBar :key="`${projectId}-${workflowBarVersion}`" :project-id="projectId" :project-name="projectName" @changed="forge.load()" />
       </div>
 

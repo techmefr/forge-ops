@@ -44,6 +44,7 @@ function column(id: number, key: string, overrides: Partial<WorkflowColumn> = {}
     preprompt: '',
     autoStart: false,
     behaviouralKind: 'ordinary',
+    maxRetries: 2,
     ...overrides,
   }
 }

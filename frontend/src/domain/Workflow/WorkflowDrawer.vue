@@ -11,6 +11,7 @@ import { useProjectWorkflow } from './UseProjectWorkflow'
 import { keysAfterMove, newStep, starterSteps, templateLabelKey } from './WorkflowRule'
 import WorkflowEmptyState from './WorkflowEmptyState.vue'
 import WorkflowStepCard from './WorkflowStepCard.vue'
+import AutopilotSection from './AutopilotSection.vue'
 
 const props = defineProps<{ projectId: number; projectName: string }>()
 
@@ -118,6 +119,8 @@ onMounted(() => void state.load())
           <p class="m-0 border-b border-line pb-2 font-mono text-[11px] text-txt-low">
             {{ t('workflowSettings.backlogFixed') }}
           </p>
+
+          <AutopilotSection :project-id="projectId" />
 
           <WorkflowEmptyState
             v-if="columns.length === 0"

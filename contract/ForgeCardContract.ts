@@ -1,4 +1,5 @@
 import type { AgentPhase } from './AgentContract.js'
+import type { AutoCardView } from './AutopilotContract.js'
 
 export const FORGE_CARD_PROVIDERS = ['claude', 'codex'] as const
 
@@ -54,6 +55,7 @@ export type ForgeCardView = {
   claudeSessionId: string | null
   durationSeconds: number
   costUsd: number
+  auto?: AutoCardView | null
 }
 
 export type ForgeCardMoved = {

@@ -68,12 +68,14 @@ export type DispatchOrder = {
   phase: AgentPhase
   lens?: ReviewLens
   columnId?: number
+  feedback?: string
 }
 
 export type StepEntry = {
   storyId: number
   columnId: number
   phase: AgentPhase
+  feedback?: string
 }
 
 export type Dispatched = {

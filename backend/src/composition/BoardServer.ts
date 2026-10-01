@@ -31,6 +31,11 @@ import { createForgeBoardRepository } from '../domain/ForgeCard/ForgeBoardReposi
 import { createForgeCardMover } from '../domain/ForgeCard/ForgeCardMover.js'
 import { createForgeCardCloser } from '../domain/ForgeCard/ForgeCardCloser.js'
 import { createForgeBoardApi } from '../domain/ForgeCard/ForgeBoardApi.js'
+import { createAutopilotApi } from '../domain/Autopilot/AutopilotApi.js'
+import { createAutopilotConductor, type AutopilotConductor } from '../domain/Autopilot/AutopilotConductor.js'
+import { createAutopilotRepository } from '../domain/Autopilot/AutopilotRepository.js'
+import { createStoryPublisher } from '../technical/Git/StoryPublication.js'
+import { clearVerdictFile } from '../technical/Evidence/VerdictFile.js'
 import { createStepEntry } from '../domain/Dispatch/StepEntry.js'
 import { cleanUpAfterMerge } from '../domain/Deployment/MergeCleanup.js'
 import { createCheckoutResolver, createProofGates } from './ProjectCheckout.js'
@@ -107,6 +112,8 @@ const DEFAULT_RED_TEST_COMMAND = 'npx vitest run --reporter=json'
 type ServerType = ReturnType<typeof serve>
 
 const LOOPBACK = '127.0.0.1'
+
+const AUTOPILOT_EVERY_MS = 5000
 
 export type BoardServerInput = {
   port: number
@@ -212,6 +219,8 @@ export function startBoardServer({
   const workflow = createWorkflowRepository(db)
   const workflowColumns = createWorkflowColumnRepository(db)
   const messages = createMessageRepository(db)
+  const autopilotSettings = createAutopilotRepository(db)
+  let conductor: AutopilotConductor | null = null
   const onSessionEvent = (event: BoardEvent): void => {
     recordUsageFromEvent(sessions, event)
     recordHeartbeatFromEvent(sessions, event)
@@ -229,6 +238,13 @@ export function startBoardServer({
         },
         claudeSessionId,
       )
+    }
+    if (
+      (event.name === 'session.result' || event.name === 'session.failed') &&
+      typeof claudeSessionId === 'string' &&
+      claudeSessionId !== ''
+    ) {
+      void conductor?.turnEnded(claudeSessionId)
     }
     events.publish(event)
   }
@@ -475,8 +491,94 @@ export function startBoardServer({
   guarded.route('/', createWorktreeApi({ worktrees, stories, events }))
   guarded.route('/', createForgeCardApi({ forgeCards, worktrees, stories }))
   const pilotCriteria = createCriterionRepository(db)
-  const forgeBoard = createForgeBoardRepository(db, { forgeCards, columns: workflowColumns })
+  const forgeBoard = createForgeBoardRepository(db, {
+    forgeCards,
+    columns: workflowColumns,
+    autoOf: (view) => conductor?.autoViewOf(view) ?? null,
+  })
   forgeBoard.backfillCards()
+  const storyPublisher = createStoryPublisher()
+  const forgeCardCloser = createForgeCardCloser({
+    board: forgeBoard,
+    forgeCards,
+    stories,
+    columns: workflowColumns,
+    checkpoints: cascadeCheckpoints,
+    criteria: pilotCriteria,
+    cleanUpAfterMerge: (storyId) =>
+      cleanUpAfterMerge({
+        storyId,
+        releaseScope: foremerge.release,
+        closeWorktree: (target) => worktrees.close(target, { deleteBranch: true }),
+      }),
+    publishStory: (storyId) => {
+      const projectId = stories.projectOfStory(storyId)
+      const settings = autopilotSettings.settingsOf(projectId)
+      const worktree = worktrees.findForStory(storyId)
+      if (!settings.enabled || !settings.autoPublish || worktree === null) {
+        return null
+      }
+      const story = stories.findStory(storyId)
+      const report = storyPublisher.publish({
+        worktreePath: worktree.path,
+        branch: worktree.branch,
+        baseBranch: stories.listProjects().find((project) => project.id === projectId)?.integrationBranch ?? 'main',
+        title: story.title,
+        body: `${story.reference}\n\n${story.body}`,
+        autoMerge: settings.autoMerge,
+      })
+      events.publish({ name: 'story.published', payload: { storyId, ...report } })
+      return report
+    },
+  })
+  const forgeCardMover = createForgeCardMover({
+    board: forgeBoard,
+    forgeCards,
+    stories,
+    columns: workflowColumns,
+    enterStep: createStepEntry({ dispatcher, columns: workflowColumns }),
+    launchStep: (entry) => dispatcher.dispatch(entry),
+  })
+  conductor = createAutopilotConductor({
+    autopilot: autopilotSettings,
+    board: forgeBoard,
+    forgeCards,
+    stories,
+    columns: workflowColumns,
+    sessions,
+    checkpoints: cascadeCheckpoints,
+    readEvidence,
+    cwdOf: cwdForStory,
+    clearVerdict: clearVerdictFile,
+    mover: forgeCardMover,
+    closer: forgeCardCloser,
+    lastAgentMessage: (storyId) =>
+      messages
+        .listOfStory(storyId)
+        .filter((message) => message.voice === 'agent')
+        .at(-1)?.body ?? null,
+    publish: (name, payload) => events.publish({ name, payload }),
+  })
+  const autopilotConductor = conductor
+  const autopilotTimer =
+    environmentMode === 'real' && process.env.FORGE_AUTOPILOT !== 'off'
+      ? setInterval(() => void autopilotConductor.tick(), AUTOPILOT_EVERY_MS)
+      : null
+  autopilotTimer?.unref()
+  guarded.route(
+    '/',
+    createAutopilotApi({
+      autopilot: autopilotSettings,
+      projectExists: (projectId) => stories.projects.find(projectId) !== null,
+      mayAdminister: (projectId, context) =>
+        mayAdministerProject({
+          login: operatorOf(context),
+          adminLogin: stories.projects.find(projectId)?.adminLogin ?? null,
+          isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
+          isDirector: (login) => identities.findUser(login)?.role === 'director',
+        }),
+    }),
+  )
   guarded.route(
     '/',
     createForgeBoardApi({
@@ -484,28 +586,9 @@ export function startBoardServer({
       forgeCards,
       stories,
       events,
-      closer: createForgeCardCloser({
-        board: forgeBoard,
-        forgeCards,
-        stories,
-        columns: workflowColumns,
-        checkpoints: cascadeCheckpoints,
-        criteria: pilotCriteria,
-        cleanUpAfterMerge: (storyId) =>
-          cleanUpAfterMerge({
-            storyId,
-            releaseScope: foremerge.release,
-            closeWorktree: (target) => worktrees.close(target, { deleteBranch: true }),
-          }),
-      }),
-      mover: createForgeCardMover({
-        board: forgeBoard,
-        forgeCards,
-        stories,
-        columns: workflowColumns,
-        enterStep: createStepEntry({ dispatcher, columns: workflowColumns }),
-        launchStep: (entry) => dispatcher.dispatch(entry),
-      }),
+      closer: forgeCardCloser,
+      mover: forgeCardMover,
+      autopilot: autopilotConductor,
     }),
   )
   const pilots = createPilotRepository(db, {
@@ -572,7 +655,8 @@ export function startBoardServer({
         server,
         port: address.port,
         close: () =>
-          Promise.resolve(live.closeAll())
+          Promise.resolve(autopilotTimer === null ? undefined : clearInterval(autopilotTimer))
+            .then(() => live.closeAll())
             .then(() => pilots.closeBrowsers())
             .then(
             () =>

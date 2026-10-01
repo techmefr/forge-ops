@@ -19,6 +19,7 @@ const COLUMN: WorkflowColumn = {
   preprompt: 'Read the epic.',
   autoStart: true,
   behaviouralKind: 'ordinary',
+  maxRetries: 2,
 }
 
 describe('WorkflowStepCard touch targets', () => {

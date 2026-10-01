@@ -2,6 +2,7 @@ import { DONE_STEP_KEY, type ForgeCardView } from '../../../../contract/ForgeCar
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
 import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
+import type { PublicationReport } from '../../technical/Git/StoryPublication.js'
 import { assertDoneEarned, STATE_BEFORE_DONE } from '../Story/DoneGate.js'
 import type { Story } from '../Story/Story.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
@@ -14,6 +15,7 @@ export type ForgeCardClosed = {
   card: ForgeCardView
   unblocked: readonly Story[]
   cleanUp: MergeCleanupReport
+  publication: PublicationReport | null
 }
 
 export type ForgeCardCloserInput = {
@@ -24,6 +26,7 @@ export type ForgeCardCloserInput = {
   checkpoints: Pick<CheckpointRepository, 'definitionOfDone' | 'reviewCascade' | 'listUnresolvedFindings'>
   criteria: Pick<CriterionRepository, 'listCriteria'>
   cleanUpAfterMerge: (storyId: number) => MergeCleanupReport
+  publishStory?: (storyId: number) => PublicationReport | null
 }
 
 export type ForgeCardCloser = {
@@ -38,6 +41,7 @@ export function createForgeCardCloser({
   checkpoints,
   criteria,
   cleanUpAfterMerge,
+  publishStory,
 }: ForgeCardCloserInput): ForgeCardCloser {
   return {
     close: (forgeCardId) => {
@@ -61,10 +65,11 @@ export function createForgeCardCloser({
         businessIntent: stories.findEpic(story.epicId).businessIntent,
         criteria: criteria.listCriteria(story.id),
       })
+      const publication = publishStory?.(story.id) ?? null
       const unblocked = stories.markDoneAndUnblock(story.id)
       const cleanUp = cleanUpAfterMerge(story.id)
       forgeCards.closeForgeCard(forgeCardId)
-      return { card: board.view(forgeCardId), unblocked, cleanUp }
+      return { card: board.view(forgeCardId), unblocked, cleanUp, publication }
     },
   }
 }

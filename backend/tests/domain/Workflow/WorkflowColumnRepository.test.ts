@@ -321,3 +321,20 @@ describe('find', () => {
     expect(columns.find(9999)).toBeNull()
   })
 })
+
+describe('retries of a step', () => {
+  it('lets a step retry twice by default', () => {
+    expect(columns.create(alpha, BUILD).maxRetries).toBe(2)
+  })
+
+  it('keeps the retries a step was created with', () => {
+    expect(columns.create(alpha, { ...BUILD, maxRetries: 4 }).maxRetries).toBe(4)
+  })
+
+  it('changes the retries on update and keeps them when the draft says nothing', () => {
+    const created = columns.create(alpha, BUILD)
+
+    expect(columns.update(alpha, created.id, { ...BUILD, maxRetries: 0 }).maxRetries).toBe(0)
+    expect(columns.update(alpha, created.id, { ...BUILD, label: 'Build again' }).maxRetries).toBe(0)
+  })
+})
