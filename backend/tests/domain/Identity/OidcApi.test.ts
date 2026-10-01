@@ -90,7 +90,7 @@ describe('oidc claims', () => {
 
 describe('oidc login', () => {
   it('ne propose que les fournisseurs configures', async () => {
-    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN })
+    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN, trustProxy: true })
     expect(await (await api.request('/api/auth/oidc/providers')).json()).toEqual(['google'])
   })
 
@@ -150,7 +150,7 @@ describe('oidc login', () => {
   })
 
   it('refuse un state rejoue', async () => {
-    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN })
+    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN, trustProxy: true })
     const answer = await api.request('/api/auth/oidc/google/callback?code=abc&state=forged')
     expect(answer.headers.get('location')).toBe('/login?oidc=refused')
   })
@@ -210,7 +210,7 @@ describe('oidc login from the desktop app', () => {
   })
 
   it('refuses to start a desktop sign-in without a challenge', async () => {
-    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN })
+    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN, trustProxy: true })
     expect((await api.request('/api/auth/oidc/google/start?client=desktop')).status).toBe(400)
     expect((await api.request('/api/auth/oidc/google/start?client=desktop&challenge=short')).status).toBe(400)
   })
@@ -423,7 +423,7 @@ describe('oidc public endpoint limits', () => {
   const forwarded = (address: string) => ({ headers: { 'x-forwarded-for': address } })
 
   it('rate-limits the start endpoint per address', async () => {
-    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN })
+    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN, trustProxy: true })
     let last = 0
     for (let attempt = 0; attempt < 40; attempt += 1) {
       last = (await api.request('/api/auth/oidc/google/start', forwarded('203.0.113.1'))).status
@@ -433,7 +433,7 @@ describe('oidc public endpoint limits', () => {
   })
 
   it('rate-limits the callback and the exchange per address', async () => {
-    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN })
+    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN, trustProxy: true })
     let callback = 0
     let exchange = 0
     for (let attempt = 0; attempt < 40; attempt += 1) {
@@ -451,7 +451,7 @@ describe('oidc public endpoint limits', () => {
   })
 
   it('tells the caller when to retry', async () => {
-    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN })
+    const api = createOidcApi({ identities, providers: [google], allowedDomains: [], publicOrigin: ORIGIN, trustProxy: true })
     let answer = await api.request('/api/auth/oidc/google/start', forwarded('203.0.113.4'))
     for (let attempt = 0; attempt < 40; attempt += 1) {
       answer = await api.request('/api/auth/oidc/google/start', forwarded('203.0.113.4'))

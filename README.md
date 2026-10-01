@@ -264,6 +264,7 @@ FORGE_PORT=8899 npm run demo
 | `CLAUDE_CONFIG_DIR` | `~/.claude` |
 | `FORGE_SESSION_CAP` | `3` |
 | `FORGE_HOST` | `127.0.0.1` |
+| `FORGE_TRUST_PROXY` | `false` (`true` only behind a reverse proxy that sets `X-Forwarded-For`) |
 | `FORGE_TOKEN_PATH` | `.forge-token` |
 | `FORGE_MODE` | `local` (`hub` to require an identity) |
 | `FORGE_WORKTREE_ROOT` | `../forge-worktrees` |
