@@ -316,3 +316,66 @@ describe('countRunning', () => {
     expect(dispatcher.countRunning()).toBe(1)
   })
 })
+
+describe('resuming a session of the card', () => {
+  function buildResumingDispatcher(abandoned: string[], register = sessions): Dispatcher {
+    return createDispatcher({
+      database: db,
+      stories,
+      checkpoints: createCheckpointRepository(db, {
+        ...PERMISSIVE_CHECKPOINT_GATES,
+        takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
+      }),
+      criteria: createCriterionRepository(db),
+      sessions: register,
+      budget: createBudgetRepository(db),
+      foremerge: createForemergeRepository(db, { stories }),
+      runner: {
+        launch: async () => ({ claudeSessionId: 'resumed-session' }),
+        abandon: (id) => abandoned.push(id),
+      },
+      concurrencyCap: 3,
+      claudeCodeVersion: '2.1.224',
+    })
+  }
+
+  it('reuses the row of the resumed session instead of failing on the unique session id', async () => {
+    const resuming = buildResumingDispatcher([])
+    await resuming.dispatch({ storyId, phase: 'spec' })
+    sessions.recordUsage('resumed-session', { costUsd: 0.069, inputTokens: 10, outputTokens: 5 })
+    sessions.closeSession('resumed-session', { exitCode: 0 })
+
+    await resuming.dispatch({ storyId, phase: 'spec' })
+
+    const rows = db.prepare('SELECT lifecycle, outcome, phase, ended_at FROM agent_session').all()
+    expect(rows).toEqual([{ lifecycle: 'starting', outcome: null, phase: 'spec', ended_at: null }])
+  })
+
+  it('only grows the cost of a resumed session', async () => {
+    const resuming = buildResumingDispatcher([])
+    await resuming.dispatch({ storyId, phase: 'spec' })
+    sessions.recordUsage('resumed-session', { costUsd: 0.069, inputTokens: 10, outputTokens: 5 })
+    sessions.closeSession('resumed-session', { exitCode: 0 })
+    await resuming.dispatch({ storyId, phase: 'spec' })
+
+    const afterResume = sessions.recordUsage('resumed-session', { costUsd: 0.022, inputTokens: 4, outputTokens: 2 })
+
+    expect(afterResume.costUsd).toBeCloseTo(0.091, 6)
+    expect(sessions.sumUsage(storyId).costUsd).toBeCloseTo(0.091, 6)
+  })
+
+  it('abandons the started process when the session cannot be registered', async () => {
+    const abandoned: string[] = []
+    const failing = {
+      ...sessions,
+      registerSession: () => {
+        throw new Error('registration refused')
+      },
+    }
+    const resuming = buildResumingDispatcher(abandoned, failing)
+
+    await expect(resuming.dispatch({ storyId, phase: 'spec' })).rejects.toThrow('registration refused')
+
+    expect(abandoned).toEqual(['resumed-session'])
+  })
+})

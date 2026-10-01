@@ -49,12 +49,14 @@ export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunn
         },
       })
 
+      started.onTerminate(() => conversation.close())
       const spoken = conversation[Symbol.asyncIterator]()
       let claudeSessionId: string | null = null
       while (claudeSessionId === null) {
         const step = await spoken.next()
         if (step.done === true) {
           started.channel.close()
+          conversation.close()
           throw new SessionIdentifierMissingError(order.reference)
         }
         const message = step.value
@@ -71,6 +73,7 @@ export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunn
         started.adopt(claudeSessionId)
       } catch (error) {
         started.channel.close()
+        conversation.close()
         throw error
       }
       const identifier = claudeSessionId
@@ -78,6 +81,9 @@ export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunn
         live.close(identifier),
       )
       return { claudeSessionId }
+    },
+    abandon: (claudeSessionId) => {
+      live.terminate(claudeSessionId)
     },
   }
 }
