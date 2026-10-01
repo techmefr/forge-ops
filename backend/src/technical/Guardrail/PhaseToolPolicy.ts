@@ -12,6 +12,12 @@ export const PHASE_TOOL_POLICY: Readonly<Record<AgentPhase, readonly string[]>> 
   ship: [...READ_TOOLS, ...SHELL_TOOLS],
 }
 
+export const EVIDENCE_FOLDER = '.claude/evidence/'
+
+export const EVIDENCE_WRITING_PHASES: readonly AgentPhase[] = ['spec', 'architecture']
+
+export const EVIDENCE_WRITE_TOOLS: readonly string[] = ['Write', 'Edit', 'MultiEdit']
+
 function declared(phase: string): phase is AgentPhase {
   return Object.prototype.hasOwnProperty.call(PHASE_TOOL_POLICY, phase)
 }
@@ -21,6 +27,10 @@ export function toolsOfPhase(phase: string): readonly string[] {
     throw new UnknownPhaseError(phase)
   }
   return PHASE_TOOL_POLICY[phase]
+}
+
+export function writesEvidenceOnly(phase: string, tool: string): boolean {
+  return (EVIDENCE_WRITING_PHASES as readonly string[]).includes(phase) && EVIDENCE_WRITE_TOOLS.includes(tool)
 }
 
 export function allowsTool(phase: string, tool: string): boolean {

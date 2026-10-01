@@ -197,7 +197,8 @@ export function createDispatcher({
         .definitionOfDone(order.storyId)
         .filter((step) => step.proven)
         .map((step) => step.name)
-      const missing = contract.requires.filter((name) => !proven.includes(name))
+      const missing =
+        order.columnId === undefined ? contract.requires.filter((name) => !proven.includes(name)) : []
       if (missing.length > 0) {
         throw new PhaseNotReadyError(order.phase, missing)
       }
@@ -272,16 +273,22 @@ export function createDispatcher({
         throw error
       }
 
-      sessions.registerSession({
-        storyId: order.storyId,
-        claudeSessionId,
-        phase: order.phase,
-        agentName,
-        claudeCodeVersion,
-      })
+      try {
+        sessions.registerSession({
+          storyId: order.storyId,
+          claudeSessionId,
+          phase: order.phase,
+          agentName,
+          claudeCodeVersion,
+        })
 
-      if (forgeCard !== null) {
-        forgeCards.recordDispatch(forgeCard.id, { claudeSessionId, phase: order.phase })
+        if (forgeCard !== null) {
+          forgeCards.recordDispatch(forgeCard.id, { claudeSessionId, phase: order.phase })
+        }
+      } catch (error) {
+        runner.abandon?.(claudeSessionId)
+        bucket.refund(takenAt)
+        throw error
       }
 
       if (order.lens !== undefined) {

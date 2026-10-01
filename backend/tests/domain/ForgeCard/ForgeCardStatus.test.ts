@@ -18,6 +18,12 @@ describe('phaseOfStep', () => {
     expect(phaseOfStep('shipping', KEYS)).toBe('ship')
   })
 
+  it('maps the keys of the default workflow template to their phase', () => {
+    const keys = ['spec', 'plan', 'build', 'review', 'ship']
+
+    expect(keys.map((key) => phaseOfStep(key, keys))).toEqual(['spec', 'architecture', 'code', 'review', 'ship'])
+  })
+
   it('lets a custom step inherit the phase of the nearest known step before it', () => {
     expect(phaseOfStep('security', KEYS)).toBe('code')
   })

@@ -8,5 +8,6 @@ export function claudeCodeDriver(runner: SessionRunner): AgentDriver {
     name: CLAUDE_CODE_DRIVER,
     abilities: ['stream', 'cost', 'resume', 'interrupt'],
     launch: runner.launch,
+    ...(runner.abandon === undefined ? {} : { abandon: runner.abandon }),
   }
 }
