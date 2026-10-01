@@ -9,6 +9,7 @@ import { createCheckpointRepository } from '../domain/Checkpoint/CheckpointRepos
 import { createZoneRepository } from '../domain/Zone/ZoneRepository.js'
 import { createCriterionRepository } from '../domain/Criterion/CriterionRepository.js'
 import { createDispatcher } from '../domain/Dispatch/Dispatcher.js'
+import { createStoryWorkspace } from './StoryWorkspace.js'
 import { createBudgetRepository } from '../domain/Budget/BudgetRepository.js'
 import { createWorkflowRepository } from '../domain/Workflow/WorkflowRepository.js'
 import { createWorkflowColumnRepository } from '../domain/Workflow/WorkflowColumnRepository.js'
@@ -270,6 +271,11 @@ export function startBoardServer({
     workflow,
     forgeCards,
     workflowColumns,
+    prepareWorkspace: createStoryWorkspace({
+      hasCheckout: checkouts.hasCheckout,
+      worktrees,
+      onOpened: (opened) => events.publish({ name: 'worktree.opened', payload: { ...opened } }),
+    }),
     runner: createDrivenRunner({
       drivers,
       providerOf: (order) =>
