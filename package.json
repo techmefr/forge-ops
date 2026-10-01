@@ -8,6 +8,7 @@
     "forge": "tsx backend/src/forge.ts",
     "forge-ops": "tsx backend/src/forgeCli.ts",
     "hook:install": "tsx backend/src/installHook.ts",
+    "guardrails:install": "tsx backend/src/installGuardrails.ts",
     "demo": "tsx backend/src/demo.ts",
     "token:rotate": "tsx backend/src/rotateToken.ts",
     "seed:demo": "tsx backend/src/seedDemo.ts",

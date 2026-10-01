@@ -45,6 +45,8 @@ import { createPilotShotApi } from '../technical/Http/PilotShotApi.js'
 import { createMachineApi } from '../domain/Resource/MachineApi.js'
 import { createPreferenceApi } from '../domain/Preference/PreferenceApi.js'
 import { createPreferenceRepository } from '../domain/Preference/PreferenceRepository.js'
+import { createDoctrineSource } from '../technical/Doctrine/DoctrineSource.js'
+import { installGuardrails } from '../technical/Guardrail/GuardrailInstall.js'
 import { createFileApi } from '../domain/File/FileApi.js'
 import { createFileRepository } from '../domain/File/FileRepository.js'
 import { createStatisticRepository } from '../domain/Statistic/StatisticRepository.js'
@@ -275,6 +277,7 @@ export function startBoardServer({
       worktrees,
       onOpened: (opened) => events.publish({ name: 'worktree.opened', payload: { ...opened } }),
     }),
+    doctrineFor: createDoctrineSource({ forgeRoot: process.cwd(), checkoutOf: cwdForStory }),
     runner: createDrivenRunner({
       drivers,
       providerOf: (order) =>
@@ -543,6 +546,12 @@ export function startBoardServer({
       stories,
       files: createFileRepository(db),
       checkoutRoots: allowedCheckoutRoots,
+      installGuardrails: (checkout) =>
+        installGuardrails({
+          checkout,
+          forgeRoot: process.cwd(),
+          hook: { port, token: deriveHookToken(token) },
+        }),
       mayAdminister: (projectId, context) =>
         mayAdministerProject({
           login: operatorOf(context),

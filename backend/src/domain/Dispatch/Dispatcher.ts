@@ -61,6 +61,7 @@ export type DispatcherInput = {
   forgeCards?: ForgeCardRepository
   workflowColumns?: WorkflowColumnRepository
   prepareWorkspace?: (target: { storyId: number; forgeCardId: number | null }) => void
+  doctrineFor?: (storyId: number, command: string) => string | null
 }
 
 export type Dispatcher = {
@@ -73,25 +74,28 @@ function promptFor(
   contract: PhaseContract,
   lens: string | undefined,
   preprompt: string,
+  doctrineText: string | null,
 ): string {
   const doctrine = contract.command.endsWith('.md')
-    ? `Suis la doctrine de .claude/commands/${contract.command}.`
-    : `Utilise la commande ${contract.command}.`
+    ? doctrineText === null
+      ? `Follow the doctrine of .claude/commands/${contract.command}.`
+      : `Follow this doctrine (${contract.command}):\n\n${doctrineText}\n`
+    : `Use the command ${contract.command}.`
   const sections =
     contract.proves === null
       ? []
       : [
-          `Prouve ${contract.proves} par un fichier sous .claude/evidence/${story.reference}/ dont les titres de section portent : ${EVIDENCE_SHAPE[contract.proves].join(', ')}.`,
+          `Prove ${contract.proves} with a file under .claude/evidence/${story.reference}/ whose section headings carry: ${EVIDENCE_SHAPE[contract.proves].join(', ')}.`,
         ]
   return [
     ...(preprompt.trim() === '' ? [] : [preprompt, ``]),
-    `Story ${story.reference} — ${story.title}`,
+    `Story ${story.reference} - ${story.title}`,
     ``,
     story.body,
     ``,
     lens === undefined
-      ? `Phase : ${contract.phase}. ${doctrine}`
-      : `Phase : ${contract.phase}, lentille ${lens}. ${doctrine} Ne lis que cette lentille.`,
+      ? `Phase: ${contract.phase}. ${doctrine}`
+      : `Phase: ${contract.phase}, lens ${lens}. ${doctrine} Read only this lens.`,
     ...sections,
   ].join('\n')
 }
@@ -113,6 +117,7 @@ export function createDispatcher({
   forgeCards = createForgeCardRepository(database),
   workflowColumns = createWorkflowColumnRepository(database),
   prepareWorkspace,
+  doctrineFor = () => null,
 }: DispatcherInput): Dispatcher {
   const bucket = createRateBucket(rate)
   const placeholders = RUNNING_LIFECYCLES.map(() => '?').join(', ')
@@ -259,7 +264,7 @@ export function createDispatcher({
           : `${forgeCard.reference} (${forgeCard.storyIds.map((cardStoryId) => stories.findStory(cardStoryId).reference).join(', ')})`
       const resumeSessionId = forgeCard?.claudeSessionId ?? undefined
 
-      const prompt = promptFor(story, contract, order.lens, step === null ? (configured?.preprompt ?? '') : step.preprompt)
+      const prompt = promptFor(story, contract, order.lens, step === null ? (configured?.preprompt ?? '') : step.preprompt, contract.command.endsWith('.md') ? doctrineFor(order.storyId, contract.command) : null)
       const model = decision.model ?? (step === null || step.model === '' ? undefined : step.model)
       const stepSettings = {
         ...(step === null ? {} : { provider: step.provider }),
