@@ -71,7 +71,7 @@ const ownerOptions = computed(() => {
   const listed = [...props.people]
   const owner = props.subject?.assignee ?? null
   if (owner !== null && !listed.some((person) => person.login === owner)) {
-    listed.push({ login: owner, displayName: owner, capacity: null })
+    listed.push({ login: owner, displayName: owner, capacity: null, active: true })
   }
   return listed
 })

@@ -421,7 +421,7 @@ onMounted(() => {
             </span>
             <span class="flex min-w-0 flex-1 flex-col">
               <span class="truncate whitespace-nowrap">
-                {{ row.person.displayName }}<span v-if="row.person.login === self" class="ml-1 text-txt-low">{{ t('subjects.me') }}</span>
+                {{ row.person.displayName }}<span v-if="row.person.login === self" class="ml-1 text-txt-low">{{ t('subjects.me') }}</span><span v-if="!row.person.active" class="ml-1 text-txt-low" data-test-id="person-inactive">{{ t('team.inactive') }}</span>
               </span>
               <span
                 v-if="row.flags.late > 0 || row.flags.blocked > 0"

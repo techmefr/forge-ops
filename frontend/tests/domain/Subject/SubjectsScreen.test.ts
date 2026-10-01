@@ -135,6 +135,14 @@ describe('SubjectsScreen people', () => {
     expect(titlesOf(screen)).toEqual(['Mine'])
   })
 
+  it('keeps a deactivated member who still holds open subjects, marked inactive', async () => {
+    serve({ live: [epic({ assignee: 'old', state: 'doing', title: 'Orphan' })] })
+    const screen = await mounted()
+    expect(screen.find('[data-test-id="person-old"]').exists()).toBe(true)
+    expect(screen.find('[data-test-id="person-old"] [data-test-id="person-inactive"]').exists()).toBe(true)
+    expect(screen.find('[data-test-id="person-anna"] [data-test-id="person-inactive"]').exists()).toBe(false)
+  })
+
   it('shows the load as in progress over capacity, neutral under, orange at, red above', async () => {
     serve({
       live: [
