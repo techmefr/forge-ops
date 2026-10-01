@@ -41,6 +41,18 @@ function editing(target: EventTarget | null): boolean {
   return node.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(node.tagName)
 }
 
+function centreCurrent(): void {
+  const bar = strip.value
+  const link = bar?.querySelector('[aria-current="page"]')
+  if (!bar || !link) {
+    return
+  }
+  const barBox = bar.getBoundingClientRect()
+  const linkBox = link.getBoundingClientRect()
+  const left = bar.scrollLeft + linkBox.left - barBox.left - (barBox.width - linkBox.width) / 2
+  bar.scrollTo?.({ left })
+}
+
 const phase = ref<Phase>(IDLE)
 
 function jump(event: KeyboardEvent): void {
@@ -95,7 +107,7 @@ watch(
 watch(
   current,
   () => {
-    strip.value?.querySelector('[aria-current="page"]')?.scrollIntoView?.({ inline: 'center', block: 'nearest' })
+    centreCurrent()
   },
   { flush: 'post' },
 )
