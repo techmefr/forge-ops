@@ -528,3 +528,27 @@ describe('the card drawer', () => {
     expect(inBody('[data-test="forge-drawer"]')).toBeNull()
   })
 })
+
+describe('adding a story', () => {
+  it('only offers the subjects the person can hold', async () => {
+    const base = read.getMockImplementation()
+    read.mockImplementation((path: string) => {
+      if (path === '/api/board/self') {
+        return Promise.resolve({ login: 'anna', superAdmin: false })
+      }
+      if (path.endsWith('/epics')) {
+        return Promise.resolve([
+          { id: 5, title: 'Mails', assignee: 'anna' },
+          { id: 6, title: 'Invoices', assignee: 'bob' },
+          { id: 7, title: 'Billing', assignee: null },
+        ])
+      }
+      return base?.(path)
+    })
+
+    const screen = await mountScreen()
+
+    const select = screen.get('select[aria-label="Subject of the story"]')
+    expect(select.findAll('option').map((option) => option.text())).toEqual(['Mails', 'Billing'])
+  })
+})

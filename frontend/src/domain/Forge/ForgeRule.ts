@@ -5,6 +5,7 @@ import {
   type ForgeCardView,
 } from '@contract/ForgeCardContract'
 import type { WorkflowColumn } from '@contract/WorkflowColumnContract'
+import type { EpicOverview } from '@contract/StoryContract'
 
 export const FORGE_VIEWS = ['kanban', 'pipeline'] as const
 
@@ -70,6 +71,13 @@ export function cardsOfStep(cards: readonly ForgeCardView[], key: string): reado
 
 export function filterBySubject(cards: readonly ForgeCardView[], subjectId: number | null): readonly ForgeCardView[] {
   return subjectId === null ? cards : cards.filter((card) => card.subjectId === subjectId)
+}
+
+export function holdableSubjects(subjects: readonly EpicOverview[], login: string | null): readonly EpicOverview[] {
+  if (login === null) {
+    return subjects
+  }
+  return subjects.filter((subject) => (subject.assignee ?? null) === null || subject.assignee === login)
 }
 
 export function canDropInto(card: ForgeCardView, target: BoardStep): boolean {

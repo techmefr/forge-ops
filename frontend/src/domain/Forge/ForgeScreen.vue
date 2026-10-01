@@ -26,6 +26,7 @@ import {
   activeProjectOf,
   boardSteps,
   filterBySubject,
+  holdableSubjects,
   firstStepKey,
   isLastStep,
   type BoardStep,
@@ -47,6 +48,7 @@ const resourcesOpen = ref(false)
 const announcement = ref('')
 const newTitle = ref('')
 const newSubject = ref<number | null>(null)
+const selfLogin = ref<string | null>(null)
 
 const forge = useForgeBoard(() => projectId.value)
 const starter = useProjectWorkflow(() => projectId.value ?? 0)
@@ -57,6 +59,7 @@ const steps = computed<readonly BoardStep[]>(() =>
   boardSteps(columns.value, { backlog: t('forge.backlog'), done: t('forge.done') }),
 )
 const visible = computed(() => filterBySubject(forge.cards.value, subjectId.value))
+const addable = computed(() => holdableSubjects(forge.subjects.value, selfLogin.value))
 const opened = computed(() => forge.cards.value.find((card) => card.id === openedId.value) ?? null)
 const noWorkflow = computed(() => forge.workflow.value !== null && columns.value.length === 0)
 const projectName = computed(() => project.value?.name ?? '')
@@ -157,16 +160,32 @@ async function createStarter(): Promise<void> {
   }
 }
 
+watch(addable, (list) => {
+  if (!list.some((subject) => subject.id === newSubject.value)) {
+    newSubject.value = list[0]?.id ?? null
+  }
+})
+
+async function readSelf(): Promise<void> {
+  try {
+    const self = await board.read<{ login?: string } | undefined>('/api/board/self')
+    selfLogin.value = typeof self?.login === 'string' ? self.login : null
+  } catch {
+    selfLogin.value = null
+  }
+}
+
 watch(projectId, () => {
   subjectId.value = null
   openedId.value = null
   void forge.load().then(() => {
-    newSubject.value = forge.subjects.value[0]?.id ?? null
+    newSubject.value = addable.value[0]?.id ?? null
   })
 })
 
 onMounted(async () => {
   void adoptStoredView()
+  void readSelf()
   await projects.reload()
   const list = projects.data.value ?? []
   projectId.value = activeProjectOf(list, readPreference(FORGE_PROJECT_KEY, list.map((entry) => String(entry.id)), ''))
@@ -233,7 +252,7 @@ onMounted(async () => {
       </div>
 
       <form
-        v-if="forge.subjects.value.length > 0"
+        v-if="addable.length > 0"
         class="flex min-w-0 flex-none flex-wrap items-center gap-2 px-4 pb-3"
         @submit.prevent="addStory"
       >
@@ -250,7 +269,7 @@ onMounted(async () => {
           class="max-w-full rounded-md border border-line bg-card px-2 py-1 text-[11px] text-txt-hi"
           :aria-label="t('forge.addStorySubject')"
         >
-          <option v-for="subject in forge.subjects.value" :key="subject.id" :value="subject.id">
+          <option v-for="subject in addable" :key="subject.id" :value="subject.id">
             {{ subject.title }}
           </option>
         </select>

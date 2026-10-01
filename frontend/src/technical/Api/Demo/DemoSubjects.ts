@@ -110,6 +110,12 @@ function numbersOf(value: unknown): number[] {
   return Array.isArray(value) ? value.filter((entry): entry is number => typeof entry === 'number') : []
 }
 
+function settleWanted(context: DemoContext, epic: EpicOverview, wanted: string | null): void {
+  if (wanted !== null && (MANUAL_EPIC_STATES as readonly string[]).includes(wanted)) {
+    settle(context, epic, wanted as EpicState)
+  }
+}
+
 function applyPatch(context: DemoContext, epic: EpicOverview): DemoReply | null {
   const { body, state } = context
   const priority = bodyText(body, 'priority')
@@ -239,6 +245,7 @@ export const SUBJECT_ROUTES: readonly DemoRoute[] = [
   route('POST', '/api/epics/(\\d+)/claim', (context) =>
     withEpic(context, (epic) => {
       epic.assignee = context.state.self.login
+      settleWanted(context, epic, bodyText(context.body, 'state'))
       return reply(epic)
     }),
   ),
@@ -251,6 +258,7 @@ export const SUBJECT_ROUTES: readonly DemoRoute[] = [
   route('DELETE', '/api/epics/(\\d+)/claim', (context) =>
     withEpic(context, (epic) => {
       epic.assignee = null
+      settleWanted(context, epic, context.query.get('state'))
       return reply(epic)
     }),
   ),

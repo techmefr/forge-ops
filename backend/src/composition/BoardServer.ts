@@ -301,7 +301,7 @@ export function startBoardServer({
   const discussion = createDiscussionRepository(db, { stories })
   const batches = createBatchRepository(db)
   const identities = createIdentityRepository(db)
-  const superAdminSeed = readSuperAdminConfiguration()
+  const superAdminSeed = readSuperAdminConfiguration(process.env, undefined, (message) => console.warn(message))
   if (superAdminSeed !== null) {
     identities.bootstrapSuperAdmin(superAdminSeed)
   } else if (mode === 'hub') {

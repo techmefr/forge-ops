@@ -72,19 +72,20 @@ export function statusOf({ stepKey, stepIsHuman, currentPhase, latest }: StatusI
   if (stepKey === BACKLOG_STEP_KEY) {
     return 'idle'
   }
+  const current = latest !== null && latest.phase === currentPhase ? latest : null
+  if (current !== null && isRunningLifecycle(current.lifecycle)) {
+    return 'running'
+  }
   if (stepIsHuman) {
     return 'human_review'
   }
-  if (latest === null || latest.phase !== currentPhase) {
+  if (current === null) {
     return 'idle'
   }
-  if (isRunningLifecycle(latest.lifecycle)) {
-    return 'running'
-  }
-  if (latest.lifecycle === 'awaiting_human') {
+  if (current.lifecycle === 'awaiting_human') {
     return 'to_validate'
   }
-  if (latest.lifecycle === 'finished' && (latest.outcome === null || latest.outcome === 'succeeded')) {
+  if (current.lifecycle === 'finished' && (current.outcome === null || current.outcome === 'succeeded')) {
     return 'to_validate'
   }
   return 'failed'

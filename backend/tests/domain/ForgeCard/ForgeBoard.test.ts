@@ -327,6 +327,22 @@ describe('moving a card', () => {
     await expect(mover.move(card.id, 'security_audit')).rejects.toThrow(StepBusyError)
   })
 
+  it('leaves a running session untouched when its step is edited, even switched to a human step', async () => {
+    const spec = columns.create(projectId, AGENT_STEP)
+    columns.create(projectId, MANUAL_STEP)
+    const card = cardOf(storyId)
+    await mover.move(card.id, 'spec')
+    const sessionsBefore = db.prepare('SELECT * FROM agent_session ORDER BY id').all()
+
+    columns.update(projectId, spec.id, { ...AGENT_STEP, label: 'Specification', model: 'claude-opus-5-5', effort: 'max' })
+    columns.update(projectId, spec.id, HUMAN_STEP)
+
+    expect(db.prepare('SELECT * FROM agent_session ORDER BY id').all()).toEqual(sessionsBefore)
+    expect(cardOf(storyId)).toMatchObject({ stepKey: 'spec', status: 'running' })
+    await expect(mover.move(card.id, 'security_audit')).rejects.toThrow(StepBusyError)
+    expect(launched).toHaveLength(1)
+  })
+
   it('refuses to launch from the backlog', async () => {
     await expect(mover.launch(cardOf(storyId).id)).rejects.toThrow(LaunchNeedsAStepError)
   })

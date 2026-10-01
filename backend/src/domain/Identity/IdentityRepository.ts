@@ -222,6 +222,7 @@ export function createIdentityRepository(
         enrolAccount({ login: seed.login, displayName: seed.login, password: seed.password, role: 'director' })
       }
       updateSuperAdmin.run(1, seed.login)
+      reactivateByLogin.run(seed.login)
       return toUser(demandUser(seed.login))
     },
 

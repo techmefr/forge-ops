@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ForgeCardStatus, ForgeCardView } from '@contract/ForgeCardContract'
 import type { WorkflowColumn } from '@contract/WorkflowColumnContract'
+import type { EpicOverview } from '@contract/StoryContract'
 import {
   activeProjectOf,
   adjacentStep,
@@ -9,6 +10,7 @@ import {
   cardsOfStep,
   dotsOf,
   filterBySubject,
+  holdableSubjects,
   firstStepKey,
   referenceLabel,
   pipelineOrder,
@@ -217,5 +219,21 @@ describe('thin story reasons', () => {
   it('knows the last step of a workflow', () => {
     expect(isLastStep(STEPS, card(1, 'build', 'to_validate'))).toBe(true)
     expect(isLastStep(STEPS, card(1, 'spec', 'to_validate'))).toBe(false)
+  })
+})
+
+describe('holdableSubjects', () => {
+  const subjects = [
+    { id: 1, assignee: null },
+    { id: 2, assignee: 'anna' },
+    { id: 3, assignee: 'bob' },
+  ] as unknown as readonly EpicOverview[]
+
+  it('keeps the free subjects and the ones the person holds', () => {
+    expect(holdableSubjects(subjects, 'anna').map((subject) => subject.id)).toEqual([1, 2])
+  })
+
+  it('keeps everything while nobody is known, the server decides', () => {
+    expect(holdableSubjects(subjects, null)).toHaveLength(3)
   })
 })
