@@ -26,7 +26,6 @@ import { MILESTONE_KINDS } from '@contract/StoryContract'
 import { EPIC_PRIORITIES, EPIC_STATES, LINK_KINDS, SUBJECT_FILTERS } from '@contract/EpicContract'
 import { RISK_LEVELS, WEATHERS } from '@contract/FollowUpContract'
 import { SPOKEN_MARKS } from '@/domain/File/FileMarkTone'
-import { DRAWER_TABS } from '@/domain/Kanban/DrawerTab'
 import { THREAD_ENTRY_KINDS } from '@contract/ConversationContract'
 import { DESKS } from '@/domain/Story/Desk'
 import { OWNERSHIPS } from '@/domain/Story/EpicFilter'
@@ -48,7 +47,6 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   conduct: COST_CAP_CONDUCT_SEQUENCE,
   degradation: DEGRADATIONS,
   desk: DESKS,
-  drawerTab: DRAWER_TABS,
   epicPriority: EPIC_PRIORITIES,
   epicState: EPIC_STATES,
   fleetState: FLEET_JOB_STATE_SEQUENCE,

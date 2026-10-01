@@ -11,7 +11,6 @@ const EXPECTED_ROUTES = [
   'DELETE /api/stories/:id/block',
   'DELETE /api/stories/:id/merge-conflict',
   'DELETE /api/tags/:id',
-  'GET /api/board/columns',
   'GET /api/board/human-gates',
   'GET /api/board/kanban',
   'GET /api/board/phases',

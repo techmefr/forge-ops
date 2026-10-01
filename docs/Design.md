@@ -14,7 +14,7 @@ Decided (see [VisualDirection.md](VisualDirection.md)): **Linear**, specifically
 - Colour: `--forge-*` tokens and every theme variant (6 palettes × light/dark) are untouched. The accent marks exactly one active/selected thing per view; status colours carry real status meaning only, never decoration.
 - Border/elevation: one hairline per region, background-tone shift (`bg-panel`/`bg-card`/`bg-elev`) instead of nested borders.
 
-Applied so far (issue #146): `AppShell.vue` (nav chrome), `CardDrawer.vue`, `StatisticScreen.vue`, the Kanban board (`KanbanScreen.vue`, `ColumnPanel.vue`), the Settings screen, the File browser.
+Applied so far (issue #146): `AppShell.vue` (nav chrome), `StatisticScreen.vue`, the Settings screen, the File browser.
 
 Not yet re-passed against the Linear-specific radius/colour rules above (they predate that decision, landed under the looser Vercel/Linear framing): all of the above files need a second look for `rounded-2xl`/`rounded-xl` and any decorative (non-status, non-active) colour use that survived the first pass.
 
@@ -56,7 +56,7 @@ Layout, cards/tiles, the type/spacing/radius scale, and the colour system are al
 Introduce Reka UI incrementally, smallest and lowest-risk first, each as its own mergeable slice:
 
 1. **`Tooltip`** first - validates the dependency and the skinning approach (our tokens, our scale) on the smallest possible surface, and closes a real RGAA gap on icon-only buttons immediately.
-2. **`Tabs`** next - replaces the two parallel hand-rolled implementations (`AppShell.vue`, `CardDrawer.vue`) with one accessible primitive.
+2. **`Tabs`** next - replaces the two parallel hand-rolled implementations (`AppShell.vue`) with one accessible primitive.
 3. **`Dialog`** once an actual modal/overlay need exists (there isn't one yet - `CardDrawer.vue` is a persistent side panel, not a dialog. Don't introduce a `Dialog` usage looking for a problem).
 
 The native `<select>` in `AppearanceSection.vue` stays as-is - it's simpler, accessible by default, and has no real gap to close today. Revisit only if a richer picker (icons, previews) becomes an actual requirement, not preemptively.

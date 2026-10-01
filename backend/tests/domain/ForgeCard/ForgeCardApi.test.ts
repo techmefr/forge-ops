@@ -3,7 +3,7 @@ import type { Hono } from 'hono'
 import type Database from 'better-sqlite3'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { createStoryRepository, type StoryRepository } from '../../../src/domain/Story/StoryRepository.js'
-import { createForgeCardRepository } from '../../../src/domain/ForgeCard/ForgeCardRepository.js'
+import { createForgeCardRepository, type ForgeCardRepository } from '../../../src/domain/ForgeCard/ForgeCardRepository.js'
 import { createForgeCardApi } from '../../../src/domain/ForgeCard/ForgeCardApi.js'
 import { createWorktreeRepository } from '../../../src/domain/Worktree/WorktreeRepository.js'
 
@@ -20,6 +20,7 @@ function fakeGit() {
 let db: Database.Database
 let stories: StoryRepository
 let api: Hono
+let forgeCards: ForgeCardRepository
 let storyId: number
 
 function ask(path: string, method = 'GET', body?: unknown): Promise<Response> {
@@ -37,8 +38,9 @@ function ask(path: string, method = 'GET', body?: unknown): Promise<Response> {
 beforeEach(() => {
   db = openDatabase(':memory:')
   stories = createStoryRepository(db)
+  forgeCards = createForgeCardRepository(db)
   api = createForgeCardApi({
-    forgeCards: createForgeCardRepository(db),
+    forgeCards,
     worktrees: createWorktreeRepository(db, { stories, git: fakeGit(), root: '/tmp/forge-worktrees' }),
   })
   const project = stories.createProject({
@@ -55,47 +57,9 @@ beforeEach(() => {
   storyId = story.id
 })
 
-describe('POST /api/forge-cards', () => {
-  it('cree une forge a partir des stories selectionnees', async () => {
-    const response = await ask('/api/forge-cards', 'POST', { storyIds: [storyId] })
-    expect(response.status).toBe(201)
-    const card = (await response.json()) as { reference: string; storyIds: number[] }
-    expect(card.reference).toBe('FORGE-1')
-    expect(card.storyIds).toEqual([storyId])
-  })
-
-  it('refuse une selection vide avec un statut 409', async () => {
-    const response = await ask('/api/forge-cards', 'POST', { storyIds: [] })
-    expect(response.status).toBe(409)
-  })
-
-  it('refuse un corps invalide avec un statut 422', async () => {
-    const response = await ask('/api/forge-cards', 'POST', { storyIds: 'pas-un-tableau' })
-    expect(response.status).toBe(422)
-  })
-
-  it('nait pilotee par claude quand rien n est precise, comme avant le multi-provider', async () => {
-    const response = await ask('/api/forge-cards', 'POST', { storyIds: [storyId] })
-    const card = (await response.json()) as { provider: string }
-    expect(card.provider).toBe('claude')
-  })
-
-  it('retient le provider choisi a Lancer une forge', async () => {
-    const response = await ask('/api/forge-cards', 'POST', { storyIds: [storyId], provider: 'codex' })
-    const card = (await response.json()) as { provider: string }
-    expect(card.provider).toBe('codex')
-  })
-
-  it('refuse un provider inconnu avec un statut 422', async () => {
-    const response = await ask('/api/forge-cards', 'POST', { storyIds: [storyId], provider: 'opencode' })
-    expect(response.status).toBe(422)
-  })
-})
-
 describe('POST /api/forge-cards/:id/worktree', () => {
   it('ouvre le worktree de la story portee par la forge', async () => {
-    const created = await ask('/api/forge-cards', 'POST', { storyIds: [storyId] })
-    const card = (await created.json()) as { id: number }
+    const card = forgeCards.createForgeCard({ storyIds: [storyId] })
 
     const response = await ask(`/api/forge-cards/${card.id}/worktree`, 'POST', { baseRef: 'main' })
     expect(response.status).toBe(201)

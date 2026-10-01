@@ -163,7 +163,7 @@ The board exposes an HTTP API (Hono). `POST /api/hooks` is also the target of th
 | `GET`/`POST /api/projects/:id/workflow-columns` | Reads the workflow of a project, or adds a step; adding needs the project admin |
 | `PUT /api/projects/:id/workflow-columns/order` | Reorders the steps; needs the project admin |
 | `PUT`/`DELETE /api/projects/:id/workflow-columns/:columnId` | Edits or removes a step; needs the project admin |
-| `GET`/`POST /api/forge-cards` | Lists the forge cards of a project (`project` query), or creates one |
+| `GET /api/forge-cards` | Lists the forge cards of a project (`project` query) |
 | `POST /api/forge-cards/backlog` | Adds a story to the backlog of a subject you hold |
 | `POST /api/forge-cards/:id/move` | Moves a card to a workflow step |
 | `POST /api/forge-cards/:id/launch` | Launches the agent of the card |

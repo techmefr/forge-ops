@@ -305,7 +305,7 @@ onMounted(async () => {
 
       <p v-if="forge.pending.value" class="m-0 px-4 text-[11px] text-txt-low">{{ t('forge.loading') }}</p>
 
-      <div class="min-h-[26rem] min-w-0 flex-1 px-4 pb-4">
+      <div class="min-h-[26rem] min-w-0 flex-1 px-4 pb-4" data-tour="forge-steps">
         <ForgeKanban
           v-if="view === 'kanban'"
           :steps="steps"

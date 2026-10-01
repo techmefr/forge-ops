@@ -1,5 +1,4 @@
 export const PARAMETERLESS_PATHS: readonly string[] = [
-  '/api/board/columns',
   '/api/board/holds',
   '/api/board/human-gates',
   '/api/board/kanban',
@@ -29,7 +28,6 @@ export const PARAMETERLESS_PATHS: readonly string[] = [
   '/api/sessions/history',
   '/api/sessions/stale',
   '/api/settings/budget',
-  '/api/settings/workflow',
   '/api/statistics',
   '/api/stories/backlog',
   '/api/tags',

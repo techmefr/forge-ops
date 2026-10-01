@@ -13,7 +13,7 @@ import {
 import { createDispatcher, type Dispatcher } from '../../../src/domain/Dispatch/Dispatcher.js'
 import { createBudgetRepository } from '../../../src/domain/Budget/BudgetRepository.js'
 import { createWorkflowRepository } from '../../../src/domain/Workflow/WorkflowRepository.js'
-import { SEED_WORKFLOW } from '../../../src/domain/Workflow/Workflow.js'
+import { SEED_WORKFLOW, WORKFLOW_CONFIG_KEY } from '../../../src/domain/Workflow/Workflow.js'
 import type { LaunchOrder, SessionRunner } from '../../../src/domain/Dispatch/Dispatch.js'
 import {
   FleetSaturatedError,
@@ -114,13 +114,12 @@ describe('dispatch', () => {
 
   it('follows the persisted workflow for the agent, command and preprompt', async () => {
     const workflow = createWorkflowRepository(db)
-    workflow.writePhases(
-      SEED_WORKFLOW.map((entry) =>
-        entry.phase === 'spec'
-          ? { ...entry, agentName: 'oxydis', command: 'CUSTOM.md', preprompt: 'ecris court' }
-          : entry,
-      ),
+    const stored = SEED_WORKFLOW.map((entry) =>
+      entry.phase === 'spec'
+        ? { ...entry, agentName: 'oxydis', command: 'CUSTOM.md', preprompt: 'ecris court' }
+        : entry,
     )
+    db.prepare('INSERT INTO board_setting (key, value) VALUES (?, ?)').run(WORKFLOW_CONFIG_KEY, JSON.stringify(stored))
     const configured = createDispatcher({
       database: db,
       stories,

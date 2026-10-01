@@ -5,11 +5,14 @@ import {
   createWorkflowRepository,
   type WorkflowRepository,
 } from '../../../src/domain/Workflow/WorkflowRepository.js'
-import { SEED_WORKFLOW } from '../../../src/domain/Workflow/Workflow.js'
-import { WorkflowRefusedError } from '../../../src/domain/Workflow/WorkflowViolation.js'
+import { SEED_WORKFLOW, WORKFLOW_CONFIG_KEY } from '../../../src/domain/Workflow/Workflow.js'
 
 let db: Database.Database
 let workflow: WorkflowRepository
+
+function persist(value: string): void {
+  db.prepare('INSERT INTO board_setting (key, value) VALUES (?, ?)').run(WORKFLOW_CONFIG_KEY, value)
+}
 
 beforeEach(() => {
   db = openDatabase(':memory:')
@@ -17,38 +20,28 @@ beforeEach(() => {
 })
 
 describe('readPhases', () => {
-  it('seme depuis PHASE_CONTRACTS tant que rien n a ete ecrit', () => {
+  it('seeds from PHASE_CONTRACTS while nothing is stored', () => {
     expect(workflow.readPhases()).toEqual(SEED_WORKFLOW)
   })
 
-  it('relit ce qui a ete ecrit', () => {
-    const written = SEED_WORKFLOW.map((entry) =>
-      entry.phase === 'code' ? { ...entry, agentName: 'oxydis', preprompt: 'ecris propre' } : entry,
+  it('rereads a stored phase list', () => {
+    const stored = SEED_WORKFLOW.map((entry) =>
+      entry.phase === 'code' ? { ...entry, agentName: 'oxydis', preprompt: 'write clean' } : entry,
     )
-    workflow.writePhases(written)
+    persist(JSON.stringify(stored))
 
-    expect(workflow.readPhases()).toEqual(written)
-  })
-})
-
-describe('writePhases', () => {
-  it('refuse une phase manquante', () => {
-    const incomplete = SEED_WORKFLOW.filter((entry) => entry.phase !== 'ship')
-    expect(() => workflow.writePhases(incomplete)).toThrow(WorkflowRefusedError)
+    expect(workflow.readPhases()).toEqual(stored)
   })
 
-  it('refuse un agent vide', () => {
-    const invalid = SEED_WORKFLOW.map((entry) =>
-      entry.phase === 'spec' ? { ...entry, agentName: '' } : entry,
-    )
-    expect(() => workflow.writePhases(invalid)).toThrow(WorkflowRefusedError)
+  it('falls back to the seed when the stored list lost a phase', () => {
+    persist(JSON.stringify(SEED_WORKFLOW.filter((entry) => entry.phase !== 'ship')))
+
+    expect(workflow.readPhases()).toEqual(SEED_WORKFLOW)
   })
 
-  it('ne modifie rien en base quand le refus arrive avant l ecriture', () => {
-    const invalid = SEED_WORKFLOW.map((entry) =>
-      entry.phase === 'spec' ? { ...entry, command: '' } : entry,
-    )
-    expect(() => workflow.writePhases(invalid)).toThrow(WorkflowRefusedError)
+  it('falls back to the seed when the stored value is not JSON', () => {
+    persist('{')
+
     expect(workflow.readPhases()).toEqual(SEED_WORKFLOW)
   })
 })

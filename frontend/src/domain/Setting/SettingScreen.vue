@@ -12,7 +12,6 @@ import ProjectsSection from './ProjectsSection.vue'
 import TagsSection from './TagsSection.vue'
 import UsersSection from './UsersSection.vue'
 import TemplateSection from './TemplateSection.vue'
-import WorkflowSection from './WorkflowSection.vue'
 import { keepsTheOrganisation } from './SettingSection'
 import type { TeamSelf } from './TeamRule'
 
@@ -67,7 +66,6 @@ onMounted(() => void look())
       <h2 class="m-0 text-base font-semibold text-txt-hi">{{ t('settingHalf.organisation') }}</h2>
       <p class="text-[13px] text-txt-low">{{ t('settingHalf.organisationSub') }}</p>
       <TemplateSection />
-      <WorkflowSection />
       <BudgetSection />
       <OrganisationSection />
       <DeliverySection />

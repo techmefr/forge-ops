@@ -63,6 +63,7 @@ function start(event: DragEvent): void {
     :draggable="draggable"
     :aria-busy="busy"
     data-test="forge-card"
+    data-tour="forge-card"
     @dragstart="start"
     @dragend="emit('dragging', false)"
   >
