@@ -197,7 +197,8 @@ export function createDispatcher({
         .definitionOfDone(order.storyId)
         .filter((step) => step.proven)
         .map((step) => step.name)
-      const missing = contract.requires.filter((name) => !proven.includes(name))
+      const missing =
+        order.columnId === undefined ? contract.requires.filter((name) => !proven.includes(name)) : []
       if (missing.length > 0) {
         throw new PhaseNotReadyError(order.phase, missing)
       }

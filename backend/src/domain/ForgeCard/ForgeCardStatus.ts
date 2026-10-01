@@ -8,6 +8,11 @@ import {
 
 export const PHASE_OF_STEP_KEY: Readonly<Record<string, AgentPhase>> = {
   backlog: 'spec',
+  spec: 'spec',
+  plan: 'architecture',
+  build: 'code',
+  review: 'review',
+  ship: 'ship',
   architecture: 'architecture',
   building: 'code',
   gating: 'gate',
