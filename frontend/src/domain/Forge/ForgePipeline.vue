@@ -97,8 +97,8 @@ function effort(card: ForgeCardView): string {
                 class="flex items-center gap-1 text-[11px]"
                 :class="{
                   'text-acc': dot.state === 'running',
-                  'text-red': dot.state === 'failed',
-                  'text-orange': dot.state === 'to_validate' || dot.state === 'human_review',
+                  'text-red': dot.state === 'failed' || dot.state === 'budget_exhausted',
+                  'text-orange': dot.state === 'to_validate' || dot.state === 'human_review' || dot.state === 'stopped',
                   'text-green': dot.state === 'passed',
                   'text-txt-low': dot.state === 'to_come' || dot.state === 'waiting',
                 }"
@@ -120,8 +120,8 @@ function effort(card: ForgeCardView): string {
             <span
               :class="{
                 'text-acc': card.status === 'running',
-                'text-red': card.status === 'failed',
-                'text-orange': card.status === 'to_validate' || card.status === 'human_review',
+                'text-red': card.status === 'failed' || card.status === 'budget_exhausted',
+                'text-orange': card.status === 'to_validate' || card.status === 'human_review' || card.status === 'stopped',
                 'text-green': card.status === 'done',
                 'text-txt-mid': card.status === 'idle',
               }"

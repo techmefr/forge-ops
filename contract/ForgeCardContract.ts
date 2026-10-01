@@ -26,7 +26,16 @@ export const BACKLOG_STEP_KEY = 'backlog'
 
 export const DONE_STEP_KEY = 'done'
 
-export const FORGE_CARD_STATUSES = ['idle', 'running', 'failed', 'to_validate', 'human_review', 'done'] as const
+export const FORGE_CARD_STATUSES = [
+  'idle',
+  'running',
+  'failed',
+  'stopped',
+  'budget_exhausted',
+  'to_validate',
+  'human_review',
+  'done',
+] as const
 
 export type ForgeCardStatus = (typeof FORGE_CARD_STATUSES)[number]
 

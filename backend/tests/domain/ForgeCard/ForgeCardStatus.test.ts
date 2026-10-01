@@ -70,9 +70,8 @@ describe('statusOf', () => {
     expect(statusOf({ ...base, latest: session('awaiting_human') })).toBe('to_validate')
   })
 
-  it('is failed when the session failed, was interrupted or ended badly', () => {
+  it('is failed when the session failed or ended badly', () => {
     expect(statusOf({ ...base, latest: session('failed') })).toBe('failed')
-    expect(statusOf({ ...base, latest: session('interrupted') })).toBe('failed')
     expect(statusOf({ ...base, latest: session('finished', 'timed_out') })).toBe('failed')
   })
 
@@ -82,5 +81,17 @@ describe('statusOf', () => {
 
   it('is idle in a step nobody launched yet', () => {
     expect(statusOf({ ...base, latest: null })).toBe('idle')
+  })
+})
+
+describe('statusOf after a stop or a budget cap', () => {
+  const base = { stepKey: 'building', stepIsHuman: false, currentPhase: 'code' as const }
+
+  it('is stopped, not failed, after the user stopped the session', () => {
+    expect(statusOf({ ...base, latest: session('interrupted', 'interrupted') })).toBe('stopped')
+  })
+
+  it('says the budget is exhausted when the cap ended the session', () => {
+    expect(statusOf({ ...base, latest: session('failed', 'budget_exhausted') })).toBe('budget_exhausted')
   })
 })

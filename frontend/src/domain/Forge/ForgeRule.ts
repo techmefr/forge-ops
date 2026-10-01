@@ -107,6 +107,8 @@ export const DOT_STATES = [
   'passed',
   'running',
   'failed',
+  'stopped',
+  'budget_exhausted',
   'to_validate',
   'human_review',
   'waiting',
@@ -148,6 +150,8 @@ export function dotsOf(card: ForgeCardView, steps: readonly BoardStep[]): readon
 const PIPELINE_RANK: Readonly<Record<ForgeCardStatus, number>> = {
   running: 0,
   failed: 1,
+  budget_exhausted: 1,
+  stopped: 1,
   to_validate: 2,
   human_review: 3,
   idle: 5,
@@ -213,7 +217,7 @@ export function primaryActionOf(card: ForgeCardView, steps: readonly BoardStep[]
   if (card.status === 'running') {
     return 'stop'
   }
-  if (card.status === 'failed') {
+  if (card.status === 'failed' || card.status === 'stopped' || card.status === 'budget_exhausted') {
     return 'retry'
   }
   if (card.status === 'to_validate' || card.status === 'human_review') {
