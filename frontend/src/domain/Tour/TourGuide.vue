@@ -98,14 +98,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <button
-    v-if="tour.offered.value"
-    type="button"
-    class="fixed right-3 bottom-[7.5rem] z-50 min-h-11 rounded-full border border-acc bg-panel px-4 py-2 font-mono text-[11px] font-bold text-acc uppercase sm:right-5 sm:bottom-5 sm:min-h-0"
-    @click="tour.reopen()"
-  >
-    {{ t('tour.reopen') }}
-  </button>
+  <Teleport to="#tour-slot" defer>
+    <button
+      v-if="tour.offered.value"
+      type="button"
+      class="min-h-11 rounded-full border border-acc bg-panel px-3 font-mono text-[11px] font-bold text-acc uppercase sm:min-h-9"
+      @click="tour.reopen()"
+    >
+      {{ t('tour.reopen') }}
+    </button>
+  </Teleport>
 
   <GhostPointer :anchor="anchor" :gesture="gesture" />
 
@@ -115,7 +117,7 @@ onBeforeUnmount(() => {
     role="dialog"
     aria-modal="false"
     :aria-label="t('tour.label')"
-    class="fixed right-3 bottom-[7.5rem] z-50 flex w-[min(380px,calc(100vw-1.5rem))] sm:right-5 sm:bottom-5 flex-col gap-3 rounded-lg border border-acc bg-panel p-6 shadow-2xl"
+    class="fixed right-3 bottom-14 z-50 flex w-[min(380px,calc(100vw-1.5rem))] flex-col sm:right-5 gap-3 rounded-lg border border-acc bg-panel p-6 shadow-2xl"
   >
     <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase" role="status">
       {{ t('tour.progress', { current: tour.index.value + 1, total: tour.total }) }}
