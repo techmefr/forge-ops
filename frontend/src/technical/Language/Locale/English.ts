@@ -985,6 +985,8 @@ export const ENGLISH = {
     deactivate: 'Deactivate',
     reactivate: 'Reactivate',
     superAdmin: 'super admin',
+    grantSuperAdmin: 'Make super admin',
+    revokeSuperAdmin: 'Remove super admin',
     addUser: 'Add an account',
     login: 'Login',
     displayName: 'Display name',

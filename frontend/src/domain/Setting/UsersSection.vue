@@ -58,6 +58,12 @@ function setCapacity(user: BoardUserSheet, event: Event): Promise<void> {
   })
 }
 
+function toggleSuperAdmin(user: BoardUserSheet): Promise<void> {
+  return guard(async () => {
+    await board.send(`/api/board-users/${user.login}`, 'PATCH', { superAdmin: !user.superAdmin })
+  })
+}
+
 function toggle(user: BoardUserSheet): Promise<void> {
   return guard(async () => {
     await board.send(`/api/board-users/${user.login}`, 'PATCH', { active: !user.active })
@@ -139,6 +145,16 @@ void users.reload()
           :class="user.active ? 'border-green text-green' : 'border-line text-txt-low'"
           >{{ user.active ? t('team.active') : t('team.inactive') }}</span
         >
+
+        <button
+          v-if="self?.superAdmin"
+          type="button"
+          :aria-label="`${t(user.superAdmin ? 'team.revokeSuperAdmin' : 'team.grantSuperAdmin')}: ${user.displayName}`"
+          class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+          @click="toggleSuperAdmin(user)"
+        >
+          {{ user.superAdmin ? t('team.revokeSuperAdmin') : t('team.grantSuperAdmin') }}
+        </button>
 
         <button
           v-if="manages"

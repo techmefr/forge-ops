@@ -4,6 +4,7 @@ import type { Component } from 'vue'
 import { createBoardI18n } from '@/technical/Language/I18n'
 import ProjectsSection from '@/domain/Setting/ProjectsSection.vue'
 import TagsSection from '@/domain/Setting/TagsSection.vue'
+import { BoardRequestError } from '@/technical/Api/BoardClient'
 import UsersSection from '@/domain/Setting/UsersSection.vue'
 
 const read = vi.fn()
@@ -252,6 +253,46 @@ describe('UsersSection', () => {
 
     expect(send).not.toHaveBeenCalled()
     expect(section.find('[role="alert"]').text()).toContain('whole number from 1 to 99')
+  })
+
+  it('offers a super admin to grant the flag and to remove it', async () => {
+    read.mockImplementation((path: string) =>
+      Promise.resolve(path === '/api/board-users' ? [{ ...USERS[0], superAdmin: true }, USERS[1]] : []),
+    )
+    const section = mountWith(UsersSection, { self, manages: true })
+    await flushPromises()
+
+    const remove = section.find('button[aria-label="Remove super admin: Ana Lys"]')
+    const grant = section.find('button[aria-label="Make super admin: Bob"]')
+    expect(remove.exists()).toBe(true)
+    await grant.trigger('click')
+    await remove.trigger('click')
+    await flushPromises()
+
+    expect(send).toHaveBeenCalledWith('/api/board-users/bob', 'PATCH', { superAdmin: true })
+    expect(send).toHaveBeenCalledWith('/api/board-users/ana', 'PATCH', { superAdmin: false })
+  })
+
+  it('shows the refusal when removing the last super admin', async () => {
+    read.mockImplementation((path: string) =>
+      Promise.resolve(path === '/api/board-users' ? [{ ...USERS[0], superAdmin: true }] : []),
+    )
+    send.mockRejectedValue(new BoardRequestError(409, 'LastSuperAdminError', 'last'))
+    const section = mountWith(UsersSection, { self, manages: true })
+    await flushPromises()
+
+    await section.find('button[aria-label="Remove super admin: Ana Lys"]').trigger('click')
+    await flushPromises()
+
+    expect(section.find('[role="alert"]').text()).toContain('The last super admin cannot be removed.')
+  })
+
+  it('hides the super admin control from a director who is not a super admin', async () => {
+    const section = mountWith(UsersSection, { self: { login: 'dan', superAdmin: false }, manages: true })
+    await flushPromises()
+
+    expect(section.find('button[aria-label^="Make super admin"]').exists()).toBe(false)
+    expect(section.find('button[aria-label^="Remove super admin"]').exists()).toBe(false)
   })
 
   it('hides the account management from someone who does not manage', async () => {
