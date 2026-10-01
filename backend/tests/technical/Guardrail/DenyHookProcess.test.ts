@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 const ROOT = join(import.meta.dirname, '..', '..', '..', '..')
 
 function runHook(command: string): { status: number | null; stderr: string } {
-  const env = { ...process.env, FORGE_PHASE: 'code' }
+  const env: NodeJS.ProcessEnv = { ...process.env, FORGE_PHASE: 'code' }
   delete env.FORGE_DENY_PATH
   const ran = spawnSync(
     join(ROOT, 'node_modules', '.bin', 'tsx'),
