@@ -54,13 +54,15 @@ const { SessionAlreadyRunningError } = await import('../../src/domain/Dispatch/D
 import type { SdkUserTurn } from '../../src/technical/ClaudeCode/TurnDelivery.js'
 import type { BoardEvent } from '../../src/technical/Http/EventBus.js'
 
-function conversationOf(sessionId: string): AsyncIterable<{ type: string; session_id: string }> {
+function conversationOf(
+  sessionId: string,
+): AsyncIterable<{ type: string; session_id: string }> & { close: () => void } {
   async function* once(): AsyncGenerator<{ type: string; session_id: string }> {
     yield { type: 'system', session_id: sessionId }
     yield { type: 'result', session_id: sessionId }
   }
   const walking = once()
-  return { [Symbol.asyncIterator]: () => walking }
+  return { [Symbol.asyncIterator]: () => walking, close: () => undefined }
 }
 
 function initGitRepo(root: string): void {
@@ -318,8 +320,19 @@ describe('dispatch multi-colonnes d une forge card', () => {
 
   it('refuse un second dispatch concurrent sur la meme carte pendant qu une session tourne', async () => {
     await board.dispatch('spec')
+    markLatest(board, 'working')
 
     await expect(board.dispatch('spec')).rejects.toThrow(SessionAlreadyRunningError)
+  })
+
+  it('lets the card move on when the agent only waits for the human', async () => {
+    await board.dispatch('spec')
+    markLatest(board, 'awaiting_human')
+    board.proveCheckpoint('spec_done')
+
+    await expect(board.dispatch('architecture')).resolves.toBeDefined()
+
+    expect(board.sessions.findByClaudeSessionId('sess-1')).toMatchObject({ lifecycle: 'finished' })
   })
 
   it('rend une seule discussion continue sur les trois colonnes deja dispatchees', async () => {
@@ -337,6 +350,13 @@ describe('dispatch multi-colonnes d une forge card', () => {
     expect(thread.chapters.map((chapter) => chapter.claudeSessionId)).toEqual(['sess-1', 'sess-2', 'sess-3'])
   })
 })
+
+function markLatest(board: Board, lifecycle: 'working' | 'awaiting_human'): void {
+  const latest = board.sessions.latestSessionOf(board.storyId)
+  if (latest !== null) {
+    board.sessions.updateLifecycle(latest.claudeSessionId, lifecycle)
+  }
+}
 
 function finishRunning(board: Board): void {
   const latest = board.sessions.latestSessionOf(board.storyId)

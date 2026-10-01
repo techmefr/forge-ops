@@ -6,7 +6,7 @@ import type { ForgeCardView } from '@contract/ForgeCardContract'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import { replyRouteOf, submitsOn } from './ConversationRule'
 import { STATUS_GLYPH } from './ForgeGlyph'
-import { adjacentStep, minutesOf, primaryActionOf, referenceLabel, type BoardStep, type CardAction } from './ForgeRule'
+import { adjacentStep, minutesOf, primaryActionOf, referenceLabel, secondaryActionOf, type BoardStep, type CardAction } from './ForgeRule'
 import { useCardConversation } from './UseCardConversation'
 
 const props = defineProps<{
@@ -37,6 +37,7 @@ const field = ref<HTMLTextAreaElement | null>(null)
 const step = computed(() => props.steps.find((candidate) => candidate.key === props.card.stepKey) ?? null)
 const route = computed(() => replyRouteOf(step.value?.kind ?? 'backlog', step.value?.human ?? false))
 const action = computed(() => primaryActionOf(props.card, props.steps))
+const secondaryAction = computed(() => secondaryActionOf(props.card))
 const working = computed(() => props.card.status === 'running')
 
 const agentLine = computed(() => {
@@ -163,8 +164,12 @@ onMounted(() => void conversation.load())
           </dd>
         </dl>
 
-        <div v-if="action !== null" class="flex flex-none items-center gap-2 border-b border-line px-5 py-2">
+        <div
+          v-if="action !== null || secondaryAction !== null"
+          class="flex flex-none items-center gap-2 border-b border-line px-5 py-2"
+        >
           <button
+            v-if="action !== null"
             type="button"
             class="rounded-md border border-line bg-transparent px-3 py-1.5 font-mono text-[11px] text-txt-hi hover:bg-elev disabled:opacity-40"
             :disabled="busy"
@@ -172,6 +177,16 @@ onMounted(() => void conversation.load())
             @click="emit('act', action)"
           >
             {{ actionLabel }}
+          </button>
+          <button
+            v-if="secondaryAction !== null"
+            type="button"
+            class="rounded-md border border-line bg-transparent px-3 py-1.5 font-mono text-[11px] text-txt-mid hover:bg-elev disabled:opacity-40"
+            :disabled="busy"
+            data-test="forge-drawer-secondary-action"
+            @click="emit('act', secondaryAction)"
+          >
+            {{ t(`forge.action.${secondaryAction}`) }}
           </button>
         </div>
 

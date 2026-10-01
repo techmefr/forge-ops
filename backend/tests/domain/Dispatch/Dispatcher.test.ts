@@ -379,3 +379,70 @@ describe('resuming a session of the card', () => {
     expect(abandoned).toEqual(['resumed-session'])
   })
 })
+
+describe('a session that only waits for the human', () => {
+  function buildAbandoningDispatcher(abandoned: string[], concurrencyCap = 3): Dispatcher {
+    let counter = 0
+    return createDispatcher({
+      database: db,
+      stories,
+      checkpoints: createCheckpointRepository(db, {
+        ...PERMISSIVE_CHECKPOINT_GATES,
+        takeCensus: () => ({ tests: 0, skipped: 0, tautologies: 0 }),
+      }),
+      criteria: createCriterionRepository(db),
+      sessions,
+      budget: createBudgetRepository(db),
+      foremerge: createForemergeRepository(db, { stories }),
+      runner: {
+        launch: async () => {
+          counter += 1
+          return { claudeSessionId: `waiting-session-${counter}` }
+        },
+        abandon: (id) => abandoned.push(id),
+      },
+      concurrencyCap,
+      claudeCodeVersion: '2.1.224',
+    })
+  }
+
+  it('is hung up and closed as succeeded when the card moves on', async () => {
+    const abandoned: string[] = []
+    const moving = buildAbandoningDispatcher(abandoned)
+    const first = await moving.dispatch({ storyId, phase: 'spec' })
+    sessions.updateLifecycle(first.claudeSessionId, 'awaiting_human')
+
+    const second = await moving.dispatch({ storyId, phase: 'spec' })
+
+    expect(second.claudeSessionId).not.toBe(first.claudeSessionId)
+    expect(abandoned).toEqual([first.claudeSessionId])
+    expect(db.prepare('SELECT lifecycle, outcome FROM agent_session WHERE claude_session_id = ?').get(first.claudeSessionId)).toEqual({
+      lifecycle: 'finished',
+      outcome: 'succeeded',
+    })
+  })
+
+  it('does not hold the last slot of the cap against its own card', async () => {
+    const moving = buildAbandoningDispatcher([], 1)
+    const first = await moving.dispatch({ storyId, phase: 'spec' })
+    sessions.updateLifecycle(first.claudeSessionId, 'awaiting_human')
+
+    await expect(moving.dispatch({ storyId, phase: 'spec' })).resolves.toBeDefined()
+  })
+
+  it('still refuses while the agent is working', async () => {
+    const moving = buildAbandoningDispatcher([])
+    const first = await moving.dispatch({ storyId, phase: 'spec' })
+    sessions.updateLifecycle(first.claudeSessionId, 'working')
+
+    await expect(moving.dispatch({ storyId, phase: 'spec' })).rejects.toThrow(SessionAlreadyRunningError)
+  })
+
+  it('keeps counting as a running session for the cap and the counters', async () => {
+    const moving = buildAbandoningDispatcher([])
+    const first = await moving.dispatch({ storyId, phase: 'spec' })
+    sessions.updateLifecycle(first.claudeSessionId, 'awaiting_human')
+
+    expect(moving.countRunning()).toBe(1)
+  })
+})
