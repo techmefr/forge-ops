@@ -102,7 +102,7 @@ describe('le plancher de completude garde le dispatch', () => {
   it('dit ce qui manque dans son refus', async () => {
     const storyId = writeStory('mails', '')
 
-    await expect(dispatcher.dispatch({ storyId, phase: 'architecture' })).rejects.toThrow(/critere/)
+    await expect(dispatcher.dispatch({ storyId, phase: 'architecture' })).rejects.toThrow(/acceptance criteria/)
   })
 
   it('ne lance rien quand la story est refusee comme trop mince', async () => {

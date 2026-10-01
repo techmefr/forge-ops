@@ -2,7 +2,7 @@ export class PathOutsideCheckoutError extends Error {
   readonly asked: string
 
   constructor(asked: string) {
-    super(`Le chemin ${asked} sort du depot`)
+    super(`Path ${asked} is outside the checkout`)
     this.name = 'PathOutsideCheckoutError'
     this.asked = asked
   }
@@ -11,8 +11,8 @@ export class PathOutsideCheckoutError extends Error {
 export class CheckoutUnreadableError extends Error {
   readonly path: string
 
-  constructor(path: string, reason: string) {
-    super(`Depot illisible en ${path} : ${reason}`)
+  constructor(path: string, code: string) {
+    super(`Checkout unreadable at ${path} (${code})`)
     this.name = 'CheckoutUnreadableError'
     this.path = path
   }

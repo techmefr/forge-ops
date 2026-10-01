@@ -249,6 +249,6 @@ describe('lease', () => {
 
     expect(() =>
       foremerge.reserve({ storyId: second, pathPrefix: 'backend/src', symbols: [] }),
-    ).toThrow(`depuis ${since}`)
+    ).toThrow(`since ${since}`)
   })
 })

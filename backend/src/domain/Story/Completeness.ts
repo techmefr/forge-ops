@@ -30,33 +30,33 @@ const RULES: readonly Rule[] = [
   {
     weight: 15,
     code: 'TitleTooShort',
-    gap: 'le titre est trop court pour dire ce que la story fait',
+    gap: 'the title is too short to say what the story does',
     holds: (input) => input.title.trim().length >= TITLE_FLOOR,
   },
   {
     weight: 25,
     code: 'BodyTooShort',
-    gap: 'le corps ne dit pas assez pour etre code',
+    gap: 'the body does not say enough to be coded',
     hard: true,
     holds: (input) => input.body.trim().length >= BODY_FLOOR,
   },
   {
     weight: 15,
     code: 'BodyWithoutNeed',
-    gap: 'le corps ne dit ni le besoin ni le pourquoi',
+    gap: 'the body says neither the need nor the why',
     holds: (input) => input.body.split('\n').filter((line) => line.trim() !== '').length >= LINES_FLOOR,
   },
   {
     weight: 30,
     code: 'CriteriaMissing',
-    gap: `la story porte moins de ${CRITERIA_FLOOR} criteres d'acceptance`,
+    gap: `the story carries fewer than ${CRITERIA_FLOOR} acceptance criteria`,
     hard: true,
     holds: (input) => input.criteria.length >= CRITERIA_FLOOR,
   },
   {
     weight: 15,
     code: 'TwinMissing',
-    gap: "la story n'a pas sa jumelle de test",
+    gap: 'the story has no test twin',
     holds: (input) => input.hasTwin,
   },
 ]

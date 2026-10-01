@@ -139,7 +139,7 @@ describe('tags', () => {
   it('refuses to delete a tag while an epic uses it', () => {
     const tag = stories.epics.createTag({ label: 'Urgent', colour: '#ff0000' })
     stories.epics.plan(epicId, { tagIds: [tag.id] })
-    expect(() => stories.epics.deleteTag(tag.id)).toThrow('utilise')
+    expect(() => stories.epics.deleteTag(tag.id)).toThrow('is used by')
     stories.epics.plan(epicId, { tagIds: [] })
     stories.epics.deleteTag(tag.id)
     expect(stories.epics.listTags()).toEqual([])
@@ -156,18 +156,18 @@ describe('depends_on', () => {
   })
 
   it('refuses an epic depending on itself', () => {
-    expect(() => stories.epics.plan(epicId, { dependsOn: [epicId] })).toThrow('elle-meme')
+    expect(() => stories.epics.plan(epicId, { dependsOn: [epicId] })).toThrow('depend on itself')
   })
 
   it('refuses a direct loop', () => {
     stories.epics.plan(epicId, { dependsOn: [second] })
-    expect(() => stories.epics.plan(second, { dependsOn: [epicId] })).toThrow('boucle')
+    expect(() => stories.epics.plan(second, { dependsOn: [epicId] })).toThrow('closes a loop')
   })
 
   it('refuses a longer loop', () => {
     stories.epics.plan(epicId, { dependsOn: [second] })
     stories.epics.plan(second, { dependsOn: [third] })
-    expect(() => stories.epics.plan(third, { dependsOn: [epicId] })).toThrow('boucle')
+    expect(() => stories.epics.plan(third, { dependsOn: [epicId] })).toThrow('closes a loop')
   })
 
   it('lets a replaced dependency be reversed', () => {
@@ -314,7 +314,7 @@ describe('soft delete', () => {
   })
 
   it('refuses to delete twice or to restore what is not deleted', () => {
-    expect(() => stories.epics.restore(epicId, 'gaetan')).toThrow('corbeille')
+    expect(() => stories.epics.restore(epicId, 'gaetan')).toThrow('not in the bin')
     stories.epics.softDelete(epicId, 'gaetan')
     expect(() => stories.epics.softDelete(epicId, 'gaetan')).toThrow('introuvable')
   })

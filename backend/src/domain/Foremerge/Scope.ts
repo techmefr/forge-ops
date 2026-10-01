@@ -36,10 +36,10 @@ function reasonFor(left: ScopeClaim, right: ScopeClaim): string | null {
   const here = normalisePath(left.pathPrefix)
   const there = normalisePath(right.pathPrefix)
   if (contains(here, there)) {
-    return `${here} contient ${there}`
+    return `${here} contains ${there}`
   }
   if (contains(there, here)) {
-    return `${there} contient ${here}`
+    return `${there} contains ${here}`
   }
   const symbol = sharedSymbol(left, right)
   return symbol === null ? null : `les deux touchent ${symbol}`

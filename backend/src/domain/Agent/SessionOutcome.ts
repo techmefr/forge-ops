@@ -26,7 +26,7 @@ const STATEMENTS: Record<OutcomeClass, string> = {
   interrupted: 'La session a ete interrompue',
   killed: 'La session a ete tuee sans pouvoir se ranger',
   timed_out: 'La session a depasse le temps qui lui etait laisse',
-  budget_exhausted: 'La session a atteint le plafond de cout',
+  budget_exhausted: 'The session reached the cost cap',
   permission_denied: 'La session a bute sur un refus de permission',
   looping: 'La session tournait en boucle sans progresser',
   awaiting_human: 'La session attend une decision humaine',

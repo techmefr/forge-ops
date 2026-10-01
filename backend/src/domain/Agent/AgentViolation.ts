@@ -7,6 +7,6 @@ export abstract class AgentViolationError extends Error {
 
 export class UnknownAgentSessionError extends AgentViolationError {
   constructor(claudeSessionId: string) {
-    super(`Aucune session d'agent enregistree pour ${claudeSessionId}`, 'UnknownAgentSessionError')
+    super(`No agent session recorded for ${claudeSessionId}`, 'UnknownAgentSessionError')
   }
 }

@@ -82,7 +82,7 @@ describe('collisionsBetween', () => {
   it('reports the pair that collides, and what they share', () => {
     expect(
       collisionsBetween([DOMAINE, { storyId: 2, pathPrefix: 'backend/src', symbols: [] }]),
-    ).toEqual([{ storyIds: [1, 2], reason: 'backend/src contient backend/src/domain/Story' }])
+    ).toEqual([{ storyIds: [1, 2], reason: 'backend/src contains backend/src/domain/Story' }])
   })
 
   it('names the shared symbol when the folders do not meet', () => {
