@@ -14,3 +14,13 @@ export function clientAddressOf(context: Context): string {
     return UNKNOWN_ADDRESS
   }
 }
+
+const LOOPBACK_PEERS: readonly string[] = ['127.0.0.1', '::1', '::ffff:127.0.0.1']
+
+export function isLoopbackPeer(context: Context): boolean {
+  try {
+    return LOOPBACK_PEERS.includes(getConnInfo(context).remote.address ?? UNKNOWN_ADDRESS)
+  } catch {
+    return false
+  }
+}
