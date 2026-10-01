@@ -153,7 +153,7 @@ watch(
             class="h-2 w-2 flex-none rounded-full"
             :class="criterion.satisfied ? 'bg-green' : 'bg-line'"
           />
-          <span class="font-mono text-[10px] text-txt-low">{{ criterion.reference }}</span>
+          <span class="font-mono whitespace-nowrap text-[10px] text-txt-low">{{ criterion.reference }}</span>
           <span class="text-txt-hi">{{ criterion.statement }}</span>
           <button
             v-if="!criterion.satisfied"

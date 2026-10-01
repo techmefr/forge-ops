@@ -303,12 +303,9 @@ textarea {
   border-radius: 12px;
 }
 
-.tour-spot::after {
-  content: attr(data-tour-spot);
-  position: absolute;
-  top: -12px;
-  left: 8px;
-  z-index: 30;
+.tour-tag {
+  position: fixed;
+  z-index: 45;
   padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid var(--forge-acc);
@@ -319,12 +316,8 @@ textarea {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  white-space: nowrap;
   pointer-events: none;
-}
-
-.tour-spot--flip::after {
-  top: auto;
-  bottom: -12px;
 }
 
 @keyframes tour-ghost {

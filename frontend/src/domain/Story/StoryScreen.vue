@@ -249,7 +249,7 @@ onMounted(async () => {
                 "
                 @click="openWritten(story.id)"
               >
-                <span class="font-mono text-[11px] text-txt-low">{{ story.reference }}</span>
+                <span class="font-mono whitespace-nowrap text-[11px] text-txt-low">{{ story.reference }}</span>
                 <span class="mt-0.5 block">{{ story.title }}</span>
               </button>
             </li>

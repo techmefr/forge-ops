@@ -2,10 +2,11 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { clearSpot, lightSpot } from '@/technical/Ui/Spotlight'
+import { clearSpot, findSpot, lightSpot } from '@/technical/Ui/Spotlight'
 import { LOGIN_PATH } from '@/technical/Api/Board'
 import { useTour } from './UseTour'
 import GhostPointer from './GhostPointer.vue'
+import { popoverCorner, type Corner } from './TourPlacement'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -29,7 +30,42 @@ const anchor = computed(() => (tour.open.value ? (tour.step.value?.anchor ?? nul
 const panel = ref<HTMLElement | null>(null)
 const heading = ref<HTMLElement | null>(null)
 
-async function placeOnStep(): Promise<void> {
+const SETTLE_MS = 450
+
+const CORNER_CLASSES: Record<Corner, string> = {
+  'bottom-right': 'bottom-14 right-3 sm:right-5',
+  'bottom-left': 'bottom-14 left-3 sm:left-5',
+  'top-right': 'top-3 right-3 sm:right-5',
+  'top-left': 'top-3 left-3 sm:left-5',
+}
+
+const corner = ref<Corner>('bottom-right')
+let settleTimer = 0
+let arriving = true
+
+function steerAway(): void {
+  const node = panel.value
+  const step = tour.step.value
+  if (node === null || step === null) {
+    return
+  }
+  corner.value = popoverCorner(
+    findSpot(step.anchor)?.getBoundingClientRect() ?? null,
+    { width: node.offsetWidth, height: node.offsetHeight },
+    { width: window.innerWidth, height: window.innerHeight },
+  )
+}
+
+const SPOT_ATTEMPTS = 12
+const SPOT_RETRY_MS = 150
+
+async function spotAppears(anchor: string): Promise<void> {
+  for (let attempt = 0; attempt < SPOT_ATTEMPTS && findSpot(anchor) === null; attempt += 1) {
+    await new Promise((resolve) => window.setTimeout(resolve, SPOT_RETRY_MS))
+  }
+}
+
+async function placeOnStep(navigate: boolean): Promise<void> {
   if (window.location.pathname === LOGIN_PATH) {
     clearSpot()
     return
@@ -39,11 +75,15 @@ async function placeOnStep(): Promise<void> {
     clearSpot()
     return
   }
-  if (route.path !== step.path) {
+  if (navigate && route.path !== step.path) {
     await router.push(step.path)
   }
   await nextTick()
+  await spotAppears(step.anchor)
   lightSpot(step.anchor, t('tour.spot'))
+  steerAway()
+  window.clearTimeout(settleTimer)
+  settleTimer = window.setTimeout(steerAway, SETTLE_MS)
   heading.value?.focus?.()
 }
 
@@ -75,24 +115,37 @@ function onKey(event: KeyboardEvent): void {
   }
 }
 
-watch(() => tour.step.value?.id ?? null, () => void placeOnStep(), { flush: 'post' })
+watch(
+  () => tour.step.value?.id ?? null,
+  () => {
+    if (!arriving) {
+      void placeOnStep(true)
+    }
+  },
+  { flush: 'post' },
+)
 watch(
   () => route.path === LOGIN_PATH,
   (stillOnLogin) => {
     if (!stillOnLogin) {
-      void placeOnStep()
+      void placeOnStep(false)
     }
   },
 )
 
 onMounted(async () => {
   window.addEventListener('keydown', onKey)
+  window.addEventListener('resize', steerAway)
   await tour.awake()
-  await placeOnStep()
+  await placeOnStep(false)
+  await nextTick()
+  arriving = false
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKey)
+  window.removeEventListener('resize', steerAway)
+  window.clearTimeout(settleTimer)
   clearSpot()
 })
 </script>
@@ -117,7 +170,8 @@ onBeforeUnmount(() => {
     role="dialog"
     aria-modal="false"
     :aria-label="t('tour.label')"
-    class="fixed right-3 bottom-14 z-50 flex w-[min(380px,calc(100vw-1.5rem))] flex-col sm:right-5 gap-3 rounded-lg border border-acc bg-panel p-6 shadow-2xl"
+    :class="CORNER_CLASSES[corner]"
+    class="fixed z-50 flex w-[min(380px,calc(100vw-1.5rem))] flex-col gap-3 rounded-lg border border-acc bg-panel p-6 shadow-2xl"
   >
     <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase" role="status">
       {{ t('tour.progress', { current: tour.index.value + 1, total: tour.total }) }}

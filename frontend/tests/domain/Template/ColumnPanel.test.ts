@@ -43,6 +43,23 @@ describe('le panneau de colonne edite le nom et la couleur', () => {
     expect(panel.find('select').exists()).toBe(true)
   })
 
+  it('nomme chaque couleur au lieu d afficher son jeton', () => {
+    const panel = mounted('architecture', true)
+    const labels = panel.findAll('option').map((option) => option.text())
+
+    expect(labels).toHaveLength(8)
+    expect(labels).not.toContain('acc')
+    expect(labels).toContain('Accent')
+    expect(labels).toContain('Gris')
+  })
+
+  it('se ferme avec Echap', async () => {
+    const panel = mounted('architecture', true)
+    await panel.find('input[type="text"]').trigger('keydown', { key: 'Escape' })
+
+    expect(panel.emitted('close')).toHaveLength(1)
+  })
+
   it('cache les champs a qui ne regle pas', () => {
     const panel = mounted('architecture', false)
 
