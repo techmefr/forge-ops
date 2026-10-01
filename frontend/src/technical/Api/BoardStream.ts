@@ -1,5 +1,9 @@
 import { FROZEN_VISIT } from './Visit.js'
 import { listenToDemoStream } from './DemoStream.js'
+import { isDesktop, readAddresses } from './Addresses.js'
+import { desktopFetch } from './DesktopFetch.js'
+import { identityHeaders } from './DesktopIdentity.js'
+import { createFetchEventSource } from './FetchEventSource.js'
 
 export type StreamedEvent = {
   name: string
@@ -15,6 +19,16 @@ export type StreamInput = {
   onEvent: (event: StreamedEvent) => void
   onError?: (reason: string) => void
   source?: (url: string) => EventSource
+}
+
+function defaultSource(url: string): EventSource {
+  if (isDesktop()) {
+    return createFetchEventSource(`${readAddresses().instanceUrl}${url}`, {
+      fetcher: desktopFetch,
+      headers: identityHeaders,
+    }) as unknown as EventSource
+  }
+  return new EventSource(url, { withCredentials: true })
 }
 
 const WATCHED_EVENTS = [
@@ -66,7 +80,7 @@ export function openBoardStream({
   path = '/api/events',
   onEvent,
   onError,
-  source = (url) => new EventSource(url, { withCredentials: true }),
+  source = defaultSource,
 }: StreamInput): StreamHandle {
   if (FROZEN_VISIT) {
     return { close: listenToDemoStream(onEvent) }

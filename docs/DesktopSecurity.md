@@ -18,9 +18,9 @@ Servers are chosen by the user at runtime, so the scope cannot list their origin
 
 Scripts cannot be injected in the first place because of the policy above; the scope is the second layer, not the only one. Narrowing it further to the saved server origins would need a Rust command that rewrites the scope on every server change, which Tauri 2 does not offer for `plugin-http` today.
 
-## Known limits
+## Board event stream
 
-The board event stream uses `EventSource`, which `connect-src` blocks for a remote origin. It resolves a relative path today, so it already needs to be routed through `plugin-http` for the desktop shell.
+On desktop the board stream does not use `EventSource`, which `connect-src` would block for a remote origin. `FetchEventSource.ts` reads the server-sent events through `plugin-http` with a streamed body, sends the active server's bearer token on every (re)connection, and reconnects with exponential backoff (1 s up to 30 s). The browser build keeps `EventSource`.
 
 ## Saved server tokens
 
