@@ -126,6 +126,19 @@ describe('GET /api/projects/:id/follow-up', () => {
     expect((await followUp()).score.late).toBe(0)
   })
 
+  it('drops the events of a deleted subject from the alerts and brings them back on restore', async () => {
+    await call('/api/events', 'POST', { projectId, type: 'client', date: '2026-09-15', title: 'Past', epicId })
+    expect((await followUp()).alerts.minutesToWrite).toBe(1)
+
+    stories.epics.softDelete(epicId, 'gaetan')
+    const hidden = await followUp()
+    expect(hidden.alerts.minutesToWrite).toBe(0)
+    expect(hidden.events).toHaveLength(0)
+
+    stories.epics.restore(epicId, 'gaetan')
+    expect((await followUp()).alerts.minutesToWrite).toBe(1)
+  })
+
   it('lists the minutes to write and the next event', async () => {
     await call('/api/events', 'POST', { projectId, type: 'steering', date: '2026-09-15', title: 'Past' })
     await call('/api/events', 'POST', { projectId, type: 'client', date: '2026-10-05', title: 'Soon' })

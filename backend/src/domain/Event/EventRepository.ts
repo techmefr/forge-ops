@@ -65,6 +65,7 @@ export function createEventRepository(
   const selectOfProject = db.prepare<[number, string | null, string | null], EventRow>(
     `SELECT ${COLUMNS} ${FROM}
       WHERE COALESCE(epic_milestone.project_id, epic.project_id) = ?
+        AND (epic.id IS NULL OR epic.deleted_at IS NULL)
         AND (? IS NULL OR epic_milestone.due_on >= ?)
       ORDER BY epic_milestone.due_on, epic_milestone.id`,
   )

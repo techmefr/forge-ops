@@ -59,6 +59,18 @@ describe('POST /api/events', () => {
     expect(typeof event.id).toBe('number')
   })
 
+  it('hides the events of a deleted subject and shows them again once restored', async () => {
+    const repository = createStoryRepository(db)
+    await created({ type: 'demo', date: '2026-09-30', epicId })
+    await created({ type: 'steering', date: '2026-10-09', title: 'Steering' })
+
+    repository.epics.softDelete(epicId, 'gaetan')
+    expect((await listed()).map((event) => event.type)).toEqual(['steering'])
+
+    repository.epics.restore(epicId, 'gaetan')
+    expect(await listed()).toHaveLength(2)
+  })
+
   it('links an event to an epic of the same project', async () => {
     const event = await created({ type: 'demo', date: '2026-09-30', epicId, note: 'With the client' })
     expect(event).toMatchObject({ epicId, note: 'With the client' })
