@@ -10,9 +10,12 @@ services:
       FORGE_SERVER_URL: ${FORGE_SERVER_URL:?the address of the server this instance answers to}
       FORGE_TOKEN_PATH: /run/secrets/board_token
       FORGE_INSTANCE_TOKEN_FILE: /run/secrets/instance_token
+      FORGE_SUPER_ADMIN_LOGIN: ${FORGE_SUPER_ADMIN_LOGIN:-}
+      FORGE_SUPER_ADMIN_PASSWORD_FILE: /run/secrets/super_admin_password
     secrets:
       - board_token
       - instance_token
+      - super_admin_password
     volumes:
       - instance-data:/data
       - ${FORGE_REPOSITORIES:-./repositories}:/repositories
@@ -35,6 +38,8 @@ services:
 secrets:
   board_token:
     file: ./board_token.secret
+  super_admin_password:
+    file: ./super_admin_password.secret
   instance_token:
     file: ./instance_token.secret
 

@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
-import { setCookie } from 'hono/cookie'
+import { createHash } from 'node:crypto'
+import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { IDENTITY_COOKIE } from '../../technical/Auth/TokenGuard.js'
 import { cookieSecure } from '../../technical/Auth/SecureCookie.js'
 import {
@@ -15,6 +16,9 @@ import type { OpenedSession } from './Identity.js'
 import type { IdentityRepository } from './IdentityRepository.js'
 import { resolveExternalUser } from './ExternalIdentity.js'
 
+const TRANSACTION_COOKIE = 'oidc_tx'
+const TRANSACTION_COOKIE_PATH = '/api/auth/oidc'
+const TRANSACTION_COOKIE_MAX_AGE_SECONDS = 600
 const LANDING_PATH = '/'
 const REFUSED_PATH = '/login?oidc=refused'
 const DESKTOP_RETURN = 'forgeops://auth'
@@ -28,6 +32,10 @@ export type OidcApiInput = {
   send?: OidcFetch
   transactions?: OidcTransactions
   handoffs?: OidcHandoffs<OpenedSession>
+}
+
+function bindingOf(state: string): string {
+  return createHash('sha256').update(state).digest('hex')
 }
 
 export function createOidcApi({
@@ -63,6 +71,13 @@ export function createOidcApi({
       verifier: pkce.verifier,
       isDesktop: context.req.query('client') === 'desktop',
     })
+    setCookie(context, TRANSACTION_COOKIE, bindingOf(state), {
+      path: TRANSACTION_COOKIE_PATH,
+      httpOnly: true,
+      sameSite: 'Lax',
+      secure: cookieSecure(context),
+      maxAge: TRANSACTION_COOKIE_MAX_AGE_SECONDS,
+    })
     return context.redirect(
       authorizeUrlOf(provider, redirectUriOf(context.req.url, provider.name), state, nonce, pkce.challenge),
     )
@@ -70,9 +85,12 @@ export function createOidcApi({
 
   api.get('/api/auth/oidc/:provider/callback', async (context) => {
     const provider = providers.find((candidate) => candidate.name === context.req.param('provider'))
-    const transaction = transactions.take(context.req.query('state') ?? '')
+    const state = context.req.query('state') ?? ''
+    const transaction = transactions.take(state)
+    const bound = getCookie(context, TRANSACTION_COOKIE)
+    deleteCookie(context, TRANSACTION_COOKIE, { path: TRANSACTION_COOKIE_PATH })
     const code = context.req.query('code') ?? ''
-    if (provider === undefined || transaction === null || transaction.provider !== provider.name || code === '') {
+    if (provider === undefined || transaction === null || transaction.provider !== provider.name || bound !== bindingOf(state) || code === '') {
       return context.redirect(transaction?.isDesktop === true ? DESKTOP_REFUSED : REFUSED_PATH)
     }
     try {
