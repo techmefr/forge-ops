@@ -50,6 +50,8 @@ function seed(db: Database.Database): void {
   sessions.recordFileTouch({ claudeSessionId: 'session-1', path: 'src/Disparu.vue' })
 }
 
+let mayAdminister = true
+
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), 'forge-api-'))
   mkdirSync(join(root, 'src'), { recursive: true })
@@ -61,7 +63,9 @@ beforeEach(() => {
     stories: createStoryRepository(db, { checkoutRoots: [tmpdir()] }),
     files: createFileRepository(db),
     checkoutRoots: [tmpdir()],
+    mayAdminister: () => mayAdminister,
   })
+  mayAdminister = true
 })
 
 describe('GET /api/projects/:id/tree', () => {
@@ -148,6 +152,15 @@ async function pointing(projectId: number, checkoutPath: string): Promise<Respon
 }
 
 describe('PUT /api/projects/:id/checkout', () => {
+  it('is refused to anyone who does not administer the project', async () => {
+    mayAdminister = false
+
+    const answer = await pointing(blindProjectId, root)
+
+    expect(answer.status).toBe(403)
+    expect(await answer.json()).toEqual({ error: 'CheckoutNeedsAnAdmin' })
+  })
+
   it('pointe le projet vers sa copie locale', async () => {
     const answer = await pointing(blindProjectId, root)
     expect(answer.status).toBe(200)

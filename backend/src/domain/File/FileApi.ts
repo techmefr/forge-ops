@@ -1,5 +1,6 @@
 import { stat } from 'node:fs/promises'
 import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { z } from 'zod'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { listDirectory, readTextFile, statTextFile, walkPaths } from '../../technical/Repository/LocalTree.js'
@@ -18,6 +19,7 @@ export type FileApiInput = {
   maxFileBytes?: number
   maxWalkedFiles?: number
   checkoutRoots?: readonly string[]
+  mayAdminister: (projectId: number, context: Context) => boolean
   codeRenderer?: CodeRenderer
   highlightCache?: HighlightCache<{ html: string; known: boolean }>
 }
@@ -50,6 +52,7 @@ export function createFileApi({
   maxFileBytes = DEFAULT_MAX_FILE_BYTES,
   maxWalkedFiles = DEFAULT_MAX_WALKED_FILES,
   checkoutRoots = [process.cwd()],
+  mayAdminister,
   codeRenderer = createCodeRenderer(),
   highlightCache = createHighlightCache(),
 }: FileApiInput): Hono {
@@ -177,6 +180,9 @@ export function createFileApi({
     }
     if (stories.listProjects().find((known) => known.id === projectId.data) === undefined) {
       return context.json({ error: 'ProjectNotFound' }, 404)
+    }
+    if (!mayAdminister(projectId.data, context)) {
+      return context.json({ error: 'CheckoutNeedsAnAdmin' }, 403)
     }
     const body = checkoutSchema.safeParse(await context.req.json().catch(() => null))
     if (!body.success) {
