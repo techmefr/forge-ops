@@ -49,6 +49,18 @@ beforeEach(() => {
 })
 
 describe('erasing an account', () => {
+  it('deletes the view preferences of the erased account and keeps the others', async () => {
+    const anaId = identities.findUser('ana')?.id ?? 0
+    const dirId = identities.findUser('dir')?.id ?? 0
+    const insert = db.prepare('INSERT INTO user_preference (user_id, key, value) VALUES (?, ?, ?)')
+    insert.run(anaId, 'view', 'compact')
+    insert.run(dirId, 'view', 'wide')
+
+    await erase('ana', 'root')
+
+    expect(db.prepare('SELECT user_id FROM user_preference').all()).toEqual([{ user_id: dirId }])
+  })
+
   it('drops the name, the email and the way in, and keeps the history under a pseudonym', async () => {
     const anaId = identities.findUser('ana')?.id ?? 0
     stories.assignEpic(epicId, 'ana')

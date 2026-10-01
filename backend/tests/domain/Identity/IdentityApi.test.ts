@@ -328,3 +328,101 @@ describe('GET /api/auth/state', () => {
     await expect(response.json()).resolves.toEqual({ users: 0, enrolmentOpen: true })
   })
 })
+
+describe('the login limiter against griefing, spraying and spoofing', () => {
+  const CAP = 3
+  const CLIENT_CAP = 5
+
+  function build(trustProxy: boolean): void {
+    api = createIdentityApi({
+      identities,
+      allowEnrolment: () => enrolmentOpen,
+      loginLimit: createLoginRateLimit({ attemptCap: CAP }),
+      clientLimit: createLoginRateLimit({ attemptCap: CLIENT_CAP }),
+      trustProxy,
+    })
+  }
+
+  async function seedAccounts(): Promise<void> {
+    await post('/api/auth/enrol', {
+      login: 'gaetan',
+      displayName: 'Gaetan',
+      password: MOT_DE_PASSE,
+      role: 'director',
+    })
+  }
+
+  function attempt(login: string, password: string, address: string): Promise<Response> {
+    return post('/api/auth/login', { login, password }, { 'x-forwarded-for': address })
+  }
+
+  it('does not lock the legitimate holder out when an attacker burns the allowance from another client', async () => {
+    build(true)
+    await seedAccounts()
+    for (let tries = 0; tries < CAP; tries += 1) {
+      await attempt('gaetan', 'mauvais mot de passe', '203.0.113.9')
+    }
+    expect((await attempt('gaetan', 'mauvais mot de passe', '203.0.113.9')).status).toBe(429)
+
+    const response = await attempt('gaetan', MOT_DE_PASSE, '198.51.100.7')
+
+    expect(response.status).toBe(200)
+  })
+
+  it('still locks the account for the client that keeps failing', async () => {
+    build(true)
+    await seedAccounts()
+    for (let tries = 0; tries < CAP; tries += 1) {
+      await attempt('gaetan', 'mauvais mot de passe', '203.0.113.9')
+    }
+
+    const response = await attempt('gaetan', MOT_DE_PASSE, '203.0.113.9')
+
+    expect(response.status).toBe(429)
+  })
+
+  it('stops one client spraying a password across many logins', async () => {
+    build(true)
+    await seedAccounts()
+    let last = 0
+    for (let tries = 0; tries < CLIENT_CAP + 1; tries += 1) {
+      last = (await attempt(`user${tries}`, MOT_DE_PASSE, '203.0.113.9')).status
+    }
+
+    expect(last).toBe(429)
+  })
+
+  it('lets another client through while one client is throttled', async () => {
+    build(true)
+    await seedAccounts()
+    for (let tries = 0; tries < CLIENT_CAP + 1; tries += 1) {
+      await attempt(`user${tries}`, MOT_DE_PASSE, '203.0.113.9')
+    }
+
+    const response = await attempt('gaetan', MOT_DE_PASSE, '198.51.100.7')
+
+    expect(response.status).toBe(200)
+  })
+
+  it('does not let a rotating forwarded header bypass the per-client limit when the proxy is not trusted', async () => {
+    build(false)
+    await seedAccounts()
+    let last = 0
+    for (let tries = 0; tries < CLIENT_CAP + 1; tries += 1) {
+      last = (await attempt(`user${tries}`, MOT_DE_PASSE, `203.0.113.${tries}`)).status
+    }
+
+    expect(last).toBe(429)
+  })
+
+  it('tells clients apart by the forwarded header when the proxy is trusted', async () => {
+    build(true)
+    await seedAccounts()
+    let last = 0
+    for (let tries = 0; tries < CLIENT_CAP + 1; tries += 1) {
+      last = (await attempt(`user${tries}`, MOT_DE_PASSE, `203.0.113.${tries}`)).status
+    }
+
+    expect(last).toBe(401)
+  })
+})

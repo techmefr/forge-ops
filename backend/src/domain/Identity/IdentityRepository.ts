@@ -181,6 +181,7 @@ export function createIdentityRepository(
   )
   const releaseProjects = db.prepare<[number]>('UPDATE project SET admin_user_id = NULL WHERE admin_user_id = ?')
   const deleteSessionsOfUser = db.prepare<[number]>('DELETE FROM board_session WHERE user_id = ?')
+  const deletePreferencesOfUser = db.prepare<[number]>('DELETE FROM user_preference WHERE user_id = ?')
 
   function demandUser(login: string): UserRow {
     const row = selectUserByLogin.get(login)
@@ -264,6 +265,7 @@ export function createIdentityRepository(
         eraseRequestedBy.run(pseudonym, row.login, row.display_name)
         releaseProjects.run(row.id)
         deleteSessionsOfUser.run(row.id)
+        deletePreferencesOfUser.run(row.id)
       })()
       return toUser(demandUser(pseudonym))
     },

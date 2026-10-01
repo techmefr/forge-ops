@@ -12,6 +12,7 @@ export const DEFAULT_DISPATCH_RATE: DispatchRate = {
 
 export type RateBucket = {
   take: (at: number) => boolean
+  refund: (at: number) => void
   countInWindow: (at: number) => number
 }
 
@@ -30,6 +31,13 @@ export function createRateBucket({ burst, windowMs }: DispatchRate): RateBucket 
       }
       stamps.push(at)
       return true
+    },
+
+    refund: (at) => {
+      const index = stamps.lastIndexOf(at)
+      if (index !== -1) {
+        stamps.splice(index, 1)
+      }
     },
 
     countInWindow: (at) => {
