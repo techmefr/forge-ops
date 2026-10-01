@@ -52,6 +52,7 @@ const selfLogin = ref<string | null>(null)
 
 const forge = useForgeBoard(() => projectId.value)
 const starter = useProjectWorkflow(() => projectId.value ?? 0)
+const workflowBarVersion = ref(0)
 
 const project = computed(() => (projects.data.value ?? []).find((candidate) => candidate.id === projectId.value) ?? null)
 const columns = computed(() => forge.workflow.value?.columns ?? [])
@@ -157,6 +158,7 @@ async function createStarter(): Promise<void> {
   )
   if (created) {
     await forge.load()
+    workflowBarVersion.value += 1
   }
 }
 
@@ -248,7 +250,7 @@ onMounted(async () => {
             {{ subject.title }}
           </option>
         </select>
-        <WorkflowBar :project-id="projectId" :project-name="projectName" @changed="forge.load()" />
+        <WorkflowBar :key="`${projectId}-${workflowBarVersion}`" :project-id="projectId" :project-name="projectName" @changed="forge.load()" />
       </div>
 
       <form

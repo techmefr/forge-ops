@@ -401,6 +401,41 @@ describe('the project pills and the filters', () => {
     expect(screen.text()).toContain('No workflow for Skera yet')
   })
 
+  it('refreshes the workflow settings count after the starter workflow is created', async () => {
+    let created = false
+    read.mockImplementation((path: string) => {
+      if (path === '/api/projects/2/workflow-columns') {
+        return Promise.resolve({
+          columns: created ? WORKFLOW.columns : [],
+          maySettle: true,
+          admin: { login: 'ana', name: 'Ana' },
+        })
+      }
+      return Promise.resolve(answer(path))
+    })
+    send.mockImplementation((path: string) => {
+      if (path === '/api/projects/2/workflow-columns') {
+        created = true
+      }
+      return Promise.resolve({})
+    })
+    const screen = await mountScreen()
+    await screen
+      .findAll('button')
+      .find((button) => button.text() === 'Skera')
+      ?.trigger('click')
+    await flushPromises()
+    expect(screen.text()).toContain('0 steps')
+
+    await screen
+      .findAll('button')
+      .find((button) => button.text() === 'Create the workflow')
+      ?.trigger('click')
+    await flushPromises()
+
+    expect(screen.text()).toContain('3 steps')
+  })
+
   it('adds a story to the backlog from the board', async () => {
     const screen = await mountScreen()
 

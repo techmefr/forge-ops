@@ -3,6 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import type * as VueRouter from 'vue-router'
 import { createBoardI18n } from '@/technical/Language/I18n'
 import PersonalScreen from '@/domain/Shell/PersonalScreen.vue'
+import ProjectEmptyState from '@/domain/Board/ProjectEmptyState.vue'
 
 const read = vi.fn()
 const routeState: { name: string; params: Record<string, string> } = { name: 'personal', params: {} }
@@ -81,5 +82,29 @@ describe('PersonalScreen', () => {
     expect(screen.find('forge-screen-stub').exists()).toBe(false)
     routeState.name = 'personal'
     routeState.params = {}
+  })
+
+  it('remounts the forge once the first project is created so it reads the new project', async () => {
+    onPath('/api/projects', [])
+    let mounts = 0
+    const countedForge = { template: '<p />', mounted: () => (mounts += 1) }
+    const screen = mount(PersonalScreen, {
+      global: {
+        plugins: [createBoardI18n('fr')],
+        stubs: {
+          RouterLink: { template: '<a><slot /></a>' },
+          ForgeScreen: countedForge,
+          PersonalTally: true,
+          ScreenTabs: true,
+        },
+      },
+    })
+    await flushPromises()
+    expect(mounts).toBe(1)
+
+    screen.findComponent(ProjectEmptyState).vm.$emit('created')
+    await flushPromises()
+
+    expect(mounts).toBe(2)
   })
 })
