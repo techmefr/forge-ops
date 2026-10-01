@@ -43,7 +43,7 @@ A super admin is a flag an instance grants to the people it chooses; it is not t
 
 At start-up, a missing login is created with the flag and a hashed password; an existing one gets the flag back and keeps its password. A password changed in the tool is never overwritten by a restart, and neither value is ever logged.
 
-Without these variables the server still starts, logs a warning, and nobody can manage super admins until they are set. Once one exists, super admins are granted and removed in Settings › Users (`PATCH /api/board-users/:login`). The last super admin cannot lose the flag.
+Without these variables the server still starts and logs a warning. In hub mode the first enrolment (`POST /api/auth/enrol`) then stays closed unless `FORGE_SETUP_TOKEN` is set, in which case the request must carry it in the `x-forge-setup-token` header; nobody can manage super admins until a super admin exists. Once one exists, super admins are granted and removed in Settings › Users (`PATCH /api/board-users/:login`). The last super admin cannot lose the flag.
 
 Prefer the file form: `docker/super_admin_password.secret` is mounted as a secret and the login is read from `FORGE_SUPER_ADMIN_LOGIN` in every compose file that runs a hub:
 
@@ -54,6 +54,16 @@ Prefer the file form: `docker/super_admin_password.secret` is mounted as a secre
 | `compose.hosted.yml` | `instance` (in hub mode) |
 
 `compose.laptop.yml` runs in local mode, with no accounts, so it takes none of them.
+
+## Accounts and emails
+
+An email typed in the profile is unverified. It never blocks a single sign-on enrolment: a verified provider claim on an address that only unverified accounts hold creates a new account, and an unverified claim (a Microsoft token without `xms_edov`) enrols with an unverified email and is never linked to an existing account. Only a verified email is unique. A super admin or a director marks a local account's email as verified with `POST /api/board-users/:login/verify-email`, which lets that account be linked to its single sign-on identity. A refused address always gets the same generic message, so the profile form does not reveal which addresses exist.
+
+Links on epics and subjects must be http or https without embedded credentials. Workflow `command` and `agentName` are limited to a slash command, a file name such as `BUILD.md`, or `namespace:name`.
+
+## Security headers
+
+The page is served with a Content-Security-Policy, `nosniff`, frame denial and no referrer. `style-src` keeps `'unsafe-inline'` on purpose: the front binds inline `style` attributes at runtime (colours of workflow steps, progress widths), which a nonce or hash cannot cover. Scripts have no such exception. HSTS and Permissions-Policy belong to the reverse proxy in front of the board, which is the component that terminates TLS. The guided setup creates the secrets directory with mode `0700`.
 
 ## Guided setup
 

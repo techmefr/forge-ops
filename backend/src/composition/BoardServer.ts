@@ -300,12 +300,13 @@ export function startBoardServer({
   const discussion = createDiscussionRepository(db, { stories })
   const batches = createBatchRepository(db)
   const identities = createIdentityRepository(db)
+  const setupToken = process.env.FORGE_SETUP_TOKEN?.trim() || null
   const superAdminSeed = readSuperAdminConfiguration(process.env, undefined, (message) => console.warn(message))
   if (superAdminSeed !== null) {
     identities.bootstrapSuperAdmin(superAdminSeed)
   } else if (mode === 'hub') {
     console.warn(
-      'No super admin configured: set FORGE_SUPER_ADMIN_LOGIN and FORGE_SUPER_ADMIN_PASSWORD (or FORGE_SUPER_ADMIN_PASSWORD_FILE); nobody can manage super admins until then.',
+      'No super admin configured: set FORGE_SUPER_ADMIN_LOGIN and FORGE_SUPER_ADMIN_PASSWORD (or FORGE_SUPER_ADMIN_PASSWORD_FILE); nobody can manage super admins and first enrolment stays closed until then (or set FORGE_SETUP_TOKEN).',
     )
   }
   const api = createBoardApi({
@@ -370,7 +371,11 @@ export function startBoardServer({
   }
   guarded.route(
     '/',
-    createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
+    createIdentityApi({
+      identities,
+      allowEnrolment: () => identities.countUsers() === 0 && (mode !== 'hub' || setupToken !== null),
+      setupToken,
+    }),
   )
   guarded.route(
     '/',
