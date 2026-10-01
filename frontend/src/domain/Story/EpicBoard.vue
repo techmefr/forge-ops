@@ -205,7 +205,7 @@ onMounted(async () => {
               v-if="epic.assignee === null"
               type="button"
               :disabled="busy"
-              class="ml-auto font-mono text-[11px] text-acc uppercase hover:underline disabled:opacity-40"
+              class="ml-auto font-mono text-[11px] text-acc uppercase hover:underline disabled:opacity-40 max-sm:min-h-10 max-sm:min-w-10"
               @click="claim(epic.id)"
             >
               {{ t('epic.claim') }}
@@ -214,7 +214,7 @@ onMounted(async () => {
               v-else-if="epic.assignee === self.data.value?.login"
               type="button"
               :disabled="busy"
-              class="ml-auto font-mono text-[11px] text-txt-low uppercase hover:underline disabled:opacity-40"
+              class="ml-auto font-mono text-[11px] text-txt-low uppercase hover:underline disabled:opacity-40 max-sm:min-h-10 max-sm:min-w-10"
               @click="release(epic.id)"
             >
               {{ t('common.release') }}

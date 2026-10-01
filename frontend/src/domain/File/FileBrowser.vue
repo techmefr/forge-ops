@@ -181,17 +181,17 @@ watch(here, () => void look())
         {{ t('browser.closeNames') }}
       </p>
       <p class="mt-1 text-[13px] text-txt-low">{{ t('browser.closeNamesHint') }}</p>
-      <ul
+      <div
         tabindex="0"
         role="region"
         :aria-label="t('browser.closeNames')"
         class="mt-2 flex max-h-[16vh] flex-col gap-1.5 overflow-y-auto"
       >
-        <li v-for="clash in clashes.clashes" :key="clash.name" class="text-[13px] text-txt-hi">
+        <p v-for="clash in clashes.clashes" :key="clash.name" class="text-[13px] text-txt-hi">
           <span class="font-mono text-[11px] text-orange">{{ clash.name }}</span>
           <span class="ml-2 font-mono text-[11px] text-txt-low">{{ clash.paths.join('  ·  ') }}</span>
-        </li>
-      </ul>
+        </p>
+      </div>
     </section>
 
     <p v-if="refusal !== null" class="text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
