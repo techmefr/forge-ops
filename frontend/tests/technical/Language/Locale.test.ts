@@ -114,3 +114,41 @@ describe('aucune cle ne dort et aucune cle ne manque', () => {
     expect(missing).toEqual([])
   })
 })
+
+const FRENCH_ACCENTS = /[àâäéèêëîïôöùûüçœ]/i
+
+function leavesOf(language: Language): ReadonlyMap<string, string> {
+  const leaves = new Map<string, string>()
+  for (const key of keysOf(language)) {
+    let node: string | Branch = MESSAGES[language] as unknown as Branch
+    for (const part of key.split('.')) {
+      node = (node as Branch)[part] as string | Branch
+    }
+    leaves.set(key, node as string)
+  }
+  return leaves
+}
+
+function wordsOf(text: string): number {
+  return text.replace(/\{[^}]*\}/g, ' ').split(/\s+/).filter((word) => /\p{L}{2,}/u.test(word)).length
+}
+
+describe('aucune langue ne garde le texte d une autre', () => {
+  const french = leavesOf('fr')
+
+  for (const language of LANGUAGES.filter((candidate) => candidate !== 'fr')) {
+    it(`ne recopie aucune phrase francaise en ${language}`, () => {
+      const copied = [...leavesOf(language)]
+        .filter(([key, value]) => wordsOf(value) >= 3 && french.get(key) === value)
+        .map(([key, value]) => `${key}: ${value}`)
+      expect(copied).toEqual([])
+    })
+  }
+
+  it('n ecrit aucun mot accentue francais dans les phrases anglaises', () => {
+    const accented = [...leavesOf('en')]
+      .filter(([key, value]) => !key.startsWith('language.') && FRENCH_ACCENTS.test(value))
+      .map(([key, value]) => `${key}: ${value}`)
+    expect(accented).toEqual([])
+  })
+})

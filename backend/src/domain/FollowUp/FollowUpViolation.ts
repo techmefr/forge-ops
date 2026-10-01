@@ -8,6 +8,6 @@ export class RiskNotFoundError extends StoryViolationError {
 
 export class RiskEpicOutsideProjectError extends StoryViolationError {
   constructor(epicId: number, projectId: number) {
-    super(`L epique ${epicId} n appartient pas au projet ${projectId}`, 'RiskEpicOutsideProjectError')
+    super(`Epic ${epicId} does not belong to project ${projectId}`, 'RiskEpicOutsideProjectError')
   }
 }

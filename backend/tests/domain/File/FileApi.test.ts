@@ -77,7 +77,7 @@ describe('GET /api/projects/:id/tree', () => {
         path: string
         mark: string
         agentName: string | null
-        description: string
+        description: unknown
       }[]
     }
     expect(body.entries.map((entry) => [entry.path, entry.mark])).toEqual([
@@ -86,7 +86,7 @@ describe('GET /api/projects/:id/tree', () => {
       ['src/UserModale.vue', 'quiet'],
     ])
     expect(body.entries[1]?.agentName).toBe('neo')
-    expect(body.entries[1]?.description).toBe('Composant UserModal')
+    expect(body.entries[1]?.description).toEqual({ key: 'component', values: { name: 'UserModal' } })
   })
 
   it('avoue quand le projet n a pas de copie locale', async () => {
@@ -126,7 +126,7 @@ describe('GET /api/projects/:id/file', () => {
       text: '<template />\n',
       bytes: 13,
       truncated: false,
-      description: 'Composant UserModal',
+      description: { key: 'component', values: { name: 'UserModal' } },
       mark: 'planned',
       byReferences: ['FORGE-1'],
       agentName: 'neo',

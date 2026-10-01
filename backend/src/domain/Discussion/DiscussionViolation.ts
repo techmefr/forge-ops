@@ -1,13 +1,13 @@
 export class EmptyRemarkError extends Error {
   constructor(reference: string) {
-    super(`Une remarque vide n apporte rien a la discussion de ${reference}`)
+    super(`An empty remark adds nothing to the discussion of ${reference}`)
     this.name = 'EmptyRemarkError'
   }
 }
 
 export class StoryAlreadyHeldError extends Error {
   constructor(reference: string) {
-    super(`La story ${reference} est deja bloquee, il faut repondre dans le fil pour la liberer`)
+    super(`Story ${reference} is already blocked, answer in the thread to free it`)
     this.name = 'StoryAlreadyHeldError'
   }
 }

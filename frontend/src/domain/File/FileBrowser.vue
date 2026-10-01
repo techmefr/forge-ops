@@ -268,8 +268,8 @@ watch(here, () => void look())
                       >{{ spoken(entry) }}</span
                     >
                   </span>
-                  <span v-if="entry.description !== ''" class="block truncate text-[11px] text-txt-low">{{
-                    entry.description
+                  <span v-if="entry.description !== null" class="block truncate text-[11px] text-txt-low">{{
+                    t(`fileDescription.${entry.description.key}`, entry.description.values)
                   }}</span>
                 </span>
               </button>
@@ -292,8 +292,8 @@ watch(here, () => void look())
           <p class="truncate font-mono text-[11px] text-txt-hi">
             {{ opened === null ? t('browser.noFileOpen') : opened.path }}
           </p>
-          <p v-if="opened !== null && opened.description !== ''" class="truncate text-[11px] text-txt-low">
-            {{ opened.description }}
+          <p v-if="opened !== null && opened.description !== null" class="truncate text-[11px] text-txt-low">
+            {{ t(`fileDescription.${opened.description.key}`, opened.description.values) }}
           </p>
         </CardHead>
 

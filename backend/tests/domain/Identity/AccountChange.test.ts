@@ -47,7 +47,7 @@ describe('changeEmail', () => {
       role: 'architect',
     })
     identities.changeEmail('autre', 'shared@example.com')
-    expect(() => identities.changeEmail('gaetan', 'shared@example.com')).toThrow(/ne peut pas/)
+    expect(() => identities.changeEmail('gaetan', 'shared@example.com')).toThrow(/cannot be used/)
   })
 
   it('accepts the same address kept unchanged', () => {

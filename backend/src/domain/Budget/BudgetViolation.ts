@@ -7,14 +7,14 @@ export class BudgetViolationError extends Error {
 
 export class BudgetPolicyRefusedError extends BudgetViolationError {
   constructor(reason: string) {
-    super(`Reglage de plafond refuse : ${reason}`, 'BudgetPolicyRefusedError')
+    super(`Budget cap setting refused: ${reason}`, 'BudgetPolicyRefusedError')
   }
 }
 
 export class BudgetExhaustedError extends BudgetViolationError {
   constructor(spentUsd: number, capUsd: number) {
     super(
-      `Le plafond du jour est atteint : ${spentUsd.toFixed(2)} dollars depenses pour ${capUsd.toFixed(2)} autorises`,
+      `The daily cap is reached: ${spentUsd.toFixed(2)} dollars spent out of ${capUsd.toFixed(2)} allowed`,
       'BudgetExhaustedError',
     )
   }

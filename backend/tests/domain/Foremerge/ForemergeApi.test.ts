@@ -84,7 +84,7 @@ describe('POST /api/stories/:id/scope', () => {
     const body = (await response.json()) as { heldSince?: string; message?: string }
 
     expect(body.heldSince ?? '').toMatch(/^\d{4}-\d{2}-\d{2} /)
-    expect(body.message ?? '').toContain(`depuis ${body.heldSince}`)
+    expect(body.message ?? '').toContain(`since ${body.heldSince}`)
   })
 
   it('refuses a blank claim without leaking a database error', async () => {

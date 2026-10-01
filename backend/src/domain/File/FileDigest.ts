@@ -1,35 +1,33 @@
-const ROOT_FILES: Readonly<Record<string, string>> = {
-  'package.json': 'Dépendances et scripts du dépôt',
-  'package-lock.json': 'Versions exactes installées',
-  'tsconfig.json': 'Réglages TypeScript',
-  'vitest.config.ts': 'Réglages des tests',
-  'vite.config.ts': 'Réglages du build front',
-  'eslint.config.js': 'Règles de lint',
-  'db/forge.sql': 'Schéma de la base',
-  'README.md': 'Présentation du dépôt',
+import type { FileDescription, FileDescriptionKey } from '../../../../contract/FileDescriptionContract.js'
+
+const ROOT_FILES: Readonly<Record<string, FileDescriptionKey>> = {
+  'package.json': 'packageJson',
+  'package-lock.json': 'packageLock',
+  'tsconfig.json': 'tsconfig',
+  'vitest.config.ts': 'vitestConfig',
+  'vite.config.ts': 'viteConfig',
+  'eslint.config.js': 'eslintConfig',
+  'db/forge.sql': 'databaseSchema',
+  'README.md': 'readme',
 }
 
-const FOLDERS: Readonly<Record<string, string>> = {
-  domain: 'Le métier, un dossier par sujet',
-  technical: 'Les briques techniques, sans métier',
-  tests: 'Les tests',
-  src: 'Le code source',
-  backend: 'Le serveur du board',
-  frontend: 'L interface du board',
-  db: 'La base et son schéma',
-  public: 'Les fichiers servis tels quels',
+const FOLDERS: Readonly<Record<string, FileDescriptionKey>> = {
+  domain: 'folderDomain',
+  technical: 'folderTechnical',
+  tests: 'folderTests',
+  src: 'folderSrc',
+  backend: 'folderBackend',
+  frontend: 'folderFrontend',
+  db: 'folderDb',
+  public: 'folderPublic',
 }
 
-function pluralOf(word: string): string {
-  return word.endsWith('y') ? `${word.slice(0, -1)}ies` : `${word}s`
-}
-
-const SUFFIXES: readonly (readonly [string, (subject: string, area: string) => string])[] = [
-  ['Repository', (subject) => `Accès base de données des ${pluralOf(subject.toLowerCase())}`],
-  ['Api', (subject) => `Routes http des ${pluralOf(subject.toLowerCase())}`],
-  ['Violation', (subject) => `Refus possibles du domaine ${subject}`],
-  ['Screen', (subject) => `Écran ${subject}`],
-  ['Panel', (subject) => `Panneau ${subject}`],
+const SUFFIXES: readonly (readonly [string, FileDescriptionKey])[] = [
+  ['Repository', 'repository'],
+  ['Api', 'api'],
+  ['Violation', 'violation'],
+  ['Screen', 'screen'],
+  ['Panel', 'panel'],
 ]
 
 function bare(name: string): string {
@@ -40,39 +38,44 @@ function subjectOf(path: string): string {
   return path.split('/').slice(0, -1).pop() ?? ''
 }
 
-export function describeFile(path: string): string {
+function described(key: FileDescriptionKey, values: Readonly<Record<string, string>> = {}): FileDescription {
+  return { key, values }
+}
+
+export function describeFile(path: string): FileDescription | null {
   const known = ROOT_FILES[path]
   if (known !== undefined) {
-    return known
+    return described(known)
   }
 
   const name = path.split('/').pop() ?? ''
   if (!name.includes('.')) {
-    return FOLDERS[name] ?? ''
+    const folder = FOLDERS[name]
+    return folder === undefined ? null : described(folder)
   }
 
   if (name.endsWith('.test.ts')) {
-    return `Tests de ${bare(name.replace('.test.ts', ''))}`
+    return described('testOf', { name: bare(name.replace('.test.ts', '')) })
   }
 
   const stem = bare(name)
-  for (const [suffix, say] of SUFFIXES) {
+  for (const [suffix, key] of SUFFIXES) {
     if (stem.endsWith(suffix) && stem !== suffix) {
-      return say(stem.slice(0, -suffix.length), subjectOf(path))
+      return described(key, { subject: stem.slice(0, -suffix.length) })
     }
   }
 
   if (name.endsWith('.vue')) {
-    return `Composant ${stem}`
+    return described('component', { name: stem })
   }
 
   if (path.includes('/technical/')) {
-    return `Brique technique ${subjectOf(path)}`
+    return described('technicalBrick', { area: subjectOf(path) })
   }
 
   if (path.includes('/domain/')) {
-    return `Métier ${subjectOf(path)} : ${stem}`
+    return described('domainFile', { area: subjectOf(path), name: stem })
   }
 
-  return ''
+  return null
 }

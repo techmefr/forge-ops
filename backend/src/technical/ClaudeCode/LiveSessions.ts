@@ -11,7 +11,7 @@ export class SessionAlreadyLiveError extends Error {
 
 export class LiveSessionCapReachedError extends Error {
   constructor(cap: number) {
-    super(`le plafond de ${cap} sessions vivantes est atteint`)
+    super(`the cap of ${cap} live sessions is reached`)
     this.name = 'LiveSessionCapReachedError'
   }
 }

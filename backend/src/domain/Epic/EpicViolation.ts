@@ -2,14 +2,14 @@ import { StoryViolationError } from '../Story/StoryViolation.js'
 
 export class EpicSelfDependencyError extends StoryViolationError {
   constructor(epicId: number) {
-    super(`L epique ${epicId} ne peut pas dependre d elle-meme`, 'EpicSelfDependencyError')
+    super(`Epic ${epicId} cannot depend on itself`, 'EpicSelfDependencyError')
   }
 }
 
 export class EpicDependencyLoopError extends StoryViolationError {
   constructor(epicId: number, dependsOnEpicId: number) {
     super(
-      `Ce lien ferme une boucle : l epique ${dependsOnEpicId} attend deja l epique ${epicId}`,
+      `This link closes a loop: epic ${dependsOnEpicId} already waits for epic ${epicId}`,
       'EpicDependencyLoopError',
     )
   }
@@ -17,7 +17,7 @@ export class EpicDependencyLoopError extends StoryViolationError {
 
 export class EpicNotDeletedError extends StoryViolationError {
   constructor(epicId: number) {
-    super(`L epique ${epicId} n est pas dans la corbeille`, 'EpicNotDeletedError')
+    super(`Epic ${epicId} is not in the bin`, 'EpicNotDeletedError')
   }
 }
 
@@ -29,7 +29,7 @@ export class TagNotFoundError extends StoryViolationError {
 
 export class TagLabelTakenError extends StoryViolationError {
   constructor(label: string) {
-    super(`Le tag ${label} existe deja`, 'TagLabelTakenError')
+    super(`Tag ${label} already exists`, 'TagLabelTakenError')
   }
 }
 
@@ -48,7 +48,7 @@ export abstract class ItemInUseError extends StoryViolationError {
 
 export class TagInUseError extends ItemInUseError {
   constructor(tagId: number, usage: number) {
-    super(`Le tag ${tagId} est utilise par ${usage} epique(s)`, 'TagInUseError', usage)
+    super(`Tag ${tagId} is used by ${usage} epic(s)`, 'TagInUseError', usage)
   }
 }
 
@@ -72,6 +72,6 @@ export class InactiveAssigneeError extends StoryViolationError {
 
 export class EpicStateDerivedError extends StoryViolationError {
   constructor(epicId: number) {
-    super(`L etat de l epique ${epicId} decoule de ses stories`, 'EpicStateDerivedError')
+    super(`The state of epic ${epicId} is derived from its stories`, 'EpicStateDerivedError')
   }
 }

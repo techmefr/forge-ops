@@ -7,13 +7,13 @@ export abstract class ForgeCardViolationError extends Error {
 
 export class EmptySelectionError extends ForgeCardViolationError {
   constructor() {
-    super('Une forge a besoin d au moins une story', 'EmptySelectionError')
+    super('A forge needs at least one story', 'EmptySelectionError')
   }
 }
 
 export class DuplicateStoryIdError extends ForgeCardViolationError {
   constructor(storyId: number) {
-    super(`La story ${storyId} est selectionnee deux fois`, 'DuplicateStoryIdError')
+    super(`Story ${storyId} is selected twice`, 'DuplicateStoryIdError')
   }
 }
 
@@ -25,13 +25,13 @@ export class ForgeStoryNotFoundError extends ForgeCardViolationError {
 
 export class StoryNotInBacklogError extends ForgeCardViolationError {
   constructor(reference: string, state: string) {
-    super(`La story ${reference} est en ${state}, pas dans le backlog`, 'StoryNotInBacklogError')
+    super(`Story ${reference} is in ${state}, not in the backlog`, 'StoryNotInBacklogError')
   }
 }
 
 export class StoryAlreadyOnOpenCardError extends ForgeCardViolationError {
   constructor(reference: string, forgeCardReference: string) {
-    super(`La story ${reference} est deja portee par la forge ${forgeCardReference}`, 'StoryAlreadyOnOpenCardError')
+    super(`Story ${reference} is already carried by forge ${forgeCardReference}`, 'StoryAlreadyOnOpenCardError')
   }
 }
 
@@ -43,7 +43,7 @@ export class ForgeCardNotFoundError extends ForgeCardViolationError {
 
 export class UnknownForgeCardProviderError extends ForgeCardViolationError {
   constructor(provider: string) {
-    super(`Le provider ${provider} n est pas reconnu`, 'UnknownForgeCardProviderError')
+    super(`Provider ${provider} is not recognised`, 'UnknownForgeCardProviderError')
   }
 }
 
