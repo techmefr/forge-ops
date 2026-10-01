@@ -37,6 +37,7 @@ import { TALLY_FIGURES } from '@/domain/Personal/Tally'
 import { SCREEN_SEQUENCE } from '@/technical/Router/Screen'
 import { PERSONAL_TABS, PROJECT_TABS } from '@/technical/Router/ScreenTab'
 import { LANGUAGES } from '@/technical/Language/Language'
+import { FILE_DESCRIPTION_KEYS } from '@contract/FileDescriptionContract'
 import { FORGE_CARD_STATUSES } from '@contract/ForgeCardContract'
 import { CARD_ACTIONS, DOT_STATES, FORGE_FAILURE_CODES, STORY_GAP_CODES } from '@/domain/Forge/ForgeRule'
 import { SERVER_ERROR_CODES } from '@/technical/Api/UseResource'
@@ -49,6 +50,7 @@ export const LABEL_GROUPS: Readonly<Record<string, readonly string[]>> = {
   desk: DESKS,
   epicPriority: EPIC_PRIORITIES,
   epicState: EPIC_STATES,
+  fileDescription: FILE_DESCRIPTION_KEYS,
   fleetState: FLEET_JOB_STATE_SEQUENCE,
   'forge.action': CARD_ACTIONS,
   'forge.dot': DOT_STATES,

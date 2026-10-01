@@ -8,6 +8,6 @@ export class EventNotFoundError extends StoryViolationError {
 
 export class EventEpicOutsideProjectError extends StoryViolationError {
   constructor(epicId: number, projectId: number) {
-    super(`L epique ${epicId} n appartient pas au projet ${projectId}`, 'EventEpicOutsideProjectError')
+    super(`Epic ${epicId} does not belong to project ${projectId}`, 'EventEpicOutsideProjectError')
   }
 }

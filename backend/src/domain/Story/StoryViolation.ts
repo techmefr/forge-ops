@@ -13,50 +13,50 @@ export class StoryNotFoundError extends StoryViolationError {
 
 export class TwinAlreadyWrittenError extends StoryViolationError {
   constructor(reference: string) {
-    super(`La story ${reference} a deja sa story de test jumelle`, 'TwinAlreadyWrittenError')
+    super(`Story ${reference} already has its twin test story`, 'TwinAlreadyWrittenError')
   }
 }
 
 export class TwinOfTwinError extends StoryViolationError {
   constructor(reference: string) {
-    super(`La story ${reference} est une story de test, elle ne peut pas avoir de jumelle`, 'TwinOfTwinError')
+    super(`Story ${reference} is a test story, it cannot have a twin`, 'TwinOfTwinError')
   }
 }
 
 export class TwinRequiredError extends StoryViolationError {
   constructor(reference: string) {
-    super(`La story ${reference} ne peut pas quitter la redaction sans sa story de test jumelle`, 'TwinRequiredError')
+    super(`Story ${reference} cannot leave drafting without its twin test story`, 'TwinRequiredError')
   }
 }
 
 export class SelfDependencyError extends StoryViolationError {
   constructor(reference: string) {
-    super(`La story ${reference} ne peut pas dependre d'elle-meme`, 'SelfDependencyError')
+    super(`Story ${reference} cannot depend on itself`, 'SelfDependencyError')
   }
 }
 
 export class BlockedByDependencyError extends StoryViolationError {
   constructor(reference: string, blockingReferences: readonly string[]) {
-    super(`La story ${reference} est bloquee par ${blockingReferences.join(', ')}`, 'BlockedByDependencyError')
+    super(`Story ${reference} is blocked by ${blockingReferences.join(', ')}`, 'BlockedByDependencyError')
   }
 }
 
 export class PointsOutOfRangeError extends StoryViolationError {
   constructor(points: number) {
-    super(`Une estimation vaut un nombre entier de points superieur a zero, pas ${points}`, 'PointsOutOfRangeError')
+    super(`An estimate is a whole number of points above zero, not ${points}`, 'PointsOutOfRangeError')
   }
 }
 
 export class RolloutOutOfRangeError extends StoryViolationError {
   constructor(percent: number) {
-    super(`Une exposition vaut de 0 a 100 pour cent, pas ${percent}`, 'RolloutOutOfRangeError')
+    super(`An exposure is between 0 and 100 percent, not ${percent}`, 'RolloutOutOfRangeError')
   }
 }
 
 export class DependencyCycleError extends StoryViolationError {
   constructor(reference: string, through: readonly string[]) {
     super(
-      `Ce lien ferme une boucle : ${reference} bloque deja ${through.join(' puis ')}`,
+      `This link closes a loop: ${reference} already blocks ${through.join(' then ')}`,
       'DependencyCycleError',
     )
   }
@@ -64,7 +64,7 @@ export class DependencyCycleError extends StoryViolationError {
 
 export class ProjectSlugTakenError extends StoryViolationError {
   constructor(slug: string) {
-    super(`Le projet ${slug} existe deja sur ce board`, 'ProjectSlugTakenError')
+    super(`Project ${slug} already exists on this board`, 'ProjectSlugTakenError')
   }
 }
 
@@ -82,14 +82,14 @@ export class EpicNotFoundError extends StoryViolationError {
 
 export class EpicTakenError extends StoryViolationError {
   constructor(epicId: number, assignee: string) {
-    super(`L epique ${epicId} est attribuee a ${assignee}`, 'EpicTakenError')
+    super(`Epic ${epicId} is assigned to ${assignee}`, 'EpicTakenError')
   }
 }
 
 export class StepBackReasonRequiredError extends StoryViolationError {
   constructor(reference: string) {
     super(
-      `Reculer la story ${reference} exige une raison ecrite, un board sans raison perd sa valeur d audit`,
+      `Moving story ${reference} back requires a written reason, a board without reasons loses its audit value`,
       'StepBackReasonRequiredError',
     )
   }
@@ -98,7 +98,7 @@ export class StepBackReasonRequiredError extends StoryViolationError {
 export class StepBackFromDoneError extends StoryViolationError {
   constructor(reference: string) {
     super(
-      `La story ${reference} est fusionnee : on annule un merge par une story de revert, pas en reculant la carte`,
+      `Story ${reference} is merged: a merge is undone by a revert story, not by moving the card back`,
       'StepBackFromDoneError',
     )
   }
@@ -107,7 +107,7 @@ export class StepBackFromDoneError extends StoryViolationError {
 export class StepBackNotBackwardError extends StoryViolationError {
   constructor(reference: string, from: string, to: string) {
     super(
-      `Reculer la story ${reference} de ${from} vers ${to} n est pas un retour en arriere`,
+      `Moving story ${reference} from ${from} to ${to} is not a step back`,
       'StepBackNotBackwardError',
     )
   }
@@ -116,7 +116,7 @@ export class StepBackNotBackwardError extends StoryViolationError {
 export class StepBackOffPipelineError extends StoryViolationError {
   constructor(reference: string, state: string) {
     super(
-      `La story ${reference} est en ${state}, hors de la sequence : aucun retour en arriere a calculer`,
+      `Story ${reference} is in ${state}, outside the sequence: there is no step back to compute`,
       'StepBackOffPipelineError',
     )
   }
@@ -124,14 +124,14 @@ export class StepBackOffPipelineError extends StoryViolationError {
 
 export class AgentStepBackRefusedError extends StoryViolationError {
   constructor(named: string, decision: string) {
-    super(`${decision} est une decision humaine, ${named} ne la prend pas`, 'AgentStepBackRefusedError')
+    super(`${decision} is a human decision, ${named} does not take it`, 'AgentStepBackRefusedError')
   }
 }
 
 export class DoneNotEarnedError extends StoryViolationError {
   constructor(reference: string, missing: readonly string[]) {
     super(
-      `Clore la story ${reference} et effacer son worktree exige une preuve de fin : ${missing.join(' ; ')}`,
+      `Closing story ${reference} and removing its worktree requires proof of completion: ${missing.join('; ')}`,
       'DoneNotEarnedError',
     )
   }
@@ -140,7 +140,7 @@ export class DoneNotEarnedError extends StoryViolationError {
 export class StoryNotYoursError extends StoryViolationError {
   constructor(reference: string, assignee: string) {
     super(
-      `L epique de la story ${reference} appartient a ${assignee}, personne d autre n y touche`,
+      `The epic of story ${reference} belongs to ${assignee}, nobody else touches it`,
       'StoryNotYoursError',
     )
   }
@@ -148,12 +148,12 @@ export class StoryNotYoursError extends StoryViolationError {
 
 export class EmptyCardError extends StoryViolationError {
   constructor(reference: string) {
-    super(`La carte ${reference} a besoin d un titre et d un corps`, 'EmptyCardError')
+    super(`Card ${reference} needs a title and a body`, 'EmptyCardError')
   }
 }
 
 export class EmptyBlockedReasonError extends StoryViolationError {
   constructor(reference: string) {
-    super(`Bloquer la story ${reference} exige une raison ecrite`, 'EmptyBlockedReasonError')
+    super(`Blocking story ${reference} requires a written reason`, 'EmptyBlockedReasonError')
   }
 }

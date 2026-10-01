@@ -1,3 +1,4 @@
+import type { FileDescription } from '@contract/FileDescriptionContract'
 import type { FileMark } from './FileMarkTone'
 
 export type TreeEntry = {
@@ -5,7 +6,7 @@ export type TreeEntry = {
   name: string
   kind: 'directory' | 'file'
   bytes: number | null
-  description: string
+  description: FileDescription | null
   mark: FileMark
   byReferences: readonly string[]
   agentName: string | null
@@ -22,7 +23,7 @@ export type FileReading = {
   text: string
   bytes: number
   truncated: boolean
-  description: string
+  description: FileDescription | null
   mark: FileMark
   byReferences: readonly string[]
   agentName: string | null

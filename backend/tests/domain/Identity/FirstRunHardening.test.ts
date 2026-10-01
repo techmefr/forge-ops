@@ -122,7 +122,7 @@ describe('verifying an email', () => {
   it('refuses to verify an address a verified account already holds', () => {
     resolveExternalUser(identities, claims({ isEmailVerified: true }), ['corp.example'])
 
-    expect(() => identities.verifyEmail('ana')).toThrow(/ne peut pas/)
+    expect(() => identities.verifyEmail('ana')).toThrow(/cannot be used/)
   })
 
   it('is refused to an architect and to anonymous callers', async () => {

@@ -2,35 +2,35 @@ export class PilotViolationError extends Error {}
 
 export class EmptyScriptError extends PilotViolationError {
   constructor() {
-    super("un parcours vide ne montre rien, il faut au moins une etape")
+    super("an empty journey shows nothing, it needs at least one step")
     this.name = 'EmptyScriptError'
   }
 }
 
 export class ScriptTooLongError extends PilotViolationError {
   constructor(length: number, limit: number) {
-    super(`${length} etapes est trop long a suivre, la limite est ${limit}`)
+    super(`${length} steps is too long to follow, the limit is ${limit}`)
     this.name = 'ScriptTooLongError'
   }
 }
 
 export class StepNeedsTargetError extends PilotViolationError {
   constructor(kind: string) {
-    super(`une etape ${kind} sans cible ne sait pas ou aller`)
+    super(`a ${kind} step without a target does not know where to go`)
     this.name = 'StepNeedsTargetError'
   }
 }
 
 export class StepNeedsValueError extends PilotViolationError {
   constructor(kind: string) {
-    super(`une etape ${kind} sans valeur ne verifie rien`)
+    super(`a ${kind} step without a value checks nothing`)
     this.name = 'StepNeedsValueError'
   }
 }
 
 export class UnsafeDestinationError extends PilotViolationError {
   constructor(target: string) {
-    super(`${target} n est pas une adresse web, le pilote ne l ouvrira pas`)
+    super(`${target} is not a web address, the pilot will not open it`)
     this.name = 'UnsafeDestinationError'
   }
 }
@@ -44,28 +44,28 @@ export class PilotRunNotFoundError extends PilotViolationError {
 
 export class PilotRunAlreadyLiveError extends PilotViolationError {
   constructor(reference: string) {
-    super(`${reference} a deja un parcours ouvert, il faut le finir avant d en lancer un autre`)
+    super(`${reference} already has an open journey, finish it before starting another`)
     this.name = 'PilotRunAlreadyLiveError'
   }
 }
 
 export class PilotRunOverError extends PilotViolationError {
   constructor(reference: string, state: string) {
-    super(`le parcours de ${reference} est ${state}, il n avance plus`)
+    super(`the journey of ${reference} is ${state}, it no longer moves`)
     this.name = 'PilotRunOverError'
   }
 }
 
 export class PilotRunPausedError extends PilotViolationError {
   constructor(reference: string) {
-    super(`le parcours de ${reference} est en pause, il faut le reprendre pour avancer`)
+    super(`the journey of ${reference} is paused, resume it to move on`)
     this.name = 'PilotRunPausedError'
   }
 }
 
 export class PilotBrowserLostError extends PilotViolationError {
   constructor(reference: string) {
-    super(`le navigateur du parcours de ${reference} n existe plus, il faut le relancer`)
+    super(`the browser of the journey of ${reference} no longer exists, restart it`)
     this.name = 'PilotBrowserLostError'
   }
 }

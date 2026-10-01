@@ -18,7 +18,7 @@ export type BudgetRepository = {
 
 function assertPolicy(policy: BudgetPolicy, allowedRerouteHosts: readonly string[]): BudgetPolicy {
   if (!Number.isFinite(policy.capUsd) || policy.capUsd <= 0) {
-    throw new BudgetPolicyRefusedError('un plafond vaut un montant strictement positif')
+    throw new BudgetPolicyRefusedError('a cap must be a strictly positive amount')
   }
   if (!CONDUCTS.includes(policy.conduct)) {
     throw new BudgetPolicyRefusedError(`conduite inconnue ${policy.conduct}`)

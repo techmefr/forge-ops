@@ -13,7 +13,7 @@ export class OriginNotFoundError extends IncidentViolationError {
 
 export class OriginSlugTakenError extends IncidentViolationError {
   constructor(slug: string) {
-    super(`La source ${slug} existe deja`, 'OriginSlugTakenError')
+    super(`Source ${slug} already exists`, 'OriginSlugTakenError')
   }
 }
 
@@ -25,7 +25,7 @@ export class IncidentNotFoundError extends IncidentViolationError {
 
 export class IncidentAlreadyRuledError extends IncidentViolationError {
   constructor(incidentId: number, state: string) {
-    super(`L'incident ${incidentId} est deja ${state}`, 'IncidentAlreadyRuledError')
+    super(`Incident ${incidentId} is already ${state}`, 'IncidentAlreadyRuledError')
   }
 }
 

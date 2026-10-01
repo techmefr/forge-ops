@@ -35,6 +35,13 @@ export const SERVER_ERROR_CODES = [
   'PasswordRefusedError',
   'DoneNotEarnedError',
   'ProjectNotFoundError',
+  'StoryTooThinError',
+  'PhaseNotReadyError',
+  'SessionAlreadyRunningError',
+  'FleetSaturatedError',
+  'BudgetExhaustedError',
+  'StoryBlockedError',
+  'BudgetPolicyRefusedError',
 ] as const
 
 export function reasonOf(error: unknown): Phrase {
