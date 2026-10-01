@@ -16,6 +16,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - run: npm run -s lint
+      - run: node scripts/importDirection.js --check-baseline
       - run: npx vitest run
       - run: npm run -s build:back
       - run: npm run -s build:web
