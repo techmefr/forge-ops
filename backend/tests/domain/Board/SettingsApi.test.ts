@@ -15,6 +15,7 @@ import { createBoardApi } from '../../../src/domain/Board/BoardApi.js'
 import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let api: Hono
+let maySettleBudget: boolean
 
 function put(path: string, body: unknown): Promise<Response> {
   return api.request(path, {
@@ -25,6 +26,7 @@ function put(path: string, body: unknown): Promise<Response> {
 }
 
 beforeEach(() => {
+  maySettleBudget = true
   const db = openDatabase(':memory:')
   api = createBoardApi({
     repository: createStoryRepository(db),
@@ -39,6 +41,7 @@ beforeEach(() => {
       dispatch: () => Promise.reject(new Error('aucun lanceur dans ce test')),
       countRunning: () => 0,
     },
+    maySettleBudget: () => maySettleBudget,
     claudeHome: mkdtempSync(join(tmpdir(), 'forge-claude-home-')),
     cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
     advanceReviewCascade: () =>
@@ -47,6 +50,15 @@ beforeEach(() => {
 })
 
 describe('GET /api/settings/budget', () => {
+  it('stays open to a member, who is told they may not settle it', async () => {
+    maySettleBudget = false
+
+    const response = await api.request('/api/settings/budget')
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toMatchObject({ maySettle: false })
+  })
+
   it('hands out the policy in force, with what the day has spent so far', async () => {
     const response = await api.request('/api/settings/budget')
 
@@ -59,6 +71,34 @@ describe('GET /api/settings/budget', () => {
 })
 
 describe('PUT /api/settings/budget', () => {
+  it('is refused to anyone who is not a director or a super admin', async () => {
+    maySettleBudget = false
+
+    const response = await put('/api/settings/budget', {
+      capUsd: 1,
+      conduct: 'stop',
+      downgradeModel: 'x',
+      rerouteBaseUrl: null,
+    })
+
+    expect(response.status).toBe(403)
+    await expect(response.json()).resolves.toMatchObject({ error: 'BudgetNeedsAnAdmin' })
+  })
+
+  it('leaves the policy untouched when it refuses a member', async () => {
+    maySettleBudget = false
+    await put('/api/settings/budget', {
+      capUsd: 1,
+      conduct: 'stop',
+      downgradeModel: 'x',
+      rerouteBaseUrl: null,
+    })
+
+    const response = await api.request('/api/settings/budget')
+
+    await expect(response.json()).resolves.toMatchObject({ policy: { capUsd: 20 } })
+  })
+
   it('records the conduct the person chose', async () => {
     const response = await put('/api/settings/budget', {
       capUsd: 30,

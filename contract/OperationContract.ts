@@ -21,6 +21,7 @@ export type BudgetPolicy = {
 export type BudgetSettings = {
   policy: BudgetPolicy
   spentUsd: number
+  maySettle: boolean
 }
 
 export const ORIGIN_KIND_SEQUENCE = ['sentry', 'user_report', 'idea', 'manual'] as const
