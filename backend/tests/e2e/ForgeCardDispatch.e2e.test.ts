@@ -141,7 +141,6 @@ function bootBoard(repositoryRoot: string, worktreeRoot: string): Board {
       stopRunOverCap(
         {
           sessions,
-          stories,
           budget,
           hangUp: (identifier) => {
             live.terminate(identifier)

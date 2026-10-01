@@ -60,6 +60,7 @@ export type DispatcherInput = {
   workflow?: WorkflowRepository
   forgeCards?: ForgeCardRepository
   workflowColumns?: WorkflowColumnRepository
+  prepareWorkspace?: (target: { storyId: number; forgeCardId: number | null }) => void
 }
 
 export type Dispatcher = {
@@ -111,6 +112,7 @@ export function createDispatcher({
   workflow = createWorkflowRepository(database),
   forgeCards = createForgeCardRepository(database),
   workflowColumns = createWorkflowColumnRepository(database),
+  prepareWorkspace,
 }: DispatcherInput): Dispatcher {
   const bucket = createRateBucket(rate)
   const placeholders = RUNNING_LIFECYCLES.map(() => '?').join(', ')
@@ -269,7 +271,8 @@ export function createDispatcher({
       }
       let claudeSessionId: string
       try {
-        ({ claudeSessionId } = await runner.launch({
+        prepareWorkspace?.({ storyId: order.storyId, forgeCardId: forgeCard?.id ?? null })
+        const launchedSession = await runner.launch({
         storyId: order.storyId,
         reference,
         phase: order.phase,
@@ -280,7 +283,8 @@ export function createDispatcher({
         ...stepSettings,
         ...(forgeCard === null ? {} : { forgeCardId: forgeCard.id }),
         ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
-        }))
+        })
+        claudeSessionId = launchedSession.claudeSessionId
       } catch (error) {
         bucket.refund(takenAt)
         throw error

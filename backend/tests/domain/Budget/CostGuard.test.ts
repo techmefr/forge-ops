@@ -17,7 +17,7 @@ let storyId: number
 let hungUp: string[]
 
 function guard(claudeSessionId: string): boolean {
-  return stopRunOverCap({ sessions, stories, budget, hangUp: (id) => hungUp.push(id) }, claudeSessionId)
+  return stopRunOverCap({ sessions, budget, hangUp: (id) => hungUp.push(id) }, claudeSessionId)
 }
 
 function spend(claudeSessionId: string, costUsd: number): void {
@@ -77,11 +77,12 @@ describe('stopRunOverCap', () => {
     expect(hungUp).toEqual(['sess-1'])
   })
 
-  it('reports the story as needing a human', () => {
+  it('keeps the story in its step and records the budget outcome', () => {
     spend('sess-1', 7)
     guard('sess-1')
 
-    expect(stories.findStory(storyId).state).toBe('escalated')
+    expect(stories.findStory(storyId).state).toBe('building')
+    expect(sessions.listRecentActivity(storyId)[0]?.outcome).toBe('budget_exhausted')
   })
 
   it('stops the run only once', () => {

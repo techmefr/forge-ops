@@ -108,7 +108,9 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
     `UPDATE agent_session
         SET story_id = ?, phase = ?, agent_name = ?, claude_code_version = ?,
             lifecycle = 'starting', outcome = NULL, ended_at = NULL,
-            last_heartbeat_at = NULL, cost_base_usd = COALESCE(cost_usd, 0)
+            last_heartbeat_at = NULL, cost_base_usd = COALESCE(cost_usd, 0),
+            wait_seconds = wait_seconds + MAX(0, strftime('%s', 'now') - strftime('%s', COALESCE(idle_since, ended_at, 'now'))),
+            idle_since = NULL
       WHERE claude_session_id = ?`,
   )
   const selectLatestOfStory = db.prepare<[number], AgentSessionRow>(
@@ -121,8 +123,15 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
   const selectSession = db.prepare<[string], AgentSessionRow>(
     'SELECT * FROM agent_session WHERE claude_session_id = ?',
   )
-  const updateSessionLifecycle = db.prepare<[AgentLifecycle, string]>(
-    'UPDATE agent_session SET lifecycle = ? WHERE claude_session_id = ?',
+  const updateSessionLifecycle = db.prepare<[AgentLifecycle, AgentLifecycle, AgentLifecycle, string]>(
+    `UPDATE agent_session
+        SET lifecycle = ?,
+            wait_seconds = wait_seconds + CASE
+              WHEN idle_since IS NOT NULL AND ? <> 'awaiting_human'
+              THEN MAX(0, strftime('%s', 'now') - strftime('%s', idle_since))
+              ELSE 0 END,
+            idle_since = CASE WHEN ? = 'awaiting_human' THEN COALESCE(idle_since, datetime('now')) ELSE NULL END
+      WHERE claude_session_id = ?`,
   )
   const beatHeartbeat = db.prepare<[string]>(
     "UPDATE agent_session SET last_heartbeat_at = datetime('now') WHERE claude_session_id = ?",
@@ -133,7 +142,12 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
       ORDER BY silent_for_seconds DESC`,
   )
   const closeSessionRow = db.prepare<[AgentLifecycle, OutcomeClass, string]>(
-    `UPDATE agent_session SET lifecycle = ?, outcome = ?, ended_at = datetime('now')
+    `UPDATE agent_session
+        SET lifecycle = ?, outcome = ?, ended_at = datetime('now'),
+            wait_seconds = wait_seconds + CASE
+              WHEN idle_since IS NOT NULL THEN MAX(0, strftime('%s', 'now') - strftime('%s', idle_since))
+              ELSE 0 END,
+            idle_since = NULL
       WHERE claude_session_id = ?`,
   )
   const updateUsage = db.prepare<[number, number, number, number | null, number | null, string]>(
@@ -146,7 +160,11 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
   )
   const abandonRunning = db.prepare(
     `UPDATE agent_session
-        SET lifecycle = 'interrupted', outcome = 'interrupted', ended_at = datetime('now')
+        SET lifecycle = 'interrupted', outcome = 'interrupted', ended_at = datetime('now'),
+            wait_seconds = wait_seconds + CASE
+              WHEN idle_since IS NOT NULL THEN MAX(0, strftime('%s', 'now') - strftime('%s', idle_since))
+              ELSE 0 END,
+            idle_since = NULL
       WHERE lifecycle IN ('starting', 'working', 'awaiting_human')`,
   )
   const sumStoryUsage = db.prepare<
@@ -221,7 +239,7 @@ export function createAgentSessionRepository(db: Database.Database): AgentSessio
 
     updateLifecycle: (claudeSessionId, lifecycle) => {
       requireSession(claudeSessionId)
-      updateSessionLifecycle.run(lifecycle, claudeSessionId)
+      updateSessionLifecycle.run(lifecycle, lifecycle, lifecycle, claudeSessionId)
       return requireSession(claudeSessionId)
     },
 
