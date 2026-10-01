@@ -1,11 +1,13 @@
 import {
   createRouter,
+  type NavigationGuard,
   createWebHistory,
   type RouteRecordRaw,
   type Router,
   type RouterHistory,
 } from 'vue-router'
 import { ABSORBED_PATHS, HOME_PATH } from '@/technical/Router/Screen.js'
+import { PERSONAL_BASE, PERSONAL_TABS, PROJECT_BASE, PROJECT_TABS } from '@/technical/Router/ScreenTab.js'
 import { checkBoardSession } from '@/technical/Api/Board.js'
 import { FROZEN_VISIT } from '@/technical/Api/Visit.js'
 import { hasDesktopAddresses, isDesktop } from '@/technical/Api/Addresses.js'
@@ -19,6 +21,13 @@ const ABSORBED: readonly RouteRecordRaw[] = Object.entries(ABSORBED_PATHS).map(
   }),
 )
 
+function knownTab(base: string, tabs: readonly string[]): NavigationGuard {
+  return (to) => {
+    const wanted = to.params.tab
+    return typeof wanted === 'string' && tabs.includes(wanted) ? true : `${base}/${tabs[0]}`
+  }
+}
+
 export const ROUTES: readonly RouteRecordRaw[] = [
   { path: '/', redirect: HOME_PATH },
   { path: '/projects', redirect: '/projects/subjects' },
@@ -26,6 +35,7 @@ export const ROUTES: readonly RouteRecordRaw[] = [
   {
     path: '/projects/:tab',
     name: 'projects',
+    beforeEnter: knownTab(PROJECT_BASE, PROJECT_TABS),
     component: () => import('@/domain/Shell/ProjectsScreen.vue'),
   },
   { path: '/me', redirect: '/me/forge' },
@@ -37,6 +47,7 @@ export const ROUTES: readonly RouteRecordRaw[] = [
   {
     path: '/me/:tab',
     name: 'personal',
+    beforeEnter: knownTab(PERSONAL_BASE, PERSONAL_TABS),
     component: () => import('@/domain/Shell/PersonalScreen.vue'),
   },
   {

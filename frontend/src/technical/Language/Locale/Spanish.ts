@@ -1250,6 +1250,7 @@ export const SPANISH: Message = {
     cancel: 'Cancelar',
   },
   visit: {
+    dismiss: "Cerrar",
     title: 'Demo interactiva',
     body: 'Este es un tablero de demostración con datos de ejemplo. Tus cambios se quedan en esta pestaña y se conservan al recargar hasta restablecer la demo, los agentes son simulados. Instala el board para usarlo de verdad.',
     reset: 'Restablecer demo',

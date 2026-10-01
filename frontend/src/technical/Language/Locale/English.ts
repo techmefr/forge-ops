@@ -1238,6 +1238,7 @@ export const ENGLISH = {
     cancel: 'Cancel',
   },
   visit: {
+    dismiss: "Dismiss",
     title: 'Live demo',
     body: 'This is a demonstration board on sample data. Your changes stay in this browser tab and are kept across reloads until you reset the demo, and the agents are simulated. Install the board to run it for real.',
     reset: 'Reset demo',

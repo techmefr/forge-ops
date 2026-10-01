@@ -1249,6 +1249,7 @@ export const PORTUGUESE: Message = {
     cancel: 'Cancelar',
   },
   visit: {
+    dismiss: "Fechar",
     title: 'Demonstração interativa',
     body: 'Este é um quadro de demonstração com dados de exemplo. As suas alterações ficam neste separador e mantêm-se ao recarregar até repor a demonstração, os agentes são simulados. Instale o board para o executar a sério.',
     reset: 'Repor demonstração',

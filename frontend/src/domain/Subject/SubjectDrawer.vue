@@ -307,7 +307,7 @@ function closeWhenClosed(open: boolean): void {
               :href="safeHref(link.url)"
               target="_blank"
               rel="noopener noreferrer"
-              class="rounded-md border border-line px-2 py-0.5 text-[11px] text-info hover:bg-elev"
+              class="rounded-md border border-line px-2 py-0.5 text-[11px] text-info hover:bg-elev max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
             >
               {{ t(`linkKind.${link.kind}`) }}<span class="sr-only"> {{ t('team.opensNewTab') }}</span>
             </a>
@@ -324,7 +324,7 @@ function closeWhenClosed(open: boolean): void {
               :href="safeHref(link.url)"
               target="_blank"
               rel="noopener noreferrer"
-              class="rounded-md border border-line px-2 py-0.5 text-[11px] text-info hover:bg-elev"
+              class="rounded-md border border-line px-2 py-0.5 text-[11px] text-info hover:bg-elev max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
             >
               {{ t(`linkKind.${link.kind}`) }}<span class="sr-only"> {{ t('team.opensNewTab') }}</span>
             </a>

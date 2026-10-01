@@ -1251,6 +1251,7 @@ export const GERMAN: Message = {
     cancel: 'Abbrechen',
   },
   visit: {
+    dismiss: "Schließen",
     title: 'Live-Demo',
     body: 'Dies ist ein Demo-Board mit Beispieldaten. Ihre Änderungen bleiben in diesem Tab und bleiben beim Neuladen bis zum Zurücksetzen erhalten, die Agenten sind simuliert. Installieren Sie das Board, um es wirklich zu betreiben.',
     reset: 'Demo zurücksetzen',

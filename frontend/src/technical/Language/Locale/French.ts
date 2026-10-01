@@ -1248,6 +1248,7 @@ export const FRENCH: Message = {
     cancel: 'Annuler',
   },
   visit: {
+    dismiss: "Fermer",
     title: 'Démo interactive',
     body: 'Ceci est un board de démonstration sur des données d’exemple. Vos changements restent dans cet onglet et sont conservés au rechargement jusqu’à la réinitialisation, les agents sont simulés. Installez le board pour le lancer pour de vrai.',
     reset: 'Réinitialiser',

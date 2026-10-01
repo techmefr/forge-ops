@@ -287,3 +287,20 @@ describe('seedDemoBoard incidents', () => {
     expect(states.map((row) => row.state).sort()).toEqual(['accepted', 'pending', 'refused'])
   })
 })
+
+describe('seedDemoBoard session durations', () => {
+  it('keeps the time spent on every story within a working day, open sessions included', () => {
+    const rows = db
+      .prepare(
+        `SELECT story_id,
+                SUM(MAX(strftime('%s', COALESCE(ended_at, 'now')) - strftime('%s', started_at), 0)) AS seconds
+           FROM agent_session GROUP BY story_id`,
+      )
+      .all() as readonly { story_id: number; seconds: number }[]
+
+    expect(rows.length).toBeGreaterThan(0)
+    for (const row of rows) {
+      expect(row.seconds, `story ${row.story_id}`).toBeLessThan(8 * 3600)
+    }
+  })
+})

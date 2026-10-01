@@ -472,6 +472,19 @@ describe('SubjectsScreen drawer', () => {
     expect(note.classList.contains('min-h-[5.5rem]')).toBe(true)
   })
 
+  it('gives the project links of the drawer a 40px target on a phone', async () => {
+    serveDrawer()
+    const screen = await mounted()
+    await screen.find('[data-test-id="subject-row-1"]').trigger('click')
+    await flushPromises()
+    const link = [...document.body.querySelectorAll<HTMLAnchorElement>('[data-test-id="subject-drawer"] a')].find(
+      (candidate) => candidate.textContent?.includes('Repository'),
+    )
+    expect(link).toBeDefined()
+    expect(link?.classList.contains('max-sm:min-h-10')).toBe(true)
+    expect(link?.classList.contains('max-sm:min-w-10')).toBe(true)
+  })
+
   it('opens on a row click and shows the state history and the project links', async () => {
     serveDrawer()
     const screen = await mounted()

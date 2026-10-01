@@ -1042,7 +1042,7 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
   const setEscalation = db.prepare<[string, number]>('UPDATE story SET escalation_reason = ? WHERE id = ?')
   const backdateSession = db.prepare<[number, number, number, string]>(
     `UPDATE agent_session
-        SET started_at = datetime('now', ?  || ' days', ? || ' seconds'),
+        SET started_at = datetime('now', CASE WHEN ended_at IS NULL THEN '0' ELSE ? END || ' days', ? || ' seconds'),
             ended_at = CASE WHEN ended_at IS NULL THEN NULL ELSE datetime('now', ? || ' days') END
       WHERE claude_session_id = ?`,
   )
