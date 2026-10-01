@@ -27,6 +27,7 @@ export type ExternalUserDraft = {
   login: string
   displayName: string
   email: string
+  isEmailVerified: boolean
   role: UserRole
   subject: string
 }
