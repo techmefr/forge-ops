@@ -3,7 +3,7 @@ import { createHash, timingSafeEqual } from 'node:crypto'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { IDENTITY_COOKIE } from '../../technical/Auth/TokenGuard.js'
 import { cookieSecure } from '../../technical/Auth/SecureCookie.js'
-import { clientAddressOf } from '../../technical/Auth/ClientAddress.js'
+import { clientAddressOf, trustProxyFromEnv } from '../../technical/Auth/ClientAddress.js'
 import { createLoginRateLimit, type LoginRateLimit } from '../../technical/Auth/LoginRateLimit.js'
 import {
   authorizeUrlOf,
@@ -39,6 +39,7 @@ export type OidcApiInput = {
   transactions?: OidcTransactions
   handoffs?: OidcHandoffs<DesktopHandoff>
   requestLimit?: LoginRateLimit
+  trustProxy?: boolean
 }
 
 function bindingOf(state: string): string {
@@ -60,6 +61,7 @@ export function createOidcApi({
   transactions = createOidcTransactions(),
   handoffs = createOidcHandoffs<DesktopHandoff>(),
   requestLimit = createLoginRateLimit({ attemptCap: REQUEST_CAP_PER_WINDOW }),
+  trustProxy = trustProxyFromEnv(),
 }: OidcApiInput): Hono {
   if (providers.length > 0 && (publicOrigin === null || publicOrigin === '')) {
     throw new Error('FORGE_PUBLIC_ORIGIN is required when an OIDC provider is configured')
@@ -67,7 +69,7 @@ export function createOidcApi({
   const api = new Hono()
 
   function isOverLimit(context: Context, route: string): boolean {
-    const key = `${route}:${clientAddressOf(context)}`
+    const key = `${route}:${clientAddressOf(context, trustProxy)}`
     if (requestLimit.refuses(key)) {
       context.header('retry-after', String(Math.ceil(requestLimit.retryAfterMs(key) / 1000)))
       return true
