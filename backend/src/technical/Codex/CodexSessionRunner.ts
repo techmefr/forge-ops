@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { createCodexTranscriptStore, type CodexTranscriptStore } from './CodexTranscriptStore.js'
+import { codexAgentEnvironmentOf } from '../Guardrail/AgentEnvironment.js'
 
 export type CodexLaunchOrder = {
   storyId: number
@@ -90,7 +91,7 @@ export function createCodexSessionRunner({
       const child = spawnCodex(['exec', '--json', ...reasoningOf(order.effort), '--cd', cwd, prompt], {
         cwd,
         env: {
-          ...process.env,
+          ...codexAgentEnvironmentOf(process.env),
           FORGE_STORY_REFERENCE: order.reference,
           FORGE_PHASE: order.phase,
         },
