@@ -289,6 +289,10 @@ Installers for Windows (`.exe`, `.msi`), macOS (Apple Silicon `.dmg`) and Linux 
 
 Maintainers publish a release by pushing a `v*` tag: `.github/workflows/desktop.yml` builds the three platforms and uploads the installers and the updater manifest. The repository needs the secrets `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. A manual run of the workflow builds without publishing.
 
+### Versioning
+
+Versions follow [semver](https://semver.org/) and stay in 0.x until the project is declared stable. The version lives in `package.json`, `package-lock.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json` and must match the tag. Pushing a tag `vX.Y.Z` triggers the desktop release workflow. See [CHANGELOG.md](CHANGELOG.md).
+
 ```bash
 npm run desktop:dev      # app in development
 npm run desktop:build    # local installer (needs Rust and the Tauri system libraries)
