@@ -703,6 +703,7 @@ export const ITALIAN: Message = {
     collapse: 'Ridurre la scheda',
     expand: 'Aprire la scheda',
     noHighlight: 'Nessuna colorazione per questo tipo di file.',
+    fileContent: "Contenuto del file",
   },
   view: {
     sessionsToWatch: 'Sessioni da guardare',
@@ -715,6 +716,7 @@ export const ITALIAN: Message = {
     provenBy: 'verificato provato da {path}',
   },
   pilot: {
+    sightDetail: "Dettaglio dell'ispezione",
     paceLabel: 'Andatura del percorso',
     stepKindLabel: 'Tipo di passo',
     reason: {

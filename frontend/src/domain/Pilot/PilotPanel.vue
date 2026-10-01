@@ -218,6 +218,9 @@ function addDraft(): void {
 
     <pre
       v-if="desk.sight.value !== null"
+      tabindex="0"
+      role="region"
+      :aria-label="t('pilot.sightDetail')"
       class="mt-3 max-h-48 overflow-auto rounded-lg border border-line bg-elev p-3 font-mono text-[11px] whitespace-pre-wrap text-txt-mid"
       >{{ desk.sight.value.detail }}</pre
     >

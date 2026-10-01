@@ -697,6 +697,7 @@ export const CHINESE: Message = {
     collapse: '折叠卡片',
     expand: '展开卡片',
     noHighlight: '此文件类型不支持颜色高亮。',
+    fileContent: "文件内容",
   },
   view: {
     sessionsToWatch: '待观察的会话',
@@ -709,6 +710,7 @@ export const CHINESE: Message = {
     provenBy: '已验证，凭证为 {path}',
   },
   pilot: {
+    sightDetail: "检查详情",
     paceLabel: '演练节奏',
     stepKindLabel: '步骤类型',
     reason: {

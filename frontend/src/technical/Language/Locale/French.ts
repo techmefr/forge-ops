@@ -701,6 +701,7 @@ export const FRENCH: Message = {
     collapse: 'Réduire la carte',
     expand: 'Déplier la carte',
     noHighlight: 'Pas de coloration pour ce type de fichier.',
+    fileContent: "Contenu du fichier",
   },
   view: {
     sessionsToWatch: 'Sessions à regarder',
@@ -713,6 +714,7 @@ export const FRENCH: Message = {
     provenBy: 'vérifié prouvé par {path}',
   },
   pilot: {
+    sightDetail: "Détail de l'inspection",
     paceLabel: 'Allure du parcours',
     stepKindLabel: 'Nature du pas',
     reason: {
