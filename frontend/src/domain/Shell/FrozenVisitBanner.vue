@@ -12,25 +12,27 @@ const open = ref(true)
 <template>
   <aside
     v-if="open"
-    class="fixed right-3 bottom-3 left-3 z-50 flex flex-col gap-2 rounded-[10px] border border-line bg-panel p-3 shadow-lg sm:right-auto sm:max-w-[320px] sm:p-4 lg:left-[262px]"
+    class="flex flex-none items-center gap-x-2 border-t border-line bg-panel px-2 sm:gap-x-4 sm:px-6"
     :aria-label="t('visit.title')"
   >
-    <p class="font-mono text-[10px] font-semibold tracking-[0.22em] text-acc uppercase">
+    <p class="font-mono text-[10px] font-semibold tracking-[0.18em] whitespace-nowrap text-acc uppercase">
       {{ t('visit.title') }}
     </p>
-    <p class="hidden text-[13px] leading-snug text-txt-mid sm:block">{{ t('visit.body') }}</p>
-    <div class="flex items-center justify-between gap-3">
+    <p class="hidden min-w-0 flex-1 truncate text-xs text-txt-low lg:block" :title="t('visit.body')">
+      {{ t('visit.body') }}
+    </p>
+    <div class="ml-auto flex items-center sm:gap-3">
       <a
         :href="REPOSITORY"
         target="_blank"
         rel="noreferrer"
-        class="inline-flex min-h-11 items-center font-mono text-[11px] text-txt-hi underline underline-offset-2 sm:min-h-6"
+        class="inline-flex min-h-11 items-center px-1.5 sm:px-2 font-mono text-[11px] text-txt-hi underline underline-offset-2 sm:min-h-9"
       >
         {{ t('visit.source') }}
       </a>
       <button
         type="button"
-        class="min-h-11 font-mono text-[11px] tracking-[0.14em] text-txt-hi uppercase underline underline-offset-2 sm:min-h-6"
+        class="min-h-11 px-1.5 font-mono text-[11px] tracking-[0.14em] whitespace-nowrap text-txt-hi uppercase underline underline-offset-2 sm:min-h-9"
         data-test-id="demo-reset"
         @click="resetDemo"
       >
@@ -38,7 +40,7 @@ const open = ref(true)
       </button>
       <button
         type="button"
-        class="min-h-11 font-mono text-[11px] tracking-[0.14em] text-txt-low uppercase sm:min-h-6"
+        class="min-h-11 px-1.5 font-mono text-[11px] tracking-[0.14em] text-txt-low uppercase sm:min-h-9"
         @click="open = false"
       >
         {{ t('tour.skip') }}
