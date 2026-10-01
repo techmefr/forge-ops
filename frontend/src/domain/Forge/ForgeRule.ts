@@ -223,6 +223,10 @@ export function primaryActionOf(card: ForgeCardView, steps: readonly BoardStep[]
   return step?.human === true ? null : 'launch'
 }
 
+export function secondaryActionOf(card: ForgeCardView): CardAction | null {
+  return card.status === 'to_validate' && card.stepKey !== DONE_STEP_KEY ? 'stop' : null
+}
+
 export function firstStepKey(steps: readonly BoardStep[]): string | null {
   return steps.find((step) => step.kind === 'step')?.key ?? null
 }

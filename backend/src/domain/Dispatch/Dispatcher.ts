@@ -42,6 +42,7 @@ import {
 } from './DispatchViolation.js'
 
 const RUNNING_LIFECYCLES = ['starting', 'working', 'awaiting_human'] as const
+const BUSY_LIFECYCLES = ['starting', 'working'] as const
 
 export type DispatcherInput = {
   database: Database.Database
@@ -116,9 +117,14 @@ export function createDispatcher({
   const countRunningSessions = database.prepare<string[], { total: number }>(
     `SELECT COUNT(*) AS total FROM agent_session WHERE lifecycle IN (${placeholders})`,
   )
-  const countRunningOnStory = database.prepare<[number, ...string[]], { total: number }>(
+  const busyPlaceholders = BUSY_LIFECYCLES.map(() => '?').join(', ')
+  const countBusyOnStory = database.prepare<[number, ...string[]], { total: number }>(
     `SELECT COUNT(*) AS total FROM agent_session
-      WHERE story_id = ? AND lifecycle IN (${placeholders})`,
+      WHERE story_id = ? AND lifecycle IN (${busyPlaceholders})`,
+  )
+  const selectWaitingOnStory = database.prepare<[number], { claude_session_id: string }>(
+    `SELECT claude_session_id FROM agent_session
+      WHERE story_id = ? AND lifecycle = 'awaiting_human'`,
   )
   const selectBlockers = database.prepare<[number], { reference: string }>(
     `SELECT story.reference AS reference FROM story_dependency
@@ -205,13 +211,16 @@ export function createDispatcher({
 
       const forgeCard = forgeCards.openCardOfStory(order.storyId)
       const cardStoryIds = forgeCard === null ? [order.storyId] : forgeCard.storyIds
-      const runningOnCard = cardStoryIds.reduce(
-        (total, cardStoryId) => total + (countRunningOnStory.get(cardStoryId, ...RUNNING_LIFECYCLES)?.total ?? 0),
+      const busyOnCard = cardStoryIds.reduce(
+        (total, cardStoryId) => total + (countBusyOnStory.get(cardStoryId, ...BUSY_LIFECYCLES)?.total ?? 0),
         0,
       )
-      if (runningOnCard > 0) {
+      if (busyOnCard > 0) {
         throw new SessionAlreadyRunningError(story.reference, order.phase)
       }
+      const waitingOnCard = cardStoryIds.flatMap((cardStoryId) =>
+        selectWaitingOnStory.all(cardStoryId).map((row) => row.claude_session_id),
+      )
 
       if (order.phase !== 'spec') {
         const held = foremerge.listReservations()
@@ -226,7 +235,7 @@ export function createDispatcher({
         }
       }
 
-      const running = countRunning()
+      const running = countRunning() - waitingOnCard.length
       if (running >= concurrencyCap) {
         throw new FleetSaturatedError(running, concurrencyCap)
       }
@@ -253,6 +262,10 @@ export function createDispatcher({
       const stepSettings = {
         ...(step === null ? {} : { provider: step.provider }),
         ...(step === null || step.effort === '' ? {} : { effort: step.effort }),
+      }
+      for (const waitingSessionId of waitingOnCard) {
+        runner.abandon?.(waitingSessionId)
+        sessions.closeSession(waitingSessionId, { exitCode: 0 })
       }
       let claudeSessionId: string
       try {
