@@ -93,6 +93,7 @@ export type BoardApiInput = {
   boardColumns?: () => readonly { key: string; label: string; colour: string }[]
   today?: () => string
   isSuperAdmin?: (login: string) => boolean
+  isDirector?: (login: string) => boolean
 }
 
 export function createBoardApi({
@@ -111,6 +112,7 @@ export function createBoardApi({
   boardColumns = () => KANBAN_COLUMNS,
   today = () => new Date().toISOString().slice(0, 10),
   isSuperAdmin = () => false,
+  isDirector = () => false,
 }: BoardApiInput): Hono {
   const api = new Hono()
 
@@ -187,7 +189,7 @@ export function createBoardApi({
 
   api.get('/api/board/self', (context) => {
     const login = operatorOf(context)
-    return context.json({ login, superAdmin: isSuperAdmin(login) })
+    return context.json({ login, superAdmin: isSuperAdmin(login), director: isDirector(login) })
   })
 
   api.post('/api/epics/:id/claim', (context) => {
@@ -229,10 +231,10 @@ export function createBoardApi({
     )
   })
 
-  api.route('/', createEpicApi({ epics: repository.epics, events, today, projects: repository.projects, isSuperAdmin }))
+  api.route('/', createEpicApi({ epics: repository.epics, events, today, projects: repository.projects, isSuperAdmin, isDirector }))
   api.route('/', createEventApi({ agenda: repository.agenda, events }))
-  api.route('/', createProjectApi({ projects: repository.projects, events, isSuperAdmin }))
-  api.route('/', createFollowUpApi({ followUps: repository.followUps, projects: repository.projects, events, today, isSuperAdmin }))
+  api.route('/', createProjectApi({ projects: repository.projects, events, isSuperAdmin, isDirector }))
+  api.route('/', createFollowUpApi({ followUps: repository.followUps, projects: repository.projects, events, today, isSuperAdmin, isDirector }))
 
   api.route(
     '/',

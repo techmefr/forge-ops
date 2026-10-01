@@ -4,6 +4,7 @@ import { phrase, type Phrase } from '@/technical/Language/Phrase'
 export type TeamSelf = {
   login: string
   superAdmin: boolean
+  director?: boolean
 }
 
 export const LOCAL_OPERATOR = 'local'
@@ -16,12 +17,10 @@ export function mayChangeAdmin(sheet: ProjectSheet, self: TeamSelf | null): bool
   if (self === null) {
     return false
   }
-  return (
-    sheet.adminUserId === null ||
-    self.superAdmin ||
-    self.login === LOCAL_OPERATOR ||
-    self.login === sheet.adminLogin
-  )
+  if (self.superAdmin || self.login === LOCAL_OPERATOR) {
+    return true
+  }
+  return sheet.adminLogin === null ? self.director === true : self.login === sheet.adminLogin
 }
 
 export function positionAfterMove(index: number, direction: -1 | 1, total: number): number | null {

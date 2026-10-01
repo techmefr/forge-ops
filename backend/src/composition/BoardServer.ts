@@ -58,7 +58,7 @@ import { createLiveSessions } from '../technical/ClaudeCode/LiveSessions.js'
 import { createDiscussionApi } from '../domain/Discussion/DiscussionApi.js'
 import { createDiscussionRepository } from '../domain/Discussion/DiscussionRepository.js'
 import { operatorOf } from '../technical/Auth/BoardIdentity.js'
-import { mayAdministerWorkflow } from '../domain/Workflow/WorkflowAuthority.js'
+import { mayAdministerProject } from '../domain/Project/ProjectAuthority.js'
 import { readSuperAdminConfiguration } from '../technical/Auth/SuperAdminConfiguration.js'
 import { createTemplateRepository } from '../domain/Template/TemplateRepository.js'
 import { createTemplateApi } from '../domain/Template/TemplateApi.js'
@@ -307,6 +307,7 @@ export function startBoardServer({
   }
   const api = createBoardApi({
     isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
+    isDirector: (login) => identities.findUser(login)?.role === 'director',
     openHolds: discussion.openHolds,
     boardColumns: () =>
       templates.defaultTemplate().columns.map((column) => ({
@@ -423,10 +424,11 @@ export function startBoardServer({
       columns: workflowColumns,
       projectExists: (projectId) => stories.projects.find(projectId) !== null,
       mayAdminister: (projectId, context) =>
-        mayAdministerWorkflow({
+        mayAdministerProject({
           login: operatorOf(context),
           adminLogin: stories.projects.find(projectId)?.adminLogin ?? null,
           isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
+          isDirector: (login) => identities.findUser(login)?.role === 'director',
         }),
       adminOf: (projectId) => {
         const sheet = stories.projects.find(projectId)

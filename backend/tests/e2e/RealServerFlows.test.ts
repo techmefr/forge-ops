@@ -113,7 +113,7 @@ describe('super admin bootstrap', () => {
     expect(opened.identity).not.toBe('')
     rootIdentity = opened.identity
     const self = await call('GET', '/api/board/self', { identity: rootIdentity })
-    expect(self.body).toEqual({ login: 'root', superAdmin: true })
+    expect(self.body).toMatchObject({ login: 'root', superAdmin: true })
   })
 
   it('lets the super admin enrol members, and refuses a member doing it', async () => {
@@ -147,7 +147,7 @@ describe('granting and removing the super admin flag', () => {
     const granted = await call('PATCH', '/api/board-users/bob', { identity: rootIdentity }, { superAdmin: true })
     expect(granted.status).toBe(200)
     const bobSelf = await call('GET', '/api/board/self', { identity: bobIdentity })
-    expect(bobSelf.body).toEqual({ login: 'bob', superAdmin: true })
+    expect(bobSelf.body).toMatchObject({ login: 'bob', superAdmin: true })
 
     const removedRoot = await call('PATCH', '/api/board-users/root', { identity: bobIdentity }, { superAdmin: false })
     expect(removedRoot.status).toBe(200)
