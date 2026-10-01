@@ -80,7 +80,7 @@ function pickEffort(event: Event): void {
         <input
           type="color"
           :value="swatch"
-          class="h-7 w-7 rounded-md border border-line bg-transparent p-0.5"
+          class="h-7 w-7 rounded-md border border-line bg-transparent p-0.5 max-sm:h-10 max-sm:w-10"
           @input="pickColour"
         />
       </label>
@@ -96,7 +96,7 @@ function pickEffort(event: Event): void {
         type="button"
         :disabled="index === 0 || busy"
         :aria-label="t('workflowSettings.moveUp', { name: column.label })"
-        class="rounded-md px-2 py-1.5 text-txt-mid hover:bg-elev disabled:opacity-40"
+        class="rounded-md px-2 py-1.5 text-txt-mid hover:bg-elev disabled:opacity-40 max-sm:h-10 max-sm:min-w-10"
         @click="emit('move', -1)"
       >
         <span aria-hidden="true">↑</span>
@@ -105,7 +105,7 @@ function pickEffort(event: Event): void {
         type="button"
         :disabled="index === total - 1 || busy"
         :aria-label="t('workflowSettings.moveDown', { name: column.label })"
-        class="rounded-md px-2 py-1.5 text-txt-mid hover:bg-elev disabled:opacity-40"
+        class="rounded-md px-2 py-1.5 text-txt-mid hover:bg-elev disabled:opacity-40 max-sm:h-10 max-sm:min-w-10"
         @click="emit('move', 1)"
       >
         <span aria-hidden="true">↓</span>
@@ -114,7 +114,7 @@ function pickEffort(event: Event): void {
         type="button"
         :disabled="busy"
         :aria-label="t('workflowSettings.remove', { name: column.label })"
-        class="rounded-md px-2 py-1.5 text-txt-mid hover:bg-elev disabled:opacity-40"
+        class="rounded-md px-2 py-1.5 text-txt-mid hover:bg-elev disabled:opacity-40 max-sm:h-10 max-sm:min-w-10"
         @click="emit('remove')"
       >
         <span aria-hidden="true">×</span>

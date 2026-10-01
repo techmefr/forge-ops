@@ -76,6 +76,22 @@ describe('createBoardRouter', () => {
     }
   })
 
+  it('redirects an unknown projects tab to the first tab', async () => {
+    const board = router()
+
+    await board.push('/projects/nope')
+
+    expect(board.currentRoute.value.path).toBe('/projects/subjects')
+  })
+
+  it('redirects an unknown personal tab to My forge', async () => {
+    const board = router()
+
+    await board.push('/me/nope')
+
+    expect(board.currentRoute.value.path).toBe('/me/forge')
+  })
+
   it('sert les ecrans hors onglets', async () => {
     const board = router()
 

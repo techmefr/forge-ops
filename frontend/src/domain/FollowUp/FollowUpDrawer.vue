@@ -455,7 +455,7 @@ function closeWhenClosed(open: boolean): void {
                 :href="safeHref(link.url)"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="rounded border border-line px-2 py-1 text-[12px] text-info hover:border-acc"
+                class="rounded border border-line px-2 py-1 text-[12px] text-info hover:border-acc max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
               >
                 {{ t(`linkKind.${link.kind}`) }}
               </a>

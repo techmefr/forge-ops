@@ -29,6 +29,7 @@ const anchor = computed(() => (tour.open.value ? (tour.step.value?.anchor ?? nul
 
 const panel = ref<HTMLElement | null>(null)
 const heading = ref<HTMLElement | null>(null)
+const reopenButton = ref<HTMLButtonElement | null>(null)
 
 const SETTLE_MS = 450
 
@@ -125,6 +126,16 @@ watch(
   { flush: 'post' },
 )
 watch(
+  () => tour.open.value,
+  async (isOpen, wasOpen) => {
+    if (isOpen || !wasOpen) {
+      return
+    }
+    await nextTick()
+    reopenButton.value?.focus()
+  },
+)
+watch(
   () => route.path === LOGIN_PATH,
   (stillOnLogin) => {
     if (!stillOnLogin) {
@@ -154,6 +165,7 @@ onBeforeUnmount(() => {
   <Teleport to="#tour-slot" defer>
     <button
       v-if="tour.offered.value"
+      ref="reopenButton"
       type="button"
       class="min-h-11 rounded-full border border-acc bg-panel px-3 font-mono text-[11px] font-bold text-acc uppercase sm:min-h-9"
       @click="tour.reopen()"

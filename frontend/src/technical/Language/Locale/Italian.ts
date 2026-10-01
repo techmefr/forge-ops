@@ -1250,6 +1250,7 @@ export const ITALIAN: Message = {
     cancel: 'Annulla',
   },
   visit: {
+    dismiss: "Chiudi",
     title: 'Demo interattiva',
     body: 'Questa è una bacheca dimostrativa con dati di esempio. Le tue modifiche restano in questa scheda e restano dopo il ricaricamento fino al ripristino, gli agenti sono simulati. Installa il board per usarlo davvero.',
     reset: 'Reimposta demo',

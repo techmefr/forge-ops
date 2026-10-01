@@ -26,13 +26,13 @@ const open = ref(true)
         :href="REPOSITORY"
         target="_blank"
         rel="noreferrer"
-        class="inline-flex min-h-11 items-center px-1.5 sm:px-2 font-mono text-[11px] text-txt-hi underline underline-offset-2 sm:min-h-9"
+        class="inline-flex min-h-11 min-w-11 items-center justify-center px-1.5 sm:px-2 font-mono text-[11px] text-txt-hi underline underline-offset-2 sm:min-h-9"
       >
         {{ t('visit.source') }}
       </a>
       <button
         type="button"
-        class="min-h-11 px-1.5 font-mono text-[11px] tracking-[0.14em] whitespace-nowrap text-txt-hi uppercase underline underline-offset-2 sm:min-h-9"
+        class="min-h-11 min-w-11 px-1.5 font-mono text-[11px] tracking-[0.14em] whitespace-nowrap text-txt-hi uppercase underline underline-offset-2 sm:min-h-9"
         data-test-id="demo-reset"
         @click="resetDemo"
       >
@@ -40,10 +40,11 @@ const open = ref(true)
       </button>
       <button
         type="button"
-        class="min-h-11 px-1.5 font-mono text-[11px] tracking-[0.14em] text-txt-low uppercase sm:min-h-9"
+        class="min-h-11 min-w-11 px-1.5 font-mono text-[11px] tracking-[0.14em] text-txt-low uppercase sm:min-h-9"
+        data-test-id="demo-dismiss"
         @click="open = false"
       >
-        {{ t('tour.skip') }}
+        {{ t('visit.dismiss') }}
       </button>
     </div>
   </aside>
