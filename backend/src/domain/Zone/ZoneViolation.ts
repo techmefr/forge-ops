@@ -7,12 +7,12 @@ export abstract class ZoneViolationError extends Error {
 
 export class ZoneNotFoundError extends ZoneViolationError {
   constructor(pathPrefix: string) {
-    super(`Aucune zone ne porte le prefixe ${pathPrefix}`, 'ZoneNotFoundError')
+    super(`No zone carries the prefix ${pathPrefix}`, 'ZoneNotFoundError')
   }
 }
 
 export class ZonePrefixRequiredError extends ZoneViolationError {
   constructor() {
-    super('Une zone exige un prefixe de chemin non vide', 'ZonePrefixRequiredError')
+    super('A zone requires a non-empty path prefix', 'ZonePrefixRequiredError')
   }
 }

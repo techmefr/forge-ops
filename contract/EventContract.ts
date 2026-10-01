@@ -21,7 +21,17 @@ export type ProjectEvent = {
   minutesUpdatedAt: string | null
 }
 
-const calendarDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+export function isCalendarDate(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (match === null) {
+    return false
+  }
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])]
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+  return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day
+}
+
+const calendarDate = z.string().refine(isCalendarDate, { message: 'InvalidCalendarDate' })
 
 const optionalText = (limit: number) => z.string().trim().max(limit).nullable()
 

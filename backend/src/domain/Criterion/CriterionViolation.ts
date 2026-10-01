@@ -2,28 +2,28 @@ export class CriterionViolationError extends Error {}
 
 export class CriterionNotFoundError extends Error {
   constructor(criterionId: number) {
-    super(`aucun critere ${criterionId}`)
+    super(`no criterion ${criterionId}`)
     this.name = 'CriterionNotFoundError'
   }
 }
 
 export class CriterionEvidenceRequiredError extends CriterionViolationError {
   constructor(reference: string) {
-    super(`le critere ${reference} ne se satisfait pas sans preuve`)
+    super(`criterion ${reference} cannot be satisfied without proof`)
     this.name = 'CriterionEvidenceRequiredError'
   }
 }
 
 export class CriterionAlreadySatisfiedError extends CriterionViolationError {
   constructor(reference: string) {
-    super(`le critere ${reference} est deja satisfait`)
+    super(`criterion ${reference} is already satisfied`)
     this.name = 'CriterionAlreadySatisfiedError'
   }
 }
 
 export class CriterionOnTwinError extends CriterionViolationError {
   constructor(reference: string) {
-    super(`les criteres se portent sur la story fonctionnelle, pas sur ${reference}`)
+    super(`criteria apply to the functional story, not to ${reference}`)
     this.name = 'CriterionOnTwinError'
   }
 }

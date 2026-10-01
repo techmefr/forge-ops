@@ -6,7 +6,10 @@ import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import type { Phrase } from '@/technical/Language/Phrase'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
-import type { KanbanStory, MergeCleanupReport, Worktree } from '@/domain/Board/BoardModel'
+import { readPreference } from '@/technical/Appearance/Preference'
+import { FORGE_PROJECT_KEY } from '@/domain/Forge/ForgeRule'
+import { FALLBACK_INTEGRATION_BRANCH, integrationBranchOf } from './DeploymentRule'
+import type { KanbanStory, MergeCleanupReport, Project, Worktree } from '@/domain/Board/BoardModel'
 
 const SHIPPING_STATES = ['building', 'gating', 'reviewing', 'shipping', 'flagged', 'done']
 
@@ -16,7 +19,7 @@ const say = usePhrase()
 const stories = useResource<readonly KanbanStory[]>(() => board.read('/api/board/kanban'))
 const worktrees = useResource<readonly Worktree[]>(() => board.read('/api/worktrees'))
 const percents = ref<Map<number, number>>(new Map())
-const baseRef = ref('forge')
+const baseRef = ref(FALLBACK_INTEGRATION_BRANCH)
 const refusal = ref<Phrase | null>(null)
 const lastCleanUp = ref<{ reference: string; cleanUp: MergeCleanupReport } | null>(null)
 const busy = ref(false)
@@ -95,7 +98,12 @@ function setPercent(storyId: number, value: string): void {
   percents.value = new Map(percents.value).set(storyId, Number(value))
 }
 
-onMounted(() => Promise.all([stories.reload(), worktrees.reload()]))
+async function adoptIntegrationBranch(): Promise<void> {
+  const projects = await board.read<readonly Project[]>('/api/projects')
+  baseRef.value = integrationBranchOf(projects, readPreference(FORGE_PROJECT_KEY, projects.map((entry) => String(entry.id)), ''))
+}
+
+onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrationBranch().catch(() => undefined)]))
 </script>
 
 <template>

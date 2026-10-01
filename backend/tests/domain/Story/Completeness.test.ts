@@ -39,7 +39,7 @@ describe('scoreCompleteness', () => {
   it('dit pourquoi le score est bas plutot que de rendre un chiffre seul', () => {
     const verdict = scoreCompleteness({ ...RICHE, criteria: [] })
 
-    expect(verdict.gaps.join(' ')).toMatch(/critere/)
+    expect(verdict.gaps.join(' ')).toMatch(/acceptance criteria/)
   })
 
   it('ne signale aucun manque sur une story complete', () => {
@@ -47,11 +47,11 @@ describe('scoreCompleteness', () => {
   })
 
   it('reproche l absence de story jumelle', () => {
-    expect(scoreCompleteness({ ...RICHE, hasTwin: false }).gaps.join(' ')).toMatch(/jumelle/)
+    expect(scoreCompleteness({ ...RICHE, hasTwin: false }).gaps.join(' ')).toMatch(/twin/)
   })
 
   it('reproche un titre trop court pour dire quoi que ce soit', () => {
-    expect(scoreCompleteness({ ...RICHE, title: 'mails' }).gaps.join(' ')).toMatch(/titre/)
+    expect(scoreCompleteness({ ...RICHE, title: 'mails' }).gaps.join(' ')).toMatch(/title/)
   })
 
   it('reproche un corps qui ne dit ni le besoin ni le pourquoi', () => {

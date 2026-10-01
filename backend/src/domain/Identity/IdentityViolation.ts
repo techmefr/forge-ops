@@ -7,48 +7,48 @@ export class IdentityViolationError extends Error {
 
 export class PasswordRefusedError extends IdentityViolationError {
   constructor(reason: string) {
-    super(`Mot de passe refuse : ${reason}`, 'PasswordRefusedError')
+    super(`Password refused: ${reason}`, 'PasswordRefusedError')
   }
 }
 
 export class LoginTakenError extends IdentityViolationError {
   constructor(login: string) {
-    super(`Le compte ${login} existe deja`, 'LoginTakenError')
+    super(`Account ${login} already exists`, 'LoginTakenError')
   }
 }
 
 export class LoginRefusedError extends IdentityViolationError {
   constructor() {
-    super('Identifiant ou mot de passe invalide', 'LoginRefusedError')
+    super('Invalid login or password', 'LoginRefusedError')
   }
 }
 
 export class AccountDisabledError extends IdentityViolationError {
   constructor(login: string) {
-    super(`Le compte ${login} est desactive`, 'AccountDisabledError')
+    super(`Account ${login} is disabled`, 'AccountDisabledError')
   }
 }
 
 export class EmailTakenError extends IdentityViolationError {
   constructor() {
-    super('Cette adresse ne peut pas etre utilisee', 'EmailTakenError')
+    super('This address cannot be used', 'EmailTakenError')
   }
 }
 
 export class LastSuperAdminError extends IdentityViolationError {
   constructor() {
-    super('Le dernier super admin ne peut pas perdre son drapeau : nommez-en un autre d abord', 'LastSuperAdminError')
+    super('The last super admin cannot lose the flag: name another one first', 'LastSuperAdminError')
   }
 }
 
 export class UnknownAccountError extends IdentityViolationError {
   constructor(login: string) {
-    super(`Le compte ${login} est introuvable`, 'UnknownAccountError')
+    super(`Account ${login} not found`, 'UnknownAccountError')
   }
 }
 
 export class ExternalSubjectTakenError extends IdentityViolationError {
   constructor(login: string) {
-    super(`Le compte ${login} est deja relie a une identite externe`, 'ExternalSubjectTakenError')
+    super(`Account ${login} is already linked to an external identity`, 'ExternalSubjectTakenError')
   }
 }

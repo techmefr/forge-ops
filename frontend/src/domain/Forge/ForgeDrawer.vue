@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
 import type { ForgeCardView } from '@contract/ForgeCardContract'
 import { usePhrase } from '@/technical/Language/UsePhrase'
@@ -24,11 +25,16 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const say = usePhrase()
+const router = useRouter()
 
 const conversation = useCardConversation(
   { id: props.card.storyId, reference: props.card.storyReference },
   { onSettled: () => emit('settled') },
 )
+
+function openStory(): void {
+  void router?.push(`/me/stories/${props.card.storyId}`)
+}
 
 const draft = ref('')
 const thread = ref<HTMLElement | null>(null)
@@ -140,6 +146,14 @@ onMounted(() => void conversation.load())
             <DialogTitle class="m-0 text-[13px] font-semibold text-txt-hi">{{ card.title }}</DialogTitle>
             <DialogDescription class="sr-only">{{ t('forge.drawer.threadAria') }}</DialogDescription>
           </div>
+          <button
+            type="button"
+            class="rounded-md border border-line bg-transparent px-2.5 py-1 font-mono text-[11px] text-txt-mid hover:bg-elev"
+            data-test="forge-open-story"
+            @click="openStory"
+          >
+            {{ t('forge.drawer.openStory') }}
+          </button>
           <button
             type="button"
             class="rounded-md border border-line bg-transparent px-2.5 py-1 font-mono text-[11px] text-txt-mid hover:bg-elev"

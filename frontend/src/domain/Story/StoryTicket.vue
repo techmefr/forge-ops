@@ -8,7 +8,12 @@ import type { TicketPoint } from './TicketRequest'
 const { ticket, part } = defineProps<{ ticket: Ticket | null; part: StoryPart }>()
 const emit = defineEmits<{ pick: [TicketPoint] }>()
 
-const { t } = useI18n()
+const { t, te } = useI18n()
+
+function gapLabel(gap: string, position: number): string {
+  const code = ticket?.completeness.gapCodes?.[position]
+  return code !== undefined && te(`storyGap.${code}`) ? t(`storyGap.${code}`) : gap
+}
 
 const shown = computed(() => partOf(ticket, part))
 
@@ -64,13 +69,13 @@ const scoreColour = computed(() => {
         <span v-if="!ticket.completeness.launchable"> {{ t('ticket.belowLaunch') }}</span>
       </p>
       <ul v-if="ticket.completeness.gaps.length > 0" class="mt-2 flex flex-col gap-1">
-        <li v-for="gap in ticket.completeness.gaps" :key="gap">
+        <li v-for="(gap, position) in ticket.completeness.gaps" :key="gap">
           <button
             type="button"
             class="w-full text-left text-sm text-orange hover:underline"
-            @click="emit('pick', { kind: 'gap', text: gap })"
+            @click="emit('pick', { kind: 'gap', text: gapLabel(gap, position) })"
           >
-            {{ gap }}
+            {{ gapLabel(gap, position) }}
           </button>
         </li>
       </ul>

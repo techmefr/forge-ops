@@ -2,39 +2,52 @@ import { describe, expect, it } from 'vitest'
 import { describeFile } from '../../../src/domain/File/FileDigest.js'
 
 describe('describeFile', () => {
-  it('reconnait un repository de domaine', () => {
-    expect(describeFile('backend/src/domain/Story/StoryRepository.ts')).toBe(
-      'Accès base de données des stories',
-    )
+  it('names a domain repository after its subject', () => {
+    expect(describeFile('backend/src/domain/Story/StoryRepository.ts')).toEqual({
+      key: 'repository',
+      values: { subject: 'Story' },
+    })
   })
 
-  it('reconnait une api de domaine', () => {
-    expect(describeFile('backend/src/domain/Story/StoryApi.ts')).toBe('Routes http des stories')
+  it('names a domain api after its subject', () => {
+    expect(describeFile('backend/src/domain/Story/StoryApi.ts')).toEqual({ key: 'api', values: { subject: 'Story' } })
   })
 
-  it('reconnait un écran et un composant vue', () => {
-    expect(describeFile('frontend/src/domain/Kanban/KanbanScreen.vue')).toBe('Écran Kanban')
-    expect(describeFile('frontend/src/domain/Resource/MachineBadge.vue')).toBe('Composant MachineBadge')
+  it('names a screen and a component', () => {
+    expect(describeFile('frontend/src/domain/Kanban/KanbanScreen.vue')).toEqual({
+      key: 'screen',
+      values: { subject: 'Kanban' },
+    })
+    expect(describeFile('frontend/src/domain/Resource/MachineBadge.vue')).toEqual({
+      key: 'component',
+      values: { name: 'MachineBadge' },
+    })
   })
 
-  it('reconnait un test', () => {
-    expect(describeFile('backend/tests/domain/File/FileMark.test.ts')).toBe('Tests de FileMark')
+  it('names a test after the file it covers', () => {
+    expect(describeFile('backend/tests/domain/File/FileMark.test.ts')).toEqual({
+      key: 'testOf',
+      values: { name: 'FileMark' },
+    })
   })
 
-  it('reconnait une brique technique', () => {
-    expect(describeFile('backend/src/technical/Git/GitWorktree.ts')).toBe('Brique technique Git')
+  it('names a technical brick after its area', () => {
+    expect(describeFile('backend/src/technical/Git/GitWorktree.ts')).toEqual({
+      key: 'technicalBrick',
+      values: { area: 'Git' },
+    })
   })
 
-  it('reconnait les fichiers de racine connus', () => {
-    expect(describeFile('package.json')).toBe('Dépendances et scripts du dépôt')
-    expect(describeFile('db/forge.sql')).toBe('Schéma de la base')
+  it('names the well known root files', () => {
+    expect(describeFile('package.json')).toEqual({ key: 'packageJson', values: {} })
+    expect(describeFile('db/forge.sql')).toEqual({ key: 'databaseSchema', values: {} })
   })
 
-  it('reste muet plutot que d inventer', () => {
-    expect(describeFile('quelque/chose/etrange.bin')).toBe('')
+  it('says nothing about a file it does not know', () => {
+    expect(describeFile('some/odd/thing.bin')).toBeNull()
   })
 
-  it('nomme un dossier par ce qu il contient', () => {
-    expect(describeFile('backend/src/domain')).toBe('Le métier, un dossier par sujet')
+  it('names the well known folders', () => {
+    expect(describeFile('backend/src/domain')).toEqual({ key: 'folderDomain', values: {} })
   })
 })

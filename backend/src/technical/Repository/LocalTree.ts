@@ -24,11 +24,11 @@ type ResolvedPath = {
 const HIDDEN: readonly string[] = ['.git', 'node_modules', 'dist', '.turbo', '.cache', 'coverage']
 
 async function insideOf(root: string, asked: string): Promise<ResolvedPath> {
-  const base = await realpath(resolve(root)).catch((error: Error) => {
-    throw new CheckoutUnreadableError(asked, error.message)
+  const base = await realpath(resolve(root)).catch((error: NodeJS.ErrnoException) => {
+    throw new CheckoutUnreadableError(asked, error.code ?? 'UNKNOWN')
   })
-  const full = await realpath(resolve(base, asked)).catch((error: Error) => {
-    throw new CheckoutUnreadableError(asked, error.message)
+  const full = await realpath(resolve(base, asked)).catch((error: NodeJS.ErrnoException) => {
+    throw new CheckoutUnreadableError(asked, error.code ?? 'UNKNOWN')
   })
   const inside = relative(base, full)
   if (inside.startsWith('..') || inside.startsWith(`${sep}..`) || isAbsolute(inside)) {
@@ -43,8 +43,8 @@ function slashed(base: string, full: string): string {
 
 export async function listDirectory(root: string, asked: string): Promise<readonly TreeEntry[]> {
   const { base, full } = await insideOf(root, asked)
-  const found = await readdir(full, { withFileTypes: true }).catch((error: Error) => {
-    throw new CheckoutUnreadableError(asked, error.message)
+  const found = await readdir(full, { withFileTypes: true }).catch((error: NodeJS.ErrnoException) => {
+    throw new CheckoutUnreadableError(asked, error.code ?? 'UNKNOWN')
   })
 
   const kept = found.filter((entry) => !HIDDEN.includes(entry.name))
@@ -69,8 +69,8 @@ export async function listDirectory(root: string, asked: string): Promise<readon
 
 export async function readTextFile(root: string, asked: string, maxBytes: number): Promise<FileReading> {
   const { base, full } = await insideOf(root, asked)
-  const raw = await readFile(full).catch((error: Error) => {
-    throw new CheckoutUnreadableError(asked, error.message)
+  const raw = await readFile(full).catch((error: NodeJS.ErrnoException) => {
+    throw new CheckoutUnreadableError(asked, error.code ?? 'UNKNOWN')
   })
   return {
     path: slashed(base, full),
@@ -87,8 +87,8 @@ export type FileStamp = {
 
 export async function statTextFile(root: string, asked: string): Promise<FileStamp> {
   const { base, full } = await insideOf(root, asked)
-  const measured = await stat(full).catch((error: Error) => {
-    throw new CheckoutUnreadableError(asked, error.message)
+  const measured = await stat(full).catch((error: NodeJS.ErrnoException) => {
+    throw new CheckoutUnreadableError(asked, error.code ?? 'UNKNOWN')
   })
   return { path: slashed(base, full), mtimeMs: measured.mtimeMs }
 }

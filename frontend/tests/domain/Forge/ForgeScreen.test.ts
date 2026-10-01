@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
+import { routerKey } from 'vue-router'
 import type { ForgeCardStatus, ForgeCardView } from '@contract/ForgeCardContract'
 import type { StoryThread } from '@contract/ConversationContract'
 import type { ProjectWorkflow, WorkflowColumn } from '@contract/WorkflowColumnContract'
@@ -10,6 +11,7 @@ import { FORGE_VIEW_KEY } from '@/domain/Forge/ForgeRule'
 
 const read = vi.fn()
 const send = vi.fn()
+const push = vi.fn()
 let streamed: ((event: StreamedEvent) => void) | null = null
 
 vi.mock('@/technical/Api/Board', () => ({
@@ -141,7 +143,11 @@ function answer(path: string): unknown {
 
 async function mountScreen(): Promise<VueWrapper> {
   wrapper = mount(ForgeScreen, {
-    global: { plugins: [createBoardI18n('en')], stubs: { ResourceScreen: { template: '<p>resource-content</p>' } } },
+    global: {
+      plugins: [createBoardI18n('en')],
+      provide: { [routerKey as symbol]: { push } },
+      stubs: { ResourceScreen: { template: '<p>resource-content</p>' } },
+    },
     attachTo: document.body,
   })
   await flushPromises()
@@ -157,6 +163,7 @@ beforeEach(() => {
   cards = [card(1, 'backlog', 'idle'), card(2, 'spec', 'to_validate'), card(3, 'spec', 'running')]
   read.mockReset()
   send.mockReset()
+  push.mockReset()
   read.mockImplementation((path: string) => Promise.resolve(answer(path)))
   send.mockResolvedValue({ card: cards[0], started: false, claudeSessionId: null })
   streamed = null
@@ -401,6 +408,41 @@ describe('the project pills and the filters', () => {
     expect(screen.text()).toContain('No workflow for Skera yet')
   })
 
+  it('refreshes the workflow settings count after the starter workflow is created', async () => {
+    let created = false
+    read.mockImplementation((path: string) => {
+      if (path === '/api/projects/2/workflow-columns') {
+        return Promise.resolve({
+          columns: created ? WORKFLOW.columns : [],
+          maySettle: true,
+          admin: { login: 'ana', name: 'Ana' },
+        })
+      }
+      return Promise.resolve(answer(path))
+    })
+    send.mockImplementation((path: string) => {
+      if (path === '/api/projects/2/workflow-columns') {
+        created = true
+      }
+      return Promise.resolve({})
+    })
+    const screen = await mountScreen()
+    await screen
+      .findAll('button')
+      .find((button) => button.text() === 'Skera')
+      ?.trigger('click')
+    await flushPromises()
+    expect(screen.text()).toContain('0 steps')
+
+    await screen
+      .findAll('button')
+      .find((button) => button.text() === 'Create the workflow')
+      ?.trigger('click')
+    await flushPromises()
+
+    expect(screen.text()).toContain('3 steps')
+  })
+
   it('adds a story to the backlog from the board', async () => {
     const screen = await mountScreen()
 
@@ -443,6 +485,14 @@ describe('the card drawer', () => {
     await flushPromises()
     return screen
   }
+
+  it('opens the story page from the drawer so a thin story can be completed', async () => {
+    await openCard('Story 2')
+
+    inBody('[data-test="forge-open-story"]')?.click()
+
+    expect(push).toHaveBeenCalledWith('/me/stories/20')
+  })
 
   it('shows the thread of the card with a marker per step', async () => {
     await openCard('Story 2')
