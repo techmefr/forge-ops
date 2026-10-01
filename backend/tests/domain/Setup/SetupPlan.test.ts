@@ -5,6 +5,7 @@ import {
   envValueOf,
   oidcSecretFilesOf,
   generatedSecretsOf,
+  hasSuperAdmin,
   redirectUriOf,
   validateAnswers,
   type SetupAnswers,
@@ -28,6 +29,31 @@ describe('setup plan', () => {
     expect(composeFileOf('vps')).toBe('compose.vps.yml')
     expect(generatedSecretsOf('laptop')).toEqual(['board_token'])
     expect(generatedSecretsOf('vps')).toContain('super_admin_password')
+  })
+
+  it('generates the super admin password for every topology that holds a hub', () => {
+    for (const topology of ['vps', 'split', 'hosted'] as const) {
+      expect(hasSuperAdmin(topology)).toBe(true)
+      expect(generatedSecretsOf(topology)).toContain('super_admin_password')
+    }
+    expect(hasSuperAdmin('laptop')).toBe(false)
+    expect(generatedSecretsOf('laptop')).not.toContain('super_admin_password')
+  })
+
+  it('writes the super admin login for split and hosted', () => {
+    for (const topology of ['split', 'hosted'] as const) {
+      const answers: SetupAnswers = {
+        ...VPS,
+        topology,
+        serverUrl: 'https://board.acme.com/',
+        publicInstanceUrl: '',
+        allowedDomains: [],
+        google: null,
+        microsoft: null,
+      }
+      expect(envLinesOf(answers)).toEqual(['FORGE_SERVER_URL=https://board.acme.com', 'FORGE_SUPER_ADMIN_LOGIN=root'])
+      expect(validateAnswers({ ...answers, superAdminLogin: 'Bad Login' })).toHaveLength(1)
+    }
   })
 
   it('construit l adresse de retour a declarer chez le fournisseur', () => {

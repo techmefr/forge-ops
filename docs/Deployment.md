@@ -45,11 +45,19 @@ At start-up, a missing login is created with the flag and a hashed password; an 
 
 Without these variables the server still starts, logs a warning, and nobody can manage super admins until they are set. Once one exists, super admins are granted and removed in Settings › Users (`PATCH /api/board-users/:login`). The last super admin cannot lose the flag.
 
-Prefer the file form: `docker/super_admin_password.secret` is mounted as a secret in `docker/compose.vps.yml`.
+Prefer the file form: `docker/super_admin_password.secret` is mounted as a secret and the login is read from `FORGE_SUPER_ADMIN_LOGIN` in every compose file that runs a hub:
+
+| Compose file | Container that holds the accounts and receives the variables |
+|---|---|
+| `compose.vps.yml` | `server` |
+| `compose.split.yml` | `instance` (in hub mode) |
+| `compose.hosted.yml` | `instance` (in hub mode) |
+
+`compose.laptop.yml` runs in local mode, with no accounts, so it takes none of them.
 
 ## Guided setup
 
-`npm run forge-ops -- init` asks where the agents run and writes what the chosen topology needs: the secret files under `docker/` (mode `0600`, never overwritten) and `docker/.env`. `npm run forge-ops -- doctor` checks Docker, the secrets and the health of the instance and says what to fix. Only the `laptop` and `vps` topologies generate their tokens; `split` and `hosted` take the instance token minted by the server.
+`npm run forge-ops -- init` asks where the agents run and writes what the chosen topology needs: the secret files under `docker/` (mode `0600`, never overwritten) and `docker/.env`. `npm run forge-ops -- doctor` checks Docker, the secrets and the health of the instance and says what to fix. The `laptop` and `vps` topologies generate their tokens; `split` and `hosted` take the instance token minted by the server. Every topology except `laptop` also asks for the first super admin login and generates `super_admin_password.secret` (shown once).
 
 ## Signing in with Google or Microsoft
 
