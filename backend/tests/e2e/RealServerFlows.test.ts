@@ -139,6 +139,29 @@ describe('super admin bootstrap', () => {
   })
 })
 
+describe('granting and removing the super admin flag', () => {
+  it('refuses a member, lets the super admin grant it, then refuses removing the last one', async () => {
+    const refused = await call('PATCH', '/api/board-users/ana', { identity: bobIdentity }, { superAdmin: true })
+    expect(refused.status).toBe(403)
+
+    const granted = await call('PATCH', '/api/board-users/bob', { identity: rootIdentity }, { superAdmin: true })
+    expect(granted.status).toBe(200)
+    const bobSelf = await call('GET', '/api/board/self', { identity: bobIdentity })
+    expect(bobSelf.body).toEqual({ login: 'bob', superAdmin: true })
+
+    const removedRoot = await call('PATCH', '/api/board-users/root', { identity: bobIdentity }, { superAdmin: false })
+    expect(removedRoot.status).toBe(200)
+    const last = await call('PATCH', '/api/board-users/bob', { identity: bobIdentity }, { superAdmin: false })
+    expect(last.status).toBe(409)
+    expect(last.body.error).toBe('LastSuperAdminError')
+
+    const restored = await call('PATCH', '/api/board-users/root', { identity: bobIdentity }, { superAdmin: true })
+    expect(restored.status).toBe(200)
+    const removedBob = await call('PATCH', '/api/board-users/bob', { identity: rootIdentity }, { superAdmin: false })
+    expect(removedBob.status).toBe(200)
+  })
+})
+
 describe('project, subject, event and risk', () => {
   it('walks the whole chain', async () => {
     const project = await call('POST', '/api/projects', LOCAL, { name: 'Alpha', colour: '#112233', repository: '' })

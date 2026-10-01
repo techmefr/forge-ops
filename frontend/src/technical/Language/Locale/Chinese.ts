@@ -987,6 +987,8 @@ export const CHINESE: Message = {
     deactivate: '停用',
     reactivate: '重新启用',
     superAdmin: '超级管理员',
+    grantSuperAdmin: '设为超级管理员',
+    revokeSuperAdmin: '移除超级管理员',
     addUser: '添加账号',
     login: '登录名',
     displayName: '显示名称',
