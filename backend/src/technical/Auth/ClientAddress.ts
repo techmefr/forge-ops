@@ -3,11 +3,13 @@ import type { Context } from 'hono'
 
 const UNKNOWN_ADDRESS = 'unknown'
 
-export function clientAddressOf(context: Context): string {
-  const forwarded = context.req.header('x-forwarded-for')?.split(',').at(-1)?.trim() ?? ''
-  if (forwarded !== '') {
-    return forwarded
-  }
+export const TRUST_PROXY_ENV = 'FORGE_TRUST_PROXY'
+
+export function trustProxyFromEnv(): boolean {
+  return process.env[TRUST_PROXY_ENV] === 'true'
+}
+
+function peerAddressOf(context: Context): string {
   try {
     return getConnInfo(context).remote.address ?? UNKNOWN_ADDRESS
   } catch {
@@ -15,12 +17,18 @@ export function clientAddressOf(context: Context): string {
   }
 }
 
+export function clientAddressOf(context: Context, trustProxy: boolean = trustProxyFromEnv()): string {
+  if (trustProxy) {
+    const forwarded = context.req.header('x-forwarded-for')?.split(',').at(-1)?.trim() ?? ''
+    if (forwarded !== '') {
+      return forwarded
+    }
+  }
+  return peerAddressOf(context)
+}
+
 const LOOPBACK_PEERS: readonly string[] = ['127.0.0.1', '::1', '::ffff:127.0.0.1']
 
 export function isLoopbackPeer(context: Context): boolean {
-  try {
-    return LOOPBACK_PEERS.includes(getConnInfo(context).remote.address ?? UNKNOWN_ADDRESS)
-  } catch {
-    return false
-  }
+  return LOOPBACK_PEERS.includes(peerAddressOf(context))
 }
