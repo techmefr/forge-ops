@@ -20,7 +20,10 @@ describe('headSha', () => {
     const { git, calls } = spying('abc123')
 
     expect(git.headSha('forge')).toBe('abc123')
-    expect(calls[0]).toEqual({ argv: ['rev-parse', 'forge'], cwd: '/repo' })
+    expect(calls[0]).toEqual({
+      argv: ['rev-parse', '--verify', '--end-of-options', 'forge'],
+      cwd: '/repo',
+    })
   })
 })
 
@@ -35,6 +38,7 @@ describe('addWorktree', () => {
       'add',
       '-b',
       'story/forge-1',
+      '--end-of-options',
       '/tmp/w/story-forge-1',
       'forge',
     ])

@@ -459,8 +459,8 @@ export function startBoardServer({
     '/',
     createForemergeApi({ foremerge, events }),
   )
-  guarded.route('/', createWorktreeApi({ worktrees, events }))
-  guarded.route('/', createForgeCardApi({ forgeCards, worktrees }))
+  guarded.route('/', createWorktreeApi({ worktrees, stories, events }))
+  guarded.route('/', createForgeCardApi({ forgeCards, worktrees, stories }))
   const pilotCriteria = createCriterionRepository(db)
   const forgeBoard = createForgeBoardRepository(db, { forgeCards, columns: workflowColumns })
   forgeBoard.backfillCards()
@@ -527,7 +527,21 @@ export function startBoardServer({
       sessions: () => ({ running: dispatcher.countRunning(), cap: sessionCap }),
     }),
   )
-  guarded.route('/', createFileApi({ stories, files: createFileRepository(db), checkoutRoots: allowedCheckoutRoots }))
+  guarded.route(
+    '/',
+    createFileApi({
+      stories,
+      files: createFileRepository(db),
+      checkoutRoots: allowedCheckoutRoots,
+      mayAdminister: (projectId, context) =>
+        mayAdministerProject({
+          login: operatorOf(context),
+          adminLogin: stories.projects.find(projectId)?.adminLogin ?? null,
+          isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
+          isDirector: (login) => identities.findUser(login)?.role === 'director',
+        }),
+    }),
+  )
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
   guarded.route('/', createIncidentApi({ incidents: createIncidentRepository(db, { stories }), events }))
   guarded.route('/', api)

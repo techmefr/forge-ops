@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type Database from 'better-sqlite3'
-import type { Hono } from 'hono'
+import { Hono } from 'hono'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { createStoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import { buildTestBoard } from '../Board/TestBoard.js'
@@ -70,5 +70,28 @@ describe('PUT /api/stories/:id', () => {
     })
 
     expect(response.status).toBe(422)
+  })
+})
+
+describe('PUT /api/stories/:id by someone who does not hold the epic', () => {
+  it('is refused and leaves the card as it was', async () => {
+    const stories = createStoryRepository(db)
+    const story = stories.findStory(storyId)
+    stories.assignEpic(story.epicId, 'ana')
+    const app = new Hono()
+    app.use('*', async (context, next) => {
+      context.set('login', context.req.header('x-login') ?? 'local')
+      await next()
+    })
+    app.route('/', api)
+
+    const response = await app.request(`/api/stories/${storyId}`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json', 'x-login': 'bob' },
+      body: JSON.stringify({ title: 'pris au vol', body: 'autre corps' }),
+    })
+
+    expect(response.status).toBe(409)
+    expect(stories.findStory(storyId).title).toBe('un titre')
   })
 })

@@ -77,6 +77,35 @@ beforeEach(() => {
 })
 
 describe('open', () => {
+  function failingRepository() {
+    return createWorktreeRepository(db, {
+      stories,
+      git: {
+        ...fakeGit(),
+        addWorktree: () => {
+          throw new Error('git refused')
+        },
+      },
+      root: '/tmp/forge-worktrees',
+    })
+  }
+
+  it('leaves no row and no port behind when git refuses to add the worktree', () => {
+    const failing = failingRepository()
+
+    expect(() => failing.open({ storyId: first, baseRef: 'forge' })).toThrow('git refused')
+
+    expect(failing.findForStory(first)).toBeNull()
+    expect(db.prepare('SELECT COUNT(*) AS n FROM worktree').get()).toEqual({ n: 0 })
+    expect(db.prepare('SELECT COUNT(*) AS n FROM port_reservation').get()).toEqual({ n: 0 })
+  })
+
+  it('lets the story open a worktree again after a failed attempt', () => {
+    expect(() => failingRepository().open({ storyId: first, baseRef: 'forge' })).toThrow()
+
+    expect(worktrees.open({ storyId: first, baseRef: 'forge' }).storyId).toBe(first)
+  })
+
   it('names the branch after the story', () => {
     expect(worktrees.open({ storyId: first, baseRef: 'forge' }).branch).toBe(
       'story/forge-1-visualiser-les-mails',
