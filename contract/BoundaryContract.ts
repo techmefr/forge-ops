@@ -8,6 +8,7 @@ export const SERVER_HELD: readonly string[] = [
   'organisation',
   'auth_provider',
   'board_user',
+  'user_preference',
   'project',
   'epic',
   'story',

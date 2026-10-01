@@ -23,7 +23,12 @@ const cap = computed(() => budget.value?.policy.capUsd ?? 0)
 
 const memoryFreeMb = computed(() => machine.value?.snapshot?.memoryFreeMb ?? null)
 const room = computed(() =>
-  roomForSessions({ capUsd: cap.value, spentUsd: spent.value, memoryFreeMb: memoryFreeMb.value }),
+  roomForSessions({
+    capUsd: cap.value,
+    spentUsd: spent.value,
+    memoryFreeMb: memoryFreeMb.value,
+    sessions: machine.value?.sessions ?? null,
+  }),
 )
 
 function levelOf(percent: number | null): string {

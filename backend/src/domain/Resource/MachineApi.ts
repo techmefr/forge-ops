@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { parseExposition } from '../../technical/Telemetry/PrometheusText.js'
 import { snapshotOf, type MachineSnapshot } from './MachineSnapshot.js'
 import { readLocalMachine } from '../../technical/Machine/LocalMachine.js'
+import type { SessionLoad } from '../../../../contract/OperationContract.js'
 
 export type MachineSource = 'collector' | 'machine'
 
@@ -9,6 +10,7 @@ export type MachineApiInput = {
   metricsUrl: string | null
   fetchText?: (url: string) => Promise<string>
   readMachine?: () => Promise<MachineSnapshot>
+  sessions?: () => SessionLoad | null
 }
 
 async function readText(url: string): Promise<string> {
@@ -27,6 +29,7 @@ export function createMachineApi({
   metricsUrl,
   fetchText = readText,
   readMachine = () => readLocalMachine(process.cwd()),
+  sessions = () => null,
 }: MachineApiInput): Hono {
   const api = new Hono()
 
@@ -38,6 +41,7 @@ export function createMachineApi({
           reason: null,
           source: 'machine',
           snapshot: await readMachine(),
+          sessions: sessions(),
         })
       } catch (error) {
         return context.json({
@@ -45,18 +49,20 @@ export function createMachineApi({
           reason: `la machine ne repond pas : ${saidBy(error)}`,
           source: 'machine',
           snapshot: null,
+          sessions: sessions(),
         })
       }
     }
     try {
       const snapshot = snapshotOf(parseExposition(await fetchText(metricsUrl)))
-      return context.json({ available: true, reason: null, source: 'collector', snapshot })
+      return context.json({ available: true, reason: null, source: 'collector', snapshot, sessions: sessions() })
     } catch (error) {
       return context.json({
         available: false,
         reason: `le collecteur ${metricsUrl} est injoignable : ${saidBy(error)}`,
         source: 'collector',
         snapshot: null,
+        sessions: sessions(),
       })
     }
   })

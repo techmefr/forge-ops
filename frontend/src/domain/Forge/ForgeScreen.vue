@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ForgeCardView } from '@contract/ForgeCardContract'
+import type { BoardPreferences } from '@contract/PreferenceContract'
 import type { Project } from '@/domain/Board/BoardModel'
 import { board } from '@/technical/Api/Board'
 import { useResource } from '@/technical/Api/UseResource'
@@ -60,9 +61,31 @@ const opened = computed(() => forge.cards.value.find((card) => card.id === opene
 const noWorkflow = computed(() => forge.workflow.value !== null && columns.value.length === 0)
 const projectName = computed(() => project.value?.name ?? '')
 
+async function adoptStoredView(): Promise<void> {
+  try {
+    const stored = await board.read<BoardPreferences | undefined>('/api/board/preferences')
+    const choice = FORGE_VIEWS.find((candidate) => candidate === stored?.forgeView)
+    if (choice !== undefined) {
+      view.value = choice
+      writePreference(FORGE_VIEW_KEY, choice)
+    }
+  } catch {
+    return
+  }
+}
+
+async function rememberView(next: ForgeView): Promise<void> {
+  try {
+    await board.send('/api/board/preferences', 'PUT', { forgeView: next })
+  } catch {
+    return
+  }
+}
+
 function chooseView(next: ForgeView): void {
   view.value = next
   writePreference(FORGE_VIEW_KEY, next)
+  void rememberView(next)
 }
 
 function chooseProject(id: number): void {
@@ -143,6 +166,7 @@ watch(projectId, () => {
 })
 
 onMounted(async () => {
+  void adoptStoredView()
   await projects.reload()
   const list = projects.data.value ?? []
   projectId.value = activeProjectOf(list, readPreference(FORGE_PROJECT_KEY, list.map((entry) => String(entry.id)), ''))

@@ -93,3 +93,25 @@ describe('GET /api/machine', () => {
     })
   })
 })
+
+describe('GET /api/machine sessions', () => {
+  it('tells how many sessions run against the dispatcher cap', async () => {
+    const response = await ask({
+      metricsUrl: null,
+      readMachine: () => Promise.resolve(LOCAL),
+      sessions: () => ({ running: 2, cap: 5 }),
+    })
+
+    await expect(response.json()).resolves.toMatchObject({ sessions: { running: 2, cap: 5 } })
+  })
+
+  it('keeps the load of sessions when the machine cannot be read', async () => {
+    const response = await ask({
+      metricsUrl: null,
+      readMachine: () => Promise.reject(new Error('statfs refuse')),
+      sessions: () => ({ running: 5, cap: 5 }),
+    })
+
+    await expect(response.json()).resolves.toMatchObject({ available: false, sessions: { running: 5, cap: 5 } })
+  })
+})
