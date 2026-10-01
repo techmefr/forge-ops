@@ -21,7 +21,7 @@ const router = useRouter()
 const { t } = useI18n()
 useTheme()
 useAppearance()
-const { working } = useFleet()
+const { live } = useFleet()
 
 const current = computed(() => screenOfPath(route.path))
 
@@ -186,9 +186,9 @@ watch(
         <span class="flex items-center gap-2 font-mono text-[11px] text-txt-low uppercase">
           <span
             class="h-1.5 w-1.5 flex-none rounded-full"
-            :class="working.length === 0 ? 'bg-line' : 'bg-green'"
+            :class="live === 0 ? 'bg-line' : 'bg-green'"
           />
-          {{ t('shell.agentCount', { count: working.length }, working.length) }}
+          {{ t('shell.agentCount', { count: live }, live) }}
         </span>
         <span
           v-if="phase !== IDLE"

@@ -93,5 +93,11 @@ export function statusOf({ stepKey, stepIsHuman, currentPhase, latest }: StatusI
   if (current.lifecycle === 'finished' && (current.outcome === null || current.outcome === 'succeeded')) {
     return 'to_validate'
   }
+  if (current.outcome === 'budget_exhausted') {
+    return 'budget_exhausted'
+  }
+  if (current.lifecycle === 'interrupted') {
+    return 'stopped'
+  }
   return 'failed'
 }

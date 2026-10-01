@@ -219,7 +219,6 @@ export function startBoardServer({
       stopRunOverCap(
         {
           sessions,
-          stories,
           budget,
           hangUp: (identifier) => {
             live.terminate(identifier)

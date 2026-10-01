@@ -84,8 +84,8 @@ function start(event: DragEvent): void {
       class="m-0 flex flex-wrap items-center gap-x-1.5 text-[11px]"
       :class="{
         'text-acc': card.status === 'running',
-        'text-red': card.status === 'failed',
-        'text-orange': card.status === 'to_validate' || card.status === 'human_review',
+        'text-red': card.status === 'failed' || card.status === 'budget_exhausted',
+        'text-orange': card.status === 'to_validate' || card.status === 'human_review' || card.status === 'stopped',
         'text-green': card.status === 'done',
       }"
     >

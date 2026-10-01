@@ -177,6 +177,8 @@ describe('primaryActionOf', () => {
   it('stops a running card and retries a failed one', () => {
     expect(primaryActionOf(card(1, 'spec', 'running'), STEPS)).toBe('stop')
     expect(primaryActionOf(card(1, 'spec', 'failed'), STEPS)).toBe('retry')
+    expect(primaryActionOf(card(1, 'spec', 'stopped'), STEPS)).toBe('retry')
+    expect(primaryActionOf(card(1, 'spec', 'budget_exhausted'), STEPS)).toBe('retry')
   })
 
   it('validates a card that waits, and closes it from the last step', () => {

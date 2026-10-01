@@ -88,7 +88,7 @@ export function createForgeBoardRepository(
   )
   const selectTotals = db.prepare<[number], TotalsRow>(
     `SELECT COALESCE(SUM(cost_usd), 0) AS cost,
-            COALESCE(SUM(MAX(strftime('%s', COALESCE(ended_at, 'now')) - strftime('%s', started_at), 0)), 0) AS seconds
+            COALESCE(SUM(MAX(strftime('%s', COALESCE(idle_since, ended_at, 'now')) - strftime('%s', started_at) - wait_seconds, 0)), 0) AS seconds
        FROM agent_session WHERE story_id = ?`,
   )
   const selectPlacement = db.prepare<[number], PlacementRow>(

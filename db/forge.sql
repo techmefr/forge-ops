@@ -200,6 +200,8 @@ CREATE TABLE IF NOT EXISTS agent_session (
   )),
   cost_usd REAL,
   cost_base_usd REAL NOT NULL DEFAULT 0,
+  idle_since TEXT,
+  wait_seconds REAL NOT NULL DEFAULT 0,
   input_tokens INTEGER,
   output_tokens INTEGER,
   context_tokens INTEGER,
