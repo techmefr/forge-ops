@@ -198,6 +198,7 @@ function boot(): void {
     stories,
     columns,
     sessions,
+    criteria,
     checkpoints,
     readEvidence: (path, root) => readEvidence(path, root ?? project.checkout),
     cwdOf,
