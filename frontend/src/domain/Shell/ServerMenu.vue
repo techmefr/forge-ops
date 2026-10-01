@@ -46,7 +46,7 @@ async function add(): Promise<void> {
     <button
       type="button"
       class="rounded-lg border border-line bg-elev px-3 py-1.5 font-mono text-[11px] text-txt-hi"
-      :aria-label="t('servers.title')"
+      :aria-label="`${activeName}, ${t('servers.title')}`"
       :aria-expanded="isOpen"
       @click="toggle()"
     >

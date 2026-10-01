@@ -268,7 +268,6 @@ onMounted(() => {
             <button
               type="button"
               class="flex min-w-40 flex-col items-start gap-0.5 rounded-lg border border-line bg-elev px-3 py-2 text-left hover:border-acc"
-              :aria-label="eventLabel(item.event)"
               @click="openEvent(item.event)"
             >
               <span class="font-mono text-[11px] font-bold" :class="EVENT_TONES[item.event.type].text">
@@ -503,7 +502,7 @@ onMounted(() => {
             <button
               type="button"
               class="text-[11px] font-bold text-acc uppercase"
-              :aria-label="`${t('roadmap.newEvent')} · ${subject.title}`"
+              :aria-label="`${t('roadmap.addEvent')}, ${subject.title}`"
               @click="openNew(block.entry.project.id, subject.id)"
             >
               {{ t('roadmap.addEvent') }}

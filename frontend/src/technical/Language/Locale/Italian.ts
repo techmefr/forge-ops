@@ -125,7 +125,6 @@ export const ITALIAN: Message = {
       restore: 'Ripristina',
       restoreAria: 'Ripristina {title}',
       take: 'Lo prendo',
-      takeAria: 'Prendi {title}',
       release: 'Rilascia',
       releaseAria: 'Rilascia {title}',
     },
@@ -293,7 +292,6 @@ export const ITALIAN: Message = {
   },
   followUp: {
     cardsAria: 'Meteo dei progetti',
-    cardLabel: 'Apri il monitoraggio di {project}, meteo {weather}',
     panelNothing: 'Niente da segnalare',
     alertLate: '{count} in ritardo',
     alertBlocked: '{count} bloccati',
@@ -604,7 +602,6 @@ export const ITALIAN: Message = {
     writeStories: 'Scrivere la storia | Scrivere le storie',
     mixedProjects: 'Una stessa infornata non può mischiare due progetti. Togli un epic.',
     empty: 'Nessun epic con questo filtro.',
-    choose: 'Scegliere {title}',
     unknownProject: 'Progetto sconosciuto',
     storyCount: '{count} storia | {count} storie',
     free: 'Libero',
@@ -1078,7 +1075,6 @@ export const ITALIAN: Message = {
   },
   workflowSettings: {
     openWithCount: 'Impostazioni del workflow · {count} fase | Impostazioni del workflow · {count} fasi',
-    openFor: 'Impostazioni del workflow di {name}',
     setBy: 'Workflow definito da {name}',
     noAdmin: 'Questo progetto non ha un admin: nessuno può ancora definirne il workflow.',
     title: 'Workflow {name}',

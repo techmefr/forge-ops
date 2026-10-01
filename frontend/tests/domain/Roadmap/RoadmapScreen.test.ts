@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createBoardI18n } from '@/technical/Language/I18n'
+import { LANGUAGES, type Language } from '@/technical/Language/Language'
 import RoadmapScreen from '@/domain/Roadmap/RoadmapScreen.vue'
 import type { ProjectEvent } from '@contract/EventContract'
 
@@ -65,7 +66,7 @@ function serve(epics: unknown[], events: ProjectEvent[]): void {
   read.mockImplementation((path: string) => Promise.resolve(responses[path] ?? []))
 }
 
-async function mounted(language: 'en' | 'fr' = 'en') {
+async function mounted(language: Language = 'en') {
   const screen = mount(RoadmapScreen, {
     attachTo: document.body,
     global: { plugins: [createBoardI18n(language)] },
@@ -240,5 +241,28 @@ describe('RoadmapScreen', () => {
       'POST',
       expect.objectContaining({ projectId: 1, epicId: 2, date: '2026-10-12', type: 'demo' }),
     )
+  })
+})
+
+describe('RoadmapScreen accessible names', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 8, 28, 10, 0))
+    read.mockReset()
+  })
+
+  afterEach(() => {
+    document.body.innerHTML = ''
+    vi.useRealTimers()
+  })
+
+  it.each(LANGUAGES)('starts the add-an-event name with its visible label and ends with the subject in %s', async (language) => {
+    serve([epic(1, 'Undated work', null, 'todo')], [])
+    const screen = await mounted(language)
+    const button = screen.findAll('button').find((candidate) => candidate.attributes('aria-label')?.includes('Undated work'))
+    expect(button).toBeDefined()
+    const visible = button?.text() ?? ''
+    expect(visible.length).toBeGreaterThan(0)
+    expect(button?.attributes('aria-label')).toBe(`${visible}, Undated work`)
   })
 })

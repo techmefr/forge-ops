@@ -36,7 +36,7 @@ onMounted(() => void state.load())
     <button
       v-if="maySettle"
       type="button"
-      :aria-label="t('workflowSettings.openFor', { name: projectName })"
+      :aria-label="`${t('workflowSettings.openWithCount', { count }, count)}, ${projectName}`"
       class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:bg-elev"
       @click="opened = true"
     >
