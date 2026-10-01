@@ -1037,6 +1037,7 @@ export const PORTUGUESE: Message = {
       humanAgent: 'Uma pessoa valida esta etapa',
       backlogAgent: 'À espera de uma sessão',
       threadAria: 'Conversa do cartão',
+      openStory: 'Abrir a story para completá-la',
       empty: 'Ainda nada foi dito neste cartão.',
       working: 'O agente está a trabalhar…',
       you: 'Tu',

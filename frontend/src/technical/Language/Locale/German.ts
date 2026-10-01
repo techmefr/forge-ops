@@ -1039,6 +1039,7 @@ export const GERMAN: Message = {
       humanAgent: 'Eine Person gibt diesen Schritt frei',
       backlogAgent: 'Wartet auf eine Sitzung',
       threadAria: 'Unterhaltung der Karte',
+      openStory: 'Story öffnen, um sie zu vervollständigen',
       empty: 'Auf dieser Karte wurde noch nichts gesagt.',
       working: 'Der Agent arbeitet…',
       you: 'Du',

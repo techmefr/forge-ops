@@ -1035,6 +1035,7 @@ export const FRENCH: Message = {
       humanAgent: 'Une personne valide cette étape',
       backlogAgent: 'En attente d’une session',
       threadAria: 'Conversation de la carte',
+      openStory: 'Ouvrir la story pour la compléter',
       empty: 'Rien de dit pour l’instant sur cette carte.',
       working: 'L’agent travaille…',
       you: 'Toi',

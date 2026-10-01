@@ -1029,6 +1029,7 @@ export const CHINESE: Message = {
       humanAgent: '由人工验证这一步',
       backlogAgent: '等待会话',
       threadAria: '卡片的对话',
+      openStory: '打开故事以补全',
       empty: '这张卡片上还没有任何内容。',
       working: '智能体正在工作…',
       you: '你',

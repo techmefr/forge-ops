@@ -1038,6 +1038,7 @@ export const ITALIAN: Message = {
       humanAgent: 'Una persona valida questa fase',
       backlogAgent: 'In attesa di una sessione',
       threadAria: 'Conversazione della scheda',
+      openStory: 'Apri la story per completarla',
       empty: 'Ancora niente da dire su questa scheda.',
       working: 'L’agente sta lavorando…',
       you: 'Tu',

@@ -1027,6 +1027,7 @@ export const ENGLISH = {
       humanAgent: 'A person validates this step',
       backlogAgent: 'Waiting for a session',
       threadAria: 'Conversation of the card',
+      openStory: 'Open the story to complete it',
       empty: 'Nothing said yet on this card.',
       working: 'The agent is working…',
       you: 'You',
