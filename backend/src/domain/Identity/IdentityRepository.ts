@@ -300,7 +300,11 @@ export function createIdentityRepository(
     },
 
     verifyEmail: (login) => {
-      demandUser(login)
+      const row = demandUser(login)
+      const holder = row.email === null ? undefined : selectVerifiedUserByEmail.get(row.email.toLowerCase())
+      if (holder !== undefined && holder.id !== row.id) {
+        throw new EmailTakenError()
+      }
       markEmailVerified.run(login)
       return toUser(demandUser(login))
     },
@@ -318,8 +322,11 @@ export function createIdentityRepository(
       if (selectUserByLogin.get(draft.login) !== undefined) {
         throw new LoginTakenError(draft.login)
       }
-      if (selectUserByEmail.get(draft.email.toLowerCase()) !== undefined) {
-        throw new EmailTakenError(draft.email)
+      const holder = draft.isEmailVerified
+        ? selectVerifiedUserByEmail.get(draft.email.toLowerCase())
+        : selectUserByEmail.get(draft.email.toLowerCase())
+      if (holder !== undefined) {
+        throw new EmailTakenError()
       }
       const unusablePassword = hashPassword(randomBytes(TOKEN_BYTES).toString('hex'))
       insertExternalUser.run(
@@ -388,7 +395,7 @@ export function createIdentityRepository(
       const row = demandUser(login)
       const worn = selectUserByEmail.get(email.toLowerCase())
       if (worn !== undefined && worn.id !== row.id) {
-        throw new EmailTakenError(email)
+        throw new EmailTakenError()
       }
       updateEmail.run(email, login)
       return { ...toUser(row), email }
