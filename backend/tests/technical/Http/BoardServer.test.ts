@@ -397,4 +397,30 @@ describe('startBoardServer', () => {
 
     expect(response.status).toBe(401)
   })
+
+  it('answers 413 to an oversized body on an authenticated route', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/epics`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${booted.token}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ filler: 'x'.repeat(2 * 1024 * 1024) }),
+    })
+
+    expect(response.status).toBe(413)
+  })
+
+  it('answers 413 to an oversized body on an unauthenticated route, before any token check', async () => {
+    const booted = await boot()
+    board = booted.board
+
+    const response = await fetch(`http://127.0.0.1:${board.port}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ filler: 'x'.repeat(16 * 1024) }),
+    })
+
+    expect(response.status).toBe(413)
+  })
 })
