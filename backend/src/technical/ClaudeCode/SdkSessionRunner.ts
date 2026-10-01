@@ -5,6 +5,7 @@ import type { LiveSessions } from './LiveSessions.js'
 import { deliverTurn, userTurn, type SdkUserTurn } from './TurnDelivery.js'
 import { WORKFLOW_EFFORTS, type WorkflowEffort } from '../../../../contract/WorkflowColumnContract.js'
 import { agentEnvironmentOf } from '../Guardrail/AgentEnvironment.js'
+import { decideToolPermission } from '../Guardrail/ToolPermission.js'
 import { assertGuardrailRegistered, forgeSettingSources } from '../Guardrail/GuardrailRegistration.js'
 
 function effortOptionOf(order: LaunchOrder): { effort?: WorkflowEffort } {
@@ -40,6 +41,7 @@ export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunn
           cwd,
           settingSources: [...forgeSettingSources],
           permissionMode: 'default',
+          canUseTool: (tool, input) => Promise.resolve(decideToolPermission({ phase: order.phase, tool, input, root: cwd })),
           ...(order.model === undefined ? {} : { model: order.model }),
           ...effortOptionOf(order),
           ...(order.resumeSessionId === undefined ? {} : { resume: order.resumeSessionId }),

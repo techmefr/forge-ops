@@ -63,6 +63,21 @@ describe('createSdkSessionRunner', () => {
     resolved.mockResolvedValue(REGISTERED)
   })
 
+  it('hands the sdk a permission callback bound to the phase and the session directory', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    const runner = createSdkSessionRunner({
+      cwdFor: () => '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: () => undefined,
+    })
+
+    await runner.launch({ ...ORDER, phase: 'code' })
+
+    const options = queried.mock.calls[0]![0].options
+    expect(await options.canUseTool('Write', { file_path: '/tmp/a.ts' })).toEqual({ behavior: 'allow' })
+    expect((await options.canUseTool('Write', { file_path: '/etc/a' })).behavior).toBe('deny')
+  })
+
   it('declares the settings sources it relies on instead of inheriting the sdk default', async () => {
     queried.mockReturnValue(conversationOf(SPOKEN))
     const runner = createSdkSessionRunner({
