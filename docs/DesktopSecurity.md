@@ -21,3 +21,9 @@ Scripts cannot be injected in the first place because of the policy above; the s
 ## Known limits
 
 The board event stream uses `EventSource`, which `connect-src` blocks for a remote origin. It resolves a relative path today, so it already needs to be routed through `plugin-http` for the desktop shell.
+
+## Saved server tokens
+
+localStorage keeps the server list without tokens. The token of each server lives in the OS keychain (`src-tauri/src/keychain.rs`, service `dev.forgeops.desktop`, one entry per server id). On startup a plaintext token left by an older version is copied to the keychain and wiped from localStorage; if the keychain refuses it, the token stays where it was so nobody is signed out.
+
+Saved addresses must be `https://`, or `http://` for localhost, 127.0.0.1 and RFC1918 hosts, and cannot embed credentials (`addressProblemOf`).

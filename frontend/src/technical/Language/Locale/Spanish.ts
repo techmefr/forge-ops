@@ -1346,6 +1346,8 @@ export const SPANISH: Message = {
     submit: 'Conectar',
     unreachable: 'No se puede alcanzar esta dirección. Revísala y comprueba que la instancia esté en marcha.',
     badScheme: 'La dirección debe empezar por http:// o https://.',
+    hasCredentials: 'La dirección no debe contener usuario ni contraseña.',
+    cleartext: 'El http:// simple solo se acepta para localhost y direcciones de red privada. Usa https://.',
   },
   access: {
     continueWith: 'Continuar con {provider}',

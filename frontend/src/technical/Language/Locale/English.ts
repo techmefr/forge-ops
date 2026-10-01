@@ -1333,6 +1333,8 @@ export const ENGLISH = {
     submit: 'Connect',
     unreachable: 'Cannot reach this address. Check it and that the instance is running.',
     badScheme: 'The address must start with http:// or https://.',
+    hasCredentials: 'The address must not contain a username or password.',
+    cleartext: 'Plain http:// is only accepted for localhost and private network addresses. Use https://.',
   },
   access: {
     continueWith: 'Continue with {provider}',
