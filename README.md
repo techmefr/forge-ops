@@ -55,7 +55,9 @@ An agent coding on its own produces three classes of friction:
 A director writes **epics only**: the high-level business need. The AI architects decompose the epic into functional stories, each with its test twin. The story goes all the way down to the code.
 
 ```
-project → epic → story (functional) ─── twin_of ──→ story (test)
+project ─┬─ tag, link, event, risk, decision, weather
+         └─ epic ─┬─ tag, link, event, state history
+                  └─ story (functional) ─── twin_of ──→ story (test)
                    │
                    ├── acceptance_criterion
                    ├── story_dependency  (blocked, waiting on another one)
@@ -136,6 +138,41 @@ The board exposes an HTTP API (Hono). `POST /api/hooks` is also the target of th
 | `POST /api/incidents/:id/accept` | Turns it into a story and its twin |
 | `POST /api/incidents/:id/refuse` | Refuses the report, reason mandatory |
 | `GET`/`PUT /api/settings/budget` | The cost cap and the conduct to follow when it is hit |
+| `GET /api/epics` | The subjects of every project; filters `project`, `assignee`, `state`, `tag`, `q` |
+| `POST /api/epics` | Creates a subject |
+| `PATCH /api/epics/:id` | Edits a subject: title, priority, start date, status note, requester, tags, links, dependencies, manual state |
+| `DELETE /api/epics/:id` | Moves a subject to the trash (soft delete) |
+| `POST /api/epics/:id/restore` | Takes a subject back out of the trash |
+| `GET /api/epics/:id/history` | The state changes of a subject, with who and when |
+| `PUT /api/epics/:id/assignee` | Sets the assignee of a subject |
+| `POST`/`DELETE /api/epics/:id/claim` | Takes or releases a subject |
+| `GET /api/projects/:id/epics` | The subjects of one project |
+| `GET /api/tags` | The tags |
+| `POST /api/tags` | Creates a tag (label, colour) |
+| `PUT`/`DELETE /api/tags/:id` | Renames, recolours or deletes a tag |
+| `GET /api/projects/sheets` | The projects as settings sheets: colour, admin, links, usage |
+| `GET`/`PUT /api/projects/:id/links` | A project's links; writing needs the project admin |
+| `GET /api/projects/:id/follow-up` | The follow-up of a project: weather, risks, decisions, events |
+| `PUT /api/projects/:id/weather` | Overrides the weather of a project; needs the project admin |
+| `POST /api/projects/:id/risks` | Opens a risk on a project |
+| `PATCH /api/risks/:id` | Edits or closes a risk |
+| `POST /api/projects/:id/decisions` | Records a decision on a project |
+| `GET /api/projects/:id/events` | The events of a project in a `from`/`to` window |
+| `POST /api/events` | Creates an event (type, date, title, project) |
+| `PATCH`/`DELETE /api/events/:id` | Edits an event and its minutes, or deletes it |
+| `GET`/`POST /api/projects/:id/workflow-columns` | Reads the workflow of a project, or adds a step; adding needs the project admin |
+| `PUT /api/projects/:id/workflow-columns/order` | Reorders the steps; needs the project admin |
+| `PUT`/`DELETE /api/projects/:id/workflow-columns/:columnId` | Edits or removes a step; needs the project admin |
+| `GET`/`POST /api/forge-cards` | Lists the forge cards of a project (`project` query), or creates one |
+| `POST /api/forge-cards/backlog` | Adds a story to the backlog of a subject you hold |
+| `POST /api/forge-cards/:id/move` | Moves a card to a workflow step |
+| `POST /api/forge-cards/:id/launch` | Launches the agent of the card |
+| `POST /api/forge-cards/:id/done` | Closes the card and unblocks what waited on it |
+| `POST /api/forge-cards/:id/worktree` | Opens a worktree for the card |
+| `GET`/`POST /api/board-users` | Lists the accounts, or enrols one (director or super admin) |
+| `PATCH /api/board-users/:login` | Changes capacity, active flag or super admin flag (the last needs a super admin) |
+| `POST /api/board-users/:login/erase` | Erases an account; super admin only |
+| `GET /api/board/self` | The signed-in login and whether it is a super admin |
 
 Return codes: `404` unknown story, `409` business refusal (sequence violation, missing proof, unresolved dependency, open `strong` finding), `500` only for a genuine unforeseen event — a business refusal never disguises itself as a server error, and neither does the reverse.
 
