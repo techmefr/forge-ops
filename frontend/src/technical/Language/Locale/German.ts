@@ -392,6 +392,7 @@ export const GERMAN: Message = {
   shell: {
     pipeline: 'Schritte der Pipeline',
     access: 'Zugang',
+    skipToContent: 'Zum Inhalt springen',
     accessSub: 'Eine Sitzung auf dem Board öffnen',
     agentCount: '{count} Agent | {count} Agenten',
     shortcut: 'z z dann {digit}, oder Alt+Umschalt+{digit}',
