@@ -13,13 +13,15 @@ services:
       FORGE_PUBLIC_ORIGIN: ${FORGE_PUBLIC_INSTANCE_URL:-}
       FORGE_OIDC_ALLOWED_DOMAINS: ${FORGE_OIDC_ALLOWED_DOMAINS:-}
       FORGE_OIDC_GOOGLE_CLIENT_ID: ${FORGE_OIDC_GOOGLE_CLIENT_ID:-}
-      FORGE_OIDC_GOOGLE_CLIENT_SECRET: ${FORGE_OIDC_GOOGLE_CLIENT_SECRET:-}
+      FORGE_OIDC_GOOGLE_CLIENT_SECRET_FILE: /run/secrets/oidc_google_client_secret
       FORGE_OIDC_MICROSOFT_CLIENT_ID: ${FORGE_OIDC_MICROSOFT_CLIENT_ID:-}
-      FORGE_OIDC_MICROSOFT_CLIENT_SECRET: ${FORGE_OIDC_MICROSOFT_CLIENT_SECRET:-}
+      FORGE_OIDC_MICROSOFT_CLIENT_SECRET_FILE: /run/secrets/oidc_microsoft_client_secret
       FORGE_OIDC_MICROSOFT_TENANT: ${FORGE_OIDC_MICROSOFT_TENANT:-organizations}
     secrets:
       - board_token
       - super_admin_password
+      - oidc_google_client_secret
+      - oidc_microsoft_client_secret
     volumes:
       - server-data:/data
 
@@ -35,13 +37,15 @@ services:
       FORGE_PUBLIC_ORIGIN: ${FORGE_PUBLIC_INSTANCE_URL:-}
       FORGE_OIDC_ALLOWED_DOMAINS: ${FORGE_OIDC_ALLOWED_DOMAINS:-}
       FORGE_OIDC_GOOGLE_CLIENT_ID: ${FORGE_OIDC_GOOGLE_CLIENT_ID:-}
-      FORGE_OIDC_GOOGLE_CLIENT_SECRET: ${FORGE_OIDC_GOOGLE_CLIENT_SECRET:-}
+      FORGE_OIDC_GOOGLE_CLIENT_SECRET_FILE: /run/secrets/oidc_google_client_secret
       FORGE_OIDC_MICROSOFT_CLIENT_ID: ${FORGE_OIDC_MICROSOFT_CLIENT_ID:-}
-      FORGE_OIDC_MICROSOFT_CLIENT_SECRET: ${FORGE_OIDC_MICROSOFT_CLIENT_SECRET:-}
+      FORGE_OIDC_MICROSOFT_CLIENT_SECRET_FILE: /run/secrets/oidc_microsoft_client_secret
       FORGE_OIDC_MICROSOFT_TENANT: ${FORGE_OIDC_MICROSOFT_TENANT:-organizations}
     secrets:
       - board_token
       - instance_token
+      - oidc_google_client_secret
+      - oidc_microsoft_client_secret
     depends_on:
       server:
         condition: service_healthy
@@ -69,6 +73,10 @@ secrets:
     file: ./super_admin_password.secret
   instance_token:
     file: ./instance_token.secret
+  oidc_google_client_secret:
+    file: ./oidc_google_client_secret.secret
+  oidc_microsoft_client_secret:
+    file: ./oidc_microsoft_client_secret.secret
 
 volumes:
   server-data:

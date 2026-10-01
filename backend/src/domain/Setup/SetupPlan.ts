@@ -83,29 +83,50 @@ export function validateAnswers(answers: SetupAnswers): readonly string[] {
   return problems
 }
 
+export function envValueOf(value: string): string {
+  if (/[\r\n]/.test(value)) {
+    throw new Error('a value cannot contain a line break')
+  }
+  if (/^[A-Za-z0-9_./:@%+,=-]*$/.test(value)) {
+    return value
+  }
+  const escaped = value.replace(/[\\"]/g, (character) => `\\${character}`).replace(/\$/g, () => '$$')
+  return `"${escaped}"`
+}
+
+export type OidcSecretFile = { name: string; value: string }
+
+export function oidcSecretFilesOf(answers: SetupAnswers): readonly OidcSecretFile[] {
+  if (answers.topology !== 'vps') {
+    return []
+  }
+  return [
+    { name: 'oidc_google_client_secret', value: answers.google?.clientSecret ?? '' },
+    { name: 'oidc_microsoft_client_secret', value: answers.microsoft?.clientSecret ?? '' },
+  ]
+}
+
 export function envLinesOf(answers: SetupAnswers): readonly string[] {
   const lines: string[] = []
   if (answers.repositories !== '') {
-    lines.push(`FORGE_REPOSITORIES=${answers.repositories}`)
+    lines.push(`FORGE_REPOSITORIES=${envValueOf(answers.repositories)}`)
   }
   if (answers.topology === 'vps') {
-    lines.push(`FORGE_PUBLIC_INSTANCE_URL=${answers.publicInstanceUrl.replace(/\/+$/, '')}`)
-    lines.push(`FORGE_SUPER_ADMIN_LOGIN=${answers.superAdminLogin}`)
+    lines.push(`FORGE_PUBLIC_INSTANCE_URL=${envValueOf(answers.publicInstanceUrl.replace(/\/+$/, ''))}`)
+    lines.push(`FORGE_SUPER_ADMIN_LOGIN=${envValueOf(answers.superAdminLogin)}`)
   }
   if (answers.topology === 'split' || answers.topology === 'hosted') {
-    lines.push(`FORGE_SERVER_URL=${answers.serverUrl.replace(/\/+$/, '')}`)
+    lines.push(`FORGE_SERVER_URL=${envValueOf(answers.serverUrl.replace(/\/+$/, ''))}`)
   }
   if (answers.allowedDomains.length > 0) {
-    lines.push(`FORGE_OIDC_ALLOWED_DOMAINS=${answers.allowedDomains.join(',')}`)
+    lines.push(`FORGE_OIDC_ALLOWED_DOMAINS=${envValueOf(answers.allowedDomains.join(','))}`)
   }
   if (answers.google !== null) {
-    lines.push(`FORGE_OIDC_GOOGLE_CLIENT_ID=${answers.google.clientId}`)
-    lines.push(`FORGE_OIDC_GOOGLE_CLIENT_SECRET=${answers.google.clientSecret}`)
+    lines.push(`FORGE_OIDC_GOOGLE_CLIENT_ID=${envValueOf(answers.google.clientId)}`)
   }
   if (answers.microsoft !== null) {
-    lines.push(`FORGE_OIDC_MICROSOFT_CLIENT_ID=${answers.microsoft.clientId}`)
-    lines.push(`FORGE_OIDC_MICROSOFT_CLIENT_SECRET=${answers.microsoft.clientSecret}`)
-    lines.push(`FORGE_OIDC_MICROSOFT_TENANT=${answers.microsoft.tenant}`)
+    lines.push(`FORGE_OIDC_MICROSOFT_CLIENT_ID=${envValueOf(answers.microsoft.clientId)}`)
+    lines.push(`FORGE_OIDC_MICROSOFT_TENANT=${envValueOf(answers.microsoft.tenant)}`)
   }
   return lines
 }
