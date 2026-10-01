@@ -182,6 +182,8 @@ window.ABOUT_I18N = {
   "k180": "Le tableau en thème clair Solarized",
   "k181": "Le tableau sur un téléphone",
   "k182": "Ma forge sur un téléphone, thème Nord",
+  "k183": "Exemple de code",
+  "k184": "Tableau comparatif",
   "title": "Forge Ops - laissez vos agents coder, gardez la preuve",
   "description": "Forge Ops orchestre des sessions Claude Code story par story. Aucune étape n'avance sans preuve sur disque, la dernière porte reste humaine. Gratuit, libre, sur votre machine ou votre serveur."
  },
@@ -368,6 +370,8 @@ window.ABOUT_I18N = {
   "k180": "The board in the light Solarized theme",
   "k181": "The board on a phone",
   "k182": "My forge on a phone, Nord theme",
+  "k183": "Code sample",
+  "k184": "Comparison table",
   "title": "Forge Ops - let your agents code, keep the proof",
   "description": "Forge Ops orchestrates Claude Code sessions story by story. No step moves forward without proof on disk, and the last gate stays human. Free, open source, on your machine or your server."
  },
@@ -554,6 +558,8 @@ window.ABOUT_I18N = {
   "k180": "Das Board im hellen Theme Solarized",
   "k181": "Das Board auf einem Smartphone",
   "k182": "Meine Forge auf einem Smartphone, Theme Nord",
+  "k183": "Codebeispiel",
+  "k184": "Vergleichstabelle",
   "title": "Forge Ops - Agenten programmieren lassen, Nachweis behalten",
   "description": "Forge Ops orchestriert Claude Code-Sitzungen Story für Story. Kein Schritt geht weiter ohne Nachweis auf der Festplatte, das letzte Gate bleibt menschlich. Kostenlos, quelloffen, auf Ihrem Rechner oder Ihrem Server."
  },
@@ -740,6 +746,8 @@ window.ABOUT_I18N = {
   "k180": "El tablero en tema claro Solarized",
   "k181": "El tablero en un teléfono",
   "k182": "Mi forja en un teléfono, tema Nord",
+  "k183": "Ejemplo de código",
+  "k184": "Tabla comparativa",
   "title": "Forge Ops - deja que tus agentes programen, conserva la prueba",
   "description": "Forge Ops orquesta sesiones de Claude Code historia por historia. Ningún paso avanza sin prueba en disco, la última puerta sigue siendo humana. Gratis, libre, en tu máquina o tu servidor."
  },
@@ -926,6 +934,8 @@ window.ABOUT_I18N = {
   "k180": "La board nel tema chiaro Solarized",
   "k181": "La board su un telefono",
   "k182": "La mia forgia su un telefono, tema Nord",
+  "k183": "Esempio di codice",
+  "k184": "Tabella comparativa",
   "title": "Forge Ops - lascia che i tuoi agenti scrivano codice, conserva la prova",
   "description": "Forge Ops orchestra sessioni Claude Code storia per storia. Nessuna fase avanza senza una prova su disco, l'ultimo controllo resta umano. Gratis, open source, sulla tua macchina o sul tuo server."
  },
@@ -1112,6 +1122,8 @@ window.ABOUT_I18N = {
   "k180": "O quadro no tema claro Solarized",
   "k181": "O quadro num telemóvel",
   "k182": "A minha forja num telemóvel, tema Nord",
+  "k183": "Exemplo de código",
+  "k184": "Tabela comparativa",
   "title": "Forge Ops - deixa os teus agentes programar, guarda a prova",
   "description": "O Forge Ops orquestra sessões do Claude Code história a história. Nenhum passo avança sem prova no disco, a última porta continua humana. Gratuito, livre, na tua máquina ou no teu servidor."
  },
@@ -1298,6 +1310,8 @@ window.ABOUT_I18N = {
   "k180": "Solarized 浅色主题下的看板",
   "k181": "手机上的看板",
   "k182": "手机上的我的 Forge，Nord 主题",
+  "k183": "代码示例",
+  "k184": "对比表",
   "title": "Forge Ops - 让智能体写代码，凭证由你保管",
   "description": "Forge Ops 按用户故事逐个编排 Claude Code 会话。没有磁盘上的凭证，任何步骤都无法推进，最后一道关卡由人把守。免费、开源，运行在你的机器或服务器上。"
  }
