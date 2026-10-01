@@ -65,6 +65,14 @@ Links on epics and subjects must be http or https without embedded credentials. 
 ## Client address and login limits
 
 Sign-in is limited per client address and per login-and-client pair, so a stranger cannot lock an account out for its owner. The client address is the TCP peer. `X-Forwarded-For` is read only when `FORGE_TRUST_PROXY=true`, and only the last entry, the one the closest proxy appended. Leave it unset when the board is reached directly, since any client can forge the header; set it when a reverse proxy sits in front. `docker/compose.laptop.yml` sets it because its `web` container proxies `/api/` to the instance. The other compose files publish the board directly, so they leave it off.
+## Request limits and local mode
+
+A request body is capped at 1 MiB, and at 8 KiB under `/api/auth/`; a larger one gets `413`. The limit is applied before authentication, so an unauthenticated client cannot make the board buffer a large body.
+
+Local mode has no accounts, so a client that reaches the port holds a full session. The board therefore refuses to start in local mode on any host other than the loopback (`127.0.0.1`, `localhost`, `::1`). `FORGE_ALLOW_REMOTE_LOCAL=true` lifts the refusal and is meant for one case only: a container that must bind `0.0.0.0` while its port is published on the host loopback, as `docker/compose.laptop.yml` does. Local sign-in without a secret (the automatic session of the local page) is granted only to a request that carries a local `Origin`, or that has no `Origin` and comes from a loopback peer.
+
+Agent sessions run with an allow-listed environment: the board's own secrets (token, setup token, OIDC client secrets, super admin password) are never passed to the agent process. The permission model of the agents is in the [README](../README.md#agent-permissions).
+
 ## Security headers
 
 The page is served with a Content-Security-Policy, `nosniff`, frame denial and no referrer. `style-src` keeps `'unsafe-inline'` on purpose: the front binds inline `style` attributes at runtime (colours of workflow steps, progress widths), which a nonce or hash cannot cover. Scripts have no such exception. HSTS and Permissions-Policy belong to the reverse proxy in front of the board, which is the component that terminates TLS. The guided setup creates the secrets directory with mode `0700`.

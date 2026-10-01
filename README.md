@@ -95,6 +95,73 @@ Eight steps, six checkpoints. `/PLAN` and `/CODE-SIMPLIFY` have no checkpoint of
 
 The doctrine lives in [.claude/commands/](.claude/commands) and [.claude/skills/](.claude/skills), versioned alongside the code it governs rather than depending on an external plugin.
 
+### How a story flows
+
+A card sits in a project workflow: Backlog, the project's steps in order, then Done. The default steps map to the phases of the sequence above, and a project administrator can add, reorder or remove steps (each one is an agent step or a Human step).
+
+```
+Backlog
+  │  launch (by hand, or by the autopilot)
+  ▼
+Step 1 ─ story worktree opened ─ agent session ─ writes proof + verdict
+  │  the board reads the verdict and proves the checkpoint from the proof file
+  ▼
+Step 2 … Step n          (a Human step waits for a person)
+  │  last step passed
+  ▼
+Done ─ definition of done checked ─ branch pushed ─ merge request opened
+     └ worktree and scope released, dependent stories unblocked
+```
+
+1. **Backlog.** A story enters the backlog only with its test twin. Launching a card is refused for a story that is too thin, blocked by another story, or whose project has no checkout.
+2. **Entering an agent step** opens the story worktree from the project checkout (once per story, reused by the later steps), then starts a session on it. The prompt carries the doctrine of the step and a pipeline contract: write the proof, then write the step verdict.
+3. **Proofs** are files under `.claude/evidence/<REF>/` inside that worktree. The checkpoint gates (red tests, mutation survival, tamper census, evidence shape) run against the worktree, not against the board's own directory.
+4. **Done** is refused unless the card is on the last step, no session is running there, and the definition of done is fully proven (criteria satisfied, review cascade passed, no unresolved `strong` finding).
+5. **Publishing.** When the project allows it (`autoPublish`), closing a card pushes the story branch and opens a pull request (GitHub, through `gh`) or a merge request (GitLab, through `glab`) against the project's integration branch, `main` by default. If the remote is neither GitHub nor GitLab the branch is pushed and the request is left to you. If the checkout has no `origin`, nothing is published and the card closes with a note.
+
+### Autopilot
+
+By default cards run like a CI pipeline: the board checks the proofs by code and moves the card on, so a person is needed only at a Human step, when an agent says it is blocked, or when a step is red. Settings are per project, read with `GET /api/projects/:id/autopilot` and written with `PUT` (project administrator only, `403` otherwise).
+
+| Setting | Default | Effect |
+|---|---|---|
+| `enabled` | on | Master switch, the `auto` badge on the Forge screen. Off, nothing moves by itself and nothing is published on close |
+| `autoLaunch` | on | A story in the backlog starts on the first step as soon as there is room |
+| `autoPublish` | on | Closing a card pushes the branch and opens the merge request |
+| `autoMerge` | **off** | Asks the forge to merge once the pipeline succeeds (`gh pr merge --squash --auto`, `glab mr merge --squash --when-pipeline-succeeds`). Merging cannot be undone, so it is never on unless a project administrator turns it on |
+
+**What the board checks.** When a session ends, the board reads the step verdict at `.claude/evidence/<REF>/<step key>.verdict.json`: `{"status": "pass" | "fail" | "blocked", "reason": "..."}`. A missing, unreadable or malformed verdict counts as a failure, and so does a session that ended in error. On `pass`, if the step proves a checkpoint, the board proves it itself from `.claude/evidence/<REF>/<checkpoint>.md` through the usual gates; a refusal is a failure with the gate's reason. The agent's word alone never moves a card. Verdict files are deleted once read and before a step starts, so a stale verdict cannot be reused.
+
+**Retries.** Each step has its own retry count, from 0 to 5, default 2 (Workflow settings). A failed step runs again in the same session with the reason and the end of the previous output. When the retries are spent the card stops **red**: `<step> failed after 2 retries: <reason>`.
+
+**Auto-launch.** Every five seconds the board starts backlog cards of projects where `enabled` and `autoLaunch` are on, a checkout is set, and the first step is an agent step with *start as soon as a story enters* ticked. Stories that are too thin, blocked or without checkout are skipped. The launch obeys the usual limits: `FORGE_SESSION_CAP` concurrent sessions, the launch rate (`FORGE_DISPATCH_BURST` per `FORGE_DISPATCH_WINDOW_MS`) and the budget. When one of them is hit the card waits and is tried again on the next pass.
+
+**Pauses.** The card stops and shows why until someone acts:
+
+| Reason | Cause |
+|---|---|
+| Waiting for a human step | The next step is a Human step |
+| Blocked: *question* | The verdict says `blocked` |
+| Budget exhausted, press Retry to resume | The budget policy stopped the session |
+| Budget exhausted, waiting to resume | A transition was refused for budget; it is tried again by itself |
+| Stopped by a user, press Retry to resume | The session was stopped by hand |
+| This step does not start automatically | The step has *start as soon as a story enters* unticked |
+| Waiting for a free session slot | The concurrency cap or the launch rate is reached; resumes by itself |
+
+**Red** means the autopilot gave up: retries spent, a transition the board refused, the limit of 40 automatic transitions on one card, or a failed push or merge request. A failed publication keeps the close pending, so Retry runs it again. Retry (`POST /api/forge-cards/:id/launch`) resumes a red card whose transition is pending, and relaunches the step otherwise.
+
+**Done.** After the last step passes, the board closes the card itself: the definition of done is checked, the story is published when `autoPublish` is on, dependent stories are unblocked and the worktree and its branch are cleaned up. A person closing a card with `POST /api/forge-cards/:id/done` goes through the same publication.
+
+**On the screen.** The `auto` badge in the header of the Forge screen is a switch (disabled for people who are not the project administrator). A card tile shows `Paused: <reason>` or `Red: <reason>` when the autopilot has stopped it. The autopilot only runs on a real board: it is off in the demo, and `FORGE_AUTOPILOT=off` turns it off elsewhere.
+
+### Session lifecycle
+
+- **One session per card.** A card keeps the Claude session id of its last turn. Launching a later step resumes that session (Agent SDK `resume`) instead of starting a new one, so the agent keeps its context from step to step.
+- **Cost accumulates.** Each resumed turn starts from the cost the session had already reached, so the cost of a card is the sum of its turns and the budget cap sees all of it.
+- **Waiting for a person.** A session that finished a turn and waits (`awaiting_human`) does not hold the card: the card shows *to validate*, can be moved on, and the waiting session does not count against `FORGE_SESSION_CAP` for that card. Launching the next step closes it.
+- **Stop.** `DELETE /api/stories/:id/talk` ends the Claude process (an interrupt, then a forced close after three seconds), keeps the cost of the turn, and the card shows *stopped*. The autopilot pauses on it until Retry.
+- **Budget.** When the budget policy says stop, a running session is hung up and the card stays on its step as *budget exhausted*; Retry resumes it once the budget allows.
+
 ## 5. API
 
 The board exposes an HTTP API (Hono). `POST /api/hooks` is also the target of the Claude Code hooks.
@@ -112,6 +179,8 @@ The board exposes an HTTP API (Hono). `POST /api/hooks` is also the target of th
 | `GET /api/stories/:id/dod` | Definition of done: six steps, proven or not, with their proof |
 | `POST /api/hooks` | Receives the Claude Code hooks, records the touched files |
 | `POST /api/stories/:id/dispatch` | Starts a session on a phase (`phase`) |
+| `POST /api/stories/:id/talk` | Sends a message to the live session of the story |
+| `DELETE /api/stories/:id/talk` | Stops the session: interrupts the Claude process and keeps the cost of the turn |
 | `GET /api/events` | SSE stream of the board's mutations |
 | `GET /api/board/phases` | The contract of the phases and their prerequisites |
 | `GET /api/files/conflicts` | Paths claimed by more than one story |
@@ -166,16 +235,18 @@ The board exposes an HTTP API (Hono). `POST /api/hooks` is also the target of th
 | `GET /api/forge-cards` | Lists the forge cards of a project (`project` query) |
 | `POST /api/forge-cards/backlog` | Adds a story to the backlog of a subject you hold |
 | `POST /api/forge-cards/:id/move` | Moves a card to a workflow step |
-| `POST /api/forge-cards/:id/launch` | Launches the agent of the card |
-| `POST /api/forge-cards/:id/done` | Closes the card and unblocks what waited on it |
+| `POST /api/forge-cards/:id/launch` | Launches the agent of the card, resuming its session; on a red card with a pending transition, runs the transition again |
+| `POST /api/forge-cards/:id/done` | Closes the card (last step only), publishes the branch when the project allows it, unblocks what waited on it |
 | `POST /api/forge-cards/:id/worktree` | Opens a worktree for the card |
+| `GET`/`PUT /api/projects/:id/autopilot` | Reads or writes the automation settings of a project (`enabled`, `autoLaunch`, `autoPublish`, `autoMerge`); writing needs the project admin |
+| `POST /api/projects/:id/guardrails` | Registers the guardrail hooks on the project checkout; needs the project admin |
 | `GET`/`POST /api/board-users` | Lists the accounts, or enrols one (director or super admin) |
 | `PATCH /api/board-users/:login` | Changes capacity, active flag or super admin flag (the last needs a super admin) |
 | `POST /api/board-users/:login/verify-email` | Marks the email of an account as verified |
 | `POST /api/board-users/:login/erase` | Erases an account; super admin only |
 | `GET /api/board/self` | The signed-in login and whether it is a super admin |
 
-Return codes: `404` unknown story, `409` business refusal (sequence violation, missing proof, unresolved dependency, open `strong` finding), `500` only for a genuine unforeseen event — a business refusal never disguises itself as a server error, and neither does the reverse.
+Return codes: `404` unknown story, `409` business refusal (sequence violation, missing proof, unresolved dependency, open `strong` finding, guardrail hooks not registered), `413` request body over the limit (1 MiB, 8 KiB under `/api/auth/`), `500` only for a genuine unforeseen event — a business refusal never disguises itself as a server error, and neither does the reverse.
 
 ## 6. Execution guardrail
 
@@ -184,6 +255,15 @@ Return codes: `404` unknown story, `409` business refusal (sequence violation, m
 - It inspects the whole command **and every segment** separated by `&&`, `||`, `;`, `|` or a newline: `cd x && rm -rf y` no longer gets through.
 - It **fails closed**: unreadable payload, missing command, deny list not found → refusal.
 - `git push --force` and `-f` are blocked, `git push --force-with-lease` deliberately stays allowed.
+
+### Agent permissions
+
+The hooks are the second line. The first is a permission callback (`canUseTool`) the board attaches to every agent session, with the Claude Code permission mode left at `default`, so each tool call is decided by code before it runs:
+
+- **By phase.** The tools a session may use depend on the phase of its step. Spec and architecture phases get read tools only, plus `Write`, `Edit` and `MultiEdit` limited to `.claude/evidence/` in the story directory. The test and code phases get read, write and shell tools. The gate, review and ship phases get read and shell tools, no write tool. A tool outside its phase is refused with the reason.
+- **Confined to the story directory.** A write tool must name a path (`file_path`, `notebook_path` or `path`) that resolves inside the story directory: the story worktree, or the project checkout when there is none. Symbolic links are resolved first, so a link pointing out of the directory does not get through, and a write call with no path is refused. Shell commands are not path-checked by this callback, they go through the deny list above.
+- **Guardrail hooks first.** Before a session starts, the board loads the effective Claude Code settings of the directory (user, project and local) and refuses to start unless the `PreToolUse` hooks `DenyHook` and `ScopeHook` are both registered (`409 GuardrailNotRegisteredError`, see *Registering an external project*). There is no fallback without them.
+- **An allow-listed environment.** The agent process does not inherit the board's environment. It receives a fixed set of variables (`PATH`, `HOME`, `USER`, `SHELL`, locale and terminal variables, proxy and certificate variables, `SSH_AUTH_SOCK`, `NODE_PATH`), the prefixes `LC_`, `XDG_`, `ANTHROPIC_`, `CLAUDE_CODE_` and `CLAUDE_CONFIG_`, and four values the board sets itself: `FORGE_DB_PATH`, `FORGE_DENY_PATH`, `FORGE_STORY_REFERENCE` and `FORGE_PHASE`. Board secrets such as the token, the setup token, OIDC client secrets and the super admin password never reach it.
 
 ## 7. API access
 
@@ -215,7 +295,7 @@ A project checkout other than forge-ops itself needs the same guardrails, with a
 npm run guardrails:install -- /path/to/project-checkout
 ```
 
-or `POST /api/projects/:id/guardrails` (project administrator). It writes the `PreToolUse` DenyHook and ScopeHook into the checkout `.claude/settings.json` (no secret, can be committed so worktrees carry it) and the `PostToolUse` hook with its token into `.claude/settings.local.json` (keep it out of version control). Existing settings are preserved and the command is idempotent. Without these hooks the board refuses to start a session (`409 GuardrailNotRegisteredError`).
+or `POST /api/projects/:id/guardrails` (project administrator; `409` when the project has no checkout, `422` when the checkout is outside `FORGE_CHECKOUT_ROOTS`). It writes the `PreToolUse` DenyHook and ScopeHook into the checkout `.claude/settings.json` (no secret, can be committed so worktrees carry it) and the `PostToolUse` hook with its token into `.claude/settings.local.json` (keep it out of version control). Existing settings are preserved and the command is idempotent. Without these hooks the board refuses to start a session (`409 GuardrailNotRegisteredError`).
 
 The step prompts embed the doctrine text (`SPEC.md`, `BUILD.md`, ...) read from the project `.claude/commands/` when it ships one, otherwise from the forge-ops install, so the project needs no command files.
 
@@ -271,24 +351,54 @@ FORGE_PORT=8899 npm run demo
 | `npm test` | Full suite (vitest) |
 | `npm run build` | Compiles the TypeScript |
 
-| Variable | Default |
-|---|---|
-| `FORGE_PORT` | `8830` |
-| `FORGE_DB_PATH` | `forge.db` |
-| `CLAUDE_CONFIG_DIR` | `~/.claude` |
-| `FORGE_SESSION_CAP` | `3` |
-| `FORGE_HOST` | `127.0.0.1` |
-| `FORGE_TRUST_PROXY` | `false` (`true` only behind a reverse proxy that sets `X-Forwarded-For`) |
-| `FORGE_ALLOW_REMOTE_LOCAL` | `false` (`true` lets local mode listen on a non-loopback host, only when the port is published on the loopback) |
-| `FORGE_SETUP_TOKEN` | empty (when set, first enrolment needs it in the setup token header) |
-| `FORGE_SUPER_ADMIN_LOGIN`, `FORGE_SUPER_ADMIN_PASSWORD` | empty (bootstraps the super admin; `FORGE_SUPER_ADMIN_PASSWORD_FILE` reads the password from a file instead) |
-| `FORGE_TOKEN_PATH` | `.forge-token` |
-| `FORGE_MODE` | `local` (`hub` to require an identity) |
-| `FORGE_WORKTREE_ROOT` | `../forge-worktrees` |
-| `FORGE_SHOT_DIR` | `../forge-shots` (screenshots of the piloted browser) |
-| `FORGE_PILOT_HEADED` | `false` (`true` to see the Chromium on screen) |
-| `FORGE_OTEL_METRICS_URL` | empty — without it, the resources screen says it has no collector |
-| `FORGE_PUBLIC_ORIGIN`, `FORGE_OIDC_*` | see *Signing in with Google or Microsoft* |
+| Variable | Default | Purpose |
+|---|---|---|
+| `FORGE_PORT` | `8830` | Port the board listens on |
+| `FORGE_HOST` | `127.0.0.1` | Address it binds to; local mode refuses anything but the loopback unless `FORGE_ALLOW_REMOTE_LOCAL` is `true` |
+| `FORGE_MODE` | `local` | `hub` requires an identity on every route |
+| `FORGE_DB_PATH` | `forge.db` | SQLite file; the hooks read the same variable |
+| `FORGE_TOKEN_PATH` | `.forge-token` | File holding the board token |
+| `FORGE_DIST_DIR` | `dist/web` | Built front served by the board |
+| `FORGE_TESTS_DIR` | `backend/tests` | Test folder the tamper census watches |
+| `FORGE_RED_TEST_COMMAND` | `npx vitest run --reporter=json` | Command that proves the red tests |
+| `FORGE_MUTATION_TEST_COMMAND` | `npx vitest run` | Command the mutation check runs |
+| `FORGE_SESSION_CAP` | `5` | Concurrent agent sessions |
+| `FORGE_DISPATCH_BURST`, `FORGE_DISPATCH_WINDOW_MS` | `6`, `60000` | Session launches allowed per window |
+| `FORGE_AUTOPILOT` | on | `off` stops the autopilot sweep; it never runs in the demo |
+| `FORGE_CHECKOUT_ROOTS` | the working directory | Colon-separated folders under which a project checkout may live |
+| `FORGE_WORKTREE_ROOT` | `../forge-worktrees` | Where story worktrees are created |
+| `FORGE_SHOT_DIR` | `../forge-shots` | Screenshots of the piloted browser |
+| `FORGE_PILOT_HEADED` | `false` | `true` shows the Chromium on screen |
+| `FORGE_OTEL_METRICS_URL` | empty | OpenTelemetry collector; without it the resources screen says it has no collector |
+| `FORGE_REROUTE_ALLOWED_HOSTS` | `api.anthropic.com` | Comma-separated hosts the budget `reroute` conduct may target (https only) |
+| `FORGE_DENY_PATH` | `.claude-deny.json` at the forge-ops root | Deny list read by the hook |
+| `FORGE_TRUST_PROXY` | `false` | `true` only behind a reverse proxy that sets `X-Forwarded-For`; the last entry then gives the client address |
+| `FORGE_ALLOW_REMOTE_LOCAL` | `false` | `true` lets local mode bind a non-loopback host, only when the port is published on the loopback |
+| `FORGE_SETUP_TOKEN` | empty | When set, first enrolment needs it in the `x-forge-setup-token` header |
+| `FORGE_SUPER_ADMIN_LOGIN`, `FORGE_SUPER_ADMIN_PASSWORD` | empty | Bootstraps the super admin; `FORGE_SUPER_ADMIN_PASSWORD_FILE` reads the password from a file instead |
+| `FORGE_PUBLIC_ORIGIN`, `FORGE_OIDC_*` | empty | See *Signing in with Google or Microsoft* |
+| `FORGE_ROLE` | `instance` | What the process reports as (`server` or `instance`); set by the images |
+| `FORGE_VERSION`, `FORGE_OFFERED_VERSION` | `0.1.0` | Installed and offered versions reported to the desktop updater |
+| `FORGE_SNAPSHOT_PORT` | `8841` | Port used by `npm run demo:snapshot` |
+| `CLAUDE_CONFIG_DIR` | `~/.claude` | Claude Code home read for the fleet |
+| `CLAUDE_CODE_VERSION` | `unknown` | Claude Code version recorded on each session |
+
+The agent processes receive a restricted environment, see *Agent permissions*. The compose files add their own variables (`FORGE_REPOSITORIES`, `FORGE_PUBLIC_INSTANCE_URL`, `FORGE_SERVER_URL`, `FORGE_INSTANCE_URL`); they are described in [docs/Deployment.md](docs/Deployment.md).
+
+### Testing
+
+Node 22 is required.
+
+```bash
+npm ci
+npm test                           # every suite, backend and frontend
+npx vitest run backend/tests/e2e   # the card dispatch end-to-end suite alone
+npm run lint                       # eslint with zero warnings, plus the import direction check
+npm run build:back                 # type-check and compile the backend
+npm run build:web                  # type-check and build the front
+```
+
+Tests are vitest suites: `backend/tests` runs in Node, `frontend/tests` in jsdom. The end-to-end suite drives a card through the real dispatcher, repositories and a temporary git repository, with the Agent SDK mocked, so it needs no network and no Claude credentials. The `gate` workflow runs lint, the import direction check, the tests and both builds.
 
 ### The desktop app
 
@@ -410,6 +520,8 @@ Low-level orchestration is not rewritten: it leans on the first party — the `c
 | Scope reservation refused at write time and at startup | Done, plus a `PreToolUse` that refuses writing outside the scope |
 | Accounts, sessions and hub mode | Done |
 | Reports coming from outside, settled by a human | Done |
+| Autopilot: verdict-checked auto-advance, retries, auto-launch, publication | Done; auto-merge is off by default |
+| Agent permission callback, guardrail registration on external projects | Done |
 | Cost cap that cuts off, conduct of your choosing | Done |
 | Session history and statistics | Done, read from the board's database |
 | Front: router, shell and the nine pipeline screens | Done |
