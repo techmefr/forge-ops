@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { decideOnToolCall } from './PhaseDecision.js'
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url))
-const DENY_PATH = process.env.FORGE_DENY_PATH ?? join(MODULE_DIR, '..', '..', '..', '.claude-deny.json')
+const DENY_PATH = process.env.FORGE_DENY_PATH ?? join(MODULE_DIR, '..', '..', '..', '..', '.claude-deny.json')
 
 function readStdin(): Promise<string> {
   return new Promise((resolve, reject) => {

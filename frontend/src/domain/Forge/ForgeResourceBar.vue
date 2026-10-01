@@ -13,7 +13,7 @@ const emit = defineEmits<{ details: [] }>()
 const { t } = useI18n()
 const say = usePhrase()
 
-const { working } = useFleet()
+const { live } = useFleet()
 const machine = ref<MachineReading | null>(null)
 const budget = ref<BudgetSettings | null>(null)
 
@@ -72,7 +72,7 @@ onBeforeUnmount(() => {
     data-test="forge-resources"
   >
     <span data-test="forge-resource-sessions">{{
-      t('forge.resource.sessions', { count: working.length }, working.length)
+      t('forge.resource.sessions', { count: live }, live)
     }}</span>
     <span v-if="gauges.length === 0" class="text-txt-low">{{ t('forge.resource.unknown') }}</span>
     <span v-for="gauge in gauges" :key="gauge.nameKey" class="flex items-center gap-1.5">
