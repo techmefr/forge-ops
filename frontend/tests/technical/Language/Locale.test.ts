@@ -7,7 +7,7 @@ import { MESSAGES } from '@/technical/Language/Locale/Locales'
 
 type Branch = { [key: string]: string | Branch }
 
-const DYNAMIC_PREFIXES: readonly string[] = [...Object.keys(LABEL_GROUPS), 'fileSaid']
+const DYNAMIC_PREFIXES: readonly string[] = [...Object.keys(LABEL_GROUPS), 'fileSaid', 'template.colourNames']
 
 function sourceRoot(): string {
   let here = process.cwd()
