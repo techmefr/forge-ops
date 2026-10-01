@@ -91,6 +91,8 @@ import { createSessionApi } from '../technical/Http/SessionApi.js'
 import { deriveHookToken, resolveBoardToken } from '../technical/Auth/BoardToken.js'
 import { securityHeaders } from '../technical/Http/SecurityHeaders.js'
 import { boardOrigins, isLocalOrigin } from '../technical/Auth/BoardOrigin.js'
+import { isLoopbackPeer } from '../technical/Auth/ClientAddress.js'
+import { ALLOW_REMOTE_LOCAL_ENV, assertLocalModeBinding } from '../technical/Auth/LocalBinding.js'
 
 const DEFAULT_SESSION_CAP = 5
 
@@ -182,6 +184,7 @@ export function startBoardServer({
   mode,
   environmentMode,
 }: BoardServerInput): Promise<BoardServer> {
+  assertLocalModeBinding(mode, host, process.env[ALLOW_REMOTE_LOCAL_ENV])
   const db = openDatabase(dbPath)
   const token = resolveBoardToken(tokenPath)
   const events = createEventBus()
@@ -300,17 +303,25 @@ export function startBoardServer({
   const discussion = createDiscussionRepository(db, { stories })
   const batches = createBatchRepository(db)
   const identities = createIdentityRepository(db)
+  const setupToken = process.env.FORGE_SETUP_TOKEN?.trim() || null
   const superAdminSeed = readSuperAdminConfiguration(process.env, undefined, (message) => console.warn(message))
   if (superAdminSeed !== null) {
     identities.bootstrapSuperAdmin(superAdminSeed)
   } else if (mode === 'hub') {
     console.warn(
-      'No super admin configured: set FORGE_SUPER_ADMIN_LOGIN and FORGE_SUPER_ADMIN_PASSWORD (or FORGE_SUPER_ADMIN_PASSWORD_FILE); nobody can manage super admins until then.',
+      'No super admin configured: set FORGE_SUPER_ADMIN_LOGIN and FORGE_SUPER_ADMIN_PASSWORD (or FORGE_SUPER_ADMIN_PASSWORD_FILE); nobody can manage super admins and first enrolment stays closed until then (or set FORGE_SETUP_TOKEN).',
     )
   }
   const api = createBoardApi({
     isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
     isDirector: (login) => identities.findUser(login)?.role === 'director',
+    maySettleBudget: (context) => {
+      if (mode === 'local') {
+        return true
+      }
+      const user = identities.findUser(operatorOf(context))
+      return user?.superAdmin === true || user?.role === 'director'
+    },
     openHolds: discussion.openHolds,
     today: () => new Date().toISOString().slice(0, 10),
     zones: createZoneRepository(db),
@@ -355,6 +366,7 @@ export function startBoardServer({
       allowSessionExchange: mode === 'local',
       allowLocalAutologin: mode === 'local',
       isLocalOrigin: (origin) => isLocalOrigin(origin, host, port),
+      isLoopbackPeer,
     }),
   )
   guarded.get('/api/auth/whoami', (context) => context.json({ authenticated: true }))
@@ -363,7 +375,11 @@ export function startBoardServer({
   }
   guarded.route(
     '/',
-    createIdentityApi({ identities, allowEnrolment: () => identities.countUsers() === 0 }),
+    createIdentityApi({
+      identities,
+      allowEnrolment: () => identities.countUsers() === 0 && (mode !== 'hub' || setupToken !== null),
+      setupToken,
+    }),
   )
   guarded.route(
     '/',

@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { z } from 'zod'
 import { projectCreateSchema } from '../../../../contract/ProjectContract.js'
@@ -99,6 +100,7 @@ export type BoardApiInput = {
   today?: () => string
   isSuperAdmin?: (login: string) => boolean
   isDirector?: (login: string) => boolean
+  maySettleBudget?: (context: Context) => boolean
 }
 
 export function createBoardApi({
@@ -117,6 +119,10 @@ export function createBoardApi({
   today = () => new Date().toISOString().slice(0, 10),
   isSuperAdmin = () => false,
   isDirector = () => false,
+  maySettleBudget = (context) => {
+    const login = operatorOf(context)
+    return isSuperAdmin(login) || isDirector(login)
+  },
 }: BoardApiInput): Hono {
   const api = new Hono()
 
@@ -139,7 +145,7 @@ export function createBoardApi({
 
   api.onError(mapApiError)
 
-  api.route('/', createBudgetApi({ budget, events }))
+  api.route('/', createBudgetApi({ budget, events, maySettle: maySettleBudget }))
 
   api.post('/api/projects', async (context) => {
     const body = await context.req.json().catch(() => null)

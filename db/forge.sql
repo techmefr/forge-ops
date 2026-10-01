@@ -299,7 +299,7 @@ CREATE TABLE IF NOT EXISTS board_user (
   disabled_at TEXT
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_board_user_email ON board_user(email) WHERE email IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_board_user_verified_email ON board_user(email) WHERE email IS NOT NULL AND email_verified_at IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS board_session (
   token_hash TEXT PRIMARY KEY,

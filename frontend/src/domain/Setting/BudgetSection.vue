@@ -27,6 +27,7 @@ const refusal = ref<Phrase | null>(null)
 const saved = ref(false)
 const busy = ref(false)
 
+const maySettle = computed(() => settings.data.value?.maySettle !== false)
 const spent = computed(() => settings.data.value?.spentUsd ?? 0)
 const usedPercent = computed(() =>
   Math.min(Math.round((spent.value / Math.max(draft.value.capUsd, 1)) * 100), 100),
@@ -86,7 +87,7 @@ onMounted(() => settings.reload())
       </div>
     </div>
 
-    <form class="flex flex-col gap-6" @submit.prevent="save">
+    <form v-if="maySettle" class="flex flex-col gap-6" @submit.prevent="save">
       <label class="flex flex-col gap-2">
         <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
           t('setting.dailyCap')
