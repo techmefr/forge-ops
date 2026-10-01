@@ -16,6 +16,7 @@ import { BudgetViolationError } from '../Budget/BudgetViolation.js'
 import { EventNotFoundError } from '../Event/EventViolation.js'
 import { ItemInUseError, TagNotFoundError } from '../Epic/EpicViolation.js'
 import { RiskNotFoundError } from '../FollowUp/FollowUpViolation.js'
+import { GuardrailNotRegisteredError } from '../../technical/Guardrail/GuardrailRegistration.js'
 import { ForgeCardViolationError } from '../ForgeCard/ForgeCardViolation.js'
 
 export const mapApiError: ErrorHandler = (error, context) => {
@@ -56,11 +57,13 @@ export const mapApiError: ErrorHandler = (error, context) => {
     error instanceof DispatchViolationError ||
     error instanceof BudgetViolationError ||
     error instanceof ForgeCardViolationError ||
+    error instanceof GuardrailNotRegisteredError ||
     error instanceof EvidencePathRefusedError ||
     error instanceof EvidenceShapeRefusedError ||
     error instanceof EvidenceUnreadableError
   ) {
     return context.json({ error: error.name, message: error.message }, 409)
   }
+  console.error(error instanceof Error ? (error.stack ?? error.message) : String(error))
   return context.json({ error: 'UnexpectedError' }, 500)
 }

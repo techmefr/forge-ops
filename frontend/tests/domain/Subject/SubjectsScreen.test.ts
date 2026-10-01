@@ -461,6 +461,17 @@ describe('SubjectsScreen drawer', () => {
     read.mockImplementation((path: string) => Promise.resolve(responses[path] ?? []))
   }
 
+  it('keeps the quick summary field at three rows or more whatever the viewport', async () => {
+    serveDrawer()
+    const screen = await mounted()
+    await screen.find('[data-test-id="subject-row-1"]').trigger('click')
+    await flushPromises()
+    const note = document.body.querySelector<HTMLTextAreaElement>('#drawer-note')!
+    expect(note.getAttribute('rows')).toBe('3')
+    expect(note.classList.contains('shrink-0')).toBe(true)
+    expect(note.classList.contains('min-h-[5.5rem]')).toBe(true)
+  })
+
   it('opens on a row click and shows the state history and the project links', async () => {
     serveDrawer()
     const screen = await mounted()

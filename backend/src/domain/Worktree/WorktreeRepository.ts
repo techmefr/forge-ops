@@ -125,39 +125,40 @@ export function createWorktreeRepository(
   }
 
   return {
-    open: (order) => {
-      const story = stories.findStory(order.storyId)
-      if (selectLiveForStory.get(order.storyId) !== undefined) {
-        throw new WorktreeAlreadyLiveError(story.reference, branchNameFor(story.reference, story.title))
-      }
-      const branch = branchNameFor(story.reference, story.title)
-      const folder = worktreeFolderFor(branch)
-      const path = join(root, folder)
-      const baseSha = git.headSha(order.baseRef)
+    open: (order) =>
+      db.transaction(() => {
+        const story = stories.findStory(order.storyId)
+        if (selectLiveForStory.get(order.storyId) !== undefined) {
+          throw new WorktreeAlreadyLiveError(story.reference, branchNameFor(story.reference, story.title))
+        }
+        const branch = branchNameFor(story.reference, story.title)
+        const folder = worktreeFolderFor(branch)
+        const path = join(root, folder)
+        const baseSha = git.headSha(order.baseRef)
 
-      const existing = selectRowForStory.get(order.storyId)
-      if (existing === undefined) {
-        insertWorktree.run(order.storyId, order.forgeCardId ?? null, path, branch, order.baseRef, baseSha)
-      } else {
-        reopenWorktree.run(path, branch, baseSha, order.forgeCardId ?? null, existing.id)
-      }
-      const written = selectRowForStory.get(order.storyId)
-      if (written === undefined) {
-        throw new WorktreeNotFoundError(story.reference)
-      }
+        const existing = selectRowForStory.get(order.storyId)
+        if (existing === undefined) {
+          insertWorktree.run(order.storyId, order.forgeCardId ?? null, path, branch, order.baseRef, baseSha)
+        } else {
+          reopenWorktree.run(path, branch, baseSha, order.forgeCardId ?? null, existing.id)
+        }
+        const written = selectRowForStory.get(order.storyId)
+        if (written === undefined) {
+          throw new WorktreeNotFoundError(story.reference)
+        }
 
-      const port = freePortFor(branch, written.id)
-      dropReservation.run(written.id)
-      insertReservation.run(port, written.id, folder)
+        const port = freePortFor(branch, written.id)
+        dropReservation.run(written.id)
+        insertReservation.run(port, written.id, folder)
 
-      git.addWorktree({ path, branch, baseRef: order.baseRef })
+        git.addWorktree({ path, branch, baseRef: order.baseRef })
 
-      const live = selectLiveForStory.get(order.storyId)
-      if (live === undefined) {
-        throw new WorktreeNotFoundError(story.reference)
-      }
-      return toWorktree(live)
-    },
+        const live = selectLiveForStory.get(order.storyId)
+        if (live === undefined) {
+          throw new WorktreeNotFoundError(story.reference)
+        }
+        return toWorktree(live)
+      })(),
 
     close: (storyId, options = {}) => {
       const story = stories.findStory(storyId)

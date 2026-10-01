@@ -244,7 +244,7 @@ export const ENGLISH = {
     nobody: 'Nobody',
     subjectCount: '{count} subject | {count} subjects',
     lateCount: '{count} late',
-    minutesCount: '{count} minutes to write | {count} minutes to write',
+    minutesCount: '{count} set of minutes to write | {count} sets of minutes to write',
     minutesToWrite: 'Minutes to write',
     late: 'Late',
     lateBy: 'D+{days}',
@@ -296,7 +296,7 @@ export const ENGLISH = {
     alertLate: '{count} late',
     alertBlocked: '{count} blocked',
     alertHighRisks: '{count} high risk | {count} high risks',
-    alertMinutes: '{count} minutes to write | {count} minutes to write',
+    alertMinutes: '{count} set of minutes to write | {count} sets of minutes to write',
     nextEvent: 'Next: {type} on {date}, {title}',
     noEvent: 'No event planned',
     computed: 'Weather computed',
@@ -695,6 +695,7 @@ export const ENGLISH = {
     collapse: 'Collapse the card',
     expand: 'Expand the card',
     noHighlight: 'No colour highlighting for this file type.',
+    fileContent: "File content",
   },
   view: {
     sessionsToWatch: 'Sessions to watch',
@@ -707,6 +708,7 @@ export const ENGLISH = {
     provenBy: 'verified proven by {path}',
   },
   pilot: {
+    sightDetail: "Inspection detail",
     paceLabel: 'Pace of the walk',
     stepKindLabel: 'Kind of step',
     reason: {
@@ -1150,7 +1152,7 @@ export const ENGLISH = {
       'The board runs in local mode, without accounts: access goes through the machine token. Accounts only exist in hub mode.',
     displayName: 'Display name',
     emailAddress: 'Mail address',
-    emailPlaceholder: 'person@example.com',
+    emailPlaceholder: 'person{\'@\'}example.com',
     accountSaved: 'Account saved',
     currentPassword: 'Current password',
     newPassword: 'New password',

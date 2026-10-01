@@ -243,7 +243,7 @@ function closeWhenClosed(open: boolean): void {
           :maxlength="NOTE_LIMIT"
           :disabled="deleted"
           :placeholder="t('subjects.drawer.notePlaceholder')"
-          class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
+          class="min-h-[5.5rem] shrink-0 rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
           @change="saveNote"
         />
 

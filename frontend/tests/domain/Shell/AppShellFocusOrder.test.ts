@@ -41,6 +41,33 @@ describe('AppShell focus order', () => {
     wrapper.unmount()
   })
 
+  it('keeps the skip link first on a direct load by never scrolling the current link into view', async () => {
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    const wrapper = await mounted()
+    const router = wrapper.vm.$router
+    await router.push('/settings')
+    await flushPromises()
+    await router.push('/statistics')
+    await flushPromises()
+    expect(scrollIntoView).not.toHaveBeenCalled()
+    const focusable = [...document.body.querySelectorAll<HTMLElement>('a[href], button')]
+    expect(focusable[0]).toBe(wrapper.get('[data-test-id="skip-link"]').element)
+    expect(document.activeElement).toBe(document.body)
+    wrapper.unmount()
+  })
+
+  it('still centres the current link inside the navigation strip', async () => {
+    const wrapper = await mounted()
+    const strip = wrapper.get('nav').element as HTMLElement
+    const scrollTo = vi.fn()
+    strip.scrollTo = scrollTo as unknown as typeof strip.scrollTo
+    await wrapper.vm.$router.push('/settings')
+    await flushPromises()
+    expect(scrollTo).toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
   it('moves focus to the main content when the skip link is used', async () => {
     const wrapper = await mounted()
     await wrapper.get('[data-test-id="skip-link"]').trigger('click')

@@ -703,6 +703,7 @@ export const GERMAN: Message = {
     collapse: 'Die Karte einklappen',
     expand: 'Die Karte aufklappen',
     noHighlight: 'Keine Farbmarkierung für diesen Dateityp.',
+    fileContent: "Dateiinhalt",
   },
   view: {
     sessionsToWatch: 'Sitzungen zum Anschauen',
@@ -715,6 +716,7 @@ export const GERMAN: Message = {
     provenBy: 'geprüft, nachgewiesen durch {path}',
   },
   pilot: {
+    sightDetail: "Details der Prüfung",
     paceLabel: 'Tempo des Durchlaufs',
     stepKindLabel: 'Art des Schritts',
     reason: {
@@ -1163,7 +1165,7 @@ export const GERMAN: Message = {
       'Das Board läuft im lokalen Modus, ohne Konten: der Zugang geht über das Maschinen-Token. Konten gibt es nur im Hub-Modus.',
     displayName: 'Angezeigter Name',
     emailAddress: 'Mail-Adresse',
-    emailPlaceholder: 'person@beispiel.de',
+    emailPlaceholder: 'person{\'@\'}beispiel.de',
     accountSaved: 'Konto gespeichert',
     currentPassword: 'Aktuelles Passwort',
     newPassword: 'Neues Passwort',

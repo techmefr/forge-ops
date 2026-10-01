@@ -702,6 +702,7 @@ export const PORTUGUESE: Message = {
     collapse: 'Recolher o cartão',
     expand: 'Expandir o cartão',
     noHighlight: 'Sem coloração para este tipo de ficheiro.',
+    fileContent: "Conteúdo do ficheiro",
   },
   view: {
     sessionsToWatch: 'Sessões para ver',
@@ -714,6 +715,7 @@ export const PORTUGUESE: Message = {
     provenBy: 'verificado provado por {path}',
   },
   pilot: {
+    sightDetail: "Detalhe da inspeção",
     paceLabel: 'Ritmo do percurso',
     stepKindLabel: 'Tipo de passo',
     reason: {
@@ -1161,7 +1163,7 @@ export const PORTUGUESE: Message = {
       'O board corre em modo local, sem contas: o acesso faz-se pelo token da máquina. As contas só existem em modo hub.',
     displayName: 'Nome apresentado',
     emailAddress: 'Endereço de correio',
-    emailPlaceholder: 'pessoa@exemplo.pt',
+    emailPlaceholder: 'pessoa{\'@\'}exemplo.pt',
     accountSaved: 'Conta guardada',
     currentPassword: 'Palavra-passe atual',
     newPassword: 'Nova palavra-passe',

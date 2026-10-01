@@ -7,6 +7,8 @@ services:
       dockerfile: docker/instance.Dockerfile
     environment:
       FORGE_MODE: local
+      FORGE_TRUST_PROXY: 'true'
+      FORGE_ALLOW_REMOTE_LOCAL: 'true'
       FORGE_TOKEN_PATH: /run/secrets/board_token
       FORGE_PUBLIC_ORIGIN: http://forge.localhost
     secrets:
@@ -15,7 +17,7 @@ services:
       - instance-data:/data
       - ${FORGE_REPOSITORIES:-./repositories}:/repositories
     ports:
-      - '4311:4311'
+      - '127.0.0.1:4311:4311'
 
   web:
     build:
@@ -27,7 +29,7 @@ services:
       instance:
         condition: service_healthy
     ports:
-      - '80:80'
+      - '127.0.0.1:80:80'
 
 secrets:
   board_token:

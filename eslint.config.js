@@ -79,6 +79,7 @@ export default tseslint.config(
       'backend/src/*.ts',
       'backend/src/technical/Guardrail/*Hook.ts',
       'backend/src/composition/*.ts',
+      'backend/src/domain/Board/ApiErrorMap.ts',
     ],
     rules: {
       'no-console': 'off',

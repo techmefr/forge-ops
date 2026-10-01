@@ -697,6 +697,7 @@ export const CHINESE: Message = {
     collapse: '折叠卡片',
     expand: '展开卡片',
     noHighlight: '此文件类型不支持颜色高亮。',
+    fileContent: "文件内容",
   },
   view: {
     sessionsToWatch: '待观察的会话',
@@ -709,6 +710,7 @@ export const CHINESE: Message = {
     provenBy: '已验证，凭证为 {path}',
   },
   pilot: {
+    sightDetail: "检查详情",
     paceLabel: '演练节奏',
     stepKindLabel: '步骤类型',
     reason: {
@@ -1152,7 +1154,7 @@ export const CHINESE: Message = {
       '看板运行在本地模式，没有账号：访问通过机器令牌进行。账号仅在中心模式下存在。',
     displayName: '显示名称',
     emailAddress: '邮箱地址',
-    emailPlaceholder: 'person@example.com',
+    emailPlaceholder: 'person{\'@\'}example.com',
     accountSaved: '账号已保存',
     currentPassword: '当前密码',
     newPassword: '新密码',

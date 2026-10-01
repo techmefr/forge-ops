@@ -1,21 +1,26 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
+import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import { mapApiError } from '../Board/ApiErrorMap.js'
+import { assertStoryHand } from '../Story/StoryHand.js'
+import type { StoryRepository } from '../Story/StoryRepository.js'
+import { baseRefSchema } from '../Worktree/Worktree.js'
 import type { ForgeCardRepository } from './ForgeCardRepository.js'
 import type { WorktreeRepository } from '../Worktree/WorktreeRepository.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
 const worktreeOrderSchema = z.object({
-  baseRef: z.string().min(1).max(200).default('HEAD'),
+  baseRef: baseRefSchema,
 })
 
 export type ForgeCardApiInput = {
   forgeCards: ForgeCardRepository
   worktrees: WorktreeRepository
+  stories: StoryRepository
 }
 
-export function createForgeCardApi({ forgeCards, worktrees }: ForgeCardApiInput): Hono {
+export function createForgeCardApi({ forgeCards, worktrees, stories }: ForgeCardApiInput): Hono {
   const api = new Hono()
 
   api.onError(mapApiError)
@@ -34,6 +39,8 @@ export function createForgeCardApi({ forgeCards, worktrees }: ForgeCardApiInput)
     if (storyId === undefined) {
       throw new RangeError(`forge card ${card.reference} porte aucune story`)
     }
+    const story = stories.findStory(storyId)
+    assertStoryHand(story.reference, stories.assigneeOf(story.epicId), operatorOf(context))
     const opened = worktrees.open({ storyId, forgeCardId: card.id, baseRef: order.data.baseRef })
     return context.json(opened, 201)
   })

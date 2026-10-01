@@ -108,6 +108,8 @@ export function createStoryApi({
     if (!draft.success) {
       return context.json({ error: 'InvalidCard', issues: draft.error.issues }, 422)
     }
+    const current = repository.findStory(storyId.data)
+    assertStoryHand(current.reference, repository.assigneeOf(current.epicId), operatorOf(context))
     const story = repository.editStory(storyId.data, draft.data)
     events.publish({ name: 'story.edited', payload: { ...story } })
     return context.json(story)

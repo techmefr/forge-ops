@@ -38,10 +38,10 @@ function runGit(argv: readonly string[], cwd: string): string {
 
 export function createGitWorktree({ repositoryRoot, run = runGit }: GitWorktreeInput) {
   return {
-    headSha: (baseRef: string) => run(['rev-parse', baseRef], repositoryRoot),
+    headSha: (baseRef: string) => run(['rev-parse', '--verify', '--end-of-options', baseRef], repositoryRoot),
 
     addWorktree: ({ path, branch, baseRef }: { path: string; branch: string; baseRef: string }) => {
-      run(['worktree', 'add', '-b', branch, path, baseRef], repositoryRoot)
+      run(['worktree', 'add', '-b', branch, '--end-of-options', path, baseRef], repositoryRoot)
     },
 
     removeWorktree: (path: string) => {

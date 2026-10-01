@@ -701,6 +701,7 @@ export const FRENCH: Message = {
     collapse: 'Réduire la carte',
     expand: 'Déplier la carte',
     noHighlight: 'Pas de coloration pour ce type de fichier.',
+    fileContent: "Contenu du fichier",
   },
   view: {
     sessionsToWatch: 'Sessions à regarder',
@@ -713,6 +714,7 @@ export const FRENCH: Message = {
     provenBy: 'vérifié prouvé par {path}',
   },
   pilot: {
+    sightDetail: "Détail de l'inspection",
     paceLabel: 'Allure du parcours',
     stepKindLabel: 'Nature du pas',
     reason: {
@@ -1159,7 +1161,7 @@ export const FRENCH: Message = {
       'Le board tourne en mode local, sans compte : l’accès se fait par le jeton de la machine. Les comptes n’existent qu’en mode hub.',
     displayName: 'Nom affiché',
     emailAddress: 'Adresse mail',
-    emailPlaceholder: 'personne@exemple.fr',
+    emailPlaceholder: 'personne{\'@\'}exemple.fr',
     accountSaved: 'Compte enregistré',
     currentPassword: 'Mot de passe actuel',
     newPassword: 'Nouveau mot de passe',

@@ -277,15 +277,25 @@ describe("l'auto-connexion locale", () => {
         allowedOrigins: ['http://localhost:8830', 'http://localhost:8832'],
         allowLocalAutologin: true,
         isLocalOrigin: (origin) => origin === undefined || origin === 'http://localhost:8830',
+        isLoopbackPeer: (context) => context.req.header('x-test-peer') === 'loopback',
       }),
     )
     api.post('/api/auth/session/local', (context) => context.json({ opened: true }, 201))
   })
 
-  it('lets a local caller through without any token', async () => {
-    const response = await api.request('/api/auth/session/local', { method: 'POST' })
+  it('lets a loopback caller through without any token', async () => {
+    const response = await api.request('/api/auth/session/local', {
+      method: 'POST',
+      headers: { 'x-test-peer': 'loopback' },
+    })
 
     expect(response.status).toBe(201)
+  })
+
+  it('refuses a caller without an origin when its peer is not the loopback', async () => {
+    const response = await api.request('/api/auth/session/local', { method: 'POST' })
+
+    expect(response.status).toBe(401)
   })
 
   it('lets a caller from the board own local origin through', async () => {

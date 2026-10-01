@@ -111,4 +111,39 @@ describe('FileBrowser affiche le rendu deja colore par le serveur', () => {
 
     expect(wrapper.text()).not.toContain('Pas de coloration pour ce type de fichier.')
   })
+
+  it('rend la zone de code defilante atteignable au clavier et nommee', async () => {
+    read.mockImplementation(async (url: string) => {
+      if (url.includes('/tree')) return treeReading
+      if (url.includes('/clashes')) return noClashes
+      if (url.includes('/file?')) return fileReading()
+      throw new Error(`route inattendue: ${url}`)
+    })
+
+    const wrapper = mounted()
+    await openTheOnlyFile(wrapper)
+
+    const code = wrapper.find('pre')
+    expect(code.attributes('tabindex')).toBe('0')
+    expect(code.attributes('role')).toBe('region')
+    expect(code.attributes('aria-label')).toBe('Contenu du fichier')
+  })
+
+  it('rend la liste defilante des noms trop proches atteignable au clavier et nommee', async () => {
+    read.mockImplementation(async (url: string) => {
+      if (url.includes('/tree')) return treeReading
+      if (url.includes('/clashes')) {
+        return { available: true, reason: null, clashes: [{ name: 'App', paths: ['a/App.vue', 'b/App.vue'] }] }
+      }
+      throw new Error(`route inattendue: ${url}`)
+    })
+
+    const wrapper = mounted()
+    await flushPromises()
+
+    const list = wrapper.find('ul[role="region"]')
+    expect(list.exists()).toBe(true)
+    expect(list.attributes('tabindex')).toBe('0')
+    expect(list.attributes('aria-label')).toBe('Noms trop proches')
+  })
 })

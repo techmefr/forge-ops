@@ -703,6 +703,7 @@ export const ITALIAN: Message = {
     collapse: 'Ridurre la scheda',
     expand: 'Aprire la scheda',
     noHighlight: 'Nessuna colorazione per questo tipo di file.',
+    fileContent: "Contenuto del file",
   },
   view: {
     sessionsToWatch: 'Sessioni da guardare',
@@ -715,6 +716,7 @@ export const ITALIAN: Message = {
     provenBy: 'verificato provato da {path}',
   },
   pilot: {
+    sightDetail: "Dettaglio dell'ispezione",
     paceLabel: 'Andatura del percorso',
     stepKindLabel: 'Tipo di passo',
     reason: {
@@ -1162,7 +1164,7 @@ export const ITALIAN: Message = {
       'La board gira in modalità locale, senza account: l’accesso passa dal token della macchina. Gli account esistono solo in modalità hub.',
     displayName: 'Nome mostrato',
     emailAddress: 'Indirizzo mail',
-    emailPlaceholder: 'persona@esempio.it',
+    emailPlaceholder: 'persona{\'@\'}esempio.it',
     accountSaved: 'Account salvato',
     currentPassword: 'Password attuale',
     newPassword: 'Nuova password',

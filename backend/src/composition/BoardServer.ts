@@ -89,8 +89,11 @@ import { createTokenGuard } from '../technical/Auth/TokenGuard.js'
 import { createBrowserSessions } from '../technical/Auth/BrowserSession.js'
 import { createSessionApi } from '../technical/Http/SessionApi.js'
 import { deriveHookToken, resolveBoardToken } from '../technical/Auth/BoardToken.js'
+import { requestBodyLimit } from '../technical/Http/RequestBodyLimit.js'
 import { securityHeaders } from '../technical/Http/SecurityHeaders.js'
 import { boardOrigins, isLocalOrigin } from '../technical/Auth/BoardOrigin.js'
+import { isLoopbackPeer } from '../technical/Auth/ClientAddress.js'
+import { ALLOW_REMOTE_LOCAL_ENV, assertLocalModeBinding } from '../technical/Auth/LocalBinding.js'
 
 const DEFAULT_SESSION_CAP = 5
 
@@ -182,6 +185,7 @@ export function startBoardServer({
   mode,
   environmentMode,
 }: BoardServerInput): Promise<BoardServer> {
+  assertLocalModeBinding(mode, host, process.env[ALLOW_REMOTE_LOCAL_ENV])
   const db = openDatabase(dbPath)
   const token = resolveBoardToken(tokenPath)
   const events = createEventBus()
@@ -312,6 +316,13 @@ export function startBoardServer({
   const api = createBoardApi({
     isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
     isDirector: (login) => identities.findUser(login)?.role === 'director',
+    maySettleBudget: (context) => {
+      if (mode === 'local') {
+        return true
+      }
+      const user = identities.findUser(operatorOf(context))
+      return user?.superAdmin === true || user?.role === 'director'
+    },
     openHolds: discussion.openHolds,
     today: () => new Date().toISOString().slice(0, 10),
     zones: createZoneRepository(db),
@@ -341,6 +352,7 @@ export function startBoardServer({
   const browserSessions = createBrowserSessions()
   const guarded = new Hono()
   guarded.use('*', securityHeaders())
+  guarded.use('/api/*', requestBodyLimit())
   guarded.get('/health', (context) =>
     context.json({ role: process.env.FORGE_ROLE ?? 'instance', mode, ready: true }),
   )
@@ -356,6 +368,7 @@ export function startBoardServer({
       allowSessionExchange: mode === 'local',
       allowLocalAutologin: mode === 'local',
       isLocalOrigin: (origin) => isLocalOrigin(origin, host, port),
+      isLoopbackPeer,
     }),
   )
   guarded.get('/api/auth/whoami', (context) => context.json({ authenticated: true }))
@@ -464,8 +477,8 @@ export function startBoardServer({
     '/',
     createForemergeApi({ foremerge, events }),
   )
-  guarded.route('/', createWorktreeApi({ worktrees, events }))
-  guarded.route('/', createForgeCardApi({ forgeCards, worktrees }))
+  guarded.route('/', createWorktreeApi({ worktrees, stories, events }))
+  guarded.route('/', createForgeCardApi({ forgeCards, worktrees, stories }))
   const pilotCriteria = createCriterionRepository(db)
   const forgeBoard = createForgeBoardRepository(db, { forgeCards, columns: workflowColumns })
   forgeBoard.backfillCards()
@@ -532,7 +545,21 @@ export function startBoardServer({
       sessions: () => ({ running: dispatcher.countRunning(), cap: sessionCap }),
     }),
   )
-  guarded.route('/', createFileApi({ stories, files: createFileRepository(db), checkoutRoots: allowedCheckoutRoots }))
+  guarded.route(
+    '/',
+    createFileApi({
+      stories,
+      files: createFileRepository(db),
+      checkoutRoots: allowedCheckoutRoots,
+      mayAdminister: (projectId, context) =>
+        mayAdministerProject({
+          login: operatorOf(context),
+          adminLogin: stories.projects.find(projectId)?.adminLogin ?? null,
+          isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
+          isDirector: (login) => identities.findUser(login)?.role === 'director',
+        }),
+    }),
+  )
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
   guarded.route('/', createIncidentApi({ incidents: createIncidentRepository(db, { stories }), events }))
   guarded.route('/', api)

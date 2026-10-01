@@ -41,6 +41,7 @@ beforeEach(() => {
   forgeCards = createForgeCardRepository(db)
   api = createForgeCardApi({
     forgeCards,
+    stories,
     worktrees: createWorktreeRepository(db, { stories, git: fakeGit(), root: '/tmp/forge-worktrees' }),
   })
   const project = stories.createProject({
