@@ -13,6 +13,8 @@ import ServerMenu from './ServerMenu.vue'
 import LanguageSwitch from '@/technical/Language/LanguageSwitch.vue'
 import Glyph from '@/technical/Ui/Glyph.vue'
 import TourGuide from '@/domain/Tour/TourGuide.vue'
+import FrozenVisitBanner from './FrozenVisitBanner.vue'
+import { FROZEN_VISIT } from '@/technical/Api/Visit'
 
 const route = useRoute()
 const router = useRouter()
@@ -151,6 +153,7 @@ watch(
       </div>
 
       <div class="ml-auto flex flex-wrap items-center gap-3">
+        <span id="tour-slot" class="contents" />
         <ServerMenu />
         <LanguageSwitch />
         <MachineBadge class="hidden sm:flex" />
@@ -173,6 +176,8 @@ watch(
     <main class="min-h-0 min-w-0 flex-1 overflow-auto lg:overflow-hidden">
       <RouterView />
     </main>
+
+    <FrozenVisitBanner v-if="FROZEN_VISIT" />
 
     <TourGuide />
   </div>
