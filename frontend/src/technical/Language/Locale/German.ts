@@ -1346,6 +1346,8 @@ export const GERMAN: Message = {
     submit: 'Verbinden',
     unreachable: 'Adresse nicht erreichbar. Prüfe sie und ob die Instanz läuft.',
     badScheme: 'Die Adresse muss mit http:// oder https:// beginnen.',
+    hasCredentials: 'Die Adresse darf keinen Benutzernamen und kein Passwort enthalten.',
+    cleartext: 'Einfaches http:// ist nur für localhost und private Netzwerkadressen erlaubt. Verwenden Sie https://.',
   },
   access: {
     continueWith: 'Weiter mit {provider}',

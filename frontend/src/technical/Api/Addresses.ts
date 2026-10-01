@@ -46,6 +46,39 @@ export function hasDesktopAddresses(): boolean {
   return activeServer() !== null
 }
 
-export function isHttpAddress(value: string): boolean {
-  return /^https?:\/\/[^\s/]+/i.test(value.trim())
+export type AddressProblem = 'scheme' | 'credentials' | 'cleartext'
+
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]'])
+const IPV4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/
+
+function isPrivateHost(hostname: string): boolean {
+  if (LOOPBACK_HOSTS.has(hostname)) {
+    return true
+  }
+  const match = IPV4.exec(hostname)
+  if (match === null) {
+    return false
+  }
+  const first = Number(match[1])
+  const second = Number(match[2])
+  return first === 10 || (first === 172 && second >= 16 && second <= 31) || (first === 192 && second === 168)
+}
+
+export function addressProblemOf(value: string): AddressProblem | null {
+  let url: URL
+  try {
+    url = new URL(value.trim())
+  } catch {
+    return 'scheme'
+  }
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+    return 'scheme'
+  }
+  if (url.username !== '' || url.password !== '') {
+    return 'credentials'
+  }
+  if (url.protocol === 'http:' && !isPrivateHost(url.hostname)) {
+    return 'cleartext'
+  }
+  return null
 }

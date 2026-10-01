@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { isHttpAddress } from '@/technical/Api/Addresses'
+import { addressProblemOf, type AddressProblem } from '@/technical/Api/Addresses'
 import { addServer } from '@/technical/Api/Servers'
 import { checkInstanceReachable } from '@/technical/Api/Reachable'
 import { HOME_PATH } from '@/technical/Router/Screen'
 
 const { t } = useI18n()
+
+const REFUSALS: Record<AddressProblem, string> = {
+  scheme: 'connect.badScheme',
+  credentials: 'connect.hasCredentials',
+  cleartext: 'connect.cleartext',
+}
 
 const name = ref('')
 const instanceUrl = ref('')
@@ -16,10 +22,10 @@ const isBusy = ref(false)
 
 async function connect(): Promise<void> {
   refusalKey.value = null
-  const isBadScheme =
-    !isHttpAddress(instanceUrl.value) || (serverUrl.value !== '' && !isHttpAddress(serverUrl.value))
-  if (isBadScheme) {
-    refusalKey.value = 'connect.badScheme'
+  const problem =
+    addressProblemOf(instanceUrl.value) ?? (serverUrl.value === '' ? null : addressProblemOf(serverUrl.value))
+  if (problem !== null) {
+    refusalKey.value = REFUSALS[problem]
     return
   }
   isBusy.value = true
