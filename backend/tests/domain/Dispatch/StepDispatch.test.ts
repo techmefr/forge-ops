@@ -118,6 +118,15 @@ beforeEach(() => {
 })
 
 describe('dispatching from a project step', () => {
+  it('runs the code phase from a build step without any proven checkpoint', async () => {
+    const step = columns.create(projectId, AGENT_STEP)
+
+    const dispatched = await dispatcher.dispatch({ storyId, phase: 'code', columnId: step.id })
+
+    expect(dispatched.phase).toBe('code')
+    expect(launched[0]).toMatchObject({ phase: 'code' })
+  })
+
   it('hands the runner the provider, model, effort, agent and base prompt of the step', async () => {
     const step = columns.create(projectId, AGENT_STEP)
 

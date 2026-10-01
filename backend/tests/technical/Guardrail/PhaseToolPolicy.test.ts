@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { PHASE_CONTRACTS } from '../../../src/domain/Dispatch/Dispatch.js'
-import { toolsOfPhase, allowsTool } from '../../../src/technical/Guardrail/PhaseToolPolicy.js'
+import { EVIDENCE_ROOT } from '../../../src/domain/Evidence/EvidencePath.js'
+import { toolsOfPhase, allowsTool, EVIDENCE_FOLDER } from '../../../src/technical/Guardrail/PhaseToolPolicy.js'
 import { UnknownPhaseError } from '../../../src/technical/Guardrail/GuardrailViolation.js'
 
 describe('phase tool policy', () => {
@@ -8,6 +9,10 @@ describe('phase tool policy', () => {
     for (const contract of PHASE_CONTRACTS) {
       expect(toolsOfPhase(contract.phase).length).toBeGreaterThan(0)
     }
+  })
+
+  it('confines evidence writes to the evidence root of the domain', () => {
+    expect(EVIDENCE_FOLDER).toBe(EVIDENCE_ROOT)
   })
 
   it('lets a spec session read the repository', () => {
