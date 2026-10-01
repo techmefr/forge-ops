@@ -42,6 +42,8 @@ export default tseslint.config(
       'gateproof/fixtures/**',
       'db/**',
       'design/**',
+      'frontend/public/about/**',
+      'docs/mockups/**',
       '**/*.d.ts',
     ],
   },
