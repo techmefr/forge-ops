@@ -3,18 +3,8 @@ import { createDemoFetcher, type DemoSnapshot } from './DemoFetcher.js'
 import { FROZEN_VISIT } from './Visit.js'
 import { demoEnvironment } from './DemoStream.js'
 import { isDesktop, readAddresses } from './Addresses.js'
-import { activeServer } from './Servers.js'
+import { identityHeaders } from './DesktopIdentity.js'
 import { desktopFetch } from './DesktopFetch.js'
-
-function identityHeaders(): Record<string, string> {
-  const token = isDesktop() ? (activeServer()?.token ?? null) : null
-  if (!isDesktop()) {
-    return {}
-  }
-  return token === null
-    ? { 'x-forge-client': 'desktop' }
-    : { 'x-forge-client': 'desktop', 'x-forge-identity': token }
-}
 
 export const LOGIN_PATH = '/login'
 
