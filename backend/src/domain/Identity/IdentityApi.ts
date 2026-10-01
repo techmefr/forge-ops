@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
+import { timingSafeEqual } from 'node:crypto'
 import { z } from 'zod'
 import {
   boardUserChangeSchema,
@@ -26,6 +27,7 @@ import { createLoginRateLimit, type LoginRateLimit } from '../../technical/Auth/
 
 export { IDENTITY_COOKIE }
 
+export const SETUP_TOKEN_HEADER = 'x-forge-setup-token'
 export const DESKTOP_CLIENT_HEADER = 'x-forge-client'
 export const DESKTOP_CLIENT_VALUE = 'desktop'
 
@@ -72,12 +74,20 @@ const passwordChangeSchema = z.object({
 export type IdentityApiInput = {
   identities: IdentityRepository
   allowEnrolment: () => boolean
+  setupToken?: string | null
   loginLimit?: LoginRateLimit
+}
+
+function matchesToken(expected: string, given: string | undefined): boolean {
+  const wanted = Buffer.from(expected)
+  const offered = Buffer.from(given ?? '')
+  return wanted.length === offered.length && timingSafeEqual(wanted, offered)
 }
 
 export function createIdentityApi({
   identities,
   allowEnrolment,
+  setupToken = null,
   loginLimit = createLoginRateLimit(),
 }: IdentityApiInput): Hono {
   const api = new Hono()
@@ -142,6 +152,9 @@ export function createIdentityApi({
   api.post('/api/auth/enrol', async (context) => {
     if (!allowEnrolment()) {
       return context.json({ error: 'EnrolmentClosed' }, 403)
+    }
+    if (setupToken !== null && !matchesToken(setupToken, context.req.header(SETUP_TOKEN_HEADER))) {
+      return context.json({ error: 'SetupTokenRequired' }, 403)
     }
     const draft = enrolmentSchema.safeParse(await context.req.json().catch(() => null))
     if (!draft.success) {
@@ -213,6 +226,17 @@ export function createIdentityApi({
       changed = identities.changeCapacity(login, change.capacity)
     }
     return context.json(sheetOf(changed))
+  })
+
+  api.post('/api/board-users/:login/verify-email', (context) => {
+    const user = caller(context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE))
+    if (user === null) {
+      return context.json({ error: 'UnauthenticatedAccount' }, 401)
+    }
+    if (!user.superAdmin && user.role !== 'director') {
+      return context.json({ error: 'DirectorRequired' }, 403)
+    }
+    return context.json(sheetOf(identities.verifyEmail(context.req.param('login'))))
   })
 
   api.post('/api/board-users/:login/erase', (context) => {

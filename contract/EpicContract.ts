@@ -103,7 +103,11 @@ export const subjectLinkSchema = z.object({
     .string()
     .trim()
     .url()
-    .refine((value) => /^https?:\/\//i.test(value)),
+    .refine((value) => /^https?:\/\//i.test(value))
+    .refine((value) => {
+      const parsed = new URL(value)
+      return parsed.username === '' && parsed.password === ''
+    }),
 })
 
 export const subjectLinksSchema = z.array(subjectLinkSchema).max(50)

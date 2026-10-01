@@ -685,3 +685,25 @@ describe("opening a base whose stories were placed by their state alone", () => 
     db.close()
   })
 })
+
+describe('opening a base that unique-indexed every email', () => {
+  it('lets two accounts hold the same unverified address and still refuses two verified ones', () => {
+    const file = join(mkdtempSync(join(tmpdir(), 'forge-email-')), 'forge.db')
+    const legacy = new Database(file)
+    legacy.exec(
+      "CREATE TABLE board_user (id INTEGER PRIMARY KEY AUTOINCREMENT, login TEXT NOT NULL UNIQUE, email TEXT, email_verified_at TEXT); CREATE UNIQUE INDEX idx_board_user_email ON board_user(email) WHERE email IS NOT NULL",
+    )
+    legacy.close()
+
+    const db = openDatabase(file)
+    const insert = db.prepare<[string, string, string | null]>(
+      'INSERT INTO board_user (login, email, email_verified_at) VALUES (?, ?, ?)',
+    )
+    insert.run('a', 'x@example.com', null)
+    insert.run('b', 'x@example.com', null)
+    insert.run('c', 'y@example.com', '2026-10-01')
+
+    expect(() => insert.run('d', 'y@example.com', '2026-10-01')).toThrow(/UNIQUE/)
+    db.close()
+  })
+})

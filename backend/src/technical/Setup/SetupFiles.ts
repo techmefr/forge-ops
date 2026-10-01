@@ -4,6 +4,7 @@ import { join } from 'node:path'
 
 const SECRET_BYTES = 24
 const PRIVATE_FILE_MODE = 0o600
+const PRIVATE_DIRECTORY_MODE = 0o700
 const ENV_KEY = /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=/
 
 export function newSecret(): string {
@@ -19,7 +20,10 @@ export function writeSecretOnce(directory: string, name: string, value: string):
   if (existsSync(path) && statSync(path).size > 0) {
     return false
   }
-  mkdirSync(directory, { recursive: true })
+  if (!existsSync(directory)) {
+    mkdirSync(directory, { recursive: true, mode: PRIVATE_DIRECTORY_MODE })
+    chmodSync(directory, PRIVATE_DIRECTORY_MODE)
+  }
   writeFileSync(path, value, { mode: PRIVATE_FILE_MODE })
   chmodSync(path, PRIVATE_FILE_MODE)
   return true
