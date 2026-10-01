@@ -38,8 +38,8 @@ export function resolveExternalUser(
     return linked
   }
   const sameEmail = identities.findUserByEmail(claims.email)
-  if (sameEmail !== null && identities.findVerifiedUserByEmail(claims.email) === null) {
-    throw new ExternalIdentityRefusedError('this address belongs to an account that has not verified it')
+  if (sameEmail !== null && (!claims.isEmailVerified || identities.findVerifiedUserByEmail(claims.email) === null)) {
+    throw new ExternalIdentityRefusedError('this address cannot be linked to its account')
   }
   if (sameEmail !== null) {
     return identities.linkExternalSubject(sameEmail.login, claims.subject)
@@ -52,6 +52,7 @@ export function resolveExternalUser(
     login: freeLogin(identities, claims.email),
     displayName: claims.displayName,
     email: claims.email,
+    isEmailVerified: claims.isEmailVerified,
     role: 'architect',
     subject: claims.subject,
   })
