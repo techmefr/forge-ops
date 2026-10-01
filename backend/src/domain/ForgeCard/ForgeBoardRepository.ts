@@ -70,7 +70,9 @@ export function createForgeBoardRepository(
   db: Database.Database,
   { forgeCards, columns }: { forgeCards: ForgeCardRepository; columns: WorkflowColumnRepository },
 ): ForgeBoardRepository {
-  const selectOfProject = db.prepare<[number], CardRow>(`${CARD_SELECT} WHERE epic.project_id = ? ORDER BY fc.id`)
+  const selectOfProject = db.prepare<[number], CardRow>(
+    `${CARD_SELECT} WHERE epic.project_id = ? AND epic.deleted_at IS NULL ORDER BY fc.id`,
+  )
   const selectOne = db.prepare<[number], CardRow>(`${CARD_SELECT} WHERE fc.id = ?`)
   const selectStoriesWithoutCard = db.prepare<[], { id: number }>(
     `SELECT story.id AS id

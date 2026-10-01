@@ -175,6 +175,16 @@ describe('the cards of a project', () => {
     expect(cards[0]).toMatchObject({ storyId, stepKey: 'backlog', status: 'idle', subjectId: epicId, costUsd: 0 })
   })
 
+  it('hides the cards of a deleted subject and shows them again once restored', () => {
+    expect(board.list(projectId)).toHaveLength(1)
+
+    stories.epics.softDelete(epicId, 'gaetan')
+    expect(board.list(projectId)).toHaveLength(0)
+
+    stories.epics.restore(epicId, 'gaetan')
+    expect(board.list(projectId)).toHaveLength(1)
+  })
+
   it('creates the card once, not at each reading', () => {
     board.list(projectId)
     board.list(projectId)
