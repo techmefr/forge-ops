@@ -230,12 +230,14 @@ export function createDispatcher({
         throw new FleetSaturatedError(running, concurrencyCap)
       }
 
-      if (!bucket.take(clock())) {
+      const takenAt = clock()
+      if (!bucket.take(takenAt)) {
         throw new DispatchTooFastError(rate.burst, rate.windowMs)
       }
 
       const decision = budget.decideConduct()
       if (decision.conduct === 'stop') {
+        bucket.refund(takenAt)
         throw new BudgetExhaustedError(decision.spentUsd, decision.capUsd)
       }
 
@@ -251,7 +253,9 @@ export function createDispatcher({
         ...(step === null ? {} : { provider: step.provider }),
         ...(step === null || step.effort === '' ? {} : { effort: step.effort }),
       }
-      const { claudeSessionId } = await runner.launch({
+      let claudeSessionId: string
+      try {
+        ({ claudeSessionId } = await runner.launch({
         storyId: order.storyId,
         reference,
         phase: order.phase,
@@ -262,7 +266,11 @@ export function createDispatcher({
         ...stepSettings,
         ...(forgeCard === null ? {} : { forgeCardId: forgeCard.id }),
         ...(resumeSessionId === undefined ? {} : { resumeSessionId }),
-      })
+        }))
+      } catch (error) {
+        bucket.refund(takenAt)
+        throw error
+      }
 
       sessions.registerSession({
         storyId: order.storyId,
