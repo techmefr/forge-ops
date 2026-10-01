@@ -19,8 +19,8 @@ const PROJECTS: Project[] = [
   { id: 2, slug: 'forge', name: 'Forge', repositoryUrl: 'u', integrationBranch: 'main', colour: '#0f9d8a', checkoutPath: null },
 ]
 const PEOPLE = [
-  { login: 'anna', displayName: 'Anna Martin', capacity: 2 },
-  { login: 'bob', displayName: 'Bob Stone', capacity: null },
+  { login: 'anna', displayName: 'Anna Martin', capacity: 2, active: true },
+  { login: 'bob', displayName: 'Bob Stone', capacity: null, active: true },
 ]
 const TAGS = [{ id: 7, label: 'urgent', colour: '#ff0000', usage: 1 }]
 

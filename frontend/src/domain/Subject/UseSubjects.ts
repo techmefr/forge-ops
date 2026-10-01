@@ -8,6 +8,7 @@ export type Person = {
   login: string
   displayName: string
   capacity: number | null
+  active: boolean
 }
 
 export type SubjectsData = {
@@ -27,15 +28,25 @@ async function readOr<T>(path: string, fallback: T): Promise<T> {
   }
 }
 
+const OPEN = ['todo', 'doing', 'blocked']
+
 export function peopleOf(users: readonly BoardUserSheet[], live: readonly EpicOverview[]): readonly Person[] {
+  const holders = new Set(
+    live.flatMap((subject) => (subject.assignee === null || !OPEN.includes(subject.state) ? [] : [subject.assignee])),
+  )
   const listed: Person[] = users
-    .filter((user) => user.active)
-    .map((user) => ({ login: user.login, displayName: user.displayName, capacity: user.capacity }))
+    .filter((user) => user.active || holders.has(user.login))
+    .map((user) => ({
+      login: user.login,
+      displayName: user.displayName,
+      capacity: user.capacity,
+      active: user.active,
+    }))
   const known = new Set(users.map((user) => user.login))
   const others = [...new Set(live.flatMap((subject) => (subject.assignee === null ? [] : [subject.assignee])))]
     .filter((login) => !known.has(login))
     .sort((one, other) => one.localeCompare(other))
-    .map((login) => ({ login, displayName: login, capacity: null }))
+    .map((login) => ({ login, displayName: login, capacity: null, active: true }))
   return [...listed, ...others]
 }
 
