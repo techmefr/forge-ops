@@ -20,14 +20,16 @@ forge-ops is self-hosted. The organisation that runs an instance is the data con
 | Decided by, risk owner, remark author, hold and step-back requester, state history author | Logins or free text | Traceability of decisions and changes | Every signed-in user |
 | Minutes, notes, status sentences | Free text written by users | Project follow-up | Every signed-in user |
 | Card conversation messages (`story_message`: what the agent said, what a person told it, with the login of that person), costs, file touches | Instance database and `~/.claude` | Show the conversation again after a reload, run and audit agent sessions | Every signed-in user of the instance |
+| Autopilot state of a card (`autopilot_card`: attempts, pause or red reason, and the failure feedback, which can quote the end of the agent's last output) | Instance database | Retry a failed step and show why a card stopped | Every signed-in user of the instance |
+| Step verdicts and proofs (`.claude/evidence/<REF>/`) | The story worktree, on the instance | Prove a step | Whoever can read the repository |
 
-Not stored: IP addresses on disk. The single sign-on rate limit keeps the client address in memory for about 60 seconds and never writes it to the database or a log, and the sign-in rate limit is keyed by login. Also not stored: user agents, analytics, advertising identifiers. The server writes no access log of its own and never logs passwords, tokens or email addresses. The demo seed contains fictional data only.
+Not stored: IP addresses on disk. The sign-in and single sign-on rate limits keep the client address in memory for about 60 seconds and never write it to the database or a log; the sign-in limit is keyed by client address and by login-and-client pair. Also not stored: user agents, analytics, advertising identifiers. The server writes no access log of its own and never logs passwords, tokens or email addresses. The demo seed contains fictional data only.
 
 Everyone who can sign in sees the same board: there is no per-project membership, so the visibility above applies to the whole instance.
 
 ## Third parties
 
-None. The front is served by the instance itself, including its fonts (Archivo, Barlow and JetBrains Mono, SIL Open Font License, files under `frontend/public/fonts`). The browser makes no call to a CDN, a font service or an analytics service, and the Content-Security-Policy sent with the page forbids it. Agent sessions call the model provider the operator configured (for example Anthropic through the Claude Code CLI); that link is chosen and contracted by the operator, not by forge-ops. Subprocessors of forge-ops itself: none.
+None. The front is served by the instance itself, including its fonts (Archivo, Barlow and JetBrains Mono, SIL Open Font License, files under `frontend/public/fonts`). The browser makes no call to a CDN, a font service or an analytics service, and the Content-Security-Policy sent with the page forbids it. Agent processes receive an allow-listed environment, so the board's tokens and secrets are not passed to them. Agent sessions call the model provider the operator configured (for example Anthropic through the Claude Code CLI); that link is chosen and contracted by the operator, not by forge-ops. Subprocessors of forge-ops itself: none.
 
 ## Retention
 
@@ -50,11 +52,11 @@ The operator may shorten these by deleting a project or trashing subjects.
 
 ## Security measures
 
-Passwords are hashed with scrypt; login attempts are rate limited per account and unknown logins cost the same time as known ones; cookies are HttpOnly and SameSite=Strict; the page is served with a strict Content-Security-Policy, `nosniff`, frame denial and no referrer; links entered by users are limited to http and https. See [Deployment.md](Deployment.md) for the token and secret handling.
+Passwords are hashed with scrypt; login attempts are rate limited per account and unknown logins cost the same time as known ones; cookies are HttpOnly and SameSite=Strict; the page is served with a strict Content-Security-Policy, `nosniff`, frame denial and no referrer; links entered by users are limited to http and https; request bodies are capped (1 MiB, 8 KiB for sign-in routes); local mode refuses a non-loopback bind. See [Deployment.md](Deployment.md) for the token and secret handling.
 
 ## Dependency audit and known limits
 
-- `npm audit --omit=dev`, run on 2026-10-01 against main at 5be146e, reports no known vulnerability in the production dependencies. Re-run it before each release and update this date and result.
+- `npm audit --omit=dev`, run on 2026-10-01 against main at f4249dd, reports no known vulnerability in the production dependencies. Re-run it before each release and update this date and result.
 - Tenancy is flat: every signed-in person can read every project. Writes are limited by the project admin, the subject holder and the super admin, not by a per-project membership.
 - Project administration has one rule, `mayAdministerProject`, shared by the project routes (admin, links, delete, weather) and the workflow routes. The local operator and a super admin may always administer. Otherwise the project admin may. A project with no admin can be claimed, edited, deleted and given a workflow only by a director or a super admin; a director cannot override an existing admin.
 - These writes stay open to every signed-in member on purpose, because the board is flat and trust-based inside one organisation: subject fields (`PATCH /api/epics/:id`), subject assignment and claim, tags, creating a project, and a project colour or position.
