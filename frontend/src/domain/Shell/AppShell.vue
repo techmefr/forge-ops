@@ -26,6 +26,12 @@ const { working } = useFleet()
 const current = computed(() => screenOfPath(route.path))
 
 const strip = ref<HTMLElement | null>(null)
+const main = ref<HTMLElement | null>(null)
+
+function focusMain(): void {
+  main.value?.focus()
+  main.value?.scrollIntoView?.({ block: 'nearest' })
+}
 
 function editing(target: EventTarget | null): boolean {
   const node = target instanceof HTMLElement ? target : null
@@ -98,6 +104,14 @@ watch(
 
 <template>
   <div class="flex h-dvh flex-col overflow-hidden bg-deep text-txt-hi">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:rounded-lg focus:border focus:border-acc focus:bg-panel focus:px-4 focus:py-3 focus:font-mono focus:text-xs focus:uppercase"
+      data-test-id="skip-link"
+      @click.prevent="focusMain"
+    >
+      {{ t('shell.skipToContent') }}
+    </a>
     <header
       class="flex flex-none flex-wrap items-stretch gap-x-3 border-b border-line bg-panel px-4 sm:gap-x-6 sm:px-6 lg:flex-nowrap"
     >
@@ -173,7 +187,12 @@ watch(
       </div>
     </section>
 
-    <main class="min-h-0 min-w-0 flex-1 overflow-auto lg:overflow-hidden">
+    <main
+      id="main-content"
+      ref="main"
+      tabindex="-1"
+      class="min-h-0 min-w-0 flex-1 overflow-auto lg:overflow-hidden focus:outline-none"
+    >
       <RouterView />
     </main>
 

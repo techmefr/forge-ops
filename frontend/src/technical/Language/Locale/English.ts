@@ -390,6 +390,7 @@ export const ENGLISH = {
   shell: {
     pipeline: 'Pipeline steps',
     access: 'Access',
+    skipToContent: 'Skip to content',
     accessSub: 'Open a session on the board',
     agentCount: '{count} agent | {count} agents',
     shortcut: 'z z then {digit}, or Alt+Shift+{digit}',
