@@ -28,6 +28,14 @@
         }
       })()
     </script>
+    <script>
+      ;(function () {
+        var match = /^\?p=([^&]*)/.exec(window.location.search)
+        if (match) {
+          window.history.replaceState(null, '', '%BASE_URL%' + decodeURIComponent(match[1]) + window.location.hash)
+        }
+      })()
+    </script>
     <link rel="stylesheet" href="/fonts/fonts.css" />
   </head>
   <body>
