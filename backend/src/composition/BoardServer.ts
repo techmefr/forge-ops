@@ -316,6 +316,13 @@ export function startBoardServer({
   const api = createBoardApi({
     isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
     isDirector: (login) => identities.findUser(login)?.role === 'director',
+    maySettleBudget: (context) => {
+      if (mode === 'local') {
+        return true
+      }
+      const user = identities.findUser(operatorOf(context))
+      return user?.superAdmin === true || user?.role === 'director'
+    },
     openHolds: discussion.openHolds,
     today: () => new Date().toISOString().slice(0, 10),
     zones: createZoneRepository(db),
