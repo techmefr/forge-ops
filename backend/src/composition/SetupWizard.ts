@@ -6,6 +6,7 @@ import {
   generatedSecretsOf,
   hasAccounts,
   isHttpUrl,
+  oidcSecretFilesOf,
   isSpecificTenant,
   redirectUriOf,
   validateAnswers,
@@ -115,6 +116,9 @@ export function applyAnswers(answers: SetupAnswers, directory: string): SetupRes
     if (isWritten && name === 'super_admin_password') {
       adminPassword = value
     }
+  }
+  for (const secret of oidcSecretFilesOf(answers)) {
+    writeSecretOnce(directory, secret.name, secret.value)
   }
   writeEnvFile(directory, envLinesOf(answers))
   return { composeFile: composeFileOf(answers.topology), adminPassword }
