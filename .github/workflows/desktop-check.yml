@@ -29,4 +29,4 @@ jobs:
       - run: npm ci
       - run: npx tauri icon src-tauri/app-icon.svg
       - run: npm run -s build:web
-      - run: cargo check --manifest-path src-tauri/Cargo.toml --locked
+      - run: cargo check --manifest-path src-tauri/Cargo.toml
