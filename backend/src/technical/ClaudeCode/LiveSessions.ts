@@ -106,10 +106,13 @@ export function createLiveSessions<T>({ cap = DEFAULT_LIVE_SESSION_CAP }: LiveSe
     },
 
     closeAll: () => {
-      for (const channel of [...channels.values()]) {
-        channel.close()
+      for (const claudeSessionId of [...channels.keys()]) {
+        const stop = stoppers.get(claudeSessionId)
+        channels.get(claudeSessionId)?.close()
+        stop?.()
       }
       channels.clear()
+      stoppers.clear()
     },
 
     count: () => channels.size,
