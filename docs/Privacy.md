@@ -54,7 +54,7 @@ Passwords are hashed with scrypt; login attempts are rate limited per account an
 
 ## Dependency audit and known limits
 
-- `npm audit --omit=dev`, run on 2026-10-01 against main at 6f36f16, reports two moderate advisories in transitive production dependencies: `fast-uri` (GHSA-hrr3-gc8f-f4qj) and `ip-address` (GHSA-j6r3-76f7-8jcv and GHSA-h3mg-xc3c-68pw), both with a fix available through `npm audit fix`. Re-run it before each release and update this date and result.
+- `npm audit --omit=dev`, run on 2026-10-01 against main at 5be146e, reports no known vulnerability in the production dependencies. Re-run it before each release and update this date and result.
 - Tenancy is flat: every signed-in person can read every project. Writes are limited by the project admin, the subject holder and the super admin, not by a per-project membership.
 - Project administration has one rule, `mayAdministerProject`, shared by the project routes (admin, links, delete, weather) and the workflow routes. The local operator and a super admin may always administer. Otherwise the project admin may. A project with no admin can be claimed, edited, deleted and given a workflow only by a director or a super admin; a director cannot override an existing admin.
 - These writes stay open to every signed-in member on purpose, because the board is flat and trust-based inside one organisation: subject fields (`PATCH /api/epics/:id`), subject assignment and claim, tags, creating a project, and a project colour or position.

@@ -171,6 +171,7 @@ The board exposes an HTTP API (Hono). `POST /api/hooks` is also the target of th
 | `POST /api/forge-cards/:id/worktree` | Opens a worktree for the card |
 | `GET`/`POST /api/board-users` | Lists the accounts, or enrols one (director or super admin) |
 | `PATCH /api/board-users/:login` | Changes capacity, active flag or super admin flag (the last needs a super admin) |
+| `POST /api/board-users/:login/verify-email` | Marks the email of an account as verified |
 | `POST /api/board-users/:login/erase` | Erases an account; super admin only |
 | `GET /api/board/self` | The signed-in login and whether it is a super admin |
 
@@ -265,6 +266,9 @@ FORGE_PORT=8899 npm run demo
 | `FORGE_SESSION_CAP` | `3` |
 | `FORGE_HOST` | `127.0.0.1` |
 | `FORGE_TRUST_PROXY` | `false` (`true` only behind a reverse proxy that sets `X-Forwarded-For`) |
+| `FORGE_ALLOW_REMOTE_LOCAL` | `false` (`true` lets local mode listen on a non-loopback host, only when the port is published on the loopback) |
+| `FORGE_SETUP_TOKEN` | empty (when set, first enrolment needs it in the setup token header) |
+| `FORGE_SUPER_ADMIN_LOGIN`, `FORGE_SUPER_ADMIN_PASSWORD` | empty (bootstraps the super admin; `FORGE_SUPER_ADMIN_PASSWORD_FILE` reads the password from a file instead) |
 | `FORGE_TOKEN_PATH` | `.forge-token` |
 | `FORGE_MODE` | `local` (`hub` to require an identity) |
 | `FORGE_WORKTREE_ROOT` | `../forge-worktrees` |
