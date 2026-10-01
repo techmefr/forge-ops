@@ -92,7 +92,7 @@ export function starterSteps(labelOf: (template: PromptTemplateKey) => string): 
     model: starter.model,
     command: starter.command,
     preprompt: PROMPT_TEMPLATES[starter.template],
-    autoStart: starter.template === 'spec',
+    autoStart: true,
   }))
 }
 

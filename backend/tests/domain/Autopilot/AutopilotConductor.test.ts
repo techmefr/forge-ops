@@ -537,6 +537,28 @@ describe('a failing step', () => {
   })
 })
 
+describe('a step that did not start by itself', () => {
+  it('is picked up by the next tick once the step starts automatically', async () => {
+    boot([{ ...AGENT_STEP, label: 'Spec' }, { ...AGENT_STEP, label: 'Plan', autoStart: false }])
+    const storyId = backlogStory('see the mails')
+    await startFromBacklog(storyId)
+    proof(storyId, 'spec_done')
+    await finishTurn(storyId, { status: 'pass' })
+    expect(cardOf(storyId)).toMatchObject({ stepKey: 'plan', status: 'idle' })
+    expect(cardOf(storyId).auto).toEqual({ state: 'paused', reason: 'This step does not start automatically' })
+
+    await conductor.tick()
+    expect(cardOf(storyId).status).toBe('idle')
+
+    const plan = columns.list(projectId).find((step) => step.key === 'plan')
+    columns.update(projectId, plan?.id ?? 0, { ...AGENT_STEP, label: 'Plan', autoStart: true })
+    await conductor.tick()
+
+    expect(cardOf(storyId)).toMatchObject({ stepKey: 'plan', status: 'running' })
+    expect(launched.map((order) => order.phase)).toEqual(['spec', 'architecture'])
+  })
+})
+
 describe('pauses', () => {
   it('pauses when the next step is a human one and does not start an agent', async () => {
     boot([{ ...AGENT_STEP, label: 'Spec' }, HUMAN_STEP, { ...AGENT_STEP, label: 'Build' }])

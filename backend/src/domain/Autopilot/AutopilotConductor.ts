@@ -375,6 +375,40 @@ export function createAutopilotConductor({
     }
   }
 
+  async function launchIdle(): Promise<void> {
+    for (const project of stories.listProjects()) {
+      const settings = autopilot.settingsOf(project.id)
+      if (!settings.enabled || !settings.autoLaunch) {
+        continue
+      }
+      const steps = columns.list(project.id)
+      const idle = board.list(project.id).filter((card) => {
+        const step = steps.find((candidate) => candidate.key === card.stepKey)
+        return (
+          card.status === 'idle' &&
+          step !== undefined &&
+          step.provider !== 'human' &&
+          step.autoStart &&
+          autopilot.cardOf(card.id).state === null &&
+          autopilot.cardOf(card.id).pending === null
+        )
+      })
+      for (const card of idle) {
+        try {
+          announce(await mover.launch(card.id))
+        } catch (error) {
+          if (error instanceof StoryTooThinError || error instanceof StoryBlockedError || error instanceof CheckoutMissingError) {
+            continue
+          }
+          if (handlingOf(error) !== 'red') {
+            return
+          }
+          patch(card.id, { state: 'red', reason: messageOf(error), pending: null })
+        }
+      }
+    }
+  }
+
   return {
     turnEnded: (claudeSessionId) =>
       enqueue(async () => {
@@ -395,6 +429,7 @@ export function createAutopilotConductor({
           await runPending(record.forgeCardId)
         }
         await launchBacklog()
+        await launchIdle()
       }),
 
     resume: (forgeCardId) => {

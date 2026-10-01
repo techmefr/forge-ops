@@ -103,8 +103,8 @@ describe('starterSteps', () => {
     expect(steps.every((step) => workflowColumnDraftSchema.safeParse(step).success)).toBe(true)
   })
 
-  it('starts an agent on entry to the first step only', () => {
-    expect(starterSteps((template) => template).map((step) => step.autoStart)).toEqual([true, false, false, false, false])
+  it('starts an agent on entry to every step', () => {
+    expect(starterSteps((template) => template).map((step) => step.autoStart)).toEqual([true, true, true, true, true])
   })
 })
 
