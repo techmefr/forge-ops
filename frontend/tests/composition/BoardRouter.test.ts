@@ -94,6 +94,14 @@ describe('createBoardRouter', () => {
     }
   })
 
+  it('sends the removed Board tab to My forge', async () => {
+    const board = router()
+
+    await board.push('/projects/board')
+
+    expect(board.currentRoute.value.path).toBe('/me/forge')
+  })
+
   it('retient la story ouverte, meme depuis l ancien chemin', async () => {
     const board = router()
 
@@ -107,7 +115,7 @@ describe('createBoardRouter', () => {
   it('refuse d ouvrir un ecran protege sans session valide', async () => {
     const board = router(() => Promise.resolve(false))
 
-    await board.push('/projects/board')
+    await board.push('/projects/subjects')
 
     expect(board.currentRoute.value.path).toBe('/login')
   })

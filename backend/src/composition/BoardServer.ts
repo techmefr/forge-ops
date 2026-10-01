@@ -11,7 +11,6 @@ import { createCriterionRepository } from '../domain/Criterion/CriterionReposito
 import { createDispatcher } from '../domain/Dispatch/Dispatcher.js'
 import { createBudgetRepository } from '../domain/Budget/BudgetRepository.js'
 import { createWorkflowRepository } from '../domain/Workflow/WorkflowRepository.js'
-import { createWorkflowApi } from '../domain/Workflow/WorkflowApi.js'
 import { createWorkflowColumnRepository } from '../domain/Workflow/WorkflowColumnRepository.js'
 import { createWorkflowColumnApi } from '../domain/Workflow/WorkflowColumnApi.js'
 import { DEFAULT_DISPATCH_RATE } from '../domain/Dispatch/DispatchRate.js'
@@ -313,12 +312,6 @@ export function startBoardServer({
     isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
     isDirector: (login) => identities.findUser(login)?.role === 'director',
     openHolds: discussion.openHolds,
-    boardColumns: () =>
-      templates.defaultTemplate().columns.map((column) => ({
-        key: column.state,
-        label: column.label,
-        colour: column.colour,
-      })),
     today: () => new Date().toISOString().slice(0, 10),
     zones: createZoneRepository(db),
     budget,
@@ -410,14 +403,6 @@ export function startBoardServer({
     '/',
     createTemplateApi({
       templates,
-      maySettle: (context) =>
-        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
-    }),
-  )
-  guarded.route(
-    '/',
-    createWorkflowApi({
-      workflow,
       maySettle: (context) =>
         mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
     }),

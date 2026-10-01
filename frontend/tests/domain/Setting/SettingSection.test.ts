@@ -26,7 +26,6 @@ describe('les sections de reglages', () => {
     expect(sectionsOf('mine').map((section) => section.key)).toEqual(['appearance', 'account'])
     expect(sectionsOf('organisation').map((section) => section.key)).toEqual([
       'templates',
-      'workflow',
       'budget',
       'organisation',
       'delivery',

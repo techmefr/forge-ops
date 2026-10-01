@@ -216,11 +216,6 @@ export const TEAM_ROUTES: readonly DemoRoute[] = [
     }))
     return reply(context.state.singletons['/api/delivery/grouping'])
   }),
-  route('PUT', '/api/settings/workflow', (context) => {
-    const phases = Array.isArray(context.body) ? context.body : context.body.phases
-    replaceSingleton(context.state, '/api/settings/workflow', (current) => ({ ...current, phases }))
-    return reply(context.state.singletons['/api/settings/workflow'])
-  }),
   route('POST', '/api/organisation/providers', (context) => {
     replaceSingleton(context.state, '/api/organisation', (current) => {
       const providers = ((current.providers ?? []) as Record<string, unknown>[]).map((provider) =>

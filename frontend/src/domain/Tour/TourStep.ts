@@ -12,7 +12,7 @@ export type TourStep = {
 export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: 'pipeline',
-    path: '/projects/board',
+    path: '/projects/subjects',
     anchor: 'shell-pipeline',
     gesture: 'sweep',
     titleKey: 'tour.pipeline.title',
@@ -20,16 +20,16 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: 'column',
-    path: '/projects/board',
-    anchor: 'kanban-columns',
+    path: '/me/forge',
+    anchor: 'forge-steps',
     gesture: 'sweep',
     titleKey: 'tour.column.title',
     sayKey: 'tour.column.say',
   },
   {
     id: 'story',
-    path: '/projects/board',
-    anchor: 'kanban-card',
+    path: '/me/forge',
+    anchor: 'forge-card',
     gesture: 'point',
     titleKey: 'tour.story.title',
     sayKey: 'tour.story.say',

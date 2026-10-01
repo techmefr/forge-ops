@@ -21,7 +21,6 @@ export const SETTING_SECTIONS: readonly SettingSection[] = [
   { key: 'tags', half: 'team', effect: 'immediate' },
   { key: 'users', half: 'team', effect: 'immediate' },
   { key: 'templates', half: 'organisation', effect: 'immediate' },
-  { key: 'workflow', half: 'organisation', effect: 'immediate' },
   { key: 'budget', half: 'organisation', effect: 'immediate' },
   { key: 'organisation', half: 'organisation', effect: 'restart' },
   { key: 'delivery', half: 'organisation', effect: 'immediate' },

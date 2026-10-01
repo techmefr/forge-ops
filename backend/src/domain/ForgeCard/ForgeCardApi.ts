@@ -1,14 +1,8 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { mapApiError } from '../Board/ApiErrorMap.js'
-import { FORGE_CARD_PROVIDERS } from '../../../../contract/ForgeCardContract.js'
 import type { ForgeCardRepository } from './ForgeCardRepository.js'
 import type { WorktreeRepository } from '../Worktree/WorktreeRepository.js'
-
-const draftSchema = z.object({
-  storyIds: z.array(z.number().int().positive()),
-  provider: z.enum(FORGE_CARD_PROVIDERS).optional(),
-})
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -25,15 +19,6 @@ export function createForgeCardApi({ forgeCards, worktrees }: ForgeCardApiInput)
   const api = new Hono()
 
   api.onError(mapApiError)
-
-  api.post('/api/forge-cards', async (context) => {
-    const draft = draftSchema.safeParse(await context.req.json().catch(() => null))
-    if (!draft.success) {
-      return context.json({ error: 'InvalidForgeCardDraft', issues: draft.error.issues }, 422)
-    }
-    const card = forgeCards.createForgeCard(draft.data)
-    return context.json(card, 201)
-  })
 
   api.post('/api/forge-cards/:id/worktree', async (context) => {
     const forgeCardId = identifierSchema.safeParse(context.req.param('id'))
