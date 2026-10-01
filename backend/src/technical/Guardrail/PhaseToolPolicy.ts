@@ -39,3 +39,11 @@ export function allowsTool(phase: string, tool: string): boolean {
   }
   return PHASE_TOOL_POLICY[phase].includes(tool)
 }
+
+export function isWritingTool(tool: string): boolean {
+  return (WRITE_TOOLS as readonly string[]).includes(tool)
+}
+
+export function isShellTool(tool: string): boolean {
+  return (SHELL_TOOLS as readonly string[]).includes(tool)
+}
