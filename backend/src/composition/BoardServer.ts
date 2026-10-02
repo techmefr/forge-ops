@@ -1,5 +1,5 @@
 import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
+import { Hono, type Context } from 'hono'
 import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { openDatabase } from '../technical/Database/Connection.js'
@@ -327,16 +327,18 @@ export function startBoardServer({
       'No super admin configured: set FORGE_SUPER_ADMIN_LOGIN and FORGE_SUPER_ADMIN_PASSWORD (or FORGE_SUPER_ADMIN_PASSWORD_FILE); nobody can manage super admins and first enrolment stays closed until then (or set FORGE_SETUP_TOKEN).',
     )
   }
+  function mayRunTheBoard(context: Context): boolean {
+    if (mode === 'local') {
+      return true
+    }
+    const user = identities.findUser(operatorOf(context))
+    return user?.superAdmin === true || user?.role === 'director'
+  }
   const api = createBoardApi({
     isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
     isDirector: (login) => identities.findUser(login)?.role === 'director',
-    maySettleBudget: (context) => {
-      if (mode === 'local') {
-        return true
-      }
-      const user = identities.findUser(operatorOf(context))
-      return user?.superAdmin === true || user?.role === 'director'
-    },
+    maySettleBudget: mayRunTheBoard,
+    mayReadFleet: mayRunTheBoard,
     openHolds: discussion.openHolds,
     today: () => new Date().toISOString().slice(0, 10),
     zones: createZoneRepository(db),
