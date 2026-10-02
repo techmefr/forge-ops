@@ -82,7 +82,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
         <p class="title-face mt-1 text-2xl">
           {{ t('common.money', { amount: (budget.data.value?.spentUsd ?? 0).toFixed(2) }) }}
         </p>
-        <p class="mt-1 font-mono text-xs text-txt-low">
+        <p class="mt-1 tabular-nums text-xs text-txt-low">
           {{ t('resource.cap', { amount: (budget.data.value?.policy.capUsd ?? 0).toFixed(2) }) }}
         </p>
       </article>
@@ -151,7 +151,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
             type="number"
             min="0"
             :max="waiting"
-            class="w-24 rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+            class="field w-24"
           />
         </label>
         <div>
@@ -231,8 +231,8 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
               <td class="py-2 font-mono text-xs text-txt-hi">{{ job.name ?? job.id }}</td>
               <td class="py-2 text-txt-mid">{{ jobState(job.state) }}</td>
               <td class="py-2 text-txt-mid">{{ job.intent ?? t('common.nothing') }}</td>
-              <td class="py-2 font-mono text-xs text-txt-mid">{{ job.tokens ?? 0 }}</td>
-              <td class="py-2 font-mono text-xs text-txt-low">
+              <td class="py-2 tabular-nums text-xs text-txt-mid">{{ job.tokens ?? 0 }}</td>
+              <td class="py-2 tabular-nums text-xs text-txt-low">
                 {{ job.cliVersion ?? t('common.nothing') }}
               </td>
             </tr>

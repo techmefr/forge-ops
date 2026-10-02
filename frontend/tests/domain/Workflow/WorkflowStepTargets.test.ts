@@ -34,7 +34,7 @@ describe('WorkflowStepCard touch targets', () => {
     const buttons = card.findAll('button').slice(0, 3)
     expect(buttons).toHaveLength(3)
     for (const button of buttons) {
-      expect(button.classes()).toEqual(expect.arrayContaining(['max-sm:h-10', 'max-sm:min-w-10']))
+      expect(button.classes()).toEqual(expect.arrayContaining(['btn']))
     }
   })
 })

@@ -118,7 +118,7 @@ void tags.reload()
           type="button"
           :disabled="tag.usage > 0"
           :aria-describedby="`tag-use-${tag.id}`"
-          class="rounded-md px-2.5 py-1 text-xs text-txt-mid hover:bg-elev disabled:opacity-40"
+          class="btn btn-ghost btn-sm"
           @click="remove(tag)"
         >
           {{ t('team.delete') }}<span class="sr-only"> #{{ tag.label }}</span>
@@ -143,12 +143,12 @@ void tags.reload()
         type="text"
         maxlength="40"
         :placeholder="`${t('team.newTag')} *`"
-        class="min-w-0 flex-1 rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+        class="field min-w-0 flex-1"
       />
       <button
         type="submit"
         :disabled="label.trim() === ''"
-        class="rounded-md bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+        class="btn btn-primary"
       >
         {{ t('team.add') }}
       </button>

@@ -159,7 +159,7 @@ onMounted(() => void conversation.load())
           </div>
           <button
             type="button"
-            class="rounded-md bg-transparent px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
+            class="btn btn-ghost btn-sm"
             data-test="forge-open-story"
             @click="openStory"
           >
@@ -167,7 +167,7 @@ onMounted(() => void conversation.load())
           </button>
           <button
             type="button"
-            class="rounded-md bg-transparent px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
+            class="btn btn-ghost btn-sm"
             @click="emit('close')"
           >
             {{ t('forge.drawer.close') }}
@@ -178,7 +178,7 @@ onMounted(() => void conversation.load())
           <p class="m-0 text-txt-hi" data-test="forge-drawer-where">
             {{ [projectName, card.subjectTitle, step?.label].filter((part) => part).join(' · ') }}
           </p>
-          <p class="m-0 mt-1 font-mono text-txt-mid sm:truncate" data-test="forge-drawer-who">
+          <p class="m-0 mt-1 tabular-nums text-txt-mid sm:truncate" data-test="forge-drawer-who">
             <span aria-hidden="true">{{ STATUS_GLYPH[card.status] }} </span>{{ [agentLine, sessionLine].filter((part) => part !== '').join(' · ') }}
           </p>
         </div>
@@ -191,7 +191,7 @@ onMounted(() => void conversation.load())
           <button
             v-if="action !== null"
             type="button"
-            class="rounded-md border-0 bg-acc px-3 py-1.5 text-xs font-medium text-ink hover:opacity-90 disabled:opacity-40"
+            class="btn btn-primary btn-sm border-0 hover:opacity-90"
             :disabled="busy"
             data-test="forge-drawer-action"
             @click="emit('act', action)"
@@ -201,7 +201,7 @@ onMounted(() => void conversation.load())
           <button
             v-if="secondaryAction !== null"
             type="button"
-            class="rounded-md bg-transparent px-3 py-1.5 text-xs text-txt-mid hover:bg-elev disabled:opacity-40"
+            class="btn btn-ghost btn-sm"
             :disabled="busy"
             data-test="forge-drawer-secondary-action"
             @click="emit('act', secondaryAction)"
@@ -212,7 +212,7 @@ onMounted(() => void conversation.load())
           <button
             v-if="previous !== null"
             type="button"
-            class="rounded-md bg-transparent px-3 py-1.5 text-xs text-txt-mid hover:bg-elev disabled:opacity-40"
+            class="btn btn-ghost btn-sm"
             :disabled="busy"
             data-test="forge-drawer-previous"
             @click="emit('move', previous.key)"
@@ -222,7 +222,7 @@ onMounted(() => void conversation.load())
           <button
             v-if="following !== null"
             type="button"
-            class="rounded-md bg-transparent px-3 py-1.5 text-xs text-txt-mid hover:bg-elev disabled:opacity-40"
+            class="btn btn-ghost btn-sm"
             :disabled="busy"
             data-test="forge-drawer-next"
             @click="emit('move', following.key)"
@@ -265,7 +265,7 @@ onMounted(() => void conversation.load())
             <li v-for="item in grouped.blocks" :key="item.id">
               <p
                 v-if="item.kind === 'marker'"
-                class="m-0 flex items-center gap-2 border-t border-hair pt-2 font-mono text-xs text-txt-low"
+                class="m-0 flex items-center gap-2 border-t border-hair pt-2 tabular-nums text-xs text-txt-low"
               >
                 <span>{{ t(`phase.${item.phase}`) }}</span>
                 <span v-if="item.agent !== null">{{ item.agent }}</span>
@@ -325,13 +325,13 @@ onMounted(() => void conversation.load())
               ref="field"
               v-model="draft"
               rows="2"
-              class="min-h-[3.5rem] min-w-0 flex-1 resize-y rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
+              class="field min-h-[3.5rem] min-w-0 flex-1 resize-y"
               :placeholder="route === 'note' ? t('forge.drawer.notePlaceholder') : t('forge.drawer.replyPlaceholder')"
               @keydown="onKey"
             />
             <button
               type="submit"
-              class="rounded-md bg-transparent px-3 py-1.5 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
+              class="btn btn-ghost btn-sm"
               :disabled="conversation.sending.value || draft.trim() === ''"
             >
               {{ route === 'note' ? t('forge.drawer.sendNote') : t('forge.drawer.send') }}

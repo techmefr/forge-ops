@@ -57,7 +57,7 @@ function addDraft(): void {
       <span v-if="desk.run.value !== null" class="text-xs text-acc">{{
         t(`pilotRunState.${desk.run.value.state}`)
       }}</span>
-      <span v-if="desk.run.value !== null" class="font-mono text-xs text-txt-low">
+      <span v-if="desk.run.value !== null" class="tabular-nums text-xs text-txt-low">
         {{
           t('pilot.progress', {
             done: desk.progress.value.done,
@@ -89,11 +89,11 @@ function addDraft(): void {
           type="url"
           :placeholder="t('pilot.urlPlaceholder')"
           :aria-label="t('pilot.urlPlaceholder')"
-          class="min-w-[240px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          class="field min-w-[240px] flex-1"
         />
         <select
           v-model="desk.pace.value"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          class="field"
           :aria-label="t('pilot.paceLabel')"
         >
           <option v-for="pace in PILOT_PACE_SEQUENCE" :key="pace" :value="pace">
@@ -105,7 +105,7 @@ function addDraft(): void {
       <div class="mt-2 flex flex-wrap gap-2">
         <select
           v-model="draftKind"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          class="field"
           :aria-label="t('pilot.stepKindLabel')"
         >
           <option v-for="kind in PILOT_STEP_KIND_SEQUENCE" :key="kind" :value="kind">
@@ -118,7 +118,7 @@ function addDraft(): void {
           type="text"
           :placeholder="t('pilot.targetPlaceholder')"
           :aria-label="t('pilot.targetPlaceholder')"
-          class="min-w-[200px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          class="field min-w-[200px] flex-1"
         />
         <input
           v-if="needsValue"
@@ -126,11 +126,11 @@ function addDraft(): void {
           type="text"
           :placeholder="t('pilot.valuePlaceholder')"
           :aria-label="t('pilot.valuePlaceholder')"
-          class="min-w-[160px] rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          class="field min-w-[160px]"
         />
         <button
           type="button"
-          class="rounded-lg bg-elev px-3 py-2 text-xs font-bold text-txt-mid"
+          class="btn btn-secondary btn-sm"
           @click="addDraft"
         >
           {{ t('pilot.addStep') }}
@@ -143,7 +143,7 @@ function addDraft(): void {
           :key="index"
           class="flex items-center gap-2 text-sm text-txt-hi"
         >
-          <span class="font-mono text-xs text-txt-low">{{ index + 1 }}</span>
+          <span class="tabular-nums text-xs text-txt-low">{{ index + 1 }}</span>
           <span>{{ say(describeStep(step)) }}</span>
           <button
             type="button"
@@ -158,7 +158,7 @@ function addDraft(): void {
       <button
         type="button"
         :disabled="desk.busy.value || desk.script.value.length === 0 || desk.url.value === ''"
-        class="mt-3 rounded-lg bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
+        class="btn btn-primary mt-3"
         @click="desk.start()"
       >
         {{ t('pilot.startWalk') }}
@@ -174,7 +174,7 @@ function addDraft(): void {
         <button
           type="button"
           :disabled="desk.busy.value || desk.run.value?.state !== 'running'"
-          class="rounded-lg bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
+          class="btn btn-primary"
           @click="desk.advance()"
         >
           {{ t('pilot.advance') }}
@@ -183,7 +183,7 @@ function addDraft(): void {
           v-if="desk.run.value?.state === 'running'"
           type="button"
           :disabled="desk.busy.value"
-          class="rounded-lg bg-elev px-3 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
+          class="btn btn-secondary"
           @click="desk.pause()"
         >
           {{ t('pilot.pause') }}
@@ -200,7 +200,7 @@ function addDraft(): void {
         <button
           type="button"
           :disabled="desk.busy.value"
-          class="rounded-lg bg-elev px-3 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
+          class="btn btn-secondary"
           @click="desk.inspect()"
         >
           {{ t('pilot.inspect') }}

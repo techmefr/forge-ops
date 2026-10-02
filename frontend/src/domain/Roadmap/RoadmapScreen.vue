@@ -255,7 +255,7 @@ onMounted(() => {
           </h3>
           <button
             type="button"
-            class="ml-auto rounded-md bg-acc px-3 py-1.5 text-xs font-semibold text-ink max-sm:min-h-10"
+            class="btn btn-primary btn-sm ml-auto"
             @click="openNew()"
           >
             {{ t('roadmap.newEvent') }}
@@ -271,7 +271,7 @@ onMounted(() => {
               class="flex min-w-40 flex-col items-start gap-0.5 rounded-lg bg-card px-3 py-2 text-left hover:bg-elev"
               @click="openEvent(item.event)"
             >
-              <span class="font-mono text-xs font-bold" :class="EVENT_TONES[item.event.type].text">
+              <span class="tabular-nums text-xs font-bold" :class="EVENT_TONES[item.event.type].text">
                 {{ daysLeftLabel(item.daysLeft) }} · {{ dayLabel(item.event.date) }}
               </span>
               <span class="text-sm font-semibold text-txt-hi">{{ eventName(item.event) }}</span>
@@ -299,7 +299,7 @@ onMounted(() => {
               <span
                 v-for="tick in ticks"
                 :key="tick"
-                class="absolute top-2 -translate-x-1/2 font-mono text-xs text-txt-low"
+                class="absolute top-2 -translate-x-1/2 tabular-nums text-xs text-txt-low"
                 :style="{ left: `${percentOf(tick, view)}%` }"
               >
                 {{ dayLabel(tick) }}

@@ -111,7 +111,7 @@ onMounted(async () => {
         }}</span>
         <select
           v-model="chosenEpic"
-          class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
+          class="field"
         >
           <option :value="null">{{ t('incident.toChoose') }}</option>
           <option v-for="epic in epics" :key="epic.id" :value="epic.id">{{ epic.title }}</option>
@@ -141,7 +141,7 @@ onMounted(async () => {
               }}</span>
               <span
                 v-if="incident.occurrences > 1"
-                class="rounded-full bg-orange/20 px-2 py-0.5 font-mono text-xs text-orange"
+                class="rounded-full bg-orange/20 px-2 py-0.5 tabular-nums text-xs text-orange"
                 >{{
                   t('incident.occurrences', { count: incident.occurrences }, incident.occurrences)
                 }}</span
@@ -164,7 +164,7 @@ onMounted(async () => {
               <button
                 type="button"
                 :disabled="busy"
-                class="rounded-lg bg-acc px-3 py-2 text-xs font-bold text-ink disabled:opacity-40"
+                class="btn btn-primary btn-sm"
                 @click="accept(incident)"
               >
                 {{ t('incident.makeStory') }}
@@ -173,13 +173,13 @@ onMounted(async () => {
                 :value="reasons.get(incident.id) ?? ''"
                 type="text"
                 :placeholder="t('incident.refusalPlaceholder')"
-                class="min-w-[220px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+                class="field min-w-[220px] flex-1"
                 @input="setReason(incident.id, ($event.target as HTMLInputElement).value)"
               />
               <button
                 type="button"
                 :disabled="busy"
-                class="rounded-lg bg-elev px-3 py-2 text-xs font-bold text-txt-mid disabled:opacity-40"
+                class="btn btn-secondary btn-sm"
                 @click="refuse(incident)"
               >
                 {{ t('common.refuse') }}

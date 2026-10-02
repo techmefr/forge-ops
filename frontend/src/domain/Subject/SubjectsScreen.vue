@@ -313,7 +313,7 @@ onMounted(() => {
         <select
           id="subjects-tag"
           v-model="tagChoice"
-          class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
+          class="field"
           data-test-id="subjects-tag"
         >
           <option :value="ALL">{{ t('subjects.toolbar.allTags') }}</option>
@@ -325,14 +325,14 @@ onMounted(() => {
       <input
         v-model="search"
         type="search"
-        class="min-w-40 flex-1 rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi sm:max-w-sm"
+        class="field min-w-40 flex-1 sm:max-w-sm"
         :placeholder="t('subjects.toolbar.searchPlaceholder')"
         :aria-label="t('subjects.toolbar.search')"
         data-test-id="subjects-search"
       />
       <button
         type="button"
-        class="ml-auto rounded-md bg-acc px-3 py-1.5 text-xs font-semibold text-ink"
+        class="btn btn-primary btn-sm ml-auto"
         data-test-id="subjects-new"
         @click="creating = true"
       >
@@ -383,7 +383,7 @@ onMounted(() => {
             @click="select(view.key)"
           >
             <span class="flex-1 whitespace-nowrap">{{ view.label }}</span>
-            <span class="font-mono text-xs" :class="view.key === VIEW_LATE && view.count > 0 ? 'text-red' : 'text-txt-low'" :data-test-id="view.countId">{{ view.count }}</span>
+            <span class="tabular-nums text-xs" :class="view.key === VIEW_LATE && view.count > 0 ? 'text-red' : 'text-txt-low'" :data-test-id="view.countId">{{ view.count }}</span>
           </button>
 
           <h2 class="hidden px-2.5 pt-4 pb-1 text-xs text-txt-low min-[760px]:block">
@@ -418,7 +418,7 @@ onMounted(() => {
               </span>
             </span>
             <span
-              class="flex-none font-mono text-xs"
+              class="flex-none tabular-nums text-xs"
               :class="TONE_CLASSES[row.tone]"
               :title="loadDescription(row)"
               :data-tone="row.tone"
@@ -452,7 +452,7 @@ onMounted(() => {
               @click="filter = option"
             >
               {{ t(`subjectFilter.${option}`) }}
-              <span class="ml-1 font-mono font-normal">{{ stateCounts[option] }}</span>
+              <span class="ml-1 tabular-nums font-normal">{{ stateCounts[option] }}</span>
             </button>
           </div>
           <p v-if="visible.length === 0" class="py-6 text-sm text-txt-low" data-test-id="list-empty">

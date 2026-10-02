@@ -198,7 +198,7 @@ onBeforeUnmount(() => {
     <div class="mt-1 flex flex-wrap items-center gap-2">
       <button
         type="button"
-        class="rounded-lg bg-card px-3 py-2 text-xs font-bold text-txt-mid disabled:opacity-40"
+        class="btn btn-secondary btn-sm"
         :disabled="tour.first.value"
         @click="tour.goBack()"
       >
@@ -206,7 +206,7 @@ onBeforeUnmount(() => {
       </button>
       <button
         type="button"
-        class="rounded-lg bg-acc px-3 py-2 text-xs font-bold text-ink"
+        class="btn btn-primary btn-sm"
         @click="tour.goNext()"
       >
         {{ tour.last.value ? t('tour.finish') : t('tour.next') }}

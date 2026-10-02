@@ -91,13 +91,13 @@ function pickEffort(event: Event): void {
         v-model="draft.label"
         type="text"
         maxlength="60"
-        class="min-w-0 flex-1 rounded-md border border-line bg-card px-2.5 py-1.5 text-sm font-semibold text-txt-hi"
+        class="field min-w-0 flex-1 font-semibold"
       />
       <button
         type="button"
         :disabled="index === 0 || busy"
         :aria-label="t('workflowSettings.moveUp', { name: column.label })"
-        class="rounded-md px-2 py-1.5 text-txt-mid hover:bg-elev disabled:opacity-40 max-sm:h-10 max-sm:min-w-10"
+        class="btn btn-ghost"
         @click="emit('move', -1)"
       >
         <span aria-hidden="true">↑</span>
@@ -106,7 +106,7 @@ function pickEffort(event: Event): void {
         type="button"
         :disabled="index === total - 1 || busy"
         :aria-label="t('workflowSettings.moveDown', { name: column.label })"
-        class="rounded-md px-2 py-1.5 text-txt-mid hover:bg-elev disabled:opacity-40 max-sm:h-10 max-sm:min-w-10"
+        class="btn btn-ghost"
         @click="emit('move', 1)"
       >
         <span aria-hidden="true">↓</span>
@@ -115,7 +115,7 @@ function pickEffort(event: Event): void {
         type="button"
         :disabled="busy"
         :aria-label="t('workflowSettings.remove', { name: column.label })"
-        class="rounded-md px-2 py-1.5 text-txt-mid hover:bg-elev disabled:opacity-40 max-sm:h-10 max-sm:min-w-10"
+        class="btn btn-ghost"
         @click="emit('remove')"
       >
         <span aria-hidden="true">×</span>
@@ -127,7 +127,7 @@ function pickEffort(event: Event): void {
         {{ t('workflowSettings.provider') }}
         <select
           :value="draft.provider"
-          class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
+          class="field"
           @change="pickProvider"
         >
           <option v-for="provider in WORKFLOW_PROVIDERS" :key="provider" :value="provider">
@@ -146,14 +146,14 @@ function pickEffort(event: Event): void {
           <select
             v-if="isClaude"
             v-model="draft.model"
-            class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
+            class="field"
           >
             <option v-for="model in CLAUDE_MODELS" :key="model" :value="model">{{ model }}</option>
           </select>
           <select
             v-else
             disabled
-            class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi opacity-70"
+            class="field"
           >
             <option value="">{{ t('workflowSettings.modelCli') }}</option>
           </select>
@@ -163,7 +163,7 @@ function pickEffort(event: Event): void {
           {{ t('workflowSettings.effort') }}
           <select
             :value="draft.effort"
-            class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
+            class="field"
             @change="pickEffort"
           >
             <option v-for="effort in WORKFLOW_EFFORTS" :key="effort" :value="effort">{{ effort }}</option>
@@ -176,7 +176,7 @@ function pickEffort(event: Event): void {
             v-model="draft.agentName"
             type="text"
             :placeholder="t('workflowSettings.mainSession')"
-            class="rounded-md border border-line bg-card px-2.5 py-1.5 font-mono text-sm text-txt-hi"
+            class="field font-mono"
           />
         </label>
 
@@ -186,7 +186,7 @@ function pickEffort(event: Event): void {
             v-model="draft.command"
             type="text"
             :placeholder="isClaude ? t('workflowSettings.skillPlaceholder') : t('workflowSettings.commandPlaceholder')"
-            class="rounded-md border border-line bg-card px-2.5 py-1.5 font-mono text-sm text-txt-hi"
+            class="field font-mono"
           />
         </label>
 
@@ -194,7 +194,7 @@ function pickEffort(event: Event): void {
           {{ t('workflowSettings.basePrompt') }}
           <select
             :value="template"
-            class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
+            class="field"
             @change="pickTemplate"
           >
             <option value="">{{ t('workflowSettings.pickTemplate') }}</option>
@@ -213,7 +213,7 @@ function pickEffort(event: Event): void {
             v-model="draft.preprompt"
             rows="4"
             :aria-describedby="`${identifier}-hint`"
-            class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
+            class="field"
           />
           <small :id="`${identifier}-hint`" class="text-xs text-txt-low">
             {{ t('workflowSettings.promptHint') }}
@@ -233,7 +233,7 @@ function pickEffort(event: Event): void {
             min="0"
             :max="MAX_STEP_RETRIES"
             :aria-describedby="`${identifier}-retries`"
-            class="w-24 rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
+            class="field w-24"
           />
           <small :id="`${identifier}-retries`" class="text-xs text-txt-low">{{ t('autopilot.retriesHint') }}</small>
         </label>
@@ -244,7 +244,7 @@ function pickEffort(event: Event): void {
       <button
         type="button"
         :disabled="!dirty || busy"
-        class="rounded-md px-3 py-1.5 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
+        class="btn btn-ghost btn-sm"
         @click="emit('save', draft)"
       >
         {{ t('workflowSettings.save') }}

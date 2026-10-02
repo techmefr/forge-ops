@@ -110,7 +110,7 @@ onMounted(load)
             v-model="displayName"
             v-bind="requiredField(profileRefusal, 'profile-refusal')"
             type="text"
-            class="max-w-sm rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="field max-w-sm"
           />
         </label>
         <label class="flex flex-col gap-2">
@@ -122,14 +122,14 @@ onMounted(load)
             type="email"
             autocomplete="email"
             :placeholder="t('setting.emailPlaceholder')"
-            class="max-w-sm rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="field max-w-sm"
           />
         </label>
         <div class="flex items-center gap-3">
           <button
             type="submit"
             :disabled="busy"
-            class="rounded-md bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+            class="btn btn-primary"
           >
             {{ t('common.save') }}
           </button>
@@ -151,7 +151,7 @@ onMounted(load)
             v-bind="requiredField(passwordRefusal, 'password-refusal')"
             type="password"
             autocomplete="current-password"
-            class="max-w-sm rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="field max-w-sm"
           />
         </label>
         <label class="flex flex-col gap-2">
@@ -163,7 +163,7 @@ onMounted(load)
             v-bind="requiredField(passwordRefusal, 'password-refusal')"
             type="password"
             autocomplete="new-password"
-            class="max-w-sm rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="field max-w-sm"
           />
           <span class="text-sm text-txt-low">{{ t('setting.passwordHint') }}</span>
         </label>
@@ -171,7 +171,7 @@ onMounted(load)
           <button
             type="submit"
             :disabled="busy"
-            class="rounded-md bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+            class="btn btn-primary"
           >
             {{ t('setting.changePassword') }}
           </button>

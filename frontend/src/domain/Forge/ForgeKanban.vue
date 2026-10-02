@@ -86,7 +86,7 @@ function dragging(card: ForgeCardView, on: boolean): void {
             aria-hidden="true"
           />
           <h3 class="m-0 min-w-0 flex-1 truncate text-sm font-semibold text-txt-hi">{{ step.label }}</h3>
-          <span class="font-mono text-xs text-txt-low">{{ cardsOfStep(cards, step.key).length }}</span>
+          <span class="tabular-nums text-xs text-txt-low">{{ cardsOfStep(cards, step.key).length }}</span>
         </div>
       </header>
       <ul class="m-0 flex min-h-[3rem] flex-1 list-none flex-col p-0">

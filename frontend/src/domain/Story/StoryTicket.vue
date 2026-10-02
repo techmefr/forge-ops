@@ -64,7 +64,7 @@ const scoreColour = computed(() => {
         {{ shown.body }}
       </button>
 
-      <p class="mt-3 font-mono text-xs" :class="scoreColour">
+      <p class="mt-3 tabular-nums text-xs" :class="scoreColour">
         {{ t('ticket.completeness', { score: ticket.completeness.score }) }}
         <span v-if="!ticket.completeness.launchable"> {{ t('ticket.belowLaunch') }}</span>
       </p>
@@ -144,7 +144,7 @@ const scoreColour = computed(() => {
         {{ t('ticket.blockedBy') }}
       </p>
       <ul class="mt-2 flex flex-col gap-1">
-        <li v-for="blocker in ticket.blockers" :key="blocker" class="font-mono text-xs text-txt-hi">
+        <li v-for="blocker in ticket.blockers" :key="blocker" class="tabular-nums text-xs text-txt-hi">
           {{ blocker }}
         </li>
       </ul>

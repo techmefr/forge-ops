@@ -82,8 +82,8 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
         <ul class="mt-3 flex flex-col gap-3">
           <li v-for="agent in busiest" :key="agent.agentName" class="text-sm">
             <div class="flex items-center gap-1.5">
-              <span class="font-mono text-xs text-txt-hi">{{ agent.agentName }}</span>
-              <span class="ml-auto font-mono text-xs text-txt-low"
+              <span class="tabular-nums text-xs text-txt-hi">{{ agent.agentName }}</span>
+              <span class="ml-auto tabular-nums text-xs text-txt-low"
                 >{{ t('statistic.sessionCount', { count: agent.sessions }, agent.sessions) }} ·
                 {{ t('common.money', { amount: agent.totalCostUsd.toFixed(2) }) }}</span
               >
@@ -110,8 +110,8 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
             :key="phase.phase"
             class="flex items-center gap-1.5 text-sm"
           >
-            <span class="font-mono text-xs text-txt-hi">{{ t(`phase.${phase.phase}`) }}</span>
-            <span class="ml-auto font-mono text-xs text-txt-low"
+            <span class="tabular-nums text-xs text-txt-hi">{{ t(`phase.${phase.phase}`) }}</span>
+            <span class="ml-auto tabular-nums text-xs text-txt-low"
               >{{ t('statistic.sessionCount', { count: phase.sessions }, phase.sessions) }} ·
               {{ say(humanDuration(phase.totalSeconds)) }}</span
             >
@@ -127,10 +127,10 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
             :key="outcome.outcome"
             class="flex items-center gap-1.5 text-sm"
           >
-            <span class="font-mono text-xs" :class="colourOf(outcome.outcome)">{{
+            <span class="tabular-nums text-xs" :class="colourOf(outcome.outcome)">{{
               t(sessionEndKey(outcome.outcome, 'finished'))
             }}</span>
-            <span class="ml-auto font-mono text-xs text-txt-low">{{ outcome.sessions }}</span>
+            <span class="ml-auto tabular-nums text-xs text-txt-low">{{ outcome.sessions }}</span>
           </li>
         </ul>
       </section>
@@ -151,7 +151,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
               class="inline-flex min-h-10 items-center font-mono text-xs text-txt-mid hover:text-txt-hi sm:min-h-0"
               >{{ story.storyReference }}</RouterLink
             >
-            <span class="ml-auto font-mono text-xs text-txt-low"
+            <span class="ml-auto tabular-nums text-xs text-txt-low"
               >{{ t('statistic.sessionCount', { count: story.sessions }, story.sessions) }} ·
               {{ say(humanDuration(story.seconds)) }} ·
               {{ t('common.money', { amount: story.costUsd.toFixed(2) }) }}</span
@@ -213,7 +213,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
                     }}</RouterLink>
                   </td>
                   <td class="py-2 text-txt-mid">{{ t(`phase.${entry.phase}`) }}</td>
-                  <td class="py-2 font-mono text-xs text-txt-hi">{{ entry.agentName }}</td>
+                  <td class="py-2 tabular-nums text-xs text-txt-hi">{{ entry.agentName }}</td>
                   <td class="py-2 text-txt-mid">{{ say(humanDuration(entry.seconds)) }}</td>
                   <td class="py-2 font-mono text-xs text-txt-mid">
                     {{
@@ -222,7 +222,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
                         : t('common.money', { amount: entry.costUsd.toFixed(2) })
                     }}
                   </td>
-                  <td class="py-2 font-mono text-xs" :class="colourOf(entry.outcome)">
+                  <td class="py-2 tabular-nums text-xs" :class="colourOf(entry.outcome)">
                     {{ t(sessionEndKey(entry.outcome, entry.lifecycle)) }}
                   </td>
                 </tr>

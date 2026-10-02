@@ -209,7 +209,7 @@ function closeWhenClosed(open: boolean): void {
           </div>
           <button
             type="button"
-            class="flex-none rounded-lg bg-card px-3 py-1.5 text-xs font-bold text-txt-mid hover:bg-elev"
+            class="btn btn-secondary btn-sm flex-none"
             @click="emit('close')"
           >
             {{ t('followUp.drawer.close') }}
@@ -227,7 +227,7 @@ function closeWhenClosed(open: boolean): void {
           <label class="flex flex-col gap-1 text-sm text-txt-mid">
             {{ t('followUp.drawer.weatherField') }}
             <select
-              class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+              class="field"
               :value="followUp.source === 'manual' ? followUp.weather : ''"
               :disabled="busy"
               data-test-id="weather-select"
@@ -253,13 +253,13 @@ function closeWhenClosed(open: boolean): void {
               rows="2"
               :maxlength="STATUS_SENTENCE_LIMIT"
               :placeholder="t('followUp.drawer.statusPlaceholder')"
-              class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+              class="field"
             />
           </label>
           <button
             type="button"
             :disabled="busy"
-            class="w-fit rounded-lg bg-card px-3 py-1.5 text-xs font-bold text-txt-mid hover:bg-elev disabled:opacity-40"
+            class="btn btn-secondary btn-sm w-fit"
             @click="saveSentence"
           >
             {{ t('followUp.drawer.saveStatus') }}
@@ -294,7 +294,7 @@ function closeWhenClosed(open: boolean): void {
               <button
                 type="button"
                 :disabled="busy"
-                class="flex-none rounded-lg bg-elev px-2.5 py-1 text-xs font-bold text-txt-mid hover:bg-elev disabled:opacity-40"
+                class="btn btn-secondary btn-sm flex-none"
                 :aria-label="t(risk.closedOn === null ? 'followUp.drawer.closeRiskLabel' : 'followUp.drawer.reopenRiskLabel', { text: risk.text })"
                 @click="toggleRisk(risk)"
               >
@@ -310,12 +310,12 @@ function closeWhenClosed(open: boolean): void {
                 type="text"
                 required
                 :maxlength="RISK_TEXT_LIMIT"
-                class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+                class="field"
               />
             </label>
             <label class="flex flex-col gap-1 text-sm text-txt-mid">
               {{ t('followUp.drawer.riskLevel') }}
-              <select v-model="riskLevel" class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi">
+              <select v-model="riskLevel" class="field">
                 <option v-for="level in RISK_LEVELS" :key="level" :value="level">{{ t(`riskLevel.${level}`) }}</option>
               </select>
             </label>
@@ -325,12 +325,12 @@ function closeWhenClosed(open: boolean): void {
                 v-model="riskOwner"
                 type="text"
                 :maxlength="PERSON_LIMIT"
-                class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+                class="field"
               />
             </label>
             <label class="flex flex-col gap-1 text-sm text-txt-mid sm:col-span-2">
               {{ t('followUp.drawer.riskSubject') }}
-              <select v-model="riskEpic" class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi">
+              <select v-model="riskEpic" class="field">
                 <option :value="null">{{ t('followUp.drawer.wholeProject') }}</option>
                 <option v-for="subject in knownSubjects" :key="subject.id" :value="subject.id">{{ subject.title }}</option>
               </select>
@@ -338,7 +338,7 @@ function closeWhenClosed(open: boolean): void {
             <button
               type="submit"
               :disabled="busy || riskText.trim() === ''"
-              class="w-fit rounded-lg bg-acc px-4 py-2 text-xs font-bold text-ink disabled:opacity-40"
+              class="btn btn-primary btn-sm w-fit"
             >
               {{ t('followUp.drawer.addRisk') }}
             </button>
@@ -356,7 +356,7 @@ function closeWhenClosed(open: boolean): void {
               :key="decision.id"
               class="flex items-start gap-2 rounded-lg bg-card p-2.5"
             >
-              <span class="flex-none font-mono text-xs text-txt-mid">
+              <span class="flex-none tabular-nums text-xs text-txt-mid">
                 {{ dayLabel(decision.decidedOn, locale, true) }}
               </span>
               <div class="min-w-0 flex-1">
@@ -373,7 +373,7 @@ function closeWhenClosed(open: boolean): void {
                 type="text"
                 required
                 :maxlength="DECISION_TEXT_LIMIT"
-                class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+                class="field"
               />
             </label>
             <label class="flex flex-col gap-1 text-sm text-txt-mid">
@@ -382,13 +382,13 @@ function closeWhenClosed(open: boolean): void {
                 v-model="decisionBy"
                 type="text"
                 :maxlength="PERSON_LIMIT"
-                class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+                class="field"
               />
             </label>
             <button
               type="submit"
               :disabled="busy || decisionText.trim() === ''"
-              class="w-fit self-end rounded-lg bg-acc px-4 py-2 text-xs font-bold text-ink disabled:opacity-40"
+              class="btn btn-primary btn-sm w-fit self-end"
             >
               {{ t('followUp.drawer.addDecision') }}
             </button>
@@ -427,7 +427,7 @@ function closeWhenClosed(open: boolean): void {
               </div>
               <button
                 type="button"
-                class="flex-none rounded-lg bg-elev px-2.5 py-1 text-xs font-bold text-txt-mid hover:bg-elev"
+                class="btn btn-secondary btn-sm flex-none"
                 :aria-label="`${t(event.minutes === null && minutesToWrite(event, today) ? 'followUp.drawer.writeMinutes' : 'followUp.drawer.editMinutes')} · ${eventName(event)}`"
                 @click="dialog = { event }"
               >
@@ -437,7 +437,7 @@ function closeWhenClosed(open: boolean): void {
           </ul>
           <button
             type="button"
-            class="w-fit rounded-lg bg-card px-3 py-1.5 text-xs font-bold text-txt-mid hover:bg-elev"
+            class="btn btn-secondary btn-sm w-fit"
             @click="dialog = { event: null }"
           >
             {{ t('followUp.drawer.newEvent') }}

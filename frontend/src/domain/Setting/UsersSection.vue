@@ -112,7 +112,7 @@ void users.reload()
         class="flex flex-wrap items-center gap-3 rounded-md bg-panel px-3 py-2"
       >
         <span
-          class="flex h-8 w-8 items-center justify-center rounded-full bg-elev font-mono text-xs text-txt-hi"
+          class="flex h-8 w-8 items-center justify-center rounded-full bg-elev tabular-nums text-xs text-txt-hi"
           aria-hidden="true"
           >{{ initialsOf(user.displayName) }}</span
         >
@@ -135,7 +135,7 @@ void users.reload()
             :placeholder="t('team.noCapacity')"
             :disabled="!mayEdit(user)"
             :aria-label="t('team.capacityOf', { name: user.displayName })"
-            class="w-20 rounded-md border border-line bg-card px-2 py-1.5 text-sm text-txt-hi disabled:opacity-60"
+            class="field w-20 disabled:opacity-60"
             @change="setCapacity(user, $event)"
           />
         </label>
@@ -150,7 +150,7 @@ void users.reload()
           v-if="self?.superAdmin"
           type="button"
           :aria-label="`${t(user.superAdmin ? 'team.revokeSuperAdmin' : 'team.grantSuperAdmin')}: ${user.displayName}`"
-          class="rounded-md px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
+          class="btn btn-ghost btn-sm"
           @click="toggleSuperAdmin(user)"
         >
           {{ user.superAdmin ? t('team.revokeSuperAdmin') : t('team.grantSuperAdmin') }}
@@ -159,7 +159,7 @@ void users.reload()
         <button
           v-if="manages"
           type="button"
-          class="rounded-md px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
+          class="btn btn-ghost btn-sm"
           @click="toggle(user)"
         >
           {{ user.active ? t('team.deactivate') : t('team.reactivate')
@@ -180,7 +180,7 @@ void users.reload()
             v-bind="requiredField(addRefusal, 'users-add-refusal')"
             type="text"
             autocomplete="off"
-            class="rounded-md border border-line bg-panel px-3 py-2 font-mono text-sm text-txt-hi"
+            class="field font-mono"
           />
         </label>
         <label class="flex flex-col gap-1 text-sm text-txt-mid">
@@ -190,7 +190,7 @@ void users.reload()
             v-bind="requiredField(addRefusal, 'users-add-refusal')"
             type="text"
             autocomplete="off"
-            class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="field"
           />
         </label>
         <label class="flex flex-col gap-1 text-sm text-txt-mid">
@@ -200,7 +200,7 @@ void users.reload()
             v-bind="requiredField(addRefusal, 'users-add-refusal')"
             type="password"
             autocomplete="new-password"
-            class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="field"
           />
           <span class="text-xs text-txt-low">{{ t('setting.passwordHint') }}</span>
         </label>
@@ -208,7 +208,7 @@ void users.reload()
           {{ t('team.role') }}
           <select
             v-model="role"
-            class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+            class="field"
           >
             <option v-for="option in ACCOUNT_ROLE_SEQUENCE" :key="option" :value="option">
               {{ t(`role.${option}`) }}
@@ -219,7 +219,7 @@ void users.reload()
       <button
         type="submit"
         :disabled="!draftReady"
-        class="self-start rounded-md bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+        class="btn btn-primary self-start"
       >
         {{ t('team.add') }}
       </button>

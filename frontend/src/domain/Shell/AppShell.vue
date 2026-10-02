@@ -116,7 +116,7 @@ watch(
   <div class="flex h-dvh flex-col overflow-hidden bg-deep text-txt-hi">
     <a
       href="#main-content"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:rounded-lg focus:border focus:border-acc focus:bg-panel focus:px-4 focus:py-3 focus:font-mono focus:text-xs"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:rounded-lg focus:border focus:border-acc focus:bg-panel focus:px-4 focus:py-3 focus:text-xs"
       data-test-id="skip-link"
       @click.prevent="focusMain"
     >

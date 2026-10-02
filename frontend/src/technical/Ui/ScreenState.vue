@@ -31,7 +31,7 @@ const say = usePhrase()
     <p class="mt-2 text-sm text-txt-hi">{{ say(failure) }}</p>
     <button
       type="button"
-      class="mt-4 rounded-lg bg-card px-3 py-2 text-xs font-semibold text-txt-mid hover:bg-elev"
+      class="btn btn-secondary btn-sm mt-4"
       @click="emit('retry')"
     >
       {{ t('common.retry') }}

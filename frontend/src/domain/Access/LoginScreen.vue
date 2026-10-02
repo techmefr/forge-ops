@@ -189,14 +189,14 @@ useRefusalFocus(refusal, signForm)
             v-bind="requiredField(refusal, 'login-token-refusal')"
             type="password"
             autocomplete="off"
-            class="rounded-lg border border-line bg-elev px-3 py-2 font-mono text-sm text-txt-hi"
+            class="field font-mono"
           />
         </label>
 
         <button
           type="submit"
           :disabled="busy || boardToken === ''"
-          class="mt-2 rounded-lg bg-acc px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-40"
+          class="btn btn-primary btn-sm mt-2"
         >
           {{ t('access.openSession') }}
         </button>
@@ -238,7 +238,7 @@ useRefusalFocus(refusal, signForm)
             v-bind="requiredField(refusal, 'login-refusal')"
             type="text"
             autocomplete="username"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+            class="field"
           />
         </label>
 
@@ -251,7 +251,7 @@ useRefusalFocus(refusal, signForm)
               v-model="displayName"
               v-bind="requiredField(refusal, 'login-refusal')"
               type="text"
-              class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+              class="field"
             />
           </label>
           <label class="flex flex-col gap-1">
@@ -260,7 +260,7 @@ useRefusalFocus(refusal, signForm)
             </span>
             <select
               v-model="role"
-              class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+              class="field"
             >
               <option v-for="name in ACCOUNT_ROLE_SEQUENCE" :key="name" :value="name">
                 {{ t(`role.${name}`) }}
@@ -278,7 +278,7 @@ useRefusalFocus(refusal, signForm)
             v-bind="requiredField(refusal, 'login-refusal')"
             type="password"
             autocomplete="current-password"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+            class="field"
           />
           <span class="text-xs text-txt-low">{{ t('access.passwordHint') }}</span>
         </label>
@@ -286,7 +286,7 @@ useRefusalFocus(refusal, signForm)
         <button
           type="submit"
           :disabled="busy || login === '' || password === ''"
-          class="mt-2 rounded-lg bg-acc px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-40"
+          class="btn btn-primary btn-sm mt-2"
         >
           {{
             state.data.value?.enrolmentOpen === true ? t('access.createAccount') : t('access.enter')

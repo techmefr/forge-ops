@@ -97,7 +97,7 @@ onMounted(() => settings.reload())
           type="number"
           min="0.01"
           step="0.01"
-          class="w-40 rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+          class="field w-40"
         />
       </label>
 
@@ -128,7 +128,7 @@ onMounted(() => settings.reload())
         <input
           v-model="draft.downgradeModel"
           type="text"
-          class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+          class="field"
         />
       </label>
 
@@ -140,7 +140,7 @@ onMounted(() => settings.reload())
           v-model="rerouteUrl"
           type="url"
           :placeholder="t('setting.gatewayPlaceholder')"
-          class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+          class="field"
         />
         <span class="text-sm text-txt-low">{{ t('setting.httpsOnly') }}</span>
       </label>
@@ -149,7 +149,7 @@ onMounted(() => settings.reload())
         <button
           type="submit"
           :disabled="busy"
-          class="rounded-md bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+          class="btn btn-primary"
         >
           {{ t('common.save') }}
         </button>
