@@ -46,7 +46,7 @@ function relink(links: readonly SubjectLink[]): void {
 </script>
 
 <template>
-  <li class="flex flex-col gap-3 rounded-md bg-panel px-3 py-3">
+  <li class="flex flex-col gap-3 rounded-md border border-line bg-panel px-3 py-3">
     <div class="flex flex-wrap items-center gap-3">
       <label class="flex items-center">
         <span class="sr-only">{{ t('team.colourOf', { name: sheet.name }) }}</span>

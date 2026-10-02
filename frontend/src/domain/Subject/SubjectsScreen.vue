@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Avatar from '@/technical/Ui/Avatar.vue'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SUBJECT_FILTERS, type ManualEpicState, type SubjectFilter } from '@contract/EpicContract'
@@ -252,7 +253,7 @@ const TONE_CLASSES = {
   over: 'text-red',
 } as const
 
-const SELECTED_CLASSES = 'text-txt-hi shadow-[inset_2px_0_0_0_var(--color-acc)]'
+const SELECTED_CLASSES = 'bg-acc/10 text-txt-hi shadow-[inset_3px_0_0_0_var(--color-acc)]'
 
 const IDLE_CLASSES = 'text-txt-mid hover:bg-elev/60'
 
@@ -374,7 +375,7 @@ onMounted(() => {
             v-for="view in viewRows"
             :key="view.key"
             type="button"
-            class="flex min-h-10 flex-none items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm min-[760px]:min-h-0 min-[760px]:w-full"
+            class="flex min-h-12 flex-none items-center gap-2 rounded-md px-3 py-2 text-left text-sm min-[760px]:w-full"
             :class="selection === view.key ? SELECTED_CLASSES : IDLE_CLASSES"
             :tabindex="selection === view.key ? 0 : -1"
             :aria-current="selection === view.key ? 'true' : undefined"
@@ -393,7 +394,7 @@ onMounted(() => {
             v-for="row in rows"
             :key="row.person.login"
             type="button"
-            class="flex min-h-10 flex-none items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm min-[760px]:min-h-0 min-[760px]:w-full"
+            class="flex min-h-12 flex-none items-center gap-2 rounded-md px-3 py-2 text-left text-sm min-[760px]:w-full"
             :class="selection === row.person.login ? SELECTED_CLASSES : IDLE_CLASSES"
             :tabindex="selection === row.person.login ? 0 : -1"
             :aria-current="selection === row.person.login ? 'true' : undefined"
@@ -401,6 +402,7 @@ onMounted(() => {
             :data-test-id="`person-${row.person.login}`"
             @click="select(row.person.login)"
           >
+            <Avatar :name="row.person.displayName" :size="28" />
             <span class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2">
               <span class="truncate whitespace-nowrap">
                 {{ row.person.displayName }}<span v-if="row.person.login === self" class="ml-1 text-txt-low">{{ t('subjects.me') }}</span><span v-if="!row.person.active" class="ml-1 text-txt-low" data-test-id="person-inactive">{{ t('team.inactive') }}</span>
@@ -430,14 +432,14 @@ onMounted(() => {
           </button>
         </div>
 
-        <section class="min-w-0" :aria-label="heading">
-          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-hair pb-2">
-            <h2 class="title-face text-sm text-txt-hi" data-test-id="list-title">{{ heading }}</h2>
+        <section class="card min-w-0 overflow-hidden" :aria-label="heading">
+          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line px-4 py-3">
+            <h2 class="title-face text-base text-txt-hi" data-test-id="list-title">{{ heading }}</h2>
             <p class="text-xs text-txt-low" aria-live="polite" data-test-id="list-summary">{{ summary }}</p>
           </div>
           <div
             v-if="selection === VIEW_ALL"
-            class="flex flex-wrap gap-1 py-2"
+            class="flex flex-wrap gap-2 border-b border-line px-4 py-3"
             role="group"
             :aria-label="t('subjects.filterGroup')"
           >
@@ -445,8 +447,8 @@ onMounted(() => {
               v-for="option in SUBJECT_FILTERS"
               :key="option"
               type="button"
-              class="rounded-md px-2.5 py-1 text-xs font-semibold"
-              :class="filter === option ? 'bg-elev text-txt-hi' : 'text-txt-low hover:bg-elev/60 hover:text-txt-mid'"
+              class="chip min-h-8 border px-3 max-sm:min-h-10"
+              :class="filter === option ? 'chip-filter' : 'border-transparent text-txt-mid hover:bg-elev'"
               :aria-pressed="filter === option"
               :data-test-id="`filter-${option}`"
               @click="filter = option"
@@ -455,7 +457,7 @@ onMounted(() => {
               <span class="ml-1 tabular-nums font-normal">{{ stateCounts[option] }}</span>
             </button>
           </div>
-          <p v-if="visible.length === 0" class="py-6 text-sm text-txt-low" data-test-id="list-empty">
+          <p v-if="visible.length === 0" class="px-4 py-8 text-center text-sm text-txt-mid" data-test-id="list-empty">
             {{ t('subjects.emptyList') }}
           </p>
           <ul v-else data-test-id="subjects-list">

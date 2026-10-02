@@ -53,7 +53,7 @@ const scoreColour = computed(() => {
         class="mt-1 block w-full text-left hover:text-acc"
         @click="emit('pick', { kind: 'title', text: shown.title })"
       >
-        <h2 class="title-face text-[22px]">{{ shown.title }}</h2>
+        <h2 class="title-face text-lg">{{ shown.title }}</h2>
       </button>
 
       <button

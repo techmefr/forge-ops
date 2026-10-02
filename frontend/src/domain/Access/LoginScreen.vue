@@ -174,9 +174,9 @@ useRefusalFocus(refusal, signForm)
   <div class="mx-auto max-w-md p-8">
     <section
       v-if="mode.data.value?.mode === 'local' && (mode.data.value?.localTrusted !== true || autologinFailed)"
-      class="rounded-lg bg-card p-6"
+      class="card p-6"
     >
-      <p class="title-face text-[22px]">{{ t('access.enterBoard') }}</p>
+      <p class="title-face text-lg">{{ t('access.enterBoard') }}</p>
       <p class="mt-1 text-xs text-txt-low">{{ t('access.tokenHint') }}</p>
 
       <form ref="tokenForm" class="mt-5 flex flex-col gap-3" @submit.prevent="openBoardSession()">
@@ -208,9 +208,9 @@ useRefusalFocus(refusal, signForm)
 
     <section
       v-else-if="mode.data.value?.mode !== 'local'"
-      class="rounded-lg bg-card p-6"
+      class="card p-6"
     >
-      <p class="title-face text-[22px]">
+      <p class="title-face text-lg">
         {{
           state.data.value?.enrolmentOpen === true
             ? t('access.firstAccount')

@@ -49,7 +49,7 @@ function addDraft(): void {
 </script>
 
 <template>
-  <section class="rounded-lg bg-card p-4">
+  <section class="card p-4">
     <div class="flex flex-wrap items-baseline gap-3">
       <p class="text-xs text-txt-low">
         {{ t('pilot.title') }}

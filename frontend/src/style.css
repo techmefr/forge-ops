@@ -297,6 +297,22 @@
     opacity: 0.5;
   }
 
+  .field-sm {
+    min-height: 2rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  select.field-sm {
+    padding-right: 1.75rem;
+  }
+
+  @media (max-width: 639px) {
+    .field-sm {
+      min-height: 2.5rem;
+    }
+  }
+
   select.field {
     appearance: none;
     padding-right: 2rem;
@@ -328,6 +344,16 @@
     font-size: 0.75rem;
     font-weight: 500;
     line-height: 1.5;
+  }
+
+  .chip-run {
+    background: color-mix(in srgb, var(--forge-acc) 10%, transparent);
+    color: var(--forge-accsoft);
+  }
+
+  .chip-idle {
+    background: var(--forge-elev);
+    color: var(--forge-txtmid);
   }
 
   .chip-filter {

@@ -477,7 +477,7 @@ onMounted(() => {
       <section
         v-for="block in withoutDates"
         :key="`undated-${block.entry.project.id}`"
-        class="flex-none rounded-lg bg-card p-4"
+        class="flex-none card p-4"
         :data-test-id="`roadmap-undated-${block.entry.project.id}`"
       >
         <h3 class="text-sm font-bold text-txt-hi">

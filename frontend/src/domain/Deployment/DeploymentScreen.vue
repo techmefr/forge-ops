@@ -124,7 +124,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
       </p>
     </div>
 
-    <section v-if="conflicted.length > 0" class="mt-6 rounded-lg bg-card p-4">
+    <section v-if="conflicted.length > 0" class="mt-6 card p-4">
       <p class="text-xs text-red">
         {{ t('deployment.mergeConflicts') }}
       </p>
@@ -172,7 +172,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
                 t(`state.${story.state}`)
               }}</span>
             </div>
-            <h2 class="title-face mt-1 text-[22px]">{{ story.title }}</h2>
+            <h2 class="title-face mt-1 text-lg">{{ story.title }}</h2>
 
             <div v-if="worktreeOf(story.id) !== null" class="mt-3 rounded-lg bg-elev p-3">
               <p class="font-mono text-xs text-txt-hi">{{ worktreeOf(story.id)?.branch }}</p>
