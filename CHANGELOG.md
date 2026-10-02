@@ -15,6 +15,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- Guardrails: the registration check compares the exact hook command and arguments instead of a substring, refuses project settings that skip the permission layer, and the two hooks are injected through the SDK options. Settings, hooks, the deny list, `.mcp.json`, `.git` and the guardrail sources are not writable by agents in any phase, and a change to them during a step fails the step with the changed paths.
 - Agent sessions are decided by a permission callback: tools by phase, writes confined to the story directory, spec and architecture phases write only under `.claude/evidence/`. A session refuses to start unless the guardrail hooks are registered (`409 GuardrailNotRegisteredError`).
 - Agent processes get an allow-listed environment instead of the board's.
 - Worktrees, evidence and proofs are resolved from the project checkout, not from the board's directory.

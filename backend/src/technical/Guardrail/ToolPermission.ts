@@ -1,5 +1,6 @@
 import { existsSync, realpathSync } from 'node:fs'
 import { dirname, isAbsolute, relative, resolve } from 'node:path'
+import { isProtectedPath } from './ProtectedPaths.js'
 import { allowsTool, EVIDENCE_FOLDER, isShellTool, isWritingTool, writesEvidenceOnly } from './PhaseToolPolicy.js'
 
 export type ToolPermission = { behavior: 'allow' } | { behavior: 'deny'; message: string }
@@ -49,6 +50,10 @@ export function decideToolPermission({ phase, tool, input, root }: ToolPermissio
   const paths = pathsOf(input, root)
   if (isWritingTool(tool) && paths.length === 0) {
     return denied(`${tool} without a file path cannot be checked`)
+  }
+  const guarded = isWritingTool(tool) ? paths.find((path) => isProtectedPath(root, path)) : undefined
+  if (guarded !== undefined) {
+    return denied(`${tool} may not touch ${guarded}: settings, hooks, deny list, guardrail files and .git are protected`)
   }
   if (evidenceWrite) {
     const evidenceRoot = resolve(root, EVIDENCE_FOLDER)

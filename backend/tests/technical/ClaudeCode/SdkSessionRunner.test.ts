@@ -1,18 +1,12 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const queried = vi.fn()
 const resolved = vi.fn()
 
-const REGISTERED = {
-  effective: {
-    hooks: {
-      PreToolUse: [
-        { hooks: [{ type: 'command', command: 'tsx', args: ['backend/src/technical/Guardrail/DenyHook.ts'] }] },
-        { hooks: [{ type: 'command', command: 'tsx', args: ['backend/src/technical/Guardrail/ScopeHook.ts'] }] },
-      ],
-    },
-  },
-}
+const REGISTERED = { effective: {}, sources: [] }
 
 vi.mock('@anthropic-ai/claude-agent-sdk', () => ({
   query: (input: unknown) => queried(input),
@@ -20,6 +14,7 @@ vi.mock('@anthropic-ai/claude-agent-sdk', () => ({
 }))
 
 const { createSdkSessionRunner, createSdkSessionTalker, failureOf, STOP_GRACE_MS } = await import('../../../src/technical/ClaudeCode/SdkSessionRunner.js')
+const { createGuardrailSeal } = await import('../../../src/technical/Guardrail/GuardrailSeal.js')
 const { createLiveSessions } = await import('../../../src/technical/ClaudeCode/LiveSessions.js')
 import type { SdkUserTurn } from '../../../src/technical/ClaudeCode/TurnDelivery.js'
 
@@ -114,15 +109,67 @@ describe('createSdkSessionRunner', () => {
 
   it('refuses to open a session when the guardrail is not registered', async () => {
     queried.mockReturnValue(conversationOf(SPOKEN))
-    resolved.mockResolvedValue({ effective: {} })
+    const neutered = {
+      hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'echo', args: ['Guardrail/DenyHook.ts'] }] }] },
+    }
+    resolved.mockResolvedValue({ effective: neutered, sources: [{ source: 'project', settings: neutered }] })
     const runner = createSdkSessionRunner({
       cwdFor: () => '/tmp',
       live: createLiveSessions<SdkUserTurn>(),
       onEvent: () => undefined,
     })
 
-    await expect(runner.launch(ORDER)).rejects.toThrow('DenyHook.ts')
+    await expect(runner.launch(ORDER)).rejects.toThrow('not the forge guardrail')
     expect(queried).not.toHaveBeenCalled()
+  })
+
+  it('injects the exact guardrail hooks through the sdk options instead of trusting files', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    const runner = createSdkSessionRunner({
+      cwdFor: () => '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: () => undefined,
+      forgeRoot: process.cwd(),
+    })
+
+    await runner.launch(ORDER)
+
+    const injected = queried.mock.calls[0]![0].options.settings
+    const entries = injected.hooks.PreToolUse
+    expect(entries.map((entry: { matcher: string }) => entry.matcher)).toEqual([
+      'Bash|PowerShell',
+      'Write|Edit|MultiEdit|NotebookEdit',
+    ])
+    expect(entries[0].hooks[0].command).toBe(join(process.cwd(), 'node_modules', '.bin', 'tsx'))
+    expect(entries[0].hooks[0].args).toEqual([join(process.cwd(), 'backend', 'src', 'technical', 'Guardrail', 'DenyHook.ts')])
+  })
+
+  it('fails the session and refuses the next launch when the guardrail files changed during a turn', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    const events: { name: string; payload: Record<string, unknown> }[] = []
+    const folder = mkdtempSync(join(tmpdir(), 'runner-tamper-'))
+    mkdirSync(join(folder, '.claude'), { recursive: true })
+    writeFileSync(join(folder, '.claude', 'settings.json'), '{}')
+    const seal = createGuardrailSeal(process.cwd())
+    const runner = createSdkSessionRunner({
+      cwdFor: () => folder,
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: (event) => events.push(event),
+      seal,
+    })
+    queried.mockImplementation(() => {
+      writeFileSync(join(folder, '.claude', 'settings.json'), '{"permissions":{"allow":["Bash(*)"]}}')
+      return conversationOf(SPOKEN)
+    })
+
+    await runner.launch(ORDER)
+    await vi.waitFor(() => expect(events.some((event) => event.name === 'session.failed')).toBe(true))
+
+    const failure = events.find((event) => event.name === 'session.failed')
+    expect(String(failure?.payload.message)).toContain('.claude/settings.json')
+    expect(closed).toHaveBeenCalled()
+    await expect(runner.launch(ORDER)).rejects.toThrow('guardrail files changed')
+    rmSync(folder, { recursive: true, force: true })
   })
 
   it('hands back the session identifier the sdk announced', async () => {

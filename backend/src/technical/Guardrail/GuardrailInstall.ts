@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { buildHookSettings } from '../Auth/HookSettings.js'
-import { guardrailHookFiles } from './GuardrailRegistration.js'
+import { expectedGuardrailHooks, guardrailHookEntry, guardrailHookFiles } from './GuardrailRegistration.js'
 import { excludeLocalFiles } from './LocalSettings.js'
 
 export class GuardrailInstallRefusedError extends Error {
@@ -26,8 +26,6 @@ export type GuardrailInstallResult = {
 type Settings = Record<string, unknown>
 type HookEntry = Record<string, unknown>
 
-const DENY_MATCHER = 'Bash|PowerShell'
-const SCOPE_MATCHER = 'Write|Edit|MultiEdit|NotebookEdit'
 const OWNED_MARKERS = [...guardrailHookFiles, '/api/hooks']
 const SETTINGS_MODE = 0o600
 
@@ -59,15 +57,6 @@ function withHooks(settings: Settings, event: string, entries: readonly HookEntr
   return { ...settings, hooks: { ...hooks, [event]: [...current.filter((entry) => !isOwned(entry)), ...entries] } }
 }
 
-function commandHook(forgeRoot: string, file: string): HookEntry {
-  return {
-    type: 'command',
-    command: join(forgeRoot, 'node_modules', '.bin', 'tsx'),
-    args: [join(forgeRoot, 'backend', 'src', 'technical', 'Guardrail', file)],
-    timeout: 10,
-  }
-}
-
 function write(path: string, settings: Settings): void {
   mkdirSync(dirname(path), { recursive: true })
   writeFileSync(path, `${JSON.stringify(settings, null, 2)}\n`, { encoding: 'utf-8', mode: SETTINGS_MODE })
@@ -83,10 +72,11 @@ export function installGuardrails({ checkout, forgeRoot, hook }: GuardrailInstal
     throw new GuardrailInstallRefusedError(`${tsx} is missing, run npm ci in ${forgeRoot}`)
   }
   const settingsPath = join(root, '.claude', 'settings.json')
-  const shared = withHooks(readSettings(settingsPath), 'PreToolUse', [
-    { matcher: DENY_MATCHER, hooks: [commandHook(forgeRoot, 'DenyHook.ts')] },
-    { matcher: SCOPE_MATCHER, hooks: [commandHook(forgeRoot, 'ScopeHook.ts')] },
-  ])
+  const shared = withHooks(
+    readSettings(settingsPath),
+    'PreToolUse',
+    expectedGuardrailHooks(forgeRoot).map(guardrailHookEntry),
+  )
   write(settingsPath, shared)
   const excludeFile = excludeLocalFiles(root)
   if (hook === undefined) {

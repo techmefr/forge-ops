@@ -58,6 +58,7 @@ import { createPreferenceRepository } from '../domain/Preference/PreferenceRepos
 import { createDoctrineSource } from '../technical/Doctrine/DoctrineSource.js'
 import { installGuardrails } from '../technical/Guardrail/GuardrailInstall.js'
 import { carryLocalSettings } from '../technical/Guardrail/LocalSettings.js'
+import { createGuardrailSeal } from '../technical/Guardrail/GuardrailSeal.js'
 import { createFileApi } from '../domain/File/FileApi.js'
 import { createFileRepository } from '../domain/File/FileRepository.js'
 import { createStatisticRepository } from '../domain/Statistic/StatisticRepository.js'
@@ -256,6 +257,7 @@ export function startBoardServer({
     }
     events.publish(event)
   }
+  const guardrailSeal = createGuardrailSeal(process.cwd())
   const checkouts = createCheckoutResolver({
     stories,
     worktreePathOf: (storyId) => worktrees.findForStory(storyId)?.path ?? null,
@@ -281,7 +283,13 @@ export function startBoardServer({
   const organisations = createOrganisationRepository(db)
   const drivers = [
     claudeCodeDriver(
-      createSdkSessionRunner({ cwdFor: (order) => cwdForStory(order.storyId), live, onEvent: onSessionEvent }),
+      createSdkSessionRunner({
+        cwdFor: (order) => cwdForStory(order.storyId),
+        live,
+        onEvent: onSessionEvent,
+        forgeRoot: process.cwd(),
+        seal: guardrailSeal,
+      }),
     ),
     codexDriver(
       createCodexSessionRunner({ cwdFor: (order) => cwdForStory(order.storyId), onEvent: onSessionEvent }),
@@ -583,6 +591,14 @@ export function startBoardServer({
       latestSessionOf: (storyId) => sessions.latestSessionOf(storyId),
     }),
     baseShaOf: (storyId) => worktrees.findForStory(storyId)?.baseSha ?? null,
+    integrityOf: (storyId) => {
+      const cwd = cwdForStory(storyId)
+      const changes = guardrailSeal.changesSince(cwd)
+      if (changes.length > 0) {
+        guardrailSeal.markTampered(cwd, changes)
+      }
+      return guardrailSeal.tamperedReason(cwd)
+    },
     lastAgentMessage: (storyId) =>
       messages
         .listOfStory(storyId)
@@ -668,12 +684,15 @@ export function startBoardServer({
       files: createFileRepository(db),
       checkoutRoots: allowedCheckoutRoots,
       serverPaths: mode === 'hub' ? [dbPath, tokenPath, claudeHome, process.cwd()] : [],
-      installGuardrails: (checkout) =>
-        installGuardrails({
+      installGuardrails: (checkout) => {
+        const installed = installGuardrails({
           checkout,
           forgeRoot: process.cwd(),
           hook: { port, token: deriveHookToken(token) },
-        }),
+        })
+        guardrailSeal.forget(checkout)
+        return installed
+      },
       mayAdminister: (projectId, context) =>
         mayAdministerProject({
           login: operatorOf(context),

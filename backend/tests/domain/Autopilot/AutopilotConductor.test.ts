@@ -97,6 +97,8 @@ const reader: EvidenceReader = (path, root) => {
   return content === undefined ? { kind: 'unreadable', reason: 'missing' } : { kind: 'read', content }
 }
 
+const tamperedStories = new Map<number, string>()
+
 function rootOf(storyId: number): string {
   return `/work/${storyId}`
 }
@@ -104,6 +106,7 @@ function rootOf(storyId: number): string {
 function boot(steps: readonly WorkflowColumnDraft[], concurrencyCap = 5): void {
   db = openDatabase(':memory:')
   evidence = new Map()
+  tamperedStories.clear()
   launched = []
   closed = []
   const forgeCards = createForgeCardRepository(db)
@@ -199,6 +202,7 @@ function boot(steps: readonly WorkflowColumnDraft[], concurrencyCap = 5): void {
     mover,
     closer,
     lastAgentMessage: () => 'I could not finish the step',
+    integrityOf: (storyId) => tamperedStories.get(storyId) ?? null,
   })
   holder.conductor = conductor
   app = new Hono()
@@ -520,6 +524,20 @@ describe('a failing step', () => {
 
     expect(launched).toHaveLength(1)
     expect(cardOf(storyId).auto).toEqual({ state: 'red', reason: 'Spec failed: nope' })
+  })
+
+  it('fails the step with the reason when the guardrail files changed during it', async () => {
+    boot([{ ...AGENT_STEP, label: 'Spec', maxRetries: 0 }])
+    const storyId = backlogStory('see the mails')
+    await startFromBacklog(storyId)
+    tamperedStories.set(storyId, 'guardrail files changed while the agent was running: .claude/settings.json')
+
+    await finishTurn(storyId, { status: 'pass', reason: 'done' })
+
+    expect(cardOf(storyId).auto).toEqual({
+      state: 'red',
+      reason: 'Spec failed: guardrail files changed while the agent was running: .claude/settings.json',
+    })
   })
 
   it('counts a missing verdict as a failure', async () => {
