@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import StepProgress from '@/technical/Ui/StepProgress.vue'
 import ProjectCreateForm from './ProjectCreateForm.vue'
 
 const emit = defineEmits<{ created: [] }>()
@@ -16,12 +17,17 @@ function onCreated(): void {
 
 <template>
   <section
-    class="flex flex-col gap-4 border-t border-hair pt-6"
+    class="card flex flex-col gap-4 p-6"
     :aria-label="t('emptyState.title')"
   >
+    <StepProgress
+      :steps="[t('getStarted.project'), t('getStarted.workflow'), t('getStarted.story')]"
+      :current="0"
+      :label="t('getStarted.label')"
+    />
     <div>
-      <p class="text-base font-semibold">{{ t('emptyState.title') }}</p>
-      <p class="mt-1 text-sm text-txt-low">{{ t('emptyState.body') }}</p>
+      <p class="title-face text-lg">{{ t('emptyState.title') }}</p>
+      <p class="mt-1 text-sm text-txt-mid">{{ t('emptyState.body') }}</p>
     </div>
 
     <ProjectCreateForm v-if="creating" @created="onCreated" @cancel="creating = false" />

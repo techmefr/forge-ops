@@ -1262,6 +1262,12 @@ export const PORTUGUESE: Message = {
     createAccount: 'Criar a conta',
     enter: 'Entrar',
   },
+  getStarted: {
+    label: 'Primeiros passos',
+    project: 'Criar um projeto',
+    workflow: 'Definir as etapas',
+    story: 'Adicionar uma story',
+  },
   emptyState: {
     title: 'Ainda nenhum projeto',
     body: 'Crie o teu primeiro projeto para começar a distribuir stories, ou verifica primeiro a configuração do workflow.',
