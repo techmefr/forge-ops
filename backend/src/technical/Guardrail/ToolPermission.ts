@@ -1,6 +1,7 @@
 import { existsSync, realpathSync } from 'node:fs'
 import { dirname, isAbsolute, relative, resolve } from 'node:path'
 import { isProtectedPath } from './ProtectedPaths.js'
+import { decideShellCommand, EMPTY_SHELL_SEED, shellContextOf, type ShellSeed } from './ShellPolicy.js'
 import { allowsTool, EVIDENCE_FOLDER, isShellTool, isWritingTool, writesEvidenceOnly } from './PhaseToolPolicy.js'
 
 export type ToolPermission = { behavior: 'allow' } | { behavior: 'deny'; message: string }
@@ -10,6 +11,7 @@ export type ToolPermissionQuestion = {
   tool: string
   input: Record<string, unknown>
   root: string
+  shell?: ShellSeed
 }
 
 const PATH_FIELDS = ['file_path', 'notebook_path', 'path'] as const
@@ -42,7 +44,18 @@ function denied(message: string): ToolPermission {
   return { behavior: 'deny', message }
 }
 
-export function decideToolPermission({ phase, tool, input, root }: ToolPermissionQuestion): ToolPermission {
+function decideShell(question: ToolPermissionQuestion): ToolPermission {
+  const { phase, tool, input, root, shell } = question
+  const command = input.command
+  if (tool !== 'Bash' || typeof command !== 'string') {
+    return denied(`${tool} calls cannot be checked, use Bash with a plain command`)
+  }
+  const decision = decideShellCommand(command, shellContextOf(phase, root, shell ?? EMPTY_SHELL_SEED))
+  return decision.allowed ? { behavior: 'allow' } : denied(decision.reason)
+}
+
+export function decideToolPermission(question: ToolPermissionQuestion): ToolPermission {
+  const { phase, tool, input, root } = question
   const evidenceWrite = writesEvidenceOnly(phase, tool)
   if (!evidenceWrite && !allowsTool(phase, tool)) {
     return denied(`Tool ${tool} is not part of the ${phase} phase`)
@@ -62,7 +75,7 @@ export function decideToolPermission({ phase, tool, input, root }: ToolPermissio
       : denied(`${tool} is limited to ${EVIDENCE_FOLDER} in the ${phase} phase`)
   }
   if (isShellTool(tool)) {
-    return { behavior: 'allow' }
+    return decideShell(question)
   }
   return paths.every((path) => contains(root, path))
     ? { behavior: 'allow' }

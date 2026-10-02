@@ -15,6 +15,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- Shell access follows an allow-list per phase with a real tokenizer instead of the deny list: no shell in spec and architecture, read-only plus the test command in gate and review, `git push <remote> <story-branch>` as the only push in ship. `SSH_AUTH_SOCK` is no longer forwarded unless `FORGE_AGENT_FORWARD_ENV` names it. Gate, review and ship write their evidence with the Write tool, limited to `.claude/evidence/`.
 - Guardrails: the registration check compares the exact hook command and arguments instead of a substring, refuses project settings that skip the permission layer, and the two hooks are injected through the SDK options. Settings, hooks, the deny list, `.mcp.json`, `.git` and the guardrail sources are not writable by agents in any phase, and a change to them during a step fails the step with the changed paths.
 - Agent sessions are decided by a permission callback: tools by phase, writes confined to the story directory, spec and architecture phases write only under `.claude/evidence/`. A session refuses to start unless the guardrail hooks are registered (`409 GuardrailNotRegisteredError`).
 - Agent processes get an allow-listed environment instead of the board's.

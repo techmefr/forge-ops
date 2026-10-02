@@ -1,6 +1,7 @@
 import { isAbsolute, relative, resolve } from 'node:path'
 import { z } from 'zod'
 import { decideOnHookPayload } from './DenyDecision.js'
+import { decideShellCommand, shellContextOf, shellSeedOf } from './ShellPolicy.js'
 import { allowsTool, EVIDENCE_FOLDER, toolsOfPhase, writesEvidenceOnly } from './PhaseToolPolicy.js'
 
 const payloadSchema = z.object({
@@ -21,6 +22,8 @@ export type PhaseDecision = { allowed: true } | { allowed: false; reason: string
 export type ToolCallQuestion = {
   denyPath: string
   phase: string | null
+  root?: string
+  env?: NodeJS.ProcessEnv
 }
 
 const ALLOWED: PhaseDecision = { allowed: true }
@@ -75,10 +78,41 @@ export function decideOnPhasePayload(
   return ALLOWED
 }
 
-export function decideOnToolCall(raw: string, { denyPath, phase }: ToolCallQuestion): PhaseDecision {
-  const byPhase = decideOnPhasePayload(raw, phase)
+function shellCommandOf(raw: string): { command: unknown } | null {
+  try {
+    const parsed = payloadSchema.safeParse(JSON.parse(raw))
+    if (!parsed.success || !['Bash', 'PowerShell'].includes(parsed.data.tool_name)) {
+      return null
+    }
+    const input: Record<string, unknown> = parsed.data.tool_input ?? {}
+    return { command: parsed.data.tool_name === 'Bash' ? input.command : undefined }
+  } catch {
+    return null
+  }
+}
+
+export function decideOnToolCall(
+  raw: string,
+  { denyPath, phase, root, env = process.env }: ToolCallQuestion,
+): PhaseDecision {
+  const byPhase = decideOnPhasePayload(raw, phase, root)
   if (!byPhase.allowed) {
     return byPhase
   }
-  return decideOnHookPayload(raw, denyPath)
+  const byDenyList = decideOnHookPayload(raw, denyPath)
+  if (!byDenyList.allowed) {
+    return byDenyList
+  }
+  const shell = shellCommandOf(raw)
+  if (shell === null) {
+    return ALLOWED
+  }
+  if (typeof shell.command !== 'string' || phase === null) {
+    return refused('commande shell sans texte simple')
+  }
+  const decision = decideShellCommand(
+    shell.command,
+    shellContextOf(phase, root ?? env.CLAUDE_PROJECT_DIR ?? process.cwd(), shellSeedOf(env)),
+  )
+  return decision.allowed ? ALLOWED : { allowed: false, reason: decision.reason }
 }

@@ -14,6 +14,7 @@ import {
   guardrailHookSettings,
 } from '../Guardrail/GuardrailRegistration.js'
 import { createGuardrailSeal, type GuardrailSeal } from '../Guardrail/GuardrailSeal.js'
+import { EMPTY_SHELL_SEED, shellEnvOf, type ShellSeed } from '../Guardrail/ShellPolicy.js'
 
 function effortOptionOf(order: LaunchOrder): { effort?: WorkflowEffort } {
   const effort = WORKFLOW_EFFORTS.find((candidate) => candidate === order.effort)
@@ -28,6 +29,7 @@ export type SdkSessionRunnerInput = {
   live: LiveSessions<SdkUserTurn>
   forgeRoot?: string
   seal?: GuardrailSeal
+  shellSeedFor?: (order: LaunchOrder) => ShellSeed
 }
 
 export class SessionIdentifierMissingError extends Error {
@@ -43,6 +45,7 @@ export function createSdkSessionRunner({
   live,
   forgeRoot = process.cwd(),
   seal = createGuardrailSeal(forgeRoot),
+  shellSeedFor,
 }: SdkSessionRunnerInput): SessionRunner {
   return {
     launch: async (order: LaunchOrder) => {
@@ -53,6 +56,7 @@ export function createSdkSessionRunner({
       }
       await assertGuardrailRegistered(cwd, forgeRoot)
       seal.seal(cwd)
+      const shell = shellSeedFor?.(order) ?? EMPTY_SHELL_SEED
       const started = live.start()
       started.channel.push(userTurn(order.prompt))
       const conversation = query({
@@ -63,12 +67,13 @@ export function createSdkSessionRunner({
           settings: guardrailHookSettings(forgeRoot) as Settings,
           permissionMode: 'default',
           canUseTool: (tool, input) =>
-            Promise.resolve(decideToolPermission({ phase: order.phase, tool, input, root: cwd })),
+            Promise.resolve(decideToolPermission({ phase: order.phase, tool, input, root: cwd, shell })),
           ...(order.model === undefined ? {} : { model: order.model }),
           ...effortOptionOf(order),
           ...(order.resumeSessionId === undefined ? {} : { resume: order.resumeSessionId }),
           env: {
             ...agentEnvironmentOf({ source: process.env }),
+            ...shellEnvOf(shell),
             FORGE_STORY_REFERENCE: order.reference,
             FORGE_PHASE: order.phase,
             ...(order.baseUrl === undefined ? {} : { ANTHROPIC_BASE_URL: order.baseUrl }),

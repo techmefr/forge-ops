@@ -50,6 +50,30 @@ describe('agentEnvironmentOf', () => {
   })
 })
 
+describe('ssh agent forwarding', () => {
+  const WITH_AGENT = { ...SERVER_ENV, SSH_AUTH_SOCK: '/run/user/1000/ssh-agent.sock', GIT_ASKPASS: '/bin/askpass' }
+
+  it('never hands the ssh agent socket to an agent by default', () => {
+    expect(agentEnvironmentOf({ source: WITH_AGENT }).SSH_AUTH_SOCK).toBeUndefined()
+    expect(codexAgentEnvironmentOf(WITH_AGENT).SSH_AUTH_SOCK).toBeUndefined()
+  })
+
+  it('forwards only the variables an admin names explicitly', () => {
+    const env = agentEnvironmentOf({ source: { ...WITH_AGENT, FORGE_AGENT_FORWARD_ENV: 'SSH_AUTH_SOCK' } })
+
+    expect(env.SSH_AUTH_SOCK).toBe('/run/user/1000/ssh-agent.sock')
+    expect(env.GIT_ASKPASS).toBeUndefined()
+    expect(env.FORGE_AGENT_FORWARD_ENV).toBeUndefined()
+  })
+
+  it('ignores malformed names in the forward list', () => {
+    const env = agentEnvironmentOf({ source: { ...WITH_AGENT, FORGE_AGENT_FORWARD_ENV: 'BAD NAME, ;rm, FORGE_AGENT_FORWARD_ENV' } })
+
+    expect(Object.keys(env)).not.toContain('FORGE_AGENT_FORWARD_ENV')
+    expect(env.SSH_AUTH_SOCK).toBeUndefined()
+  })
+})
+
 describe('codexAgentEnvironmentOf', () => {
   it('adds openai variables without leaking forge secrets', () => {
     const env = codexAgentEnvironmentOf(SERVER_ENV)

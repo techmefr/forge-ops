@@ -50,10 +50,12 @@ describe('decideOnPhasePayload', () => {
     expect(decideOnPhasePayload(JSON.stringify({ tool_name: 'Write' }), 'spec', '/work/project').allowed).toBe(false)
   })
 
-  it('does not let a review session write evidence', () => {
-    const payload = { tool_name: 'Write', tool_input: { file_path: '.claude/evidence/FORGE-1/review.md' } }
+  it('lets a review session write its evidence and nothing else', () => {
+    const evidence = { tool_name: 'Write', tool_input: { file_path: '.claude/evidence/FORGE-1/review.verdict.json' } }
+    const code = { tool_name: 'Write', tool_input: { file_path: 'backend/src/forge.ts' } }
 
-    expect(decideOnPhasePayload(JSON.stringify(payload), 'review', '/work/project').allowed).toBe(false)
+    expect(decideOnPhasePayload(JSON.stringify(evidence), 'review', '/work/project').allowed).toBe(true)
+    expect(decideOnPhasePayload(JSON.stringify(code), 'review', '/work/project').allowed).toBe(false)
   })
 
   it('lets a code session write code', () => {
@@ -102,10 +104,8 @@ describe('decideOnToolCall', () => {
     expect(decision.allowed === false && decision.reason).toContain('git push --force')
   })
 
-  it('still lets a lease-protected force push through in a phase that may use bash', () => {
-    expect(call({ tool_name: 'Bash', tool_input: { command: 'git push --force-with-lease' } }, 'ship')).toEqual({
-      allowed: true,
-    })
+  it('refuses a lease-protected force push, a ship session may only push its story branch', () => {
+    expect(call({ tool_name: 'Bash', tool_input: { command: 'git push --force-with-lease' } }, 'ship').allowed).toBe(false)
   })
 
   it('blocks bash in a phase whose policy has no bash', () => {
