@@ -69,7 +69,7 @@ function dragging(card: ForgeCardView, on: boolean): void {
     <section
       v-for="step in steps"
       :key="step.key"
-      class="flex h-full w-[min(272px,82vw)] flex-none flex-col overflow-y-auto overscroll-contain rounded-lg bg-panel"
+      class="flex h-full w-[min(272px,82vw)] flex-none flex-col overflow-y-auto overscroll-contain rounded-lg border border-line bg-panel"
       :class="overKey === step.key ? 'outline-2 outline-acc' : ''"
       :aria-label="t('forge.columnAria', { step: step.label, count: cardsOfStep(cards, step.key).length }, cardsOfStep(cards, step.key).length)"
       :data-step="step.key"
@@ -89,7 +89,7 @@ function dragging(card: ForgeCardView, on: boolean): void {
           <span class="tabular-nums text-xs text-txt-low">{{ cardsOfStep(cards, step.key).length }}</span>
         </div>
       </header>
-      <ul class="m-0 flex min-h-[3rem] flex-1 list-none flex-col p-0">
+      <ul class="m-0 flex min-h-[3rem] flex-1 list-none flex-col gap-3 p-3">
         <ForgeCardTile
           v-for="card in cardsOfStep(cards, step.key)"
           :key="card.id"
@@ -100,7 +100,7 @@ function dragging(card: ForgeCardView, on: boolean): void {
           @act="(action) => emit('act', card, action)"
           @dragging="(on) => dragging(card, on)"
         />
-        <li v-if="cardsOfStep(cards, step.key).length === 0" class="px-3 py-3 text-xs text-txt-low">
+        <li v-if="cardsOfStep(cards, step.key).length === 0" class="rounded-md border border-dashed border-line px-3 py-4 text-center text-xs text-txt-mid">
           {{ t('forge.emptyColumn') }}
         </li>
       </ul>

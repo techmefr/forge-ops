@@ -90,7 +90,7 @@ void tokens.reload()
         <li
           v-for="provider in sheet.data.value?.providers ?? []"
           :key="provider.kind"
-          class="flex items-center gap-3 rounded-md bg-panel px-3 py-2"
+          class="flex items-center gap-3 rounded-md border border-line bg-panel px-3 py-2"
         >
           <span class="text-sm text-txt-hi">{{ t(`provider.${provider.kind}`) }}</span>
           <span
@@ -128,7 +128,7 @@ void tokens.reload()
         <li
           v-for="token in tokens.data.value ?? []"
           :key="token.id"
-          class="flex items-center gap-3 rounded-md bg-panel px-3 py-2"
+          class="flex items-center gap-3 rounded-md border border-line bg-panel px-3 py-2"
         >
           <span class="text-sm text-txt-hi">{{ token.name }}</span>
           <span v-if="token.revokedAt !== null" class="text-xs text-txt-low">{{

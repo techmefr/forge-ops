@@ -262,7 +262,7 @@ onMounted(async () => {
     </section>
 
     <section class="flex min-h-0 min-w-0 flex-col border-b border-hair p-6 lg:border-r lg:border-b-0">
-      <h2 class="title-face text-[22px]">{{ t('story.writeWithClaude') }}</h2>
+      <h2 class="title-face text-lg">{{ t('story.writeWithClaude') }}</h2>
       <p class="mt-1 text-sm text-txt-low">{{ t('story.writeWithClaudeHint') }}</p>
 
       <p v-if="refusal !== null" class="mt-3 text-sm text-red" role="alert">{{ say(refusal) }}</p>
@@ -389,7 +389,7 @@ onMounted(async () => {
 
         <form
           v-if="part === 'tests' && ticket.data.value?.tests === null"
-          class="mt-6 flex flex-col gap-2 rounded-lg bg-card p-4"
+          class="mt-6 flex flex-col gap-2 card p-4"
           @submit.prevent="submitTwin"
         >
           <p class="title-face text-sm text-violet">{{ t('story.twinTitle') }}</p>

@@ -86,7 +86,7 @@ function changeState(event: Event): void {
 
 <template>
   <li
-    class="group flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-hair/60 px-4 py-3 hover:bg-elev/60 min-[760px]:grid min-[760px]:grid-cols-[1fr_auto_auto_auto] min-[760px]:items-start min-[760px]:gap-x-4"
+    class="group flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1.5 min-h-12 border-b border-line px-4 py-3 last:border-b-0 hover:bg-elev/60 min-[760px]:grid min-[760px]:grid-cols-[1fr_auto_auto_auto] min-[760px]:items-start min-[760px]:gap-x-4"
     :data-test-id="`subject-row-${subject.id}`"
     @click="openFromClick"
   >
@@ -138,7 +138,7 @@ function changeState(event: Event): void {
 
     <select
       v-if="editableState"
-      class="justify-self-start rounded-md bg-elev px-2 py-1 text-xs font-semibold"
+      class="field field-sm justify-self-start font-semibold"
       :class="STATE_TONES[subject.state]"
       :value="subject.state"
       :aria-label="`${t(`epicState.${subject.state}`)}, ${t('subjects.row.stateOf', { title: subject.title })}`"
@@ -151,7 +151,7 @@ function changeState(event: Event): void {
     </select>
     <span
       v-else
-      class="w-fit justify-self-start px-2 py-1 text-xs font-semibold"
+      class="chip w-fit justify-self-start bg-current/10 font-semibold"
       :class="STATE_TONES[subject.state]"
       :title="deleted ? undefined : t('subjects.row.derived')"
       data-test-id="subject-state-label"

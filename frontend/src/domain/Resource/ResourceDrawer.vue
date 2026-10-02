@@ -19,7 +19,7 @@ function closeWhenClosed(open: boolean): void {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-40 bg-deep/70" />
       <DialogContent
-        class="fixed top-0 right-0 z-50 flex h-dvh w-full flex-col border-l border-hair bg-panel min-[760px]:w-[min(880px,100vw)]"
+        class="fixed top-0 right-0 z-50 flex h-dvh w-full flex-col border-l border-hair bg-panel shadow-lg min-[760px]:w-[min(880px,100vw)]"
         data-test="resource-drawer"
       >
         <header class="flex flex-none items-center gap-3 border-b border-hair px-5 py-3">
