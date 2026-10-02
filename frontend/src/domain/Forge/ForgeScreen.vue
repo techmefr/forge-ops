@@ -210,13 +210,13 @@ onMounted(async () => {
     <template v-if="projectId !== null">
       <div class="flex min-w-0 flex-none flex-wrap items-center gap-x-4 gap-y-2 px-4 pt-3">
         <h2 class="sr-only">{{ t('forge.title') }}</h2>
-        <small class="ml-auto text-[11px] text-txt-low">{{ t('forge.viewKept') }}</small>
+        <small class="ml-auto text-xs text-txt-low">{{ t('forge.viewKept') }}</small>
         <div class="flex rounded-md border border-line" role="group" :aria-label="t('forge.viewAria')">
           <button
             v-for="choice in FORGE_VIEWS"
             :key="choice"
             type="button"
-            class="border-0 bg-transparent px-3 py-1 font-mono text-[11px] first:rounded-l-md last:rounded-r-md"
+            class="border-0 bg-transparent px-3 py-1 text-xs first:rounded-l-md last:rounded-r-md"
             :class="view === choice ? 'bg-elev text-txt-hi' : 'text-txt-mid hover:bg-elev'"
             :aria-pressed="view === choice"
             @click="chooseView(choice)"
@@ -232,7 +232,7 @@ onMounted(async () => {
             v-for="entry in projects.data.value ?? []"
             :key="entry.id"
             type="button"
-            class="flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px]"
+            class="flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs"
             :class="entry.id === projectId ? 'border-acc text-txt-hi' : 'border-line text-txt-mid hover:bg-elev'"
             :aria-pressed="entry.id === projectId"
             @click="chooseProject(entry.id)"
@@ -243,7 +243,7 @@ onMounted(async () => {
         </div>
         <select
           v-model="subjectId"
-          class="max-w-full rounded-md border border-line bg-card px-2 py-1 text-[11px] text-txt-hi"
+          class="max-w-full rounded-md border border-line bg-card px-2 py-1 text-xs text-txt-hi"
           :aria-label="t('forge.subjectFilter')"
         >
           <option :value="null">{{ t('forge.allSubjects') }}</option>
@@ -270,7 +270,7 @@ onMounted(async () => {
         />
         <select
           v-model="newSubject"
-          class="max-w-full rounded-md border border-line bg-card px-2 py-1 text-[11px] text-txt-hi"
+          class="max-w-full rounded-md border border-line bg-card px-2 py-1 text-xs text-txt-hi"
           :aria-label="t('forge.addStorySubject')"
         >
           <option v-for="subject in addable" :key="subject.id" :value="subject.id">
@@ -279,13 +279,13 @@ onMounted(async () => {
         </select>
         <button
           type="submit"
-          class="rounded-md border border-line bg-transparent px-3 py-1 font-mono text-[11px] text-txt-hi hover:bg-elev disabled:opacity-40"
+          class="rounded-md border border-line bg-transparent px-3 py-1 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
           :disabled="newTitle.trim() === ''"
         >
           {{ t('forge.addStoryButton') }}
         </button>
       </form>
-      <p v-else-if="forge.workflow.value !== null" class="m-0 px-4 pb-3 text-[11px] text-txt-low">
+      <p v-else-if="forge.workflow.value !== null" class="m-0 px-4 pb-3 text-xs text-txt-low">
         {{ t('forge.noSubject') }}
       </p>
 
@@ -307,7 +307,7 @@ onMounted(async () => {
         />
       </div>
 
-      <p v-if="forge.pending.value" class="m-0 px-4 text-[11px] text-txt-low">{{ t('forge.loading') }}</p>
+      <p v-if="forge.pending.value" class="m-0 px-4 text-xs text-txt-low">{{ t('forge.loading') }}</p>
 
       <div class="min-h-[26rem] min-w-0 flex-1 px-4 pb-4" data-tour="forge-steps">
         <ForgeKanban

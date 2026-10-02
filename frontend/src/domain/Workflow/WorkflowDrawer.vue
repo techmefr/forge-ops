@@ -93,12 +93,12 @@ onMounted(() => void state.load())
         data-test="workflow-drawer"
       >
         <div class="flex items-start gap-3">
-          <DialogTitle class="title-face m-0 flex-1 text-[22px] text-txt-hi uppercase">
+          <DialogTitle class="title-face m-0 flex-1 text-[22px] text-txt-hi">
             {{ t('workflowSettings.title', { name: projectName }) }}
           </DialogTitle>
           <button
             type="button"
-            class="rounded-md px-2.5 py-1.5 font-mono text-[11px] text-txt-mid uppercase hover:bg-elev"
+            class="rounded-md px-2.5 py-1.5 text-xs text-txt-mid hover:bg-elev"
             @click="emit('close')"
           >
             {{ t('workflowSettings.close') }}
@@ -108,7 +108,7 @@ onMounted(() => void state.load())
           {{ t('workflowSettings.intro', { name: projectName }) }}
         </DialogDescription>
 
-        <p v-if="state.pending.value" class="m-0 font-mono text-xs tracking-[0.2em] text-txt-low uppercase">
+        <p v-if="state.pending.value" class="m-0 text-xs text-txt-low">
           {{ t('common.loading') }}
         </p>
         <p v-if="state.failure.value !== null" id="workflow-failure" class="m-0 text-sm text-red" role="alert" tabindex="-1">
@@ -116,7 +116,7 @@ onMounted(() => void state.load())
         </p>
 
         <template v-if="state.workflow.value !== null">
-          <p class="m-0 border-b border-line pb-2 font-mono text-[11px] text-txt-low">
+          <p class="m-0 border-b border-line pb-2 font-mono text-xs text-txt-low">
             {{ t('workflowSettings.backlogFixed') }}
           </p>
 
@@ -154,7 +154,7 @@ onMounted(() => void state.load())
             class="flex flex-wrap items-end gap-2"
             @submit.prevent="addStep"
           >
-            <label class="flex min-w-[10rem] flex-1 flex-col gap-1 text-[11px] text-txt-low">
+            <label class="flex min-w-[10rem] flex-1 flex-col gap-1 text-xs text-txt-low">
               <span>{{ t('workflowSettings.newStepName') }} <RequiredStar /></span>
               <input
                 v-model="newName"
@@ -167,17 +167,17 @@ onMounted(() => void state.load())
             <button
               type="submit"
               :disabled="state.busy.value || newName.trim() === ''"
-              class="rounded-md border border-line px-3 py-1.5 font-mono text-[11px] text-txt-hi uppercase hover:bg-elev disabled:opacity-40"
+              class="rounded-md border border-line px-3 py-1.5 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
             >
               {{ t('workflowSettings.addStep') }}
             </button>
             <RequiredNote class="basis-full" />
           </form>
 
-          <p class="m-0 border-t border-line pt-2 font-mono text-[11px] text-txt-low">
+          <p class="m-0 border-t border-line pt-2 font-mono text-xs text-txt-low">
             {{ t('workflowSettings.doneFixed') }}
           </p>
-          <p class="m-0 text-[11px] text-txt-low">{{ t('workflowSettings.footnote') }}</p>
+          <p class="m-0 text-xs text-txt-low">{{ t('workflowSettings.footnote') }}</p>
         </template>
       </DialogContent>
     </DialogPortal>

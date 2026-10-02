@@ -37,15 +37,15 @@ onMounted(() => void state.load())
       v-if="maySettle"
       type="button"
       :aria-label="`${t('workflowSettings.openWithCount', { count }, count)}, ${projectName}`"
-      class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:bg-elev"
+      class="rounded-md border border-line px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
       @click="opened = true"
     >
       <span aria-hidden="true">⚙ </span>{{ t('workflowSettings.openWithCount', { count }, count) }}
     </button>
-    <small v-else-if="admin !== null" class="text-[11px] text-txt-low">
+    <small v-else-if="admin !== null" class="text-xs text-txt-low">
       {{ t('workflowSettings.setBy', { name: admin.name }) }}
     </small>
-    <small v-else class="text-[11px] text-txt-low">{{ t('workflowSettings.noAdmin') }}</small>
+    <small v-else class="text-xs text-txt-low">{{ t('workflowSettings.noAdmin') }}</small>
     <WorkflowDrawer
       v-if="opened"
       :project-id="projectId"

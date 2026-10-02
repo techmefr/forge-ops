@@ -96,7 +96,7 @@ onMounted(async () => {
   <div class="flex h-full min-h-0 flex-col gap-5 p-8">
     <div class="flex flex-none flex-wrap items-end gap-4">
       <label class="flex flex-col gap-1">
-        <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">{{
+        <span class="text-xs text-txt-low">{{
           t('common.project')
         }}</span>
         <select
@@ -111,7 +111,7 @@ onMounted(async () => {
       </label>
 
       <div class="flex flex-col gap-1">
-        <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">{{
+        <span class="text-xs text-txt-low">{{
           t('epic.ownership')
         }}</span>
         <div class="flex gap-2">
@@ -120,12 +120,8 @@ onMounted(async () => {
             :key="name"
             type="button"
             :aria-pressed="name === ownership"
-            class="rounded-md border px-3 py-2 text-[11px] font-semibold uppercase"
-            :class="
-              name === ownership
-                ? 'border-acc bg-acc text-ink'
-                : 'border-line bg-card text-txt-mid hover:border-acc'
-            "
+            class="rounded-md border px-3 py-2 text-xs font-semibold"
+            :class="name === ownership ? 'border-acc bg-acc text-ink' : 'border-line bg-card text-txt-mid hover:border-acc'"
             @click="ownership = name"
           >
             {{ t(`ownership.${name}`) }}
@@ -133,13 +129,13 @@ onMounted(async () => {
         </div>
       </div>
 
-      <p class="ml-auto font-mono text-[11px] text-txt-low">
+      <p class="ml-auto font-mono text-xs text-txt-low">
         {{ t('epic.chosenCount', { count: picked.length }, picked.length) }}
       </p>
       <button
         type="button"
         :disabled="busy || picked.length === 0 || mixed"
-        class="rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink uppercase disabled:opacity-40"
+        class="rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
         @click="write()"
       >
         {{ t('epic.writeStories', picked.length) }}
@@ -170,11 +166,11 @@ onMounted(async () => {
               :style="{ background: projectOf(epic.projectId)?.colour ?? 'var(--forge-line)' }"
               aria-hidden="true"
             />
-            <span class="font-mono text-[11px] font-semibold text-acc">{{
+            <span class="font-mono text-xs font-semibold text-acc">{{
               projectOf(epic.projectId)?.name ?? t('epic.unknownProject')
             }}</span>
             <label
-              class="ml-auto flex min-h-[32px] max-sm:min-h-10 max-sm:min-w-10 cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
+              class="ml-auto flex min-h-[32px] max-sm:min-h-10 max-sm:min-w-10 cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-txt-low hover:bg-elev hover:text-txt-hi"
             >
               <input
                 type="checkbox"
@@ -193,11 +189,11 @@ onMounted(async () => {
           </button>
 
           <div class="mt-3 flex items-center gap-3 border-t border-line pt-3">
-            <span class="font-mono text-[11px] text-txt-low">{{
+            <span class="font-mono text-xs text-txt-low">{{
               t('epic.storyCount', { count: epic.storyCount }, epic.storyCount)
             }}</span>
             <span
-              class="font-mono text-[11px] uppercase"
+              class="text-xs"
               :class="epic.assignee === null ? 'text-green' : 'text-violet'"
               >{{ epic.assignee ?? t('epic.free') }}</span
             >
@@ -205,7 +201,7 @@ onMounted(async () => {
               v-if="epic.assignee === null"
               type="button"
               :disabled="busy"
-              class="ml-auto font-mono text-[11px] text-acc uppercase hover:underline disabled:opacity-40 max-sm:min-h-10 max-sm:min-w-10"
+              class="ml-auto text-xs text-acc hover:underline disabled:opacity-40 max-sm:min-h-10 max-sm:min-w-10"
               @click="claim(epic.id)"
             >
               {{ t('epic.claim') }}
@@ -214,7 +210,7 @@ onMounted(async () => {
               v-else-if="epic.assignee === self.data.value?.login"
               type="button"
               :disabled="busy"
-              class="ml-auto font-mono text-[11px] text-txt-low uppercase hover:underline disabled:opacity-40 max-sm:min-h-10 max-sm:min-w-10"
+              class="ml-auto text-xs text-txt-low hover:underline disabled:opacity-40 max-sm:min-h-10 max-sm:min-w-10"
               @click="release(epic.id)"
             >
               {{ t('common.release') }}
