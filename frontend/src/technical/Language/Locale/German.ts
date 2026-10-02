@@ -232,7 +232,6 @@ export const GERMAN: Message = {
   },
   roadmap: {
     aria: 'Roadmap: Projekte, ihre Themen und ihre Ereignisse',
-    title: 'Roadmap',
     newEvent: 'Neues Ereignis',
     addEvent: 'Ereignis hinzufügen',
     subjectOwner: 'Thema · Verantwortlich',

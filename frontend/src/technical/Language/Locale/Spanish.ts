@@ -232,7 +232,6 @@ export const SPANISH: Message = {
   },
   roadmap: {
     aria: 'Roadmap: proyectos, asuntos y eventos',
-    title: 'Roadmap',
     newEvent: 'Nuevo evento',
     addEvent: 'Añadir un evento',
     subjectOwner: 'Asunto · responsable',
