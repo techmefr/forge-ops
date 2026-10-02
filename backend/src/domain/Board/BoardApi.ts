@@ -101,6 +101,7 @@ export type BoardApiInput = {
   isSuperAdmin?: (login: string) => boolean
   isDirector?: (login: string) => boolean
   maySettleBudget?: (context: Context) => boolean
+  mayReadFleet?: (context: Context) => boolean
 }
 
 export function createBoardApi({
@@ -123,6 +124,7 @@ export function createBoardApi({
     const login = operatorOf(context)
     return isSuperAdmin(login) || isDirector(login)
   },
+  mayReadFleet,
 }: BoardApiInput): Hono {
   const api = new Hono()
 
@@ -373,12 +375,15 @@ export function createBoardApi({
 
   api.get('/api/files/conflicts', (context) => context.json(agentSessions.listConflictingPaths()))
 
-  api.get('/api/fleet', (context) =>
-    context.json({
+  api.get('/api/fleet', (context) => {
+    if (!(mayReadFleet ?? maySettleBudget)(context)) {
+      return context.json({ error: 'FleetNeedsAnAdmin' }, 403)
+    }
+    return context.json({
       roster: readRoster(claudeHome),
       jobs: readJobStates(claudeHome),
-    }),
-  )
+    })
+  })
 
   return api
 }
