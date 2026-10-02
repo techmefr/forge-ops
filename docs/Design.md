@@ -1,22 +1,91 @@
 # Design system
 
-Where the visual direction stands, and the decision on component primitives. This complements [VisualDirection.md](VisualDirection.md), which stays the source of truth for the type/spacing/radius scale and the colour-restraint rule - this document does not repeat those tables, it reasons about what to build with.
+Where the visual direction stands, and the decision on component primitives. This document supersedes the type, radius and elevation rules of VisualDirection.md.
 
-**Decision: Reka UI.** Adopted as the headless-primitives dependency for this project, for the reasoning below. Not shadcn-vue.
+**Decision: Reka UI.** Adopted as the headless-primitives dependency for this project. Not shadcn-vue. The reasoning is below.
 
-## Where the direction stands
+## Visual direction: HRFlow structure, Dracula and Alucard colour
 
-Decided (see [VisualDirection.md](VisualDirection.md)): **Linear**, specifically - not a Vercel/Linear blend.
+The app is warm, professional and friendly: rounded, readable, with clearly structured cards and lists. The structure, type, spacing, radii, elevation and component anatomy come from the HRFlow design system. The colour comes from the existing themes: Dracula (dark, the default) and Alucard (light), plus the other four palettes (Volt, Nord, Gruvbox, Tokyo Night, Solarized) switched through the same `--forge-*` token mechanism. Only token values, radii, shadows, fonts and component classes change; no component hardcodes a colour.
 
-- Type: five named steps (label/body/emphasis/display/display-lg), one Tailwind class each.
-- Spacing: tight-cluster / single-control / between-groups / outer-chrome, never an ad hoc `gap-2`/`p-4` picked by feel.
-- Radius: two steps only - `rounded-md` for controls, `rounded-lg` for surfaces. `rounded-2xl`/`rounded-xl` are legacy, collapsed on touch.
-- Colour: `--forge-*` tokens and every theme variant (6 palettes × light/dark) are untouched. The accent marks exactly one active/selected thing per view; status colours carry real status meaning only, never decoration.
-- Border/elevation: one hairline per region, background-tone shift (`bg-panel`/`bg-card`/`bg-elev`) instead of nested borders.
+Kept from the earlier calm passes: sentence case, no uppercase shouting, no hype copy, honest copy, one primary action per view, few chips, a quiet status pill, WCAG AA and RGAA, 40px touch targets at 375, seven locales, the GitHub Pages demo. Where the calm passes asked for borderless, flat surfaces, this document supersedes them: cards carry a 1px border and a small shadow again.
 
-Applied so far (issue #146): `AppShell.vue` (nav chrome), `StatisticScreen.vue`, the Settings screen, the File browser.
+### Type
 
-Not yet re-passed against the Linear-specific radius/colour rules above (they predate that decision, landed under the looser Vercel/Linear framing): all of the above files need a second look for `rounded-2xl`/`rounded-xl` and any decorative (non-status, non-active) colour use that survived the first pass.
+Fonts are self-hosted from the `@fontsource-variable` packages (latin and latin-ext only, `font-display: swap`, no CDN). Chinese falls back to the system CJK stack.
+
+| Role | Font | Size / line | Weight | Class |
+|---|---|---|---|---|
+| h1, page title | Lexend | 32 / 40 | 700 | `title-face text-2xl` |
+| h2, section | Lexend | 24 / 32 | 600 | `title-face text-xl` |
+| h3, card heading | Lexend | 20 / 28 | 600 | `title-face text-lg` |
+| h4 | Lexend | 16 / 24 | 600 | `title-face text-base` |
+| Body | DM Sans | 14 / 22 | 400 | `text-sm` |
+| Small, captions, metadata | DM Sans | 12 / 18 | 400 | `text-xs` |
+| Mono, ids, codes, numbers only | Roboto Mono | 13 / 20 | 400 | `font-mono` |
+
+Sizes are rem based, so the user font scale keeps working.
+
+### Spacing
+
+Base 8px. xs 4, sm 8, md 16 (component padding), lg 24 (section gaps), xl 32 (card padding), 2xl 48, 3xl 64. Generous whitespace around profile-like cards.
+
+### Radius
+
+sm 4 (chips, small elements), md 8 (buttons, cards, inputs), lg 12 (modals, panels, the drawer), full (avatars, pills). In Tailwind: `rounded-sm`, `rounded-md` and `rounded-lg` are 4, 8 and 8; `rounded-xl` is 12.
+
+### Elevation
+
+| Level | Shadow | Used for |
+|---|---|---|
+| sm | 0 1px 2px, 5% | inputs, chips, cards |
+| md | 0 2px 8px, 8% | elevated cards, dropdowns, tooltips |
+| lg | 0 4px 16px, 10% | modals, the drawer |
+| focus | 3px ring, primary at 25% | focused inputs |
+
+The shadow colours are tokens (`--forge-shadow-sm`, `-md`, `-lg`). In the dark theme they are stronger black and the surfaces step lighter so depth still reads.
+
+### Colour roles
+
+| Role | Dracula | Alucard |
+|---|---|---|
+| Page background (`deep`) | #282a36 | cream #f4f0e1 |
+| Shell and header (`panel`) | #2c2e3b | #fffbeb |
+| Card surface (`card`) | #313343 | near white #fffef8 |
+| Raised and hover (`elev`) | #353847 | #ece7d3 |
+| Line | #4a4d62 | #d9d4c0 |
+| Primary (`acc`) | purple #bd93f9 | purple #644ac9 |
+| Secondary, status and progress (`info`) | cyan | cyan #036a96 |
+| Tertiary (`orange`) | orange, badges and small accents only | same |
+| Success, warning, error | green, yellow, red | same hues, darkened |
+
+Every text and accent token is lifted until it reaches 4.6:1 on all four surfaces (`resolvePalette`), UI component edges reach 3:1 (`controlEdge`). Tests enforce both in both modes.
+
+### Components
+
+- **Buttons.** Primary: filled primary, hover darker. Secondary: transparent, primary text, 1px primary border, hover tint. Ghost: muted text, hover surface. Destructive: only for irreversible actions. Sizes sm 32px/12px, md 40px/14px, lg 48px/16px. Disabled is 50% opacity with no hover. At most two primary buttons per view; the board has one.
+- **Cards.** Surface fill, 1px border, sm shadow, 8px radius, 24px padding. The elevated variant has no border and a md shadow.
+- **Inputs.** 40px high, 8px 12px padding, 8px radius. Hover tints the border, focus shows the primary border and the 3px ring, error shows an error border and a tinted fill. The label is DM Sans 500 14px with 4px below it, helper text is 12px.
+- **Chips.** Filter chips: tinted primary fill, primary text, 1px primary border, pill. Status chips: tinted fill and coloured text, no border, pill (active green, pending warning, inactive or error red).
+- **Lists.** 48px rows, 12px 16px padding, 1px divider, tinted hover. A selected row has a tinted background and a 3px primary left border.
+- **Checkboxes and radios.** 18px, 2px border, primary when checked, an 8px gap to the label, a 40px hit area at 375.
+- **Tooltips.** Dark fill, 12px text, 4px radius, md shadow, 240px maximum width.
+
+### Do and don't
+
+Warm, people-centred labels. Avatars or initials in list rows where a person appears. Secondary cyan for status and progress. Destructive only for irreversible actions. Tertiary orange only for badges and small accents. Clear loading and empty states. Multi-step flows show a progress indicator.
+
+### Touch
+
+Every target is at least 40px at 375 wide. Small buttons grow to 40px on phones. Checkboxes and radios keep their visual size and get a 40px label hit area.
+
+### Copy rules
+
+Short sentences. No hype words, no exclamation marks, no emoji bullets. Sentence case. Say what the control does. Locale parity is kept: every key exists in the seven locales.
+
+### Checks
+
+After each change: screenshots of the changed screens in both themes at 1440 and 375, axe with 0 violations, and a touch-target sweep at 375.
 
 ## What forge-ops has today
 
@@ -26,7 +95,7 @@ Every interactive piece in the app is hand-rolled Vue + Tailwind: tabs, dropdown
 
 Both are Vue-ecosystem options; they are not actually alternatives to each other:
 
-- **Reka UI** (formerly Radix Vue) is a headless primitives library: `Dialog`, `Popover`, `DropdownMenu`, `Tabs`, `Tooltip`, `Select`, `Combobox`, etc. It ships zero visual opinion - no default padding, radius, colour, or shadow. You get correct behaviour (focus trap, keyboard nav, ARIA roles, portal/positioning) and skin it entirely with our own `--forge-*` tokens and the scale in `VisualDirection.md`. It's a normal npm dependency: versioned, upgradable, a real line in `package-lock.json`.
+- **Reka UI** (formerly Radix Vue) is a headless primitives library: `Dialog`, `Popover`, `DropdownMenu`, `Tabs`, `Tooltip`, `Select`, `Combobox`, etc. It ships zero visual opinion - no default padding, radius, colour, or shadow. You get correct behaviour (focus trap, keyboard nav, ARIA roles, portal/positioning) and skin it entirely with our own `--forge-*` tokens and the scale in the sections above. It's a normal npm dependency: versioned, upgradable, a real line in `package-lock.json`.
 - **shadcn-vue** is not a library in that sense - it's a CLI that copies pre-written component source into the repo. Under the hood, its components are themselves built on **Reka UI** plus `class-variance-authority`/`tailwind-variants`, styled to a specific default look (particular radius, shadow, spacing) that is close to the Vercel/Linear blend we've explicitly moved away from. Adopting it means: (1) the code becomes ours to maintain the moment it's copied in, duplicating what a dependency would otherwise track upstream, and (2) every component arrives pre-opinionated and has to be re-skinned to match the Linear-specific rules above before it fits.
 
 ### Why
@@ -61,94 +130,13 @@ Introduce Reka UI incrementally, smallest and lowest-risk first, each as its own
 
 The native `<select>` in `AppearanceSection.vue` stays as-is - it's simpler, accessible by default, and has no real gap to close today. Revisit only if a richer picker (icons, previews) becomes an actual requirement, not preemptively.
 
-## Calm pass (October 2026)
+## Screen rules carried over
 
-The interface was too busy. This pass keeps Dracula and Alucard, WCAG AA and the seven locales, and moves the product toward a calm, dense tool for engineers in the spirit of Linear, Vercel and Supabase. VisualDirection.md still owns radius and colour restraint; the points below replace its type rules where they differ.
-
-### Direction
-
-Quiet surfaces, clear hierarchy, editorial whitespace. Structure comes from spacing and one hairline per region, not from boxes, pills and caps.
-
-### Type scale
-
-Four sizes, one weight pair.
-
-| Role | Class | Weight |
-|---|---|---|
-| Page title | `text-xl` with `title-face` | 600 |
-| Body and controls | `text-sm` | 400, 500 for labels |
-| Meta | `text-xs` | 400 |
-| Figures and ids | `font-mono text-sm` | 400 |
-
-Monospace is for ids, numbers and code only. Titles are sentence case, never italic, never uppercase. No letter-spacing on labels.
-
-### Spacing scale
-
-4px base: 1, 1.5, 2, 3, 4, 6, 8 (Tailwind steps). Gap inside a group 1.5 to 2, between groups 4 to 6, page gutters 4 on phones and 8 on desktop.
-
-### Colour roles
-
-Surface: deep, panel, card, elev. Text: hi, mid, low. Accent marks the current tab and the one primary action. Status colours only for real status. Both themes keep 4.5:1 on body text.
-
-### Removed and why
-
-- Heavy italic uppercase titles: shouting, no function.
-- Letter-spaced uppercase captions: replaced by sentence case.
-- Four bordered stat tiles: replaced by one inline row of figures.
-- Shortcut digits stacked above tabs and titles: the shortcut stays in the tab title and aria-keyshortcuts.
-- Redundant borders and pills where spacing is enough.
-
-### Copy rules
-
-Short sentences. No hype words, no exclamation marks, no emoji bullets. Sentence case. Say what the control does. Locale parity is kept: every key exists in the seven locales.
-
-## Calm pass 2 (October 2026)
-
-The first pass removed the loudest decoration. This pass removes boxes.
-
-### Surfaces and borders
-
-- Cards, panels, tiles and chips have no border. They are a background step (deep, panel, card, elev) with spacing around them.
-- A divider is one hairline, the `border-hair` token (the line colour at 55 percent). One hairline per region, never a box inside a box.
-- Inputs, selects and the primary button keep a visible edge so the control boundary stays above 3:1 (WCAG 1.4.11). Ghost and text buttons have no border and show a background step on hover and focus.
-- A coloured border is reserved for a real state (error, drop target, selected).
-- Floating layers (tooltips, menus) keep their edge because nothing else separates them from the page.
-
-### One action
-
-Each view has one primary button. Everything else is a ghost or text button.
-
-### Board card
-
-A card shows the title, the story id and one status line. Step details, agent, model, effort, cost and paused reasons live in the drawer or a tooltip. The single contextual action (Launch, Retry, Stop, Validate) stays on the card. Moving a card between steps lives in the drawer and in drag and drop.
-
-### One status
-
-The machine load, the running sessions, the budget and the room left are one quiet line in the shell. It opens the Resource details drawer. Nothing is shown twice.
-
-### Lists
-
-Subjects, roadmap events, statistics and settings are rows with 12 to 16px of vertical padding and one hairline between them, not tiles.
-
-### Touch
-
-Every target is at least 40px at 375 wide. Checkboxes and radios keep their visual size and get a 40px label hit area.
-
-### Checks
-
-After each change: screenshots of the changed screens in both themes at 1280 and 375, axe with 0 violations, and a touch-target sweep at 375.
-
-## Calm pass 3 (October 2026)
-
-The third pass trims the densest screens. Each rule below applies to the whole product.
+Rules from the earlier calm passes that still hold. The surface, border and type rules of those passes are replaced by the sections above.
 
 ### Weather and project status
 
 Project weather is one compact line of buttons (colour dot, name, weather glyph, word). The status sentence, alerts and next event open on hover or focus and in the follow-up drawer. Never render weather as a grid of cards.
-
-### Lists with a sidebar
-
-Sidebar views and team members are plain text rows: a label and one figure. No avatars, glyph discs or chips. A row shows its flags (late, blocked) inline after the label.
 
 ### Subject rows
 

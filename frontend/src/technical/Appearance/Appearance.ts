@@ -6,10 +6,10 @@ const SYSTEM_STACK =
   'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
 
 const FONT_STACKS: Readonly<Record<FontFace, string>> = {
-  house: `"Barlow", ${SYSTEM_STACK}`,
+  house: `"DM Sans", ${SYSTEM_STACK}`,
   system: SYSTEM_STACK,
   serif: '"Iowan Old Style", "Palatino Linotype", Georgia, "Times New Roman", serif',
-  mono: '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+  mono: '"Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
 }
 
 export const FONT_SCALES = ['small', 'normal', 'large', 'huge'] as const

@@ -28,7 +28,7 @@ export const CHINESE: Message = {
     nothing: '—',
     boardRefused: '看板拒绝了请求',
     boardSilent: '看板没有响应',
-    money: '{amount} $',
+    money: '${amount}',
     percent: '{value} %',
   },
   attention: {
@@ -766,7 +766,7 @@ export const CHINESE: Message = {
     supervisors: '监督者',
     tokensInFlight: '进行中的 Token',
     spentToday: '今日已花费',
-    cap: '上限 {amount} $',
+    cap: '上限 ${amount}',
     machineReading: '机器状态，读取自 OpenTelemetry 采集器',
     processor: '处理器',
     memoryUsed: '已用内存',
@@ -990,7 +990,7 @@ export const CHINESE: Message = {
     finished: '{title} 已完成',
     loading: '正在加载看板…',
     minutes: '{count} 分钟',
-    money: '{amount} $',
+    money: '${amount}',
     status: {
       idle: '等待中',
       running: '会话运行中',
@@ -1030,7 +1030,7 @@ export const CHINESE: Message = {
     },
     resource: {
       aria: '实例资源',
-      budgetValue: '{spent} / {cap} $',
+      budgetValue: '${spent} / ${cap}',
       room: '还可再容纳 {count} 个会话',
       full: '机器已满：请等待会话结束',
       fullShort: '已满',
@@ -1203,10 +1203,10 @@ export const CHINESE: Message = {
     system: '跟随系统',
   },
   fontFace: {
-    house: 'Barlow',
+    house: 'DM Sans',
     system: '系统字体',
     serif: '衬线体',
-    mono: 'JetBrains Mono',
+    mono: 'Roboto Mono',
   },
   fontScale: {
     small: '紧凑',

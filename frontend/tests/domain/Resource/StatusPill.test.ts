@@ -47,7 +47,7 @@ describe('the status pill', () => {
     const pill = (await mounted()).get('[data-test="resource-status"]')
 
     expect(pill.text()).toContain('1 agent')
-    expect(pill.text()).toContain('3.40 / 20.00 $')
+    expect(pill.text()).toContain('$3.40 / $20.00')
     expect(pill.get('[data-test="status-room"]').text()).toBe('Room for 4 more sessions')
     expect(pill.find('.bg-green').exists()).toBe(true)
   })

@@ -1213,10 +1213,10 @@ export const ITALIAN: Message = {
     system: 'Come il sistema',
   },
   fontFace: {
-    house: 'Barlow',
+    house: 'DM Sans',
     system: 'Del sistema',
     serif: 'Con grazie',
-    mono: 'JetBrains Mono',
+    mono: 'Roboto Mono',
   },
   fontScale: {
     small: 'Stretta',

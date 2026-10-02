@@ -1210,10 +1210,10 @@ export const FRENCH: Message = {
     system: 'Comme le système',
   },
   fontFace: {
-    house: 'Barlow',
+    house: 'DM Sans',
     system: 'Du système',
     serif: 'À empattements',
-    mono: 'JetBrains Mono',
+    mono: 'Roboto Mono',
   },
   fontScale: {
     small: 'Serrée',

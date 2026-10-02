@@ -29,7 +29,7 @@ Everyone who can sign in sees the same board: there is no per-project membership
 
 ## Third parties
 
-None. The front is served by the instance itself, including its fonts (Archivo, Barlow and JetBrains Mono, SIL Open Font License, files under `frontend/public/fonts`). The browser makes no call to a CDN, a font service or an analytics service, and the Content-Security-Policy sent with the page forbids it. Agent processes receive an allow-listed environment, so the board's tokens and secrets are not passed to them. Agent sessions call the model provider the operator configured (for example Anthropic through the Claude Code CLI); that link is chosen and contracted by the operator, not by forge-ops. Subprocessors of forge-ops itself: none.
+None. The front is served by the instance itself, including its fonts (Lexend, DM Sans and Roboto Mono, SIL Open Font License, installed from the `@fontsource-variable` npm packages and bundled with the build). The browser makes no call to a CDN, a font service or an analytics service, and the Content-Security-Policy sent with the page forbids it. Agent processes receive an allow-listed environment, so the board's tokens and secrets are not passed to them. Agent sessions call the model provider the operator configured (for example Anthropic through the Claude Code CLI); that link is chosen and contracted by the operator, not by forge-ops. Subprocessors of forge-ops itself: none.
 
 ## Retention
 

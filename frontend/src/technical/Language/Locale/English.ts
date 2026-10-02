@@ -26,7 +26,7 @@ export const ENGLISH = {
     nothing: '—',
     boardRefused: 'The board refused',
     boardSilent: 'The board did not answer',
-    money: '{amount} $',
+    money: '${amount}',
     percent: '{value} %',
   },
   attention: {
@@ -764,7 +764,7 @@ export const ENGLISH = {
     supervisors: 'Supervisors',
     tokensInFlight: 'Tokens in flight',
     spentToday: 'Spent today',
-    cap: 'cap {amount} $',
+    cap: 'cap ${amount}',
     machineReading: 'Machine, read from the OpenTelemetry collector',
     processor: 'Processor',
     memoryUsed: 'Memory used',
@@ -988,7 +988,7 @@ export const ENGLISH = {
     finished: '{title} done',
     loading: 'Loading the board…',
     minutes: '{count} min',
-    money: '{amount} $',
+    money: '${amount}',
     status: {
       idle: 'Waiting',
       running: 'Session running',
@@ -1028,7 +1028,7 @@ export const ENGLISH = {
     },
     resource: {
       aria: 'Resources of the instance',
-      budgetValue: '{spent} / {cap} $',
+      budgetValue: '${spent} / ${cap}',
       room: 'Room for {count} more session | Room for {count} more sessions',
       full: 'Machine full: wait for a session to end',
       fullShort: 'Full',
@@ -1201,10 +1201,10 @@ export const ENGLISH = {
     system: 'Follow the system',
   },
   fontFace: {
-    house: 'Barlow',
+    house: 'DM Sans',
     system: 'From the system',
     serif: 'Serif',
-    mono: 'JetBrains Mono',
+    mono: 'Roboto Mono',
   },
   fontScale: {
     small: 'Tight',

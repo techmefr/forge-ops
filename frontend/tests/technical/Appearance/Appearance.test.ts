@@ -18,7 +18,7 @@ describe('les polices proposees', () => {
   })
 
   it('nomme la police demandee en premier', () => {
-    expect(fontStackOf('house').startsWith('"Barlow"')).toBe(true)
+    expect(fontStackOf('house').startsWith('"DM Sans"')).toBe(true)
   })
 
   it('retombe sur la pile du systeme pour une police inconnue', () => {
