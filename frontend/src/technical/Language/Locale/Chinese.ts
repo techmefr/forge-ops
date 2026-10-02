@@ -1253,6 +1253,12 @@ export const CHINESE: Message = {
     createAccount: '创建账号',
     enter: '进入',
   },
+  getStarted: {
+    label: '开始使用',
+    project: '创建项目',
+    workflow: '定义步骤',
+    story: '添加故事',
+  },
   emptyState: {
     title: '还没有项目',
     body: '创建你的第一个项目，开始派发用户故事，或者先检查工作流配置。',

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import StepProgress from '@/technical/Ui/StepProgress.vue'
 import type { WorkflowAdmin } from '@contract/WorkflowColumnContract'
 
 const props = defineProps<{
@@ -25,8 +26,13 @@ const body = computed(() => {
 </script>
 
 <template>
-  <section class="flex flex-col gap-2 py-4" :aria-label="t('workflowSettings.emptyTitle', { name: projectName })">
-    <p class="m-0 text-sm font-semibold text-txt-hi">
+  <section class="card flex flex-col gap-3 p-6" :aria-label="t('workflowSettings.emptyTitle', { name: projectName })">
+    <StepProgress
+      :steps="[t('getStarted.project'), t('getStarted.workflow'), t('getStarted.story')]"
+      :current="1"
+      :label="t('getStarted.label')"
+    />
+    <p class="title-face m-0 text-lg text-txt-hi">
       {{ t('workflowSettings.emptyTitle', { name: projectName }) }}
     </p>
     <p class="m-0 text-sm text-txt-mid">{{ body }}</p>
