@@ -5,6 +5,7 @@ export type StoryWorkspaceInput = {
   hasCheckout: (storyId: number) => boolean
   worktrees: Pick<WorktreeRepository, 'open' | 'findForStory'>
   onOpened?: (worktree: Worktree) => void
+  equip?: (worktree: Worktree) => void
 }
 
 export type WorkspaceTarget = {
@@ -16,9 +17,15 @@ export function createStoryWorkspace({
   hasCheckout,
   worktrees,
   onOpened,
+  equip,
 }: StoryWorkspaceInput): (target: WorkspaceTarget) => void {
   return ({ storyId, forgeCardId }) => {
-    if (!hasCheckout(storyId) || worktrees.findForStory(storyId) !== null) {
+    if (!hasCheckout(storyId)) {
+      return
+    }
+    const existing = worktrees.findForStory(storyId)
+    if (existing !== null) {
+      equip?.(existing)
       return
     }
     const opened = worktrees.open({
@@ -26,6 +33,7 @@ export function createStoryWorkspace({
       baseRef: 'HEAD',
       ...(forgeCardId === null ? {} : { forgeCardId }),
     })
+    equip?.(opened)
     onOpened?.(opened)
   }
 }

@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -50,6 +51,24 @@ describe('installGuardrails', () => {
     expect(local).toContain(HOOK.token)
     expect(local).toContain('http://127.0.0.1:8830/api/hooks')
     expect(statSync(localSettingsPath as string).mode & 0o077).toBe(0)
+  })
+
+  it('ignores the local settings in a git checkout so a blanket add never commits the token', () => {
+    execFileSync('git', ['init', '-q'], { cwd: checkout })
+
+    const { excludeFile } = installGuardrails({ checkout, forgeRoot, hook: HOOK })
+
+    expect(excludeFile).not.toBeNull()
+    const status = execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], {
+      cwd: checkout,
+      encoding: 'utf-8',
+    })
+    expect(status).toContain('.claude/settings.json')
+    expect(status).not.toContain('settings.local.json')
+  })
+
+  it('reports no exclude file outside a git checkout', () => {
+    expect(installGuardrails({ checkout, forgeRoot, hook: HOOK }).excludeFile).toBeNull()
   })
 
   it('is idempotent and keeps settings the project already had', () => {

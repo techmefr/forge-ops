@@ -41,3 +41,11 @@ export function isConfinedPath(path: string): boolean {
     return false
   }
 }
+
+export function relativeToDirectory(path: string, directory: string | null | undefined): string {
+  if (!path.startsWith('/') || directory === null || directory === undefined || !directory.startsWith('/')) {
+    return path
+  }
+  const base = directory.replace(/\/+$/, '')
+  return base !== '' && path.startsWith(`${base}/`) ? path.slice(base.length + 1) : path
+}

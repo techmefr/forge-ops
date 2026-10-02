@@ -57,6 +57,7 @@ import { createPreferenceApi } from '../domain/Preference/PreferenceApi.js'
 import { createPreferenceRepository } from '../domain/Preference/PreferenceRepository.js'
 import { createDoctrineSource } from '../technical/Doctrine/DoctrineSource.js'
 import { installGuardrails } from '../technical/Guardrail/GuardrailInstall.js'
+import { carryLocalSettings } from '../technical/Guardrail/LocalSettings.js'
 import { createFileApi } from '../domain/File/FileApi.js'
 import { createFileRepository } from '../domain/File/FileRepository.js'
 import { createStatisticRepository } from '../domain/Statistic/StatisticRepository.js'
@@ -301,6 +302,7 @@ export function startBoardServer({
       hasCheckout: checkouts.hasCheckout,
       worktrees,
       onOpened: (opened) => events.publish({ name: 'worktree.opened', payload: { ...opened } }),
+      equip: (worktree) => carryLocalSettings(checkouts.checkoutOfStory(worktree.storyId), worktree.path),
     }),
     doctrineFor: createDoctrineSource({ forgeRoot: process.cwd(), checkoutOf: cwdForStory }),
     runner: createDrivenRunner({
