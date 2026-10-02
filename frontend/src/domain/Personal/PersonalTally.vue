@@ -25,15 +25,15 @@ onMounted(() => Promise.all([self.reload(), cards.reload()]))
 
 <template>
   <section
-    class="flex flex-none flex-wrap items-baseline gap-x-8 gap-y-1 bg-panel px-4 py-2.5 sm:px-8"
+    class="scrollbar-none flex flex-none items-baseline gap-x-5 gap-y-1 overflow-x-auto bg-panel px-4 py-1.5 sm:flex-wrap sm:gap-x-8 sm:overflow-x-visible sm:px-8 sm:py-2.5"
     :aria-label="t('personal.aria')"
   >
-    <p v-for="figure in figures" :key="figure.key" class="flex min-w-0 items-baseline gap-2">
+    <p v-for="figure in figures" :key="figure.key" class="flex flex-none items-baseline gap-1.5 sm:gap-2">
       <span class="font-mono text-base tabular-nums" :class="figure.warn ? 'text-orange' : 'text-txt-hi'">{{
         figure.value
       }}</span>
-      <span class="text-sm text-txt-low">{{ t(`personal.${figure.key}`) }}</span>
-      <span v-if="figure.key === 'soon'" class="text-xs text-txt-low">{{
+      <span class="text-xs whitespace-nowrap text-txt-low sm:text-sm">{{ t(`personal.${figure.key}`) }}</span>
+      <span v-if="figure.key === 'soon'" class="text-xs text-txt-low max-sm:hidden">{{
         t('personal.soonHint', { count: SOON_IN_DAYS }, SOON_IN_DAYS)
       }}</span>
     </p>

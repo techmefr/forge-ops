@@ -21,7 +21,7 @@ const DOT = {
 <template>
   <button
     type="button"
-    class="flex min-h-10 items-center gap-2 rounded-full border-0 bg-elev px-3 py-1.5 text-xs text-txt-mid hover:text-txt-hi sm:min-h-9"
+    class="flex min-h-10 items-center gap-2 rounded-full border-0 bg-elev px-2.5 py-1.5 text-xs text-txt-mid hover:text-txt-hi sm:min-h-9"
     :title="t('forge.resource.details')"
     aria-haspopup="dialog"
     data-test="resource-status"

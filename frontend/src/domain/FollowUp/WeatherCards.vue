@@ -105,14 +105,14 @@ followUps.reload()
   >
     <ul
       v-if="shown.length > 0"
-      class="flex flex-none flex-wrap gap-x-2 gap-y-0.5"
+      class="scrollbar-none flex flex-none gap-x-2 gap-y-0.5 overflow-x-auto min-[761px]:flex-wrap min-[761px]:overflow-x-visible"
       :aria-label="t('followUp.cardsAria')"
       data-test-id="weather-cards"
     >
       <li
         v-for="entry in shown"
         :key="entry.project.id"
-        class="relative"
+        class="relative flex-none"
         :data-test-id="`weather-card-${entry.project.id}`"
         @mouseenter="reveal(entry)"
         @mouseleave="conceal($event, entry)"
@@ -122,7 +122,7 @@ followUps.reload()
       >
         <button
           type="button"
-          class="flex min-h-10 items-center gap-2 rounded-md px-2 py-1 text-left text-sm hover:bg-elev/60"
+          class="flex min-h-10 items-center gap-2 rounded-md px-2 py-1 text-left text-sm whitespace-nowrap hover:bg-elev/60"
           :aria-describedby="panelId(entry)"
           @click="openFollowUp(entry)"
         >
