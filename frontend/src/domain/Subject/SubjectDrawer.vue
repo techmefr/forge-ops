@@ -195,7 +195,7 @@ function closeWhenClosed(open: boolean): void {
           </button>
         </div>
 
-        <DialogTitle class="display-italic text-[13px] text-txt-hi uppercase">{{ subject.title }}</DialogTitle>
+        <DialogTitle class="title-face text-[13px] text-txt-hi uppercase">{{ subject.title }}</DialogTitle>
         <DialogDescription class="sr-only">{{ t('subjects.drawer.description') }}</DialogDescription>
 
         <dl class="grid grid-cols-[110px_1fr] items-center gap-x-3 gap-y-2 text-sm">

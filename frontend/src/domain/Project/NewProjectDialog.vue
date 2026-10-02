@@ -71,7 +71,7 @@ function closeWhenClosed(open: boolean): void {
         class="fixed top-1/2 left-1/2 z-[70] max-h-[calc(100dvh-2rem)] w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-line bg-panel p-5"
         data-test-id="new-project-dialog"
       >
-        <DialogTitle class="display-italic text-[13px] text-txt-hi uppercase">
+        <DialogTitle class="title-face text-[13px] text-txt-hi uppercase">
           {{ t('projectForm.title') }}
         </DialogTitle>
         <DialogDescription class="mt-1 text-[13px] text-txt-mid">

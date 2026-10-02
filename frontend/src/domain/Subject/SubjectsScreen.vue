@@ -447,7 +447,7 @@ onMounted(() => {
 
         <section class="min-w-0" :aria-label="heading">
           <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-2">
-            <h2 class="display-italic text-[13px] text-txt-hi uppercase" data-test-id="list-title">{{ heading }}</h2>
+            <h2 class="title-face text-[13px] text-txt-hi uppercase" data-test-id="list-title">{{ heading }}</h2>
             <p class="text-[11px] text-txt-low" aria-live="polite" data-test-id="list-summary">{{ summary }}</p>
           </div>
           <div

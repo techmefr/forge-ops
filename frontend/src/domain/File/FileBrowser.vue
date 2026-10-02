@@ -153,7 +153,7 @@ watch(here, () => void look())
       class="rounded-lg border border-line bg-card p-4"
       @submit.prevent="pointCheckout"
     >
-      <p class="display-italic text-sm text-txt-mid">{{ t('browser.noCheckout') }}</p>
+      <p class="title-face text-sm text-txt-mid">{{ t('browser.noCheckout') }}</p>
       <p class="mt-1 text-[13px] text-txt-low">{{ t('browser.noCheckoutHint') }}</p>
       <div class="mt-3 flex flex-wrap gap-2">
         <input

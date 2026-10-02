@@ -189,7 +189,7 @@ onBeforeUnmount(() => {
       {{ t('tour.progress', { current: tour.index.value + 1, total: tour.total }) }}
     </p>
 
-    <h2 ref="heading" tabindex="-1" class="display-italic m-0 text-[22px] text-txt-hi outline-none">
+    <h2 ref="heading" tabindex="-1" class="title-face m-0 text-[22px] text-txt-hi outline-none">
       {{ title }}
     </h2>
 

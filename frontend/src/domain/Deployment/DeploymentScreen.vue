@@ -172,7 +172,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
                 t(`state.${story.state}`)
               }}</span>
             </div>
-            <h2 class="display-italic mt-1 text-[22px]">{{ story.title }}</h2>
+            <h2 class="title-face mt-1 text-[22px]">{{ story.title }}</h2>
 
             <div v-if="worktreeOf(story.id) !== null" class="mt-3 rounded-lg border border-line bg-elev p-3">
               <p class="font-mono text-[11px] text-txt-hi">{{ worktreeOf(story.id)?.branch }}</p>

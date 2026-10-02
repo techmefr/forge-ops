@@ -118,7 +118,7 @@ watch(
   <div class="flex h-dvh flex-col overflow-hidden bg-deep text-txt-hi">
     <a
       href="#main-content"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:rounded-lg focus:border focus:border-acc focus:bg-panel focus:px-4 focus:py-3 focus:font-mono focus:text-xs focus:uppercase"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:rounded-lg focus:border focus:border-acc focus:bg-panel focus:px-4 focus:py-3 focus:font-mono focus:text-xs"
       data-test-id="skip-link"
       @click.prevent="focusMain"
     >
@@ -128,7 +128,7 @@ watch(
       class="flex flex-none flex-wrap items-stretch gap-x-3 border-b border-line bg-panel px-4 sm:gap-x-6 sm:px-6 lg:flex-nowrap"
     >
       <div class="flex flex-none items-center gap-3 py-3 sm:py-4">
-        <p class="display-italic text-[22px] leading-none">Forge<span class="text-acc">.</span>ops</p>
+        <p class="title-face text-base leading-none">Forge<span class="text-acc">.</span>ops</p>
       </div>
       <nav
         ref="strip"
@@ -143,22 +143,16 @@ watch(
           :to="screen.path"
           :aria-keyshortcuts="`Alt+Shift+${screen.digit}`"
           :title="t('shell.shortcut', { digit: screen.digit })"
-          class="flex min-h-11 flex-col justify-center gap-[3px] border-b-2 px-2 transition-colors lg:px-3 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc"
+          class="flex min-h-11 flex-col justify-center border-b-2 px-2 transition-colors lg:px-3 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc"
           :class="
             current?.key === screen.key
               ? 'border-acc text-txt-hi'
               : 'border-transparent text-txt-mid hover:text-txt-hi'
           "
         >
-          <span
-            class="font-mono text-[11px]"
-            :class="current?.key === screen.key ? 'text-acc' : 'text-txt-low'"
-            aria-hidden="true"
-            >{{ screen.digit }}</span
-          >
           <span class="flex min-w-0 items-center gap-1.5 lg:whitespace-nowrap">
             <Glyph :name="screen.key" :size="14" class="max-[400px]:hidden" />
-            <span class="display-italic min-w-0 text-xs uppercase [overflow-wrap:anywhere] sm:text-sm lg:[overflow-wrap:normal]">{{
+            <span class="min-w-0 text-sm font-medium [overflow-wrap:anywhere] lg:[overflow-wrap:normal]">{{
               t(`screen.${screen.key}.label`)
             }}</span>
           </span>
@@ -168,14 +162,13 @@ watch(
 
     <section
       aria-labelledby="page-heading"
-      class="sticky top-0 z-40 flex flex-wrap items-center gap-3 border-b border-line bg-panel/80 px-4 py-3 backdrop-blur sm:min-h-[92px] sm:gap-4 sm:px-8 sm:py-4"
+      class="sticky top-0 z-40 flex flex-wrap items-center gap-3 border-b border-line bg-panel/80 px-4 py-3 backdrop-blur sm:gap-4 sm:px-8 sm:py-3"
     >
       <div class="min-w-0 flex-[1_1_240px]" data-tour="shell-heading">
         <div class="flex items-baseline gap-2.5">
-          <span class="font-mono text-[11px] font-semibold text-txt-low">{{ heading.digit }}</span>
-          <h1 id="page-heading" class="display-italic m-0 text-[22px] leading-none sm:text-[28px]">{{ heading.label }}</h1>
+          <h1 id="page-heading" class="title-face m-0 text-xl leading-tight">{{ heading.label }}</h1>
         </div>
-        <p class="mt-1 text-[13px] text-txt-low">{{ heading.sub }}</p>
+        <p class="mt-0.5 text-sm text-txt-low">{{ heading.sub }}</p>
       </div>
 
       <div class="ml-auto flex flex-wrap items-center gap-3">
@@ -183,7 +176,7 @@ watch(
         <ServerMenu />
         <LanguageSwitch />
         <MachineBadge class="hidden sm:flex" />
-        <span class="flex items-center gap-2 font-mono text-[11px] text-txt-low uppercase">
+        <span class="flex items-center gap-2 text-xs text-txt-low">
           <span
             class="h-1.5 w-1.5 flex-none rounded-full"
             :class="live === 0 ? 'bg-line' : 'bg-green'"
@@ -192,7 +185,7 @@ watch(
         </span>
         <span
           v-if="phase !== IDLE"
-          class="rounded-lg border border-acc px-2.5 py-1.5 font-mono text-[11px] text-acc uppercase"
+          class="rounded-md border border-acc px-2.5 py-1.5 text-xs text-acc"
           role="status"
           >{{ phase === ARMED ? t('shell.strokeArmed') : t('shell.strokeStarted') }}</span
         >

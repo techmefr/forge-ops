@@ -27,7 +27,7 @@ const { t } = useI18n()
           : `border-transparent text-txt-mid hover:text-txt-hi`
       "
     >
-      <span class="display-italic text-[13px] uppercase">{{
+      <span class="text-sm font-medium">{{
         t(`${group}.${tab}`)
       }}</span>
     </RouterLink>

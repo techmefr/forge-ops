@@ -113,7 +113,7 @@ onMounted(() => settings.reload())
         >
           <input v-model="draft.conduct" type="radio" :value="conduct" class="mt-1" />
           <span>
-            <span class="display-italic block text-sm">{{ t(`conduct.${conduct}.label`) }}</span>
+            <span class="title-face block text-sm">{{ t(`conduct.${conduct}.label`) }}</span>
             <span class="mt-1 block text-[13px] text-txt-mid">{{
               t(`conduct.${conduct}.explanation`)
             }}</span>

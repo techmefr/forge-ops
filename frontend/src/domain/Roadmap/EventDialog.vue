@@ -144,7 +144,7 @@ function closeWhenClosed(open: boolean): void {
         class="fixed top-1/2 left-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[min(560px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-line bg-panel p-6"
         @escape-key-down="keepDialogWhileListboxOpen"
       >
-        <DialogTitle class="display-italic text-lg text-txt-hi uppercase">
+        <DialogTitle class="title-face text-lg text-txt-hi uppercase">
           {{ t(editing ? 'roadmap.form.editTitle' : 'roadmap.form.newTitle') }}
         </DialogTitle>
         <DialogDescription class="mt-1 text-[13px] text-txt-mid">

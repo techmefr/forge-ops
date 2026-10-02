@@ -152,7 +152,7 @@ onMounted(async () => {
               >
               <span class="ml-auto font-mono text-[11px] text-txt-low">{{ incident.fingerprint }}</span>
             </div>
-            <h2 class="display-italic mt-2 text-[22px]">{{ incident.title }}</h2>
+            <h2 class="title-face mt-2 text-[22px]">{{ incident.title }}</h2>
             <p class="mt-2 font-mono text-[11px] whitespace-pre-wrap text-txt-mid">
               {{ incident.detail }}
             </p>

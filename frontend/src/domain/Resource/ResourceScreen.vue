@@ -61,25 +61,25 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('resource.liveSessions') }}
         </p>
-        <p class="display-italic mt-1 text-[28px]">{{ alive.length }}</p>
+        <p class="title-face mt-1 text-[28px]">{{ alive.length }}</p>
       </article>
       <article class="rounded-lg border border-line bg-card p-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('resource.supervisors') }}
         </p>
-        <p class="display-italic mt-1 text-[28px]">{{ fleet.data.value?.roster?.workerCount ?? 0 }}</p>
+        <p class="title-face mt-1 text-[28px]">{{ fleet.data.value?.roster?.workerCount ?? 0 }}</p>
       </article>
       <article class="rounded-lg border border-line bg-card p-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('resource.tokensInFlight') }}
         </p>
-        <p class="display-italic mt-1 text-[28px]">{{ tokens }}</p>
+        <p class="title-face mt-1 text-[28px]">{{ tokens }}</p>
       </article>
       <article class="rounded-lg border border-line bg-card p-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('resource.spentToday') }}
         </p>
-        <p class="display-italic mt-1 text-[28px]">
+        <p class="title-face mt-1 text-[28px]">
           {{ t('common.money', { amount: (budget.data.value?.spentUsd ?? 0).toFixed(2) }) }}
         </p>
         <p class="mt-1 font-mono text-[11px] text-txt-low">
@@ -105,31 +105,31 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
       >
         <div>
           <p class="font-mono text-[11px] text-txt-low uppercase">{{ t('resource.processor') }}</p>
-          <p class="display-italic text-[22px]">
+          <p class="title-face text-[22px]">
             {{ t('common.percent', { value: machine.data.value.snapshot.cpuPercent ?? '--' }) }}
           </p>
         </div>
         <div>
           <p class="font-mono text-[11px] text-txt-low uppercase">{{ t('resource.memoryUsed') }}</p>
-          <p class="display-italic text-[22px]">
+          <p class="title-face text-[22px]">
             {{ t('resource.megabytes', { value: machine.data.value.snapshot.memoryUsedMb ?? '--' }) }}
           </p>
         </div>
         <div>
           <p class="font-mono text-[11px] text-txt-low uppercase">{{ t('resource.memoryFree') }}</p>
-          <p class="display-italic text-[22px]">
+          <p class="title-face text-[22px]">
             {{ t('resource.megabytes', { value: machine.data.value.snapshot.memoryFreeMb ?? '--' }) }}
           </p>
         </div>
         <div>
           <p class="font-mono text-[11px] text-txt-low uppercase">{{ t('resource.disk') }}</p>
-          <p class="display-italic text-[22px]">
+          <p class="title-face text-[22px]">
             {{ t('common.percent', { value: machine.data.value.snapshot.diskPercent ?? '--' }) }}
           </p>
         </div>
         <div>
           <p class="font-mono text-[11px] text-txt-low uppercase">{{ t('resource.load1') }}</p>
-          <p class="display-italic text-[22px]">
+          <p class="title-face text-[22px]">
             {{ machine.data.value.snapshot.loadAverage ?? '--' }}
           </p>
         </div>
@@ -156,7 +156,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
         </label>
         <div>
           <p class="font-mono text-[11px] text-txt-low uppercase">{{ t('resource.estimatedCost') }}</p>
-          <p class="display-italic text-[22px]">
+          <p class="title-face text-[22px]">
             {{ t('common.money', { amount: estimate.costUsd.toFixed(2) }) }}
           </p>
         </div>
@@ -164,7 +164,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
           <p class="font-mono text-[11px] text-txt-low uppercase">
             {{ t('resource.remainingUnderCap') }}
           </p>
-          <p class="display-italic text-[22px]">
+          <p class="title-face text-[22px]">
             {{ t('common.money', { amount: estimate.remainingUsd.toFixed(2) }) }}
           </p>
         </div>
@@ -172,7 +172,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
           <p class="font-mono text-[11px] text-txt-low uppercase">
             {{ t('resource.estimatedMemory') }}
           </p>
-          <p class="display-italic text-[22px]">
+          <p class="title-face text-[22px]">
             {{ t('resource.megabytes', { value: estimate.memoryMb }) }}
           </p>
         </div>

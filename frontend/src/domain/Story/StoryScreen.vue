@@ -229,7 +229,7 @@ onMounted(async () => {
       </button>
 
       <template v-if="queue.length > 0">
-        <h2 class="display-italic mt-6 text-sm text-txt-mid">{{ t('story.batch') }}</h2>
+        <h2 class="title-face mt-6 text-sm text-txt-mid">{{ t('story.batch') }}</h2>
         <p class="mt-1 text-[11px] text-txt-low">{{ t('story.batchHint') }}</p>
 
         <div v-for="epic in queueEpics" :key="epic.id" class="mt-4">
@@ -268,7 +268,7 @@ onMounted(async () => {
     </section>
 
     <section class="flex min-h-0 min-w-0 flex-col border-b border-line p-6 lg:border-r lg:border-b-0">
-      <h2 class="display-italic text-[22px]">{{ t('story.writeWithClaude') }}</h2>
+      <h2 class="title-face text-[22px]">{{ t('story.writeWithClaude') }}</h2>
       <p class="mt-1 text-sm text-txt-low">{{ t('story.writeWithClaudeHint') }}</p>
 
       <p v-if="refusal !== null" class="mt-3 text-sm text-red" role="alert">{{ say(refusal) }}</p>
@@ -404,7 +404,7 @@ onMounted(async () => {
           class="mt-6 flex flex-col gap-2 rounded-lg border border-violet bg-card p-4"
           @submit.prevent="submitTwin"
         >
-          <p class="display-italic text-sm text-violet">{{ t('story.twinTitle') }}</p>
+          <p class="title-face text-sm text-violet">{{ t('story.twinTitle') }}</p>
           <input
             v-model="twinTitle"
             type="text"

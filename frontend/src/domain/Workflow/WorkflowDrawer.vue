@@ -93,7 +93,7 @@ onMounted(() => void state.load())
         data-test="workflow-drawer"
       >
         <div class="flex items-start gap-3">
-          <DialogTitle class="display-italic m-0 flex-1 text-[22px] text-txt-hi uppercase">
+          <DialogTitle class="title-face m-0 flex-1 text-[22px] text-txt-hi uppercase">
             {{ t('workflowSettings.title', { name: projectName }) }}
           </DialogTitle>
           <button
