@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process'
+import { agentEnvironmentOf } from '../Guardrail/AgentEnvironment.js'
 import {
   RED_PROOF_OUTPUT_CAP,
   RED_PROOF_TIMEOUT_MS,
@@ -89,6 +90,7 @@ export function runRedReport({
   const result = spawnSync(command, {
     cwd,
     shell: true,
+    env: agentEnvironmentOf({ source: process.env }),
     timeout: timeoutMs,
     maxBuffer: outputCap,
     encoding: 'utf-8',

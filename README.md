@@ -117,7 +117,7 @@ Done ─ definition of done checked ─ branch pushed ─ merge request opened
 2. **Entering an agent step** opens the story worktree from the project checkout (once per story, reused by the later steps), then starts a session on it. The prompt carries the doctrine of the step and a pipeline contract: write the proof, then write the step verdict.
 3. **Proofs** are files under `.claude/evidence/<REF>/` inside that worktree. The checkpoint gates (red tests, mutation survival, tamper census, evidence shape) run against the worktree, not against the board's own directory.
 4. **Done** is refused unless the card is on the last step, no session is running there, and the definition of done is fully proven (criteria satisfied, review cascade passed, no unresolved `strong` finding).
-5. **Publishing.** When the project allows it (`autoPublish`), closing a card pushes the story branch and opens a pull request (GitHub, through `gh`) or a merge request (GitLab, through `glab`) against the project's integration branch, `main` by default. If the remote is neither GitHub nor GitLab the branch is pushed and the request is left to you. If the checkout has no `origin`, nothing is published and the card closes with a note.
+5. **Publishing.** When the project allows it (`autoPublish`), closing a card pushes the story branch and opens a pull request (GitHub, through `gh`) or a merge request (GitLab, through `glab`) against the project's integration branch, `main` by default. If the remote is neither GitHub nor GitLab, or `gh`/`glab` is missing or not signed in, the branch is pushed, the card closes and the note says to open the request by hand: this is not an error. If the checkout has no `origin`, nothing is published, the story branch is kept in the checkout and the card closes with a note. After Done the worktree is removed (the `.claude` folder does not count as uncommitted work) and the branch is deleted once it is pushed or merged.
 
 ### Autopilot
 
@@ -130,7 +130,19 @@ By default cards run like a CI pipeline: the board checks the proofs by code and
 | `autoPublish` | on | Closing a card pushes the branch and opens the merge request |
 | `autoMerge` | **off** | Asks the forge to merge once the pipeline succeeds (`gh pr merge --squash --auto`, `glab mr merge --squash --when-pipeline-succeeds`). Merging cannot be undone, so it is never on unless a project administrator turns it on |
 
-**What the board checks.** When a session ends, the board reads the step verdict at `.claude/evidence/<REF>/<step key>.verdict.json`: `{"status": "pass" | "fail" | "blocked", "reason": "..."}`. A missing, unreadable or malformed verdict counts as a failure, and so does a session that ended in error. On `pass`, if the step proves a checkpoint, the board proves it itself from `.claude/evidence/<REF>/<checkpoint>.md` through the usual gates; a refusal is a failure with the gate's reason. The agent's word alone never moves a card. Verdict files are deleted once read and before a step starts, so a stale verdict cannot be reused.
+**What the board checks.** When a session ends, the board reads the step verdict at `.claude/evidence/<REF>/<step key>.verdict.json`: `{"status": "pass" | "fail" | "blocked", "reason": "..."}`. A missing, unreadable or malformed verdict counts as a failure, and so does a session that ended in error. On `pass`, the board proves, in order, every checkpoint the step owes that is not proven yet, through the usual gates; a refusal is a failure with the reason, fed back to the agent. The agent's word alone never moves a card, and the orchestrator checks in the story worktree itself:
+
+| Checkpoint | Owed by the step | What the board checks |
+|---|---|---|
+| `spec_done`, `arch_done` | Spec, Plan | The proof the agent wrote at `.claude/evidence/<REF>/<checkpoint>.md`, through the evidence shape gate |
+| `tests_written` | Build | Commits on the story branch, a clean tree, a test file in the diff, the project test command green, then the same command run in a scratch copy where the production code of the story is reverted: it must fail there. Red then green, observed by the board |
+| `build_done` | Build | Test command green at HEAD, mutation survival on the production files of the diff |
+| `verified` | Review | Test command green again on the final state of the branch, after the reviewer |
+| `reviewed` | Review | The reviewer verdict carries a result for `quality`, `security` and `accessibility` and an answer per declared criterion (see below), the tamper census still matches, no strong finding |
+
+The proofs of `tests_written`, `build_done`, `verified` and `reviewed` are written by the board (`<checkpoint>.checked.md`) with the commands it ran and their exit codes, not by the agent. The test command is `FORGE_TEST_COMMAND` if set, else `npm test` when `package.json` declares `scripts.test`. A project without one cannot reach Done unattended.
+
+A review verdict adds the lens results and the criteria: `{"status":"pass","lenses":{"quality":{"status":"pass","findings":[]},"security":{...},"accessibility":{...}},"criteria":[{"reference":"AC-1","status":"met","evidence":"a file the story changed"}]}`. A lens with status `fail`, a strong finding, a criterion not answered as met, or evidence that is not a file of the story diff stops the step. Verdict files are deleted once read and before a step starts, so a stale verdict cannot be reused.
 
 **Retries.** Each step has its own retry count, from 0 to 5, default 2 (Workflow settings). A failed step runs again in the same session with the reason and the end of the previous output. When the retries are spent the card stops **red**: `<step> failed after 2 retries: <reason>`.
 

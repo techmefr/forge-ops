@@ -56,6 +56,6 @@ export function createGitWorktree({ repositoryRoot, run = runGit }: GitWorktreeI
       run(['branch', '--delete', branch], root)
     },
 
-    isDirty: (path: string) => run(['status', '--porcelain'], path) !== '',
+    isDirty: (path: string) => run(['status', '--porcelain', '--', '.', ':(exclude).claude'], path) !== '',
   }
 }

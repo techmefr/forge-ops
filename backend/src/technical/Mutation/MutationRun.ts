@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process'
+import { agentEnvironmentOf } from '../Guardrail/AgentEnvironment.js'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { realPathInsideSync } from '../File/ConfinedRealPath.js'
 import {
@@ -126,6 +127,7 @@ export function createCommandTestRunner({
     const result = spawnSync(command, {
       cwd,
       shell: true,
+      env: agentEnvironmentOf({ source: process.env }),
       timeout: timeoutMs,
       stdio: 'ignore',
     })

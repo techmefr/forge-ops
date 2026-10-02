@@ -20,10 +20,16 @@ function git(cwd: string, ...argv: string[]): string {
   return execFileSync('git', argv, { cwd, encoding: 'utf-8' }).trim()
 }
 
-function runnerWith(forgeOutput: string, failing?: string): CommandRunner {
+function runnerWith(forgeOutput: string, failing?: string, signedOut?: string): CommandRunner {
   return (file, argv, cwd) => {
     if (file === 'git') {
       return git(cwd, ...argv)
+    }
+    if (argv[0] === 'auth') {
+      if (signedOut === file) {
+        throw new Error(`${file} is not signed in`)
+      }
+      return ''
     }
     calls.push({ file, argv })
     if (failing === file) {
@@ -146,6 +152,26 @@ describe('publishing a story branch', () => {
 
     expect(report).toMatchObject({ pushed: false, requestUrl: null })
     expect(report.note).toContain('no origin')
+  })
+
+  it('pushes and says to open the request by hand when the forge tool is signed out', () => {
+    const report = createStoryPublisher(runnerWith('', undefined, 'gh')).publish(
+      order({ remoteUrl: 'git@github.com:acme/app.git', autoMerge: true }),
+    )
+
+    expect(report).toMatchObject({ pushed: true, requestUrl: null, mergeRequested: false })
+    expect(report.note).toContain('open the pull request by hand')
+    expect(calls).toHaveLength(0)
+    expect(git(origin, 'branch', '--list', 'story/forge-1-see-mails')).toContain('story/forge-1-see-mails')
+  })
+
+  it('does the same on GitLab when glab is signed out', () => {
+    const report = createStoryPublisher(runnerWith('', undefined, 'glab')).publish(
+      order({ remoteUrl: 'https://gitlab.example.com/acme/app.git' }),
+    )
+
+    expect(report).toMatchObject({ pushed: true, requestUrl: null })
+    expect(report.note).toContain('open the merge request by hand')
   })
 
   it('fails visibly when the forge tool fails', () => {

@@ -79,7 +79,10 @@ describe('isDirty', () => {
 
     git.isDirty('/tmp/w/story-forge-1')
 
-    expect(calls[0]).toEqual({ argv: ['status', '--porcelain'], cwd: '/tmp/w/story-forge-1' })
+    expect(calls[0]).toEqual({
+      argv: ['status', '--porcelain', '--', '.', ':(exclude).claude'],
+      cwd: '/tmp/w/story-forge-1',
+    })
   })
 
   it('is clean on an empty status', () => {
