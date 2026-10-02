@@ -76,7 +76,7 @@ function addDraft(): void {
         <button
           type="button"
           :disabled="desk.suggestion.value.script.length === 0"
-          class="rounded-md border border-acc px-3 py-1.5 text-xs font-bold text-acc disabled:opacity-40"
+          class="rounded-md px-3 py-1.5 text-xs font-bold text-acc disabled:opacity-40"
           @click="desk.takeSuggestion()"
         >
           {{ t('pilot.takeSuggestion') }}
@@ -158,7 +158,7 @@ function addDraft(): void {
       <button
         type="button"
         :disabled="desk.busy.value || desk.script.value.length === 0 || desk.url.value === ''"
-        class="mt-3 rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
+        class="mt-3 rounded-lg bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
         @click="desk.start()"
       >
         {{ t('pilot.startWalk') }}
@@ -174,7 +174,7 @@ function addDraft(): void {
         <button
           type="button"
           :disabled="desk.busy.value || desk.run.value?.state !== 'running'"
-          class="rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
+          class="rounded-lg bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
           @click="desk.advance()"
         >
           {{ t('pilot.advance') }}
@@ -192,7 +192,7 @@ function addDraft(): void {
           v-else
           type="button"
           :disabled="desk.busy.value"
-          class="rounded-lg border border-green bg-elev px-3 py-2 text-sm font-bold text-green disabled:opacity-40"
+          class="rounded-lg bg-elev px-3 py-2 text-sm font-bold text-green disabled:opacity-40"
           @click="desk.resume()"
         >
           {{ t('pilot.resume') }}
@@ -208,7 +208,7 @@ function addDraft(): void {
         <button
           type="button"
           :disabled="desk.busy.value"
-          class="rounded-lg border border-red bg-elev px-3 py-2 text-sm font-bold text-red disabled:opacity-40"
+          class="rounded-lg bg-elev px-3 py-2 text-sm font-bold text-red disabled:opacity-40"
           @click="desk.abandon()"
         >
           {{ t('pilot.abandon') }}

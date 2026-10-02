@@ -389,7 +389,7 @@ onMounted(loadMilestone)
           <div class="flex flex-col gap-2 min-[760px]:col-span-2" aria-live="polite">
             <p
               v-if="hasIssues"
-              class="rounded-md border border-red px-3 py-2 text-sm text-txt-hi"
+              class="rounded-md px-3 py-2 text-sm text-txt-hi"
               role="alert"
               data-test-id="subject-form-summary"
             >
@@ -397,7 +397,7 @@ onMounted(loadMilestone)
             </p>
             <p
               v-if="refusal !== null"
-              class="rounded-md border border-red px-3 py-2 text-sm text-txt-hi"
+              class="rounded-md px-3 py-2 text-sm text-txt-hi"
               role="alert"
               data-test-id="subject-form-refusal"
             >

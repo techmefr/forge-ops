@@ -97,8 +97,8 @@ onMounted(async () => {
           :key="state"
           type="button"
           :aria-pressed="state === chosenState"
-          class="rounded-lg border px-3 py-2 text-xs font-semibold"
-          :class="state === chosenState ? 'border-acc bg-acc text-ink' : 'border-line bg-card text-txt-mid hover:border-acc'"
+          class="rounded-lg px-3 py-2 text-xs font-semibold"
+          :class="state === chosenState ? 'bg-acc text-ink' : 'bg-card text-txt-mid hover:bg-elev'"
           @click="chosenState = state"
         >
           {{ t(`incidentState.${state}`) }}
@@ -164,7 +164,7 @@ onMounted(async () => {
               <button
                 type="button"
                 :disabled="busy"
-                class="rounded-lg border border-acc bg-acc px-3 py-2 text-xs font-bold text-ink disabled:opacity-40"
+                class="rounded-lg bg-acc px-3 py-2 text-xs font-bold text-ink disabled:opacity-40"
                 @click="accept(incident)"
               >
                 {{ t('incident.makeStory') }}

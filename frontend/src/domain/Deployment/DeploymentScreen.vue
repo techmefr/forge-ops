@@ -124,7 +124,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
       </p>
     </div>
 
-    <section v-if="conflicted.length > 0" class="mt-6 rounded-lg border border-red bg-card p-4">
+    <section v-if="conflicted.length > 0" class="mt-6 rounded-lg bg-card p-4">
       <p class="text-xs text-red">
         {{ t('deployment.mergeConflicts') }}
       </p>
@@ -146,7 +146,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
 
     <p
       v-if="lastCleanUp !== null"
-      class="mt-6 rounded-lg border border-green bg-green-soft/10 p-4 text-sm text-txt-hi"
+      class="mt-6 rounded-lg bg-green-soft/10 p-4 text-sm text-txt-hi"
       role="status"
     >
       {{ doneNotice }}
@@ -197,7 +197,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
                 <button
                   type="button"
                   :disabled="busy"
-                  class="rounded-lg border border-red bg-card px-2.5 py-1.5 text-xs font-bold text-red disabled:opacity-40"
+                  class="rounded-lg bg-card px-2.5 py-1.5 text-xs font-bold text-red disabled:opacity-40"
                   @click="closeWorktree(story, true)"
                 >
                   {{ t('deployment.forceClose') }}
@@ -249,7 +249,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
               v-if="story.state !== 'done'"
               type="button"
               :disabled="busy"
-              class="mt-4 w-full rounded-lg border border-green bg-card px-3 py-2 text-xs font-bold text-green disabled:opacity-40"
+              class="mt-4 w-full rounded-lg bg-card px-3 py-2 text-xs font-bold text-green disabled:opacity-40"
               @click="markDone(story)"
             >
               {{ t('deployment.inProductionUnblock') }}

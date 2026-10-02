@@ -14,7 +14,7 @@ const { label, side = 'top' } = defineProps<{ label: string; side?: 'top' | 'rig
         <TooltipContent
           :side="side"
           :side-offset="6"
-          class="z-50 rounded-md border border-line bg-elev px-2.5 py-1.5 text-xs text-txt-hi shadow-none"
+          class="z-50 rounded-md bg-elev px-2.5 py-1.5 text-xs text-txt-hi shadow-none"
         >
           {{ label }}
           <TooltipArrow class="fill-elev" />

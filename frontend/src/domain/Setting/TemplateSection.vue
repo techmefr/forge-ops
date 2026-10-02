@@ -60,12 +60,12 @@ onMounted(() => catalogue.reload())
       >
         <span class="font-mono text-xs text-txt-hi">{{ template.name }}</span>
         <span class="font-mono text-xs text-txt-low">v{{ template.version }}</span>
-        <span v-if="template.isDefault" class="rounded-md border border-acc px-1.5 py-0.5 text-xs text-acc">{{
+        <span v-if="template.isDefault" class="rounded-md px-1.5 py-0.5 text-xs text-acc">{{
           t('template.byDefault')
         }}</span>
         <button
           type="button"
-          class="ml-auto rounded-md border border-line px-2 py-1 text-xs text-txt-mid hover:border-acc"
+          class="ml-auto rounded-md px-2 py-1 text-xs text-txt-mid hover:bg-elev"
           @click="exportOne(template.id)"
         >
           {{ t('template.export') }}
@@ -86,7 +86,7 @@ onMounted(() => catalogue.reload())
       <button
         type="button"
         :disabled="busy || carried.trim() === '' || !(catalogue.data.value?.maySettle ?? false)"
-        class="rounded-md border border-acc bg-acc px-3 py-1.5 text-xs font-bold text-ink disabled:opacity-40"
+        class="rounded-md bg-acc px-3 py-1.5 text-xs font-bold text-ink disabled:opacity-40"
         @click="importOne()"
       >
         {{ t('template.import') }}

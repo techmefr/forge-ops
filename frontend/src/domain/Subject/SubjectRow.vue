@@ -91,7 +91,7 @@ function changeState(event: Event): void {
 
 <template>
   <li
-    class="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-hair/60 px-4 py-2.5 hover:bg-elev/60 min-[760px]:grid min-[760px]:grid-cols-[1fr_auto_auto_auto] min-[760px]:items-start min-[760px]:gap-x-4"
+    class="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-hair/60 px-4 py-3 hover:bg-elev/60 min-[760px]:grid min-[760px]:grid-cols-[1fr_auto_auto_auto] min-[760px]:items-start min-[760px]:gap-x-4"
     :data-test-id="`subject-row-${subject.id}`"
     @click="openFromClick"
   >

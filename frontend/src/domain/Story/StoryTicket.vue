@@ -35,7 +35,7 @@ const scoreColour = computed(() => {
 
     <p
       v-if="shown === null"
-      class="rounded-lg border border-violet bg-violet-soft/10 p-4 text-sm text-txt-mid"
+      class="rounded-lg bg-violet-soft/10 p-4 text-sm text-txt-mid"
     >
       {{ t('ticket.partNotWritten', { part: t(`storyPart.${part}`) }) }}
     </p>
@@ -139,7 +139,7 @@ const scoreColour = computed(() => {
       </ol>
     </section>
 
-    <section v-if="ticket.blockers.length > 0" class="rounded-lg border border-red bg-red-soft/10 p-4">
+    <section v-if="ticket.blockers.length > 0" class="rounded-lg bg-red-soft/10 p-4">
       <p class="text-xs text-red">
         {{ t('ticket.blockedBy') }}
       </p>

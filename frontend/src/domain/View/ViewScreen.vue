@@ -70,8 +70,8 @@ onMounted(() => stories.reload())
             v-for="story in running"
             :key="story.id"
             type="button"
-            class="rounded-lg border bg-card p-3 text-left"
-            :class="openStoryId === story.id ? 'border-acc' : 'border-line hover:border-acc'"
+            class="rounded-lg p-3 text-left"
+            :class="openStoryId === story.id ? 'bg-elev' : 'hover:bg-card'"
             @click="choose(story.id)"
           >
             <span class="font-mono whitespace-nowrap text-xs text-acc">{{ story.reference }}</span>

@@ -101,7 +101,7 @@ function effort(card: ForgeCardView): string {
                 :data-state="dot.state"
               >
                 <span
-                  class="inline-flex h-4 w-4 items-center justify-center rounded-full border border-current text-xs leading-none"
+                  class="inline-flex h-4 w-4 items-center justify-center rounded-full border-current text-xs leading-none"
                   aria-hidden="true"
                   >{{ DOT_GLYPH[dot.state] }}</span
                 >

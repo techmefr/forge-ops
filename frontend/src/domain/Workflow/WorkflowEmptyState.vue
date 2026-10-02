@@ -34,7 +34,7 @@ const body = computed(() => {
       <button
         type="button"
         :disabled="busy === true"
-        class="rounded-md border border-acc bg-acc px-3 py-1.5 text-xs font-bold text-ink disabled:opacity-40"
+        class="rounded-md bg-acc px-3 py-1.5 text-xs font-bold text-ink disabled:opacity-40"
         @click="emit('create')"
       >
         {{ t('workflowSettings.createStarter') }}

@@ -46,13 +46,13 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
       class="grid flex-none gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]"
       data-tour="statistic-tally"
     >
-      <article class="border-t border-hair pt-4">
+      <article class="pt-2">
         <p class="text-xs text-txt-low">
           {{ t('statistic.sessions') }}
         </p>
         <p class="title-face mt-1 text-[28px]">{{ summary.data.value?.sessions ?? 0 }}</p>
       </article>
-      <article class="border-t border-hair pt-4">
+      <article class="pt-2">
         <p class="text-xs text-txt-low">
           {{ t('statistic.totalCost') }}
         </p>
@@ -60,7 +60,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
           {{ t('common.money', { amount: (summary.data.value?.totalCostUsd ?? 0).toFixed(2) }) }}
         </p>
       </article>
-      <article class="border-t border-hair pt-4">
+      <article class="pt-2">
         <p class="text-xs text-txt-low">
           {{ t('statistic.machineTime') }}
         </p>

@@ -172,7 +172,7 @@ watch(
         <StatusPill v-if="current !== null" />
         <span
           v-if="phase !== IDLE"
-          class="rounded-md border border-acc px-2.5 py-1.5 text-xs text-acc"
+          class="rounded-md px-2.5 py-1.5 text-xs text-acc"
           role="status"
           >{{ phase === ARMED ? t('shell.strokeArmed') : t('shell.strokeStarted') }}</span
         >
