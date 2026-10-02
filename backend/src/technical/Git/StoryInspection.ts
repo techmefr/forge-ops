@@ -1,4 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process'
+import { agentEnvironmentOf } from '../Guardrail/AgentEnvironment.js'
 import { existsSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -54,6 +55,7 @@ export function runCommand(command: string, root: string, timeoutMs: number): Te
   const finished = spawnSync(command, {
     cwd: root,
     shell: true,
+    env: agentEnvironmentOf({ source: process.env }),
     timeout: timeoutMs,
     maxBuffer: OUTPUT_BUFFER,
     encoding: 'utf-8',

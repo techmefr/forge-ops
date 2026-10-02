@@ -200,6 +200,7 @@ function boot(): void {
     sessions,
     criteria,
     checkpoints,
+    budget: createBudgetRepository(db),
     readEvidence: (path, root) => readEvidence(path, root ?? project.checkout),
     cwdOf,
     clearVerdict: (root, path) => rmSync(join(root, path), { force: true }),
