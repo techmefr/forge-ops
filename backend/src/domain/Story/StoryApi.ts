@@ -13,7 +13,7 @@ import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
 import type { Dispatcher } from '../Dispatch/Dispatcher.js'
 import { scoreCompleteness } from './Completeness.js'
 import { assertDoneEarned } from './DoneGate.js'
-import { assertStoryHand } from './StoryHand.js'
+import { assertHandOf } from './StoryHand.js'
 import {
   STEP_BACK_TARGETS,
   assertHumanHand,
@@ -109,7 +109,7 @@ export function createStoryApi({
       return context.json({ error: 'InvalidCard', issues: draft.error.issues }, 422)
     }
     const current = repository.findStory(storyId.data)
-    assertStoryHand(current.reference, repository.assigneeOf(current.epicId), operatorOf(context))
+    assertHandOf(context, current.reference, repository.assigneeOf(current.epicId))
     const story = repository.editStory(storyId.data, draft.data)
     events.publish({ name: 'story.edited', payload: { ...story } })
     return context.json(story)
@@ -173,7 +173,7 @@ export function createStoryApi({
     }
     assertHumanHand(hand.data, 'Clore une story et effacer son worktree')
     const story = repository.findStory(storyId.data)
-    assertStoryHand(story.reference, repository.assigneeOf(story.epicId), operatorOf(context))
+    assertHandOf(context, story.reference, repository.assigneeOf(story.epicId))
     assertDoneEarned(story.reference, {
       state: story.state,
       definitionOfDone: checkpoints.definitionOfDone(story.id),
