@@ -153,3 +153,7 @@ Sidebar views and team members are plain text rows: a label and one figure. No a
 ### Subject rows
 
 A subject row shows the title, one status and the due date. The project, the owner, the story count and the blocked duration are one muted meta line. Tags, requester, links, next event, waiting-on and the status note live in the drawer. The Release action appears on hover or focus of the row (always visible on touch and on the open row).
+
+### Roadmap timeline
+
+No page title that repeats the tab name. Event markers are 8px diamonds inside a 24px hit area (40px at 375). Markers whose hit areas would overlap are stacked on separate lanes, so two events one day apart never share a target. Only the next three events of a project carry a visible label; the others show it on hover or focus. Subject rows carry the bar only; their events live on the project band.

@@ -12,7 +12,6 @@ import {
   barOf,
   extentOf,
   labelPlacement,
-  labelWidthPercent,
   lanesOf,
   localDay,
   percentOf,
@@ -27,10 +26,16 @@ import {
 } from './Timeline'
 import { useRoadmap, type RoadmapProject } from './UseRoadmap'
 
-const LANE_HEIGHT_PX = 16
 const DEFAULT_TRACK_PX = 900
+const MARKER_HIT_PX = 24
+const MARKER_HIT_PHONE_PX = 40
+const PHONE_MAX_PX = 640
+const MARKER_INSET_PX = 4
+const LABELLED_EVENTS = 3
+const FLIP_LABEL_FROM_PERCENT = 80
 
 const trackPx = ref(DEFAULT_TRACK_PX)
+const hitPx = ref(MARKER_HIT_PX)
 let trackObserver: ResizeObserver | undefined
 
 function watchTrack(element: unknown): void {
@@ -39,6 +44,7 @@ function watchTrack(element: unknown): void {
   }
   const measure = (): void => {
     trackPx.value = element.clientWidth || DEFAULT_TRACK_PX
+    hitPx.value = window.innerWidth < PHONE_MAX_PX ? MARKER_HIT_PHONE_PX : MARKER_HIT_PX
   }
   measure()
   if (typeof ResizeObserver !== 'undefined') {
@@ -48,8 +54,6 @@ function watchTrack(element: unknown): void {
 }
 
 onBeforeUnmount(() => trackObserver?.disconnect())
-const BAND_BASE_PX = 44
-const BAND_LABEL_TOP_PX = 30
 const UPCOMING_LIMIT = 8
 
 type SubjectRow = {
@@ -57,7 +61,6 @@ type SubjectRow = {
   bar: SubjectBar
   extent: Extent
   placement: LabelPlacement
-  events: readonly ProjectEvent[]
   toWrite: boolean
 }
 
@@ -68,6 +71,7 @@ type ProjectBlock = {
   lateCount: number
   toWriteCount: number
   lanes: ReadonlyMap<number, number>
+  labelled: ReadonlySet<number>
   height: number
 }
 
@@ -117,7 +121,6 @@ function rowsOf(entry: RoadmapProject): readonly SubjectRow[] {
           bar,
           extent,
           placement: labelPlacement(extent),
-          events,
           toWrite: events.some((event) => minutesToWrite(event, today.value)),
         },
       ]
@@ -128,9 +131,8 @@ function rowsOf(entry: RoadmapProject): readonly SubjectRow[] {
 const blocks = computed<readonly ProjectBlock[]>(() =>
   projects.value.map((entry) => {
     const rows = rowsOf(entry)
-    const widths = new Map(
-      entry.events.map((event) => [event.id, labelWidthPercent(typeLabel(event), trackPx.value)] as const),
-    )
+    const hitPercent = (hitPx.value / Math.max(trackPx.value, 1)) * 100
+    const widths = new Map(entry.events.map((event) => [event.id, hitPercent] as const))
     const lanes = lanesOf(entry.events, view.value, widths)
     return {
       entry,
@@ -139,7 +141,8 @@ const blocks = computed<readonly ProjectBlock[]>(() =>
       lateCount: rows.filter((row) => row.bar.lateDays > 0).length,
       toWriteCount: entry.events.filter((event) => minutesToWrite(event, today.value)).length,
       lanes,
-      height: BAND_BASE_PX + Math.max(0, ...lanes.values()) * LANE_HEIGHT_PX,
+      labelled: new Set(upcomingOf(entry.events, today.value, LABELLED_EVENTS).map((item) => item.event.id)),
+      height: MARKER_INSET_PX * 2 + (Math.max(0, ...lanes.values()) + 1) * hitPx.value,
     }
   }),
 )
@@ -232,17 +235,6 @@ onMounted(() => {
 
 <template>
   <div class="flex h-full min-h-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 sm:p-8">
-    <div class="flex flex-none flex-wrap items-center gap-3">
-      <h2 class="title-face text-xl text-txt-hi">{{ t('roadmap.title') }}</h2>
-      <button
-        type="button"
-        class="ml-auto rounded-lg bg-acc px-4 py-2 text-xs font-bold text-ink"
-        @click="openNew()"
-      >
-        {{ t('roadmap.newEvent') }}
-      </button>
-    </div>
-
     <WeatherCards ref="cards" />
 
     <ScreenState
@@ -257,9 +249,18 @@ onMounted(() => {
         :aria-label="t('roadmap.upcoming')"
         data-test-id="roadmap-upcoming"
       >
-        <h3 class="text-xs text-txt-low">
-          {{ t('roadmap.upcoming') }}
-        </h3>
+        <div class="flex items-center gap-3">
+          <h3 class="text-xs text-txt-low">
+            {{ t('roadmap.upcoming') }}
+          </h3>
+          <button
+            type="button"
+            class="ml-auto rounded-md bg-acc px-3 py-1.5 text-xs font-semibold text-ink max-sm:min-h-10"
+            @click="openNew()"
+          >
+            {{ t('roadmap.newEvent') }}
+          </button>
+        </div>
         <p v-if="upcoming.length === 0" class="mt-2 text-sm text-txt-low">
           {{ t('roadmap.upcomingEmpty') }}
         </p>
@@ -370,32 +371,37 @@ onMounted(() => {
                     :style="{ left: `${todayLeft}%` }"
                     aria-hidden="true"
                   />
-                  <template v-for="event in block.entry.events" :key="event.id">
-                    <button
-                      type="button"
-                      class="absolute top-2 flex size-6 max-sm:top-0 max-sm:min-w-10 -translate-x-1/2 items-center justify-center rounded"
-                      :style="{ left: `${percentOf(event.date, view)}%` }"
-                      :aria-label="eventLabel(event)"
-                      :title="eventLabel(event)"
-                      @click="openEvent(event)"
-                    >
-                      <span
-                        class="block size-3 rotate-45 border border-ink"
-                        :class="EVENT_TONES[event.type].mark"
-                      />
-                    </button>
+                  <button
+                    v-for="event in block.entry.events"
+                    :key="event.id"
+                    type="button"
+                    class="group absolute flex size-6 -translate-x-1/2 items-center justify-center rounded hover:z-10 focus-visible:z-10 max-sm:size-10"
+                    :style="{
+                      left: `${percentOf(event.date, view)}%`,
+                      top: `${MARKER_INSET_PX + (block.lanes.get(event.id) ?? 0) * hitPx}px`,
+                    }"
+                    :aria-label="eventLabel(event)"
+                    :title="eventLabel(event)"
+                    @click="openEvent(event)"
+                  >
                     <span
-                      class="pointer-events-none absolute -translate-x-1/2 text-xs font-semibold whitespace-nowrap"
-                      :class="EVENT_TONES[event.type].text"
-                      :style="{
-                        left: `${percentOf(event.date, view)}%`,
-                        top: `${BAND_LABEL_TOP_PX + (block.lanes.get(event.id) ?? 0) * LANE_HEIGHT_PX}px`,
-                      }"
+                      class="block size-2 rotate-45 border border-ink"
+                      :class="EVENT_TONES[event.type].mark"
+                    />
+                    <span
+                      class="pointer-events-none absolute top-1/2 -translate-y-1/2 rounded bg-card px-1 text-xs font-medium whitespace-nowrap"
+                      :class="[
+                        EVENT_TONES[event.type].text,
+                        percentOf(event.date, view) > FLIP_LABEL_FROM_PERCENT ? 'right-full' : 'left-full',
+                        block.labelled.has(event.id)
+                          ? ''
+                          : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100',
+                      ]"
                       aria-hidden="true"
                     >
                       {{ typeLabel(event) }}
                     </span>
-                  </template>
+                  </button>
                 </div>
               </div>
 
@@ -425,7 +431,7 @@ onMounted(() => {
                       {{ ownerOf(row.subject) }} · {{ t(`epicState.${row.subject.state}`) }}
                     </small>
                   </div>
-                  <div class="relative h-11">
+                  <div class="relative h-9">
                     <span
                       class="absolute top-0 bottom-0 w-0.5 bg-txt-hi/60"
                       :style="{ left: `${todayLeft}%` }"
@@ -434,7 +440,7 @@ onMounted(() => {
                     <span
                       role="img"
                       tabindex="0"
-                      class="absolute top-2.5 flex h-6 items-center overflow-hidden rounded px-2 text-xs font-semibold whitespace-nowrap text-ink"
+                      class="absolute top-2 flex h-5 items-center overflow-hidden rounded px-2 text-xs font-semibold whitespace-nowrap text-ink"
                       :class="barTone(row.subject)"
                       :style="{ left: `${row.extent.left}%`, width: `${row.extent.width}%` }"
                       :aria-label="barAria(row)"
@@ -445,7 +451,7 @@ onMounted(() => {
                     </span>
                     <span
                       v-if="row.extent.lateWidth > 0"
-                      class="roadmap-late absolute top-2.5 h-6 rounded-r"
+                      class="roadmap-late absolute top-2 h-5 rounded-r"
                       :style="{
                         left: `${row.extent.left + row.extent.width}%`,
                         width: `${row.extent.lateWidth}%`,
@@ -454,27 +460,12 @@ onMounted(() => {
                     />
                     <span
                       v-if="!row.placement.inside"
-                      class="pointer-events-none absolute top-3 text-xs font-semibold whitespace-nowrap text-txt-hi"
+                      class="pointer-events-none absolute top-2.5 text-xs font-semibold whitespace-nowrap text-txt-hi"
                       :style="outsideStyle(row.placement)"
                       aria-hidden="true"
                     >
                       {{ barText(row) }}
                     </span>
-                    <button
-                      v-for="event in row.events"
-                      :key="event.id"
-                      type="button"
-                      class="absolute top-3 flex size-6 max-sm:top-0 max-sm:min-w-10 -translate-x-1/2 items-center justify-center rounded"
-                      :style="{ left: `${percentOf(event.date, view)}%` }"
-                      :aria-label="eventLabel(event)"
-                      :title="eventLabel(event)"
-                      @click="openEvent(event)"
-                    >
-                      <span
-                        class="block size-3 rotate-45 border border-ink"
-                        :class="EVENT_TONES[event.type].mark"
-                      />
-                    </button>
                   </div>
                 </li>
               </ul>
