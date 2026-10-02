@@ -270,7 +270,7 @@ onMounted(async () => {
         </select>
         <button
           type="submit"
-          class="rounded-md bg-transparent px-3 py-1 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
+          class="rounded-md bg-acc px-3 py-1.5 text-xs font-semibold text-ink hover:opacity-90 disabled:opacity-40 max-sm:min-h-10"
           :disabled="newTitle.trim() === ''"
         >
           {{ t('forge.addStoryButton') }}

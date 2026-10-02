@@ -161,3 +161,7 @@ No page title that repeats the tab name. Event markers are 8px diamonds inside a
 ### Phone header
 
 At 375 the chrome above the content stays under about 200px. The main navigation and the sub tabs are single rows that scroll sideways (no wrapping grid), the page subtitle is hidden, the title shares a line with the shell controls, the personal tally is one scrolling line, and the weather line scrolls sideways. The skip link stays the first focusable element and every target keeps 40px.
+
+### My forge primary action
+
+The board has exactly one filled button, Add story. Launch, Retry, Stop and Validate on cards, the view switch, the project switch and the workflow settings stay ghost or text buttons.
