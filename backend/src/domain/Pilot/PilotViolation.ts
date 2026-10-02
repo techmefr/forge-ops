@@ -30,7 +30,7 @@ export class StepNeedsValueError extends PilotViolationError {
 
 export class UnsafeDestinationError extends PilotViolationError {
   constructor(target: string) {
-    super(`${target} is not a web address, the pilot will not open it`)
+    super(`${target} is not a public web address, the pilot will not open it`)
     this.name = 'UnsafeDestinationError'
   }
 }
