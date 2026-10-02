@@ -226,10 +226,7 @@ function createLabel(name: string): string {
         role="option"
         :aria-selected="isSelected(option)"
         class="flex cursor-pointer items-center gap-2 px-2.5 py-1.5 text-sm text-txt-hi"
-        :class="[
-          index === active ? 'bg-line' : '',
-          option.kind === 'create' ? 'border-t border-line text-acc' : '',
-        ]"
+        :class="[ index === active ? 'bg-line' : '', option.kind === 'create' ? 'border-t border-line text-acc' : '', ]"
         :data-test-id="`project-option-${optionKey(option)}`"
         @mouseenter="active = index"
         @click="choose(option)"
@@ -244,10 +241,10 @@ function createLabel(name: string): string {
         </template>
         <span v-else-if="option.kind === 'all'" class="min-w-0 flex-1 truncate">{{ allLabel }}</span>
         <span v-else class="min-w-0 flex-1 truncate">{{ createLabel(option.name) }}</span>
-        <span v-if="isSelected(option)" class="flex-none text-[11px] text-txt-low" aria-hidden="true">✓</span>
+        <span v-if="isSelected(option)" class="flex-none text-xs text-txt-low" aria-hidden="true">✓</span>
       </li>
     </ul>
-    <p v-if="open && options.length === 0" class="mt-1 text-[11px] text-txt-low" role="status">
+    <p v-if="open && options.length === 0" class="mt-1 text-xs text-txt-low" role="status">
       {{ t('projectPicker.empty') }}
     </p>
 

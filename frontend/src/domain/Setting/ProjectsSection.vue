@@ -65,10 +65,10 @@ void users.reload()
       <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('team.projects') }}</h2>
       <EffectBadge section="projects" />
     </div>
-    <p class="m-0 text-[13px] text-txt-mid">{{ t('team.projectsSub') }}</p>
+    <p class="m-0 text-sm text-txt-mid">{{ t('team.projectsSub') }}</p>
 
-    <p v-if="refusal !== null" class="m-0 text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
-    <p v-if="sheets.failure.value !== null" class="m-0 text-[13px] text-red" role="alert">
+    <p v-if="refusal !== null" class="m-0 text-sm text-red" role="alert">{{ say(refusal) }}</p>
+    <p v-if="sheets.failure.value !== null" class="m-0 text-sm text-red" role="alert">
       {{ say(sheets.failure.value) }}
     </p>
 
@@ -91,7 +91,7 @@ void users.reload()
       <button
         v-if="!adding"
         type="button"
-        class="rounded-md border border-line px-3 py-2 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+        class="rounded-md border border-line px-3 py-2 text-xs text-txt-mid hover:border-acc"
         @click="adding = true"
       >
         {{ t('team.addProject') }}
@@ -99,6 +99,6 @@ void users.reload()
       <ProjectCreateForm v-else @created="created" @cancel="adding = false" />
     </div>
 
-    <p class="m-0 text-[11px] text-txt-low">{{ t('team.projectsFoot') }}</p>
+    <p class="m-0 text-xs text-txt-low">{{ t('team.projectsFoot') }}</p>
   </section>
 </template>

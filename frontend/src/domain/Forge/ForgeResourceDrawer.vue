@@ -23,13 +23,13 @@ function closeWhenClosed(open: boolean): void {
         data-test="forge-resource-drawer"
       >
         <header class="flex flex-none items-center gap-3 border-b border-line px-5 py-3">
-          <DialogTitle class="m-0 flex-1 text-[13px] font-semibold text-txt-hi">
+          <DialogTitle class="m-0 flex-1 text-sm font-semibold text-txt-hi">
             {{ t('forge.resource.detailsTitle') }}
           </DialogTitle>
           <DialogDescription class="sr-only">{{ t('forge.resource.aria') }}</DialogDescription>
           <button
             type="button"
-            class="rounded-md border border-line bg-transparent px-2.5 py-1 font-mono text-[11px] text-txt-mid hover:bg-elev"
+            class="rounded-md border border-line bg-transparent px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
             @click="emit('close')"
           >
             {{ t('forge.resource.close') }}

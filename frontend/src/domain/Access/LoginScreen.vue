@@ -177,11 +177,11 @@ useRefusalFocus(refusal, signForm)
       class="rounded-lg border border-line bg-card p-6"
     >
       <p class="title-face text-[22px]">{{ t('access.enterBoard') }}</p>
-      <p class="mt-1 text-[11px] text-txt-low">{{ t('access.tokenHint') }}</p>
+      <p class="mt-1 text-xs text-txt-low">{{ t('access.tokenHint') }}</p>
 
       <form ref="tokenForm" class="mt-5 flex flex-col gap-3" @submit.prevent="openBoardSession()">
         <label class="flex flex-col gap-1">
-          <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+          <span class="text-xs text-txt-low">
             <span>{{ t('access.boardToken') }} <RequiredStar /></span>
           </span>
           <input
@@ -196,13 +196,13 @@ useRefusalFocus(refusal, signForm)
         <button
           type="submit"
           :disabled="busy || boardToken === ''"
-          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2.5 text-[11px] font-bold text-ink uppercase disabled:opacity-40"
+          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-40"
         >
           {{ t('access.openSession') }}
         </button>
 
         <RequiredNote />
-        <p id="login-token-refusal" v-if="refusal !== null" class="text-[11px] text-red" role="alert">{{ say(refusal) }}</p>
+        <p id="login-token-refusal" v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</p>
       </form>
     </section>
 
@@ -217,7 +217,7 @@ useRefusalFocus(refusal, signForm)
             : t('access.openASession')
         }}
       </p>
-      <p class="mt-1 text-[11px] text-txt-low">
+      <p class="mt-1 text-xs text-txt-low">
         {{
           state.data.value?.enrolmentOpen === true
             ? t('access.firstAccountHint')
@@ -230,7 +230,7 @@ useRefusalFocus(refusal, signForm)
         @submit.prevent="state.data.value?.enrolmentOpen === true ? enrol() : signIn()"
       >
         <label class="flex flex-col gap-1">
-          <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+          <span class="text-xs text-txt-low">
             <span>{{ t('access.loginName') }} <RequiredStar /></span>
           </span>
           <input
@@ -244,7 +244,7 @@ useRefusalFocus(refusal, signForm)
 
         <template v-if="state.data.value?.enrolmentOpen === true">
           <label class="flex flex-col gap-1">
-            <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+            <span class="text-xs text-txt-low">
               <span>{{ t('access.displayName') }} <RequiredStar /></span>
             </span>
             <input
@@ -255,7 +255,7 @@ useRefusalFocus(refusal, signForm)
             />
           </label>
           <label class="flex flex-col gap-1">
-            <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+            <span class="text-xs text-txt-low">
               {{ t('access.role') }}
             </span>
             <select
@@ -270,7 +270,7 @@ useRefusalFocus(refusal, signForm)
         </template>
 
         <label class="flex flex-col gap-1">
-          <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+          <span class="text-xs text-txt-low">
             <span>{{ t('access.password') }} <RequiredStar /></span>
           </span>
           <input
@@ -280,13 +280,13 @@ useRefusalFocus(refusal, signForm)
             autocomplete="current-password"
             class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
           />
-          <span class="text-[11px] text-txt-low">{{ t('access.passwordHint') }}</span>
+          <span class="text-xs text-txt-low">{{ t('access.passwordHint') }}</span>
         </label>
 
         <button
           type="submit"
           :disabled="busy || login === '' || password === ''"
-          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2.5 text-[11px] font-bold text-ink uppercase disabled:opacity-40"
+          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-40"
         >
           {{
             state.data.value?.enrolmentOpen === true ? t('access.createAccount') : t('access.enter')
@@ -298,13 +298,13 @@ useRefusalFocus(refusal, signForm)
           v-for="provider in providers"
           :key="provider"
           type="button"
-          class="rounded-lg border border-line bg-elev px-4 py-2.5 text-center text-[11px] font-bold text-txt-hi uppercase"
+          class="rounded-lg border border-line bg-elev px-4 py-2.5 text-center text-xs font-bold text-txt-hi"
           @click="continueWith(provider)"
         >
           {{ t('access.continueWith', { provider: labelOf(provider) }) }}
         </button>
-        <p v-if="isOidcRefused" class="text-[11px] text-red" role="alert">{{ t('access.oidcRefused') }}</p>
-        <p id="login-refusal" v-if="refusal !== null" class="text-[11px] text-red" role="alert">{{ say(refusal) }}</p>
+        <p v-if="isOidcRefused" class="text-xs text-red" role="alert">{{ t('access.oidcRefused') }}</p>
+        <p id="login-refusal" v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</p>
       </form>
     </section>
   </div>

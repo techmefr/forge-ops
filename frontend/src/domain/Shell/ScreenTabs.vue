@@ -21,11 +21,7 @@ const { t } = useI18n()
       :key="tab"
       :to="`${base}/${tab}`"
       class="flex items-center gap-1.5 min-h-10 flex-none border-b-2 px-3 py-2.5 transition-colors"
-      :class="
-        current === tab
-          ? `border-acc text-txt-hi`
-          : `border-transparent text-txt-mid hover:text-txt-hi`
-      "
+      :class="current === tab ? `border-acc text-txt-hi` : `border-transparent text-txt-mid hover:text-txt-hi`"
     >
       <span class="text-sm font-medium">{{
         t(`${group}.${tab}`)

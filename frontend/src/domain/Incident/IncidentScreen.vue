@@ -97,12 +97,8 @@ onMounted(async () => {
           :key="state"
           type="button"
           :aria-pressed="state === chosenState"
-          class="rounded-lg border px-3 py-2 text-[11px] font-semibold uppercase"
-          :class="
-            state === chosenState
-              ? 'border-acc bg-acc text-ink'
-              : 'border-line bg-card text-txt-mid hover:border-acc'
-          "
+          class="rounded-lg border px-3 py-2 text-xs font-semibold"
+          :class="state === chosenState ? 'border-acc bg-acc text-ink' : 'border-line bg-card text-txt-mid hover:border-acc'"
           @click="chosenState = state"
         >
           {{ t(`incidentState.${state}`) }}
@@ -110,7 +106,7 @@ onMounted(async () => {
       </div>
 
       <label class="ml-auto flex flex-col gap-1">
-        <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">{{
+        <span class="text-xs text-txt-low">{{
           t('incident.epicTarget')
         }}</span>
         <select
@@ -123,7 +119,7 @@ onMounted(async () => {
       </label>
     </div>
 
-    <p v-if="refusal !== null" class="mt-3 text-[11px] text-red" role="alert">{{ say(refusal) }}</p>
+    <p v-if="refusal !== null" class="mt-3 text-xs text-red" role="alert">{{ say(refusal) }}</p>
 
     <div class="mt-6 min-h-0 flex-1 overflow-auto pr-1">
       <ScreenState
@@ -140,20 +136,20 @@ onMounted(async () => {
             class="rounded-lg border border-line bg-card p-4"
           >
             <div class="flex flex-wrap items-center gap-3">
-              <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">{{
+              <span class="text-xs text-txt-low">{{
                 originOf(incident)
               }}</span>
               <span
                 v-if="incident.occurrences > 1"
-                class="rounded-full bg-orange/20 px-2 py-0.5 font-mono text-[11px] text-orange"
+                class="rounded-full bg-orange/20 px-2 py-0.5 font-mono text-xs text-orange"
                 >{{
                   t('incident.occurrences', { count: incident.occurrences }, incident.occurrences)
                 }}</span
               >
-              <span class="ml-auto font-mono text-[11px] text-txt-low">{{ incident.fingerprint }}</span>
+              <span class="ml-auto font-mono text-xs text-txt-low">{{ incident.fingerprint }}</span>
             </div>
             <h2 class="title-face mt-2 text-[22px]">{{ incident.title }}</h2>
-            <p class="mt-2 font-mono text-[11px] whitespace-pre-wrap text-txt-mid">
+            <p class="mt-2 font-mono text-xs whitespace-pre-wrap text-txt-mid">
               {{ incident.detail }}
             </p>
 
@@ -168,7 +164,7 @@ onMounted(async () => {
               <button
                 type="button"
                 :disabled="busy"
-                class="rounded-lg border border-acc bg-acc px-3 py-2 text-[11px] font-bold text-ink uppercase disabled:opacity-40"
+                class="rounded-lg border border-acc bg-acc px-3 py-2 text-xs font-bold text-ink disabled:opacity-40"
                 @click="accept(incident)"
               >
                 {{ t('incident.makeStory') }}
@@ -183,7 +179,7 @@ onMounted(async () => {
               <button
                 type="button"
                 :disabled="busy"
-                class="rounded-lg border border-line bg-elev px-3 py-2 text-[11px] font-bold text-txt-mid uppercase disabled:opacity-40"
+                class="rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid disabled:opacity-40"
                 @click="refuse(incident)"
               >
                 {{ t('common.refuse') }}

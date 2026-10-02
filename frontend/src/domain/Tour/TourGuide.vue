@@ -167,7 +167,7 @@ onBeforeUnmount(() => {
       v-if="tour.offered.value"
       ref="reopenButton"
       type="button"
-      class="min-h-11 rounded-full border border-acc bg-panel px-3 font-mono text-[11px] font-bold text-acc uppercase sm:min-h-9"
+      class="min-h-11 rounded-full border border-acc bg-panel px-3 text-xs font-bold text-acc sm:min-h-9"
       @click="tour.reopen()"
     >
       {{ t('tour.reopen') }}
@@ -185,7 +185,7 @@ onBeforeUnmount(() => {
     :class="CORNER_CLASSES[corner]"
     class="fixed z-50 flex w-[min(380px,calc(100vw-1.5rem))] flex-col gap-3 rounded-lg border border-acc bg-panel p-6 shadow-2xl"
   >
-    <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase" role="status">
+    <p class="text-xs text-txt-low" role="status">
       {{ t('tour.progress', { current: tour.index.value + 1, total: tour.total }) }}
     </p>
 
@@ -198,7 +198,7 @@ onBeforeUnmount(() => {
     <div class="mt-1 flex flex-wrap items-center gap-2">
       <button
         type="button"
-        class="rounded-lg border border-line bg-card px-3 py-2 text-[11px] font-bold text-txt-mid uppercase disabled:opacity-40"
+        class="rounded-lg border border-line bg-card px-3 py-2 text-xs font-bold text-txt-mid disabled:opacity-40"
         :disabled="tour.first.value"
         @click="tour.goBack()"
       >
@@ -206,20 +206,20 @@ onBeforeUnmount(() => {
       </button>
       <button
         type="button"
-        class="rounded-lg border border-acc bg-acc px-3 py-2 text-[11px] font-bold text-ink uppercase"
+        class="rounded-lg border border-acc bg-acc px-3 py-2 text-xs font-bold text-ink"
         @click="tour.goNext()"
       >
         {{ tour.last.value ? t('tour.finish') : t('tour.next') }}
       </button>
       <button
         type="button"
-        class="ml-auto rounded-lg border border-line bg-card px-3 py-2 text-[11px] font-bold text-txt-low uppercase"
+        class="ml-auto rounded-lg border border-line bg-card px-3 py-2 text-xs font-bold text-txt-low"
         @click="leave()"
       >
         {{ t('tour.skip') }}
       </button>
     </div>
 
-    <p class="text-[11px] text-txt-low">{{ t('tour.hint') }}</p>
+    <p class="text-xs text-txt-low">{{ t('tour.hint') }}</p>
   </div>
 </template>

@@ -74,9 +74,9 @@ onMounted(() => stories.reload())
             :class="openStoryId === story.id ? 'border-acc' : 'border-line hover:border-acc'"
             @click="choose(story.id)"
           >
-            <span class="font-mono whitespace-nowrap text-[11px] text-acc">{{ story.reference }}</span>
+            <span class="font-mono whitespace-nowrap text-xs text-acc">{{ story.reference }}</span>
             <span class="mt-1 block text-sm text-txt-hi">{{ story.title }}</span>
-            <span class="mt-1 block font-mono text-[11px] text-txt-low uppercase">{{
+            <span class="mt-1 block text-xs text-txt-low">{{
               t(`state.${story.state}`)
             }}</span>
           </button>
@@ -88,7 +88,7 @@ onMounted(() => stories.reload())
       <p v-if="openStoryId === null" class="text-sm text-txt-low">{{ t('view.chooseSession') }}</p>
 
       <template v-else>
-        <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+        <p class="text-xs text-txt-low">
           {{ t('view.renderOf', { reference: openStory?.reference ?? '' }) }}
         </p>
 
@@ -108,15 +108,15 @@ onMounted(() => stories.reload())
             <button
               type="submit"
               :disabled="busy || evidencePath === ''"
-              class="rounded-lg bg-acc px-3 py-2 text-[11px] font-bold text-bg uppercase disabled:opacity-40"
+              class="rounded-lg bg-acc px-3 py-2 text-xs font-bold text-bg disabled:opacity-40"
             >
               {{ t('view.dropEvidence') }}
             </button>
           </div>
-          <p v-if="deposited !== null" class="mt-2 font-mono text-[11px] text-green">
+          <p v-if="deposited !== null" class="mt-2 font-mono text-xs text-green">
             {{ t('view.provenBy', { path: deposited }) }}
           </p>
-          <p v-if="refusal !== null" class="mt-2 text-[11px] text-red">{{ say(refusal) }}</p>
+          <p v-if="refusal !== null" class="mt-2 text-xs text-red">{{ say(refusal) }}</p>
         </form>
       </template>
     </section>

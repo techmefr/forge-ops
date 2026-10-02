@@ -56,7 +56,7 @@ const scales = computed(() => listOf(FONT_SCALES, 'fontScale'))
 
     <div class="flex flex-col gap-2">
       <LanguageSwitch />
-      <span class="text-[13px] text-txt-low">{{ t('setting.languageHint') }}</span>
+      <span class="text-sm text-txt-low">{{ t('setting.languageHint') }}</span>
     </div>
   </section>
 </template>

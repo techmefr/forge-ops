@@ -33,9 +33,9 @@ function drop(index: number): void {
       <li
         v-for="(link, index) in links"
         :key="`${link.kind}-${link.url}-${index}`"
-        class="relative flex max-w-full items-center gap-1.5 rounded-md border border-line bg-panel px-2 py-1 text-[11px]"
+        class="relative flex max-w-full items-center gap-1.5 rounded-md border border-line bg-panel px-2 py-1 text-xs"
       >
-        <span class="font-mono text-txt-mid uppercase">{{ t(`linkKind.${link.kind}`) }}</span>
+        <span class="text-txt-mid">{{ t(`linkKind.${link.kind}`) }}</span>
         <a
           :href="safeHref(link.url)"
           target="_blank"
@@ -53,14 +53,14 @@ function drop(index: number): void {
         </button>
       </li>
     </ul>
-    <p v-else class="text-[11px] text-txt-low">{{ t('team.noLinks') }}</p>
+    <p v-else class="text-xs text-txt-low">{{ t('team.noLinks') }}</p>
 
     <form class="flex flex-wrap items-center gap-2" @submit.prevent="add">
       <label class="sr-only" :for="`link-kind-${identifier}`">{{ t('team.linkKind') }}</label>
       <select
         :id="`link-kind-${identifier}`"
         v-model="kind"
-        class="rounded-md border border-line bg-card px-2 py-1.5 text-[13px] text-txt-hi"
+        class="rounded-md border border-line bg-card px-2 py-1.5 text-sm text-txt-hi"
       >
         <option v-for="option in LINK_KINDS" :key="option" :value="option">
           {{ t(`linkKind.${option}`) }}
@@ -72,12 +72,12 @@ function drop(index: number): void {
         v-model="address"
         type="url"
         placeholder="https://"
-        class="min-w-0 flex-1 rounded-md border border-line bg-card px-3 py-1.5 text-[13px] text-txt-hi"
+        class="min-w-0 flex-1 rounded-md border border-line bg-card px-3 py-1.5 text-sm text-txt-hi"
       />
       <button
         type="submit"
         :disabled="address.trim() === ''"
-        class="rounded-md border border-line px-3 py-1.5 font-mono text-[11px] text-txt-mid uppercase hover:border-acc disabled:opacity-40"
+        class="rounded-md border border-line px-3 py-1.5 text-xs text-txt-mid hover:border-acc disabled:opacity-40"
       >
         {{ t('team.addLink') }}
       </button>

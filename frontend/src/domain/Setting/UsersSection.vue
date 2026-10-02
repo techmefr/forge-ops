@@ -95,13 +95,13 @@ void users.reload()
       <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('team.users') }}</h2>
       <EffectBadge section="users" />
     </div>
-    <p class="m-0 text-[13px] text-txt-mid">{{ t('team.usersSub') }}</p>
+    <p class="m-0 text-sm text-txt-mid">{{ t('team.usersSub') }}</p>
 
-    <p v-if="refusal !== null" class="m-0 text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
-    <p v-if="users.failure.value !== null" class="m-0 text-[13px] text-red" role="alert">
+    <p v-if="refusal !== null" class="m-0 text-sm text-red" role="alert">{{ say(refusal) }}</p>
+    <p v-if="users.failure.value !== null" class="m-0 text-sm text-red" role="alert">
       {{ say(users.failure.value) }}
     </p>
-    <p v-if="rows.length === 0 && users.failure.value === null" class="m-0 text-[13px] text-txt-low">
+    <p v-if="rows.length === 0 && users.failure.value === null" class="m-0 text-sm text-txt-low">
       {{ t('team.noUsers') }}
     </p>
 
@@ -112,19 +112,19 @@ void users.reload()
         class="flex flex-wrap items-center gap-3 rounded-md bg-panel px-3 py-2"
       >
         <span
-          class="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-elev font-mono text-[11px] text-txt-hi"
+          class="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-elev font-mono text-xs text-txt-hi"
           aria-hidden="true"
           >{{ initialsOf(user.displayName) }}</span
         >
         <div class="min-w-[9rem] flex-1">
-          <strong class="text-[13px] text-txt-hi">{{ user.displayName }}</strong>
-          <p class="m-0 font-mono text-[11px] text-txt-low">
+          <strong class="text-sm text-txt-hi">{{ user.displayName }}</strong>
+          <p class="m-0 font-mono text-xs text-txt-low">
             {{ user.login }} · {{ t(`role.${user.role}`)
             }}<template v-if="user.superAdmin"> · {{ t('team.superAdmin') }}</template>
           </p>
         </div>
 
-        <label class="flex items-center gap-2 text-[11px] text-txt-low">
+        <label class="flex items-center gap-2 text-xs text-txt-low">
           {{ t('team.capacity') }}
           <input
             type="number"
@@ -135,13 +135,13 @@ void users.reload()
             :placeholder="t('team.noCapacity')"
             :disabled="!mayEdit(user)"
             :aria-label="t('team.capacityOf', { name: user.displayName })"
-            class="w-20 rounded-md border border-line bg-card px-2 py-1.5 text-[13px] text-txt-hi disabled:opacity-60"
+            class="w-20 rounded-md border border-line bg-card px-2 py-1.5 text-sm text-txt-hi disabled:opacity-60"
             @change="setCapacity(user, $event)"
           />
         </label>
 
         <span
-          class="rounded-full border px-2 py-0.5 text-[11px] font-semibold"
+          class="rounded-full border px-2 py-0.5 text-xs font-semibold"
           :class="user.active ? 'border-green text-green' : 'border-line text-txt-low'"
           >{{ user.active ? t('team.active') : t('team.inactive') }}</span
         >
@@ -150,7 +150,7 @@ void users.reload()
           v-if="self?.superAdmin"
           type="button"
           :aria-label="`${t(user.superAdmin ? 'team.revokeSuperAdmin' : 'team.grantSuperAdmin')}: ${user.displayName}`"
-          class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+          class="rounded-md border border-line px-2.5 py-1 text-xs text-txt-mid hover:border-acc"
           @click="toggleSuperAdmin(user)"
         >
           {{ user.superAdmin ? t('team.revokeSuperAdmin') : t('team.grantSuperAdmin') }}
@@ -159,7 +159,7 @@ void users.reload()
         <button
           v-if="manages"
           type="button"
-          class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+          class="rounded-md border border-line px-2.5 py-1 text-xs text-txt-mid hover:border-acc"
           @click="toggle(user)"
         >
           {{ user.active ? t('team.deactivate') : t('team.reactivate')
@@ -169,21 +169,21 @@ void users.reload()
     </ul>
 
     <form v-if="manages" ref="addForm" class="flex flex-col gap-3" @submit.prevent="add">
-      <h3 class="m-0 font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+      <h3 class="m-0 text-xs text-txt-low">
         {{ t('team.addUser') }}
       </h3>
       <div class="grid grid-cols-1 gap-3 min-[760px]:grid-cols-2">
-        <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+        <label class="flex flex-col gap-1 text-sm text-txt-mid">
           <span>{{ t('team.login') }} <RequiredStar /></span>
           <input
             v-model="login"
             v-bind="requiredField(addRefusal, 'users-add-refusal')"
             type="text"
             autocomplete="off"
-            class="rounded-md border border-line bg-panel px-3 py-2 font-mono text-[13px] text-txt-hi"
+            class="rounded-md border border-line bg-panel px-3 py-2 font-mono text-sm text-txt-hi"
           />
         </label>
-        <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+        <label class="flex flex-col gap-1 text-sm text-txt-mid">
           <span>{{ t('team.displayName') }} <RequiredStar /></span>
           <input
             v-model="displayName"
@@ -193,7 +193,7 @@ void users.reload()
             class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
         </label>
-        <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+        <label class="flex flex-col gap-1 text-sm text-txt-mid">
           <span>{{ t('team.password') }} <RequiredStar /></span>
           <input
             v-model="password"
@@ -202,9 +202,9 @@ void users.reload()
             autocomplete="new-password"
             class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
           />
-          <span class="text-[11px] text-txt-low">{{ t('setting.passwordHint') }}</span>
+          <span class="text-xs text-txt-low">{{ t('setting.passwordHint') }}</span>
         </label>
-        <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+        <label class="flex flex-col gap-1 text-sm text-txt-mid">
           {{ t('team.role') }}
           <select
             v-model="role"
@@ -219,17 +219,17 @@ void users.reload()
       <button
         type="submit"
         :disabled="!draftReady"
-        class="self-start rounded-md border border-acc bg-acc px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-40"
+        class="self-start rounded-md border border-acc bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
       >
         {{ t('team.add') }}
       </button>
       <RequiredNote />
-      <p v-if="addRefusal !== null" id="users-add-refusal" class="m-0 text-[13px] text-red" role="alert">
+      <p v-if="addRefusal !== null" id="users-add-refusal" class="m-0 text-sm text-red" role="alert">
         {{ say(addRefusal) }}
       </p>
     </form>
-    <p v-else class="m-0 text-[11px] text-txt-low">{{ t('team.managesOnly') }}</p>
+    <p v-else class="m-0 text-xs text-txt-low">{{ t('team.managesOnly') }}</p>
 
-    <p class="m-0 text-[11px] text-txt-low">{{ t('team.usersFoot') }}</p>
+    <p class="m-0 text-xs text-txt-low">{{ t('team.usersFoot') }}</p>
   </section>
 </template>

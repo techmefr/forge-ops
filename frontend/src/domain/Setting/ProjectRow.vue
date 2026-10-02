@@ -59,23 +59,23 @@ function relink(links: readonly SubjectLink[]): void {
       </label>
 
       <div class="min-w-[9rem] flex-1">
-        <strong class="text-[13px] text-txt-hi">{{ sheet.name }}</strong>
+        <strong class="text-sm text-txt-hi">{{ sheet.name }}</strong>
         <p
           :id="`project-use-${sheet.id}`"
-          class="m-0 text-[11px]"
+          class="m-0 text-xs"
           :class="reason === null ? 'text-txt-low' : 'text-orange'"
         >
           {{ reason === null ? t('team.unused') : say(reason) }}
         </p>
       </div>
 
-      <label class="flex items-center gap-2 text-[11px] text-txt-low">
+      <label class="flex items-center gap-2 text-xs text-txt-low">
         {{ t('team.admin') }}
         <select
           :value="sheet.adminUserId ?? ''"
           :disabled="adminLocked"
           :aria-describedby="adminLocked ? `project-admin-lock-${sheet.id}` : undefined"
-          class="rounded-md border border-line bg-card px-2 py-1.5 text-[13px] text-txt-hi disabled:opacity-60"
+          class="rounded-md border border-line bg-card px-2 py-1.5 text-sm text-txt-hi disabled:opacity-60"
           @change="pickAdmin"
         >
           <option value="">{{ t('team.noAdmin') }}</option>
@@ -110,7 +110,7 @@ function relink(links: readonly SubjectLink[]): void {
           type="button"
           :disabled="reason !== null"
           :aria-describedby="`project-use-${sheet.id}`"
-          class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-red disabled:opacity-40"
+          class="rounded-md border border-line px-2.5 py-1 text-xs text-txt-mid hover:border-red disabled:opacity-40"
           @click="emit('remove')"
         >
           {{ t('team.delete') }}<span class="sr-only"> {{ sheet.name }}</span>
@@ -118,7 +118,7 @@ function relink(links: readonly SubjectLink[]): void {
       </div>
     </div>
 
-    <p v-if="adminLocked" :id="`project-admin-lock-${sheet.id}`" class="m-0 text-[11px] text-txt-low">
+    <p v-if="adminLocked" :id="`project-admin-lock-${sheet.id}`" class="m-0 text-xs text-txt-low">
       {{ t('team.adminLocked') }}
     </p>
 

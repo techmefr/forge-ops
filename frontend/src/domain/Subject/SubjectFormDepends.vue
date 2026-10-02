@@ -43,15 +43,15 @@ function remove(id: number): void {
 
 <template>
   <fieldset class="flex min-w-0 flex-col gap-2">
-    <legend class="text-[13px] text-txt-mid">
+    <legend class="text-sm text-txt-mid">
       {{ t('subjects.form.dependsOn') }}
-      <span class="text-[11px] text-txt-low">{{ t('subjects.form.dependsOnHint') }}</span>
+      <span class="text-xs text-txt-low">{{ t('subjects.form.dependsOnHint') }}</span>
     </legend>
     <ul class="flex flex-wrap gap-1.5" data-test-id="form-dependencies">
       <li
         v-for="entry in picked"
         :key="entry.id"
-        class="inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-[11px] text-txt-hi"
+        class="inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-xs text-txt-hi"
       >
         {{ entry.title }}
         <button
@@ -63,7 +63,7 @@ function remove(id: number): void {
           <span aria-hidden="true">×</span>
         </button>
       </li>
-      <li v-if="picked.length === 0" class="text-[11px] text-txt-low">{{ t('subjects.form.dependsNone') }}</li>
+      <li v-if="picked.length === 0" class="text-xs text-txt-low">{{ t('subjects.form.dependsNone') }}</li>
     </ul>
     <div class="flex flex-wrap items-center gap-2">
       <select
@@ -80,7 +80,7 @@ function remove(id: number): void {
       <button
         type="button"
         :disabled="chosen === ''"
-        class="rounded-md border border-line px-3 py-1.5 text-[11px] font-semibold text-txt-mid uppercase hover:bg-elev disabled:opacity-40"
+        class="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev disabled:opacity-40"
         data-test-id="form-dependency-add"
         @click="add"
       >

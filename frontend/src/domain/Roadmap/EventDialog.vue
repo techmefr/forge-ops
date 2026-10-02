@@ -144,15 +144,15 @@ function closeWhenClosed(open: boolean): void {
         class="fixed top-1/2 left-1/2 z-50 max-h-[calc(100dvh-2rem)] w-[min(560px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-line bg-panel p-6"
         @escape-key-down="keepDialogWhileListboxOpen"
       >
-        <DialogTitle class="title-face text-lg text-txt-hi uppercase">
+        <DialogTitle class="title-face text-lg text-txt-hi">
           {{ t(editing ? 'roadmap.form.editTitle' : 'roadmap.form.newTitle') }}
         </DialogTitle>
-        <DialogDescription class="mt-1 text-[13px] text-txt-mid">
+        <DialogDescription class="mt-1 text-sm text-txt-mid">
           {{ t('roadmap.form.description') }}
         </DialogDescription>
 
         <form ref="formEl" class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2" @submit.prevent="save">
-          <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+          <label class="flex flex-col gap-1 text-sm text-txt-mid">
             {{ t('roadmap.form.type') }}
             <select
               v-model="type"
@@ -164,7 +164,7 @@ function closeWhenClosed(open: boolean): void {
             </select>
           </label>
 
-          <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+          <label class="flex flex-col gap-1 text-sm text-txt-mid">
             <span>{{ t('roadmap.form.date') }} <RequiredStar /></span>
             <input
               v-model="date"
@@ -175,7 +175,7 @@ function closeWhenClosed(open: boolean): void {
             />
           </label>
 
-          <label class="flex flex-col gap-1 text-[13px] text-txt-mid sm:col-span-2">
+          <label class="flex flex-col gap-1 text-sm text-txt-mid sm:col-span-2">
             {{ t('roadmap.form.title') }}
             <input
               v-model="title"
@@ -185,7 +185,7 @@ function closeWhenClosed(open: boolean): void {
             />
           </label>
 
-          <div class="flex flex-col gap-1 text-[13px] text-txt-mid">
+          <div class="flex flex-col gap-1 text-sm text-txt-mid">
             <label for="event-form-project">{{ t('roadmap.form.project') }}</label>
             <ProjectPicker
               id="event-form-project"
@@ -198,7 +198,7 @@ function closeWhenClosed(open: boolean): void {
             />
           </div>
 
-          <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+          <label class="flex flex-col gap-1 text-sm text-txt-mid">
             {{ t('roadmap.form.subject') }}
             <select
               v-model="chosenEpic"
@@ -211,7 +211,7 @@ function closeWhenClosed(open: boolean): void {
             </select>
           </label>
 
-          <label class="flex flex-col gap-1 text-[13px] text-txt-mid sm:col-span-2">
+          <label class="flex flex-col gap-1 text-sm text-txt-mid sm:col-span-2">
             {{ t('roadmap.form.note') }}
             <textarea
               v-model="note"
@@ -221,7 +221,7 @@ function closeWhenClosed(open: boolean): void {
             />
           </label>
 
-          <label class="flex flex-col gap-1 text-[13px] text-txt-mid sm:col-span-2">
+          <label class="flex flex-col gap-1 text-sm text-txt-mid sm:col-span-2">
             {{ t('roadmap.form.minutes') }}
             <textarea
               v-model="minutes"
@@ -229,7 +229,7 @@ function closeWhenClosed(open: boolean): void {
               :maxlength="EVENT_MINUTES_LIMIT"
               class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
             />
-            <span class="text-[11px] text-txt-low">{{ t('roadmap.form.minutesHint') }}</span>
+            <span class="text-xs text-txt-low">{{ t('roadmap.form.minutesHint') }}</span>
           </label>
 
           <RequiredNote class="sm:col-span-2" />
@@ -248,14 +248,14 @@ function closeWhenClosed(open: boolean): void {
               v-if="editing"
               type="button"
               :disabled="busy"
-              class="rounded-lg border border-red px-4 py-2 text-xs font-bold text-red uppercase disabled:opacity-40"
+              class="rounded-lg border border-red px-4 py-2 text-xs font-bold text-red disabled:opacity-40"
               @click="remove"
             >
               {{ t(confirmingRemoval ? 'roadmap.form.confirmDelete' : 'roadmap.form.delete') }}
             </button>
             <button
               type="button"
-              class="ml-auto rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid uppercase hover:border-acc"
+              class="ml-auto rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid hover:border-acc"
               @click="emit('close')"
             >
               {{ t('roadmap.form.cancel') }}
@@ -263,7 +263,7 @@ function closeWhenClosed(open: boolean): void {
             <button
               type="submit"
               :disabled="busy || date === ''"
-              class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+              class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink disabled:opacity-40"
             >
               {{ t(editing ? 'roadmap.form.save' : 'roadmap.form.add') }}
             </button>

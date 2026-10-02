@@ -42,7 +42,7 @@ void settings.reload()
       <EffectBadge section="delivery" />
     </div>
 
-    <p class="text-[13px] text-txt-mid">{{ t('grouping.said') }}</p>
+    <p class="text-sm text-txt-mid">{{ t('grouping.said') }}</p>
 
     <ChoiceRow
       v-if="settings.data.value?.maySettle"
@@ -52,10 +52,10 @@ void settings.reload()
       :current="grouping"
       @select="choose"
     />
-    <p v-else class="font-mono text-[11px] text-txt-low">
+    <p v-else class="font-mono text-xs text-txt-low">
       {{ t('grouping.label') }} · {{ t(`grouping.${grouping}`) }}
     </p>
 
-    <p v-if="refusal !== null" class="text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
+    <p v-if="refusal !== null" class="text-sm text-red" role="alert">{{ say(refusal) }}</p>
   </section>
 </template>

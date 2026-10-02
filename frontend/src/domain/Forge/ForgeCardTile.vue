@@ -75,19 +75,14 @@ function start(event: DragEvent): void {
     >
       {{ card.title }}
     </button>
-    <p class="m-0 flex flex-wrap items-center gap-x-2 text-[11px] text-txt-low">
+    <p class="m-0 flex flex-wrap items-center gap-x-2 text-xs text-txt-low">
       <span class="font-mono">{{ card.storyReference }}</span>
       <span class="min-w-0 truncate">{{ card.subjectTitle }}</span>
     </p>
     <p
       v-if="card.status !== 'idle'"
-      class="m-0 flex flex-wrap items-center gap-x-1.5 text-[11px]"
-      :class="{
-        'text-acc': card.status === 'running',
-        'text-red': card.status === 'failed' || card.status === 'budget_exhausted',
-        'text-orange': card.status === 'to_validate' || card.status === 'human_review' || card.status === 'stopped',
-        'text-green': card.status === 'done',
-      }"
+      class="m-0 flex flex-wrap items-center gap-x-1.5 text-xs"
+      :class="{ 'text-acc': card.status === 'running', 'text-red': card.status === 'failed' || card.status === 'budget_exhausted', 'text-orange': card.status === 'to_validate' || card.status === 'human_review' || card.status === 'stopped', 'text-green': card.status === 'done', }"
     >
       <span aria-hidden="true">{{ STATUS_GLYPH[card.status] }}</span>
       <span>{{ t(`forge.status.${card.status}`) }}</span>
@@ -95,7 +90,7 @@ function start(event: DragEvent): void {
     </p>
     <p
       v-if="card.auto && card.auto.state !== 'running'"
-      class="m-0 text-[11px]"
+      class="m-0 text-xs"
       :class="card.auto.state === 'red' ? 'text-red' : 'text-orange'"
       data-test="auto-note"
     >
@@ -124,7 +119,7 @@ function start(event: DragEvent): void {
       <button
         v-if="action !== null"
         type="button"
-        class="rounded-md border border-line bg-transparent px-2.5 py-1 font-mono text-[11px] text-txt-hi hover:bg-elev disabled:opacity-40"
+        class="rounded-md border border-line bg-transparent px-2.5 py-1 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
         :disabled="busy"
         @click="emit('act', action)"
       >

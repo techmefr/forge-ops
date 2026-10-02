@@ -36,8 +36,8 @@ onMounted(() => void state.load())
     class="flex flex-col gap-2 border-b border-line pb-3"
     data-test="autopilot-section"
   >
-    <h3 class="m-0 font-mono text-[11px] text-txt-hi uppercase">{{ t('autopilot.title') }}</h3>
-    <p class="m-0 text-[11px] text-txt-low">{{ t('autopilot.intro') }}</p>
+    <h3 class="m-0 text-xs text-txt-hi">{{ t('autopilot.title') }}</h3>
+    <p class="m-0 text-xs text-txt-low">{{ t('autopilot.intro') }}</p>
     <label
       v-for="key in OPTIONS"
       :key="key"
