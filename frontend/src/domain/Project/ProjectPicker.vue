@@ -189,7 +189,7 @@ function createLabel(name: string): string {
         :disabled="disabled"
         :value="shownText"
         :placeholder="t('projectPicker.placeholder')"
-        class="min-w-0 flex-1 rounded-l-md border bg-transparent px-2.5 py-1.5 text-sm text-txt-hi disabled:opacity-60"
+        class="field min-w-0 flex-1 rounded-l-md disabled:opacity-60"
         :class="invalid === true ? 'border-red' : 'border-line'"
         :data-test-id="testId"
         @input="typed"
@@ -202,7 +202,7 @@ function createLabel(name: string): string {
         tabindex="-1"
         :disabled="disabled"
         :aria-label="t('projectPicker.toggle')"
-        class="-ml-px max-sm:min-w-10 rounded-r-md px-2 text-txt-mid hover:bg-elev disabled:opacity-60"
+        class="btn btn-ghost -ml-px rounded-r-md disabled:opacity-60"
         @mousedown.prevent
         @click="toggle"
       >

@@ -65,7 +65,7 @@ onMounted(() => catalogue.reload())
         }}</span>
         <button
           type="button"
-          class="ml-auto rounded-md px-2 py-1 text-xs text-txt-mid hover:bg-elev"
+          class="btn btn-ghost btn-sm ml-auto"
           @click="exportOne(template.id)"
         >
           {{ t('template.export') }}
@@ -78,7 +78,7 @@ onMounted(() => catalogue.reload())
       <textarea
         v-model="carried"
         rows="6"
-        class="rounded-md border border-line bg-panel px-2 py-1.5 font-mono text-xs text-txt-hi"
+        class="field font-mono"
       />
     </label>
 
@@ -86,7 +86,7 @@ onMounted(() => catalogue.reload())
       <button
         type="button"
         :disabled="busy || carried.trim() === '' || !(catalogue.data.value?.maySettle ?? false)"
-        class="rounded-md bg-acc px-3 py-1.5 text-xs font-bold text-ink disabled:opacity-40"
+        class="btn btn-primary btn-sm"
         @click="importOne()"
       >
         {{ t('template.import') }}

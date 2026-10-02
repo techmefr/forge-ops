@@ -116,10 +116,10 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
         <input
           v-model="baseRef"
           type="text"
-          class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
+          class="field"
         />
       </label>
-      <p class="ml-auto font-mono text-xs text-txt-low">
+      <p class="ml-auto tabular-nums text-xs text-txt-low">
         {{ t('deployment.openWorktrees', { count: openCount }, openCount) }}
       </p>
     </div>
@@ -135,7 +135,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
           <button
             type="button"
             :disabled="busy"
-            class="ml-auto rounded-lg bg-elev px-3 py-1.5 text-xs font-bold text-txt-mid disabled:opacity-40"
+            class="btn btn-secondary btn-sm ml-auto"
             @click="clearConflict(story)"
           >
             {{ t('deployment.conflictResolved') }}
@@ -176,7 +176,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
 
             <div v-if="worktreeOf(story.id) !== null" class="mt-3 rounded-lg bg-elev p-3">
               <p class="font-mono text-xs text-txt-hi">{{ worktreeOf(story.id)?.branch }}</p>
-              <p class="mt-1 font-mono text-xs text-txt-low">
+              <p class="mt-1 tabular-nums text-xs text-txt-low">
                 {{
                   t('deployment.worktreeMeta', {
                     port: worktreeOf(story.id)?.port ?? '',
@@ -189,7 +189,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
                 <button
                   type="button"
                   :disabled="busy"
-                  class="rounded-lg bg-card px-2.5 py-1.5 text-xs font-bold text-txt-mid disabled:opacity-40"
+                  class="btn btn-secondary btn-sm"
                   @click="closeWorktree(story, false)"
                 >
                   {{ t('common.close') }}
@@ -208,7 +208,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
               v-else
               type="button"
               :disabled="busy"
-              class="mt-3 w-full rounded-lg bg-elev px-3 py-2 text-xs font-bold text-txt-mid disabled:opacity-40"
+              class="btn btn-secondary btn-sm mt-3 w-full"
               @click="openWorktree(story)"
             >
               {{ t('deployment.openBranch') }}
@@ -237,7 +237,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
                 <button
                   type="button"
                   :disabled="busy"
-                  class="rounded-lg bg-elev px-3 py-1.5 text-xs font-bold text-txt-mid disabled:opacity-40"
+                  class="btn btn-secondary btn-sm"
                   @click="rollOut(story)"
                 >
                   {{ t('deployment.deploy') }}

@@ -115,7 +115,7 @@ function effort(card: ForgeCardView): string {
               :class="{ 'text-acc': card.status === 'running', 'text-red': card.status === 'failed' || card.status === 'budget_exhausted', 'text-orange': card.status === 'to_validate' || card.status === 'human_review' || card.status === 'stopped', 'text-green': card.status === 'done', 'text-txt-mid': card.status === 'idle', }"
               >{{ labelOf(card) }}</span
             >
-            <span v-if="effort(card) !== ''" class="block font-mono text-txt-low">{{ effort(card) }}</span>
+            <span v-if="effort(card) !== ''" class="block tabular-nums text-txt-low">{{ effort(card) }}</span>
             <span
               v-if="card.auto && card.auto.state !== 'running'"
               class="block"
@@ -128,7 +128,7 @@ function effort(card: ForgeCardView): string {
             <button
               v-if="primaryActionOf(card, steps) !== null"
               type="button"
-              class="rounded-md bg-transparent px-2.5 py-1 text-xs whitespace-nowrap text-txt-hi hover:bg-elev disabled:opacity-40"
+              class="btn btn-ghost btn-sm whitespace-nowrap"
               :disabled="busy.has(card.id)"
               @click="emit('act', card, primaryActionOf(card, steps)!)"
             >

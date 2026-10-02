@@ -68,7 +68,7 @@ function remove(id: number): void {
     <div class="flex flex-wrap items-center gap-2">
       <select
         v-model="chosen"
-        class="min-w-40 flex-1 rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
+        class="field min-w-40 flex-1"
         :aria-label="t('subjects.form.dependsPick')"
         data-test-id="form-dependency-select"
       >
@@ -80,7 +80,7 @@ function remove(id: number): void {
       <button
         type="button"
         :disabled="chosen === ''"
-        class="rounded-md px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev disabled:opacity-40"
+        class="btn btn-ghost btn-sm"
         data-test-id="form-dependency-add"
         @click="add"
       >

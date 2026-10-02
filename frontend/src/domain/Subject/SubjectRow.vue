@@ -160,7 +160,7 @@ function changeState(event: Event): void {
     </span>
 
     <span
-      class="w-fit justify-self-start px-1 py-1 font-mono text-xs font-semibold"
+      class="w-fit justify-self-start px-1 py-1 tabular-nums text-xs font-semibold"
       :class="DUE_TONES[badge.kind]"
       :title="badgeTitle"
       data-test-id="subject-due"
@@ -172,7 +172,7 @@ function changeState(event: Event): void {
     <button
       v-if="deleted"
       type="button"
-      class="justify-self-start rounded-md px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-hi hover:bg-elev"
+      class="btn btn-ghost btn-sm justify-self-start max-[759px]:min-h-10"
       :aria-label="t('subjects.row.restoreAria', { title: subject.title })"
       data-test-id="subject-restore"
       @click="emit('restore', subject)"
@@ -182,7 +182,7 @@ function changeState(event: Event): void {
     <button
       v-else-if="canTake"
       type="button"
-      class="justify-self-start rounded-md px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-hi hover:bg-elev"
+      class="btn btn-ghost btn-sm justify-self-start max-[759px]:min-h-10"
       :aria-label="`${t('subjects.row.take')}, ${subject.title}`"
       data-test-id="subject-take"
       @click="emit('take', subject)"

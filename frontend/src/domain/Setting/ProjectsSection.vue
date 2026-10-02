@@ -91,7 +91,7 @@ void users.reload()
       <button
         v-if="!adding"
         type="button"
-        class="rounded-md px-3 py-2 text-xs text-txt-mid hover:bg-elev"
+        class="btn btn-ghost btn-sm"
         @click="adding = true"
       >
         {{ t('team.addProject') }}

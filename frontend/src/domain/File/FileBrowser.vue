@@ -161,12 +161,12 @@ watch(here, () => void look())
           type="text"
           :placeholder="t('browser.checkoutPlaceholder')"
           :aria-label="t('browser.pointFolder')"
-          class="min-w-[280px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 font-mono text-sm text-txt-hi"
+          class="field min-w-[280px] flex-1 font-mono"
         />
         <button
           type="submit"
           :disabled="busy || checkoutPath === ''"
-          class="rounded-lg bg-acc px-3 py-2 text-xs font-bold text-ink disabled:opacity-40"
+          class="btn btn-primary btn-sm"
         >
           {{ t('browser.pointFolder') }}
         </button>

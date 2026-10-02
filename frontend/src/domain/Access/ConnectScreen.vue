@@ -59,7 +59,7 @@ async function connect(): Promise<void> {
             id="connect-name"
             v-model="name"
             type="text"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+            class="field"
           />
         </label>
         <label class="flex flex-col gap-1">
@@ -71,7 +71,7 @@ async function connect(): Promise<void> {
             v-model="instanceUrl"
             type="url"
             placeholder="http://localhost:8830"
-            class="rounded-lg border border-line bg-elev px-3 py-2 font-mono text-sm text-txt-hi"
+            class="field font-mono"
           />
         </label>
         <label class="flex flex-col gap-1">
@@ -83,13 +83,13 @@ async function connect(): Promise<void> {
             v-model="serverUrl"
             type="url"
             placeholder="https://board.example.com"
-            class="rounded-lg border border-line bg-elev px-3 py-2 font-mono text-sm text-txt-hi"
+            class="field font-mono"
           />
         </label>
         <button
           type="submit"
           :disabled="isBusy || instanceUrl === ''"
-          class="mt-2 rounded-lg bg-acc px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-40"
+          class="btn btn-primary btn-sm mt-2"
         >
           {{ t('connect.submit') }}
         </button>

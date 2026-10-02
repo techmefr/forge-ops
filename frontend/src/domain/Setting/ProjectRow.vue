@@ -75,7 +75,7 @@ function relink(links: readonly SubjectLink[]): void {
           :value="sheet.adminUserId ?? ''"
           :disabled="adminLocked"
           :aria-describedby="adminLocked ? `project-admin-lock-${sheet.id}` : undefined"
-          class="rounded-md border border-line bg-card px-2 py-1.5 text-sm text-txt-hi disabled:opacity-60"
+          class="field disabled:opacity-60"
           @change="pickAdmin"
         >
           <option value="">{{ t('team.noAdmin') }}</option>
@@ -92,7 +92,7 @@ function relink(links: readonly SubjectLink[]): void {
           type="button"
           :disabled="index === 0"
           :aria-label="t('team.moveUp', { name: sheet.name })"
-          class="rounded-md px-2 py-1 max-sm:min-h-10 max-sm:min-w-10 text-txt-mid hover:bg-elev disabled:opacity-40"
+          class="btn btn-ghost"
           @click="emit('move', -1)"
         >
           <span aria-hidden="true">↑</span>
@@ -101,7 +101,7 @@ function relink(links: readonly SubjectLink[]): void {
           type="button"
           :disabled="index === total - 1"
           :aria-label="t('team.moveDown', { name: sheet.name })"
-          class="rounded-md px-2 py-1 max-sm:min-h-10 max-sm:min-w-10 text-txt-mid hover:bg-elev disabled:opacity-40"
+          class="btn btn-ghost"
           @click="emit('move', 1)"
         >
           <span aria-hidden="true">↓</span>
@@ -110,7 +110,7 @@ function relink(links: readonly SubjectLink[]): void {
           type="button"
           :disabled="reason !== null"
           :aria-describedby="`project-use-${sheet.id}`"
-          class="rounded-md px-2.5 py-1 text-xs text-txt-mid hover:bg-elev disabled:opacity-40"
+          class="btn btn-ghost btn-sm"
           @click="emit('remove')"
         >
           {{ t('team.delete') }}<span class="sr-only"> {{ sheet.name }}</span>

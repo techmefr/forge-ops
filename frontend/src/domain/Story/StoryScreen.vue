@@ -220,7 +220,7 @@ onMounted(async () => {
     <section class="min-h-0 border-b border-hair p-5 lg:overflow-auto lg:border-r lg:border-b-0">
       <button
         type="button"
-        class="rounded-lg bg-card px-3 py-2 text-xs font-bold text-txt-mid hover:bg-elev"
+        class="btn btn-secondary btn-sm"
         @click="backToEpics()"
       >
         {{ t('story.backToEpics') }}
@@ -302,12 +302,12 @@ onMounted(async () => {
           v-model="turn"
           rows="2"
           :placeholder="t('story.turnPlaceholder')"
-          class="min-w-0 flex-1 rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
+          class="field min-w-0 flex-1"
         ></textarea>
         <button
           type="submit"
           :disabled="busy || turn.trim() === '' || ticket.data.value === null"
-          class="flex-none self-end rounded-lg bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
+          class="btn btn-primary flex-none self-end"
         >
           {{ t('common.send') }}
         </button>
@@ -321,7 +321,7 @@ onMounted(async () => {
         <button
           type="button"
           :disabled="busy || !complete"
-          class="rounded-lg bg-card px-4 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
+          class="btn btn-secondary"
           @click="toBacklog()"
         >
           {{ t('story.sendToStore') }}
@@ -330,7 +330,7 @@ onMounted(async () => {
           v-if="queue.length > 0"
           type="button"
           :disabled="busy"
-          class="rounded-lg bg-card px-4 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
+          class="btn btn-secondary"
           @click="backToEpics()"
         >
           {{ t('story.finishBatch') }}
@@ -371,7 +371,7 @@ onMounted(async () => {
           <select
             id="blocker"
             v-model="blockingStoryId"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+            class="field"
           >
             <option :value="null">{{ t('story.nothingBlocks') }}</option>
             <option v-for="story in others" :key="story.id" :value="story.id">
@@ -381,7 +381,7 @@ onMounted(async () => {
           <button
             type="submit"
             :disabled="busy || blockingStoryId === null"
-            class="self-start rounded-lg bg-elev px-3 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
+            class="btn btn-secondary self-start"
           >
             {{ t('common.link') }}
           </button>
@@ -397,13 +397,13 @@ onMounted(async () => {
             v-model="twinTitle"
             type="text"
             :placeholder="t('story.twinTitlePlaceholder')"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+            class="field"
           />
           <textarea
             v-model="twinBody"
             rows="3"
             :placeholder="t('story.twinBodyPlaceholder')"
-            class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+            class="field"
           ></textarea>
           <button
             type="submit"

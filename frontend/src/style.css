@@ -45,6 +45,8 @@
   --color-acc: var(--forge-acc);
   --color-acc-soft: var(--forge-accsoft);
   --color-acc-deep: var(--forge-accdeep);
+  --color-tip: #191a21;
+  --color-tip-ink: #f8f8f2;
   --color-info: var(--forge-info);
   --color-violet: var(--forge-violet);
   --color-violet-soft: var(--forge-violetsoft);
@@ -178,6 +180,178 @@
   }
 }
 
+@layer components {
+  .btn {
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease,
+      color 150ms ease;
+  }
+
+  .btn-sm {
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .btn-lg {
+    min-height: 3rem;
+    padding: 0 1.5rem;
+    font-size: 1rem;
+  }
+
+  @media (max-width: 639px) {
+    .btn-sm {
+      min-height: 2.5rem;
+    }
+  }
+
+  .btn-primary {
+    background: var(--forge-acc);
+    color: var(--forge-ink);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--forge-acc) 86%, black);
+  }
+
+  .btn-secondary {
+    border-color: var(--forge-acc);
+    background: transparent;
+    color: var(--forge-acc);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--forge-acc) 12%, transparent);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--forge-txtmid);
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--forge-elev);
+    color: var(--forge-txthi);
+  }
+
+  .btn-danger {
+    background: var(--forge-red);
+    color: var(--forge-ink);
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--forge-red) 86%, black);
+  }
+
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .field {
+    min-height: 2.5rem;
+    border: 1px solid var(--forge-edge);
+    border-radius: var(--radius-md);
+    background-color: var(--forge-panel);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--forge-txthi);
+    box-shadow: var(--shadow-sm);
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .field:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--forge-edge) 45%, var(--forge-acc));
+  }
+
+  .field:focus {
+    border-color: var(--forge-acc);
+    outline: 2px solid transparent;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--forge-acc) 25%, transparent);
+  }
+
+  .field[aria-invalid='true'] {
+    border-color: var(--forge-red);
+    background-color: color-mix(in srgb, var(--forge-red) 8%, var(--forge-panel));
+  }
+
+  .field:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  select.field {
+    appearance: none;
+    padding-right: 2rem;
+    background-image:
+      linear-gradient(45deg, transparent 50%, currentColor 50%),
+      linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position:
+      calc(100% - 1.05rem) 50%,
+      calc(100% - 0.75rem) 50%;
+    background-size:
+      0.3rem 0.3rem,
+      0.3rem 0.3rem;
+    background-repeat: no-repeat;
+  }
+
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--forge-acc);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 9999px;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .chip-filter {
+    border: 1px solid var(--forge-acc);
+    background: color-mix(in srgb, var(--forge-acc) 12%, transparent);
+    color: var(--forge-acc);
+  }
+
+  .chip-ok {
+    background: color-mix(in srgb, var(--forge-green) 10%, transparent);
+    color: var(--forge-greensoft);
+  }
+
+  .chip-wait {
+    background: color-mix(in srgb, var(--forge-warn) 10%, transparent);
+    color: var(--forge-warnsoft);
+  }
+
+  .chip-bad {
+    background: color-mix(in srgb, var(--forge-red) 10%, transparent);
+    color: var(--forge-redsoft);
+  }
+}
+
 html,
 body,
 #app {
@@ -234,9 +408,10 @@ body {
   outline-offset: 2px;
 }
 
-input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"]),
-select,
-textarea {
+
+input:not(.field, [type="checkbox"], [type="radio"], [type="color"], [type="range"]),
+select:not(.field),
+textarea:not(.field) {
   border-color: var(--forge-edge);
 }
 
