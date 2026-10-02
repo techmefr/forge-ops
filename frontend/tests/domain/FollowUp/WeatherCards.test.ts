@@ -137,165 +137,58 @@ describe('the weather cards', () => {
   })
 })
 
-describe('the hover panel', () => {
-  it('is closed until the card is hovered, and lists the alerts, the next event and the source', async () => {
+describe('the card content', () => {
+  it('shows the counters, the high risks and the next event on the card itself', async () => {
     const cards = await mounted()
-    const zone = cards.find('[data-test-id="weather-card-1"]')
-    expect(zone.find('[data-test-id="weather-panel"]').isVisible()).toBe(false)
-    await zone.trigger('mouseenter')
-    const panel = zone.find('[data-test-id="weather-panel"]')
-    expect(panel.isVisible()).toBe(true)
-    expect(panel.text()).toContain('2 late · 1 blocked · 1 high risk · 1 set of minutes to write')
-    expect(panel.text()).toContain('Next: client meeting on')
-    expect(panel.text()).toContain('Client review')
-    expect(panel.text()).toContain('Weather computed')
+    const card = cards.find('[data-test-id="weather-card-1"]')
+    expect(card.find('[data-test-id="weather-counters"]').text()).toContain('2')
+    expect(card.text()).toContain('Late')
+    expect(card.text()).toContain('Blocked')
+    expect(card.text()).toContain('1 high risk')
+    expect(card.text()).toContain('Next: client meeting on')
+    expect(card.text()).toContain('Client review')
   })
 
-  it('opens on keyboard focus and closes when the focus leaves', async () => {
+  it('says that nothing is planned for a quiet project and hides the risk line', async () => {
     const cards = await mounted()
-    const zone = cards.find('[data-test-id="weather-card-1"]')
-    await zone.find('button').trigger('focusin')
-    expect(zone.find('[data-test-id="weather-panel"]').isVisible()).toBe(true)
-    await zone.find('button').trigger('focusout', { relatedTarget: document.body })
-    expect(zone.find('[data-test-id="weather-panel"]').isVisible()).toBe(false)
+    const card = cards.find('[data-test-id="weather-card-2"]')
+    expect(card.text()).toContain('No event planned')
+    expect(card.text()).not.toContain('high risk')
   })
 
-  it('closes on Escape', async () => {
+  it('draws the weather with an icon, never with a text pictograph', async () => {
     const cards = await mounted()
-    const zone = cards.find('[data-test-id="weather-card-1"]')
-    await zone.trigger('mouseenter')
-    await zone.trigger('keydown', { key: 'Escape' })
-    expect(zone.find('[data-test-id="weather-panel"]').isVisible()).toBe(false)
+    const chip = cards.find('[data-test-id="weather-card-1"] svg')
+    expect(chip.exists()).toBe(true)
+    expect(cards.find('[data-test-id="weather-card-1"]').text()).not.toMatch(/[\u2600-\u26FF]/)
   })
 
-  it('floats over the page instead of pushing it', async () => {
+  it('counts the open subjects and draws a progress bar of the done ones', async () => {
+    const subject = (id: number, projectId: number, state: string) => ({ id, projectId, state })
+    read.mockImplementation((path: string) =>
+      Promise.resolve(
+        path === '/api/epics'
+          ? [subject(1, 1, 'done'), subject(2, 1, 'doing'), subject(3, 1, 'blocked'), subject(4, 1, 'todo')]
+          : ({
+              '/api/projects': [project(1, 'Skera'), project(2, 'Forge')],
+              '/api/projects/1/follow-up': STORMY,
+              '/api/projects/2/follow-up': QUIET,
+            } as Record<string, unknown>)[path] ?? [],
+      ),
+    )
     const cards = await mounted()
-    const panel = cards.find('[data-test-id="weather-card-1"] [data-test-id="weather-panel"]')
-    expect(panel.classes()).toContain('absolute')
+    const card = cards.find('[data-test-id="weather-card-1"]')
+    expect(card.text()).toContain('1 of 4 subjects done')
+    const bar = card.find('[role="progressbar"]')
+    expect(bar.attributes('aria-valuenow')).toBe('1')
+    expect(bar.attributes('aria-valuemax')).toBe('4')
+    expect(card.find('[data-test-id="weather-counters"]').text()).toContain('3')
   })
 
-  it('says there is nothing to report and that no event is planned for a quiet project', async () => {
-    const cards = await mounted()
-    const zone = cards.find('[data-test-id="weather-card-2"]')
-    await zone.trigger('mouseenter')
-    const panel = zone.find('[data-test-id="weather-panel"]')
-    expect(panel.text()).toContain('Nothing to report')
-    expect(panel.text()).toContain('No event planned')
-  })
-
-  it('tells when the weather was set by hand', async () => {
-    serve({ 1: { ...STORMY, source: 'manual' }, 2: QUIET })
-    const cards = await mounted()
-    const zone = cards.find('[data-test-id="weather-card-1"]')
-    await zone.trigger('mouseenter')
-    expect(zone.find('[data-test-id="weather-panel"]').text()).toContain('Weather set by hand')
-  })
-
-  it('describes the button by its panel so the details are read on focus', async () => {
-    const cards = await mounted()
-    const zone = cards.find('[data-test-id="weather-card-1"]')
-    const describedBy = zone.find('button').attributes('aria-describedby')
-    expect(zone.find(`#${describedBy}`).exists()).toBe(true)
-  })
-})
-
-describe('the follow-up drawer', () => {
-  async function opened() {
+  it('opens the follow-up drawer when the card is clicked', async () => {
     const cards = await mounted()
     await cards.find('[data-test-id="weather-card-1"] button').trigger('click')
     await flushPromises()
-    return cards
-  }
-
-  it('opens on click with the risks of the project', async () => {
-    await opened()
-    const drawer = document.body.querySelector('[data-test-id="follow-up-drawer"]')
-    expect(drawer?.textContent).toContain('Follow-up · Skera')
-    expect(drawer?.textContent).toContain('Vendor may slip')
-    expect(drawer?.textContent).toContain('Risks · 1 open')
-  })
-
-  it('closes a high risk and refreshes the weather without a reload of the page', async () => {
-    const cards = await opened()
-    serve({
-      1: followUp(1, {
-        weather: 'cloudy',
-        score: { late: 2, blocked: 1, highRisks: 0, total: 3 },
-        alerts: { late: 2, blocked: 1, highRisks: 0, minutesToWrite: 1 },
-        risks: [risk({ id: 1, closedOn: '2026-09-29' })],
-      }),
-      2: QUIET,
-    })
-    const toggle = document.body.querySelector<HTMLButtonElement>('[data-test-id="risk-1"] button')
-    toggle?.click()
-    await flushPromises()
-    expect(send).toHaveBeenCalledWith('/api/risks/1', 'PATCH', { closed: true })
-    expect(cards.find('[data-test-id="weather-card-1"]').text()).toContain('Cloudy')
-  })
-
-  it('sends the manual weather and goes back to automatic with an empty choice', async () => {
-    await opened()
-    const select = document.body.querySelector<HTMLSelectElement>('[data-test-id="weather-select"]')
-    if (select === null) {
-      throw new Error('weather select missing')
-    }
-    select.value = 'sunny'
-    select.dispatchEvent(new Event('change'))
-    await flushPromises()
-    expect(send).toHaveBeenCalledWith('/api/projects/1/weather', 'PUT', { weather: 'sunny' })
-    select.value = ''
-    select.dispatchEvent(new Event('change'))
-    await flushPromises()
-    expect(send).toHaveBeenCalledWith('/api/projects/1/weather', 'PUT', { weather: null })
-  })
-
-  it('adds a risk and a decision', async () => {
-    await opened()
-    const forms = document.body.querySelectorAll('form')
-    const submit = async (form: Element | undefined, value: string) => {
-      const field = form?.querySelector<HTMLInputElement>('input[type="text"]')
-      if (field === null || field === undefined) {
-        throw new Error('field missing')
-      }
-      field.value = value
-      field.dispatchEvent(new Event('input'))
-      await flushPromises()
-      form?.dispatchEvent(new Event('submit', { cancelable: true }))
-      await flushPromises()
-    }
-    await submit(forms[0], 'Data is stale')
-    expect(send).toHaveBeenCalledWith(
-      '/api/projects/1/risks',
-      'POST',
-      expect.objectContaining({ text: 'Data is stale', level: 'medium', owner: null, epicId: null }),
-    )
-    await submit(forms[1], 'Scope is frozen')
-    expect(send).toHaveBeenCalledWith('/api/projects/1/decisions', 'POST', { text: 'Scope is frozen' })
-  })
-
-  it('lists the events with the minutes to write flagged', async () => {
-    serve({
-      1: {
-        ...STORMY,
-        events: [
-          {
-            id: 4,
-            type: 'steering',
-            date: '2026-01-10',
-            title: 'Steering',
-            projectId: 1,
-            epicId: null,
-            note: null,
-            minutes: null,
-            minutesUpdatedAt: null,
-          },
-        ],
-      },
-      2: QUIET,
-    })
-    await opened()
-    const row = document.body.querySelector('[data-test-id="event-4"]')
-    expect(row?.textContent).toContain('Minutes to write')
-    expect(row?.querySelector('button')?.getAttribute('aria-label')).toContain('Write the minutes')
+    expect(document.body.textContent).toContain('Follow-up · Skera')
   })
 })

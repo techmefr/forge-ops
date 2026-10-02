@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import Glyph from '@/technical/Ui/Glyph.vue'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import { tintOf } from '@/technical/Ui/Tint'
-import type { FollowUpAlerts } from '@contract/FollowUpContract'
 import { dayLabel } from './DayLabel'
 import FollowUpDrawer from './FollowUpDrawer.vue'
 import { useFollowUps, type ProjectWeather } from './UseFollowUps'
@@ -14,7 +14,6 @@ const props = withDefaults(defineProps<{ projectId?: number | null }>(), { proje
 const { t, locale } = useI18n()
 
 const followUps = useFollowUps()
-const revealed = ref<number | null>(null)
 const opened = ref<number | null>(null)
 
 const shown = computed(() =>
@@ -25,25 +24,18 @@ const shown = computed(() =>
 
 const drawerEntry = computed(() => shown.value.find((entry) => entry.project.id === opened.value) ?? null)
 
-function panelId(entry: ProjectWeather): string {
-  return `weather-panel-${entry.project.id}`
-}
-
 function weatherWord(entry: ProjectWeather): string {
   return t(`weather.${entry.followUp.weather}`)
 }
 
-function alertLines(alerts: FollowUpAlerts): readonly string[] {
-  return [
-    alerts.late > 0 ? t('followUp.alertLate', { count: alerts.late }) : '',
-    alerts.blocked > 0 ? t('followUp.alertBlocked', { count: alerts.blocked }) : '',
-    alerts.highRisks > 0
-      ? t('followUp.alertHighRisks', { count: alerts.highRisks }, alerts.highRisks)
-      : '',
-    alerts.minutesToWrite > 0
-      ? t('followUp.alertMinutes', { count: alerts.minutesToWrite }, alerts.minutesToWrite)
-      : '',
-  ].filter((line) => line !== '')
+function progressPercent(entry: ProjectWeather): number {
+  return entry.tally.total === 0 ? 0 : Math.round((entry.tally.done / entry.tally.total) * 100)
+}
+
+function progressLine(entry: ProjectWeather): string {
+  return entry.tally.total === 0
+    ? t('followUp.noSubject')
+    : t('followUp.progress', { done: entry.tally.done, total: entry.tally.total })
 }
 
 function nextEventLine(entry: ProjectWeather): string {
@@ -58,35 +50,7 @@ function nextEventLine(entry: ProjectWeather): string {
   })
 }
 
-function reveal(entry: ProjectWeather): void {
-  revealed.value = entry.project.id
-}
-
-function conceal(event: Event, entry: ProjectWeather): void {
-  const zone = event.currentTarget
-  const focusInside = zone instanceof HTMLElement && zone.contains(document.activeElement)
-  if (!focusInside && revealed.value === entry.project.id) {
-    revealed.value = null
-  }
-}
-
-function concealOnBlur(event: FocusEvent, entry: ProjectWeather): void {
-  const zone = event.currentTarget
-  const next = event.relatedTarget
-  if (zone instanceof HTMLElement && next instanceof Node && zone.contains(next)) {
-    return
-  }
-  if (revealed.value === entry.project.id) {
-    revealed.value = null
-  }
-}
-
-function dismiss(): void {
-  revealed.value = null
-}
-
 function openFollowUp(entry: ProjectWeather): void {
-  revealed.value = null
   opened.value = entry.project.id
 }
 
@@ -105,53 +69,68 @@ followUps.reload()
   >
     <ul
       v-if="shown.length > 0"
-      class="scrollbar-none flex flex-none gap-x-2 gap-y-0.5 overflow-x-auto min-[761px]:flex-wrap min-[761px]:overflow-x-visible"
+      class="grid flex-none grid-cols-1 gap-4 min-[640px]:grid-cols-2 min-[1024px]:grid-cols-3 min-[1440px]:grid-cols-4"
       :aria-label="t('followUp.cardsAria')"
       data-test-id="weather-cards"
     >
-      <li
-        v-for="entry in shown"
-        :key="entry.project.id"
-        class="relative flex-none"
-        :data-test-id="`weather-card-${entry.project.id}`"
-        @mouseenter="reveal(entry)"
-        @mouseleave="conceal($event, entry)"
-        @focusin="reveal(entry)"
-        @focusout="concealOnBlur($event, entry)"
-        @keydown.esc="dismiss"
-      >
+      <li v-for="entry in shown" :key="entry.project.id" :data-test-id="`weather-card-${entry.project.id}`">
         <button
           type="button"
-          class="flex min-h-10 items-center gap-2 rounded-md px-2 py-1 text-left text-sm whitespace-nowrap hover:bg-elev/60"
-          :aria-describedby="panelId(entry)"
+          class="card card-hover flex h-full w-full flex-col gap-3 p-4 text-left"
           @click="openFollowUp(entry)"
         >
-          <span
-            class="size-2 flex-none rounded-full"
-            :style="{ background: tintOf(entry.project.colour) }"
-            aria-hidden="true"
-          />
-          <strong class="font-medium text-txt-hi">{{ entry.project.name }}</strong>
-          <b class="text-base leading-none" :class="WEATHER_TONES[entry.followUp.weather].text" aria-hidden="true">
-            {{ WEATHER_TONES[entry.followUp.weather].glyph }}
-          </b>
-          <span class="text-txt-mid" data-test-id="weather-word">{{ weatherWord(entry) }}</span>
+          <span class="flex items-center gap-2">
+            <span
+              class="size-3 flex-none rounded-full"
+              :style="{ background: tintOf(entry.project.colour) }"
+              aria-hidden="true"
+            />
+            <strong class="title-face min-w-0 flex-1 truncate text-base text-txt-hi">{{ entry.project.name }}</strong>
+            <span
+              class="flex flex-none items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+              :class="WEATHER_TONES[entry.followUp.weather].chip"
+            >
+              <Glyph :name="WEATHER_TONES[entry.followUp.weather].icon" :size="14" />
+              <span data-test-id="weather-word">{{ weatherWord(entry) }}</span>
+            </span>
+          </span>
+          <span v-if="entry.followUp.statusSentence !== null" class="text-sm text-txt-mid">
+            {{ entry.followUp.statusSentence }}
+          </span>
+          <span class="grid grid-cols-3 gap-2 text-center" data-test-id="weather-counters">
+            <span class="flex flex-col rounded-md bg-elev px-2 py-1.5">
+              <b class="text-base font-semibold tabular-nums text-txt-hi">{{ entry.followUp.alerts.late }}</b>
+              <small class="text-xs text-txt-mid">{{ t('followUp.counterLate') }}</small>
+            </span>
+            <span class="flex flex-col rounded-md bg-elev px-2 py-1.5">
+              <b class="text-base font-semibold tabular-nums text-txt-hi">{{ entry.followUp.alerts.blocked }}</b>
+              <small class="text-xs text-txt-mid">{{ t('followUp.counterBlocked') }}</small>
+            </span>
+            <span class="flex flex-col rounded-md bg-elev px-2 py-1.5">
+              <b class="text-base font-semibold tabular-nums text-txt-hi">{{ entry.tally.open }}</b>
+              <small class="text-xs text-txt-mid">{{ t('followUp.counterOpen') }}</small>
+            </span>
+          </span>
+          <span class="flex flex-col gap-1">
+            <span
+              class="h-1.5 w-full overflow-hidden rounded-full bg-elev"
+              role="progressbar"
+              :aria-valuenow="entry.tally.done"
+              aria-valuemin="0"
+              :aria-valuemax="entry.tally.total"
+              :aria-label="progressLine(entry)"
+            >
+              <span class="block h-full rounded-full bg-info" :style="{ width: `${progressPercent(entry)}%` }" />
+            </span>
+            <span class="text-xs text-txt-mid">{{ progressLine(entry) }}</span>
+          </span>
+          <span class="flex flex-col gap-0.5 text-xs text-txt-mid">
+            <span v-if="entry.followUp.alerts.highRisks > 0" class="font-medium text-red">{{
+              t('followUp.alertHighRisks', { count: entry.followUp.alerts.highRisks }, entry.followUp.alerts.highRisks)
+            }}</span>
+            <span>{{ nextEventLine(entry) }}</span>
+          </span>
         </button>
-        <div
-          v-show="revealed === entry.project.id"
-          :id="panelId(entry)"
-          class="absolute top-full left-0 z-20 flex w-72 flex-col gap-1 rounded-md bg-panel px-3 py-2.5 text-xs text-txt-mid max-[760px]:hidden"
-          data-test-id="weather-panel"
-        >
-          <span v-if="entry.followUp.statusSentence !== null" class="text-sm text-txt-hi">{{
-            entry.followUp.statusSentence
-          }}</span>
-          <span v-if="alertLines(entry.followUp.alerts).length === 0">{{ t('followUp.panelNothing') }}</span>
-          <span v-else class="font-semibold text-txt-hi">{{ alertLines(entry.followUp.alerts).join(' · ') }}</span>
-          <span>{{ nextEventLine(entry) }}</span>
-          <span>{{ t(entry.followUp.source === 'manual' ? 'followUp.manual' : 'followUp.computed') }}</span>
-          <span class="text-xs text-txt-low">{{ t('followUp.hint') }}</span>
-        </div>
       </li>
     </ul>
   </ScreenState>

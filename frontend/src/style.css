@@ -150,6 +150,34 @@
   --forge-edge: #847f66;
 }
 
+@layer components {
+  .card {
+    background: var(--forge-card);
+    border: 1px solid var(--forge-line);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    color: var(--forge-txthi);
+  }
+
+  .card-elevated {
+    border-color: transparent;
+    box-shadow: var(--shadow-md);
+  }
+
+  .card-hover {
+    transition:
+      box-shadow 150ms ease,
+      transform 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .card-hover:hover {
+    border-color: var(--forge-edge);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+}
+
 html,
 body,
 #app {
