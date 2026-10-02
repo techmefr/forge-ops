@@ -104,7 +104,7 @@ void tokens.reload()
           <button
             v-if="sheet.data.value?.maySettle"
             type="button"
-            class="ml-auto rounded-md px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
+            class="btn btn-ghost btn-sm ml-auto"
             @click="toggle(provider)"
           >
             {{ provider.enabled ? t('organisation.switchOff') : t('organisation.switchOn') }}
@@ -137,7 +137,7 @@ void tokens.reload()
           <button
             v-else-if="sheet.data.value?.maySettle"
             type="button"
-            class="ml-auto rounded-md px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
+            class="btn btn-ghost btn-sm ml-auto"
             @click="revoke(token)"
           >
             {{ t('organisation.revoke') }}
@@ -152,12 +152,12 @@ void tokens.reload()
           v-model="tokenName"
           type="text"
           :placeholder="t('organisation.tokenName')"
-          class="flex-1 rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
+          class="field flex-1"
         />
         <button
           type="submit"
           :disabled="tokenName.trim() === ''"
-          class="rounded-md bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+          class="btn btn-primary"
         >
           {{ t('organisation.mint') }}
         </button>

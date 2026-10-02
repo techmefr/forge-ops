@@ -178,7 +178,7 @@ function closeWhenClosed(open: boolean): void {
           <button
             v-if="!deleted"
             type="button"
-            class="ml-auto rounded-md px-2.5 py-1 text-xs font-semibold text-txt-hi hover:bg-elev"
+            class="btn btn-ghost btn-sm ml-auto"
             data-test-id="drawer-edit"
             @click="emit('edit')"
           >
@@ -186,7 +186,7 @@ function closeWhenClosed(open: boolean): void {
           </button>
           <button
             type="button"
-            class="rounded-md px-2.5 py-1 text-xs font-semibold text-txt-mid hover:bg-elev"
+            class="btn btn-ghost btn-sm"
             :class="deleted ? 'ml-auto' : ''"
             data-test-id="drawer-close"
             @click="emit('close')"
@@ -211,7 +211,7 @@ function closeWhenClosed(open: boolean): void {
           <dd>
             <select
               id="drawer-priority"
-              class="rounded-md border border-line bg-transparent px-2 py-1 text-sm text-txt-hi"
+              class="field"
               :value="subject.priority"
               :disabled="deleted || busy"
               @change="changePriority"
@@ -224,11 +224,11 @@ function closeWhenClosed(open: boolean): void {
           <dt class="text-txt-low">{{ t('subjects.drawer.requestedBy') }}</dt>
           <dd class="text-txt-hi">{{ subject.requestedBy ?? t('common.nothing') }}</dd>
           <dt class="text-txt-low">{{ t('subjects.drawer.start') }}</dt>
-          <dd class="font-mono text-txt-hi">{{ subject.startedOn === null ? t('common.nothing') : dayLabel(subject.startedOn, locale) }}</dd>
+          <dd class="tabular-nums text-txt-hi">{{ subject.startedOn === null ? t('common.nothing') : dayLabel(subject.startedOn, locale) }}</dd>
           <dt class="text-txt-low">{{ t('subjects.drawer.milestone') }}</dt>
-          <dd class="font-mono text-txt-hi">{{ subject.dueOn === null ? t('common.nothing') : dayLabel(subject.dueOn, locale) }}</dd>
+          <dd class="tabular-nums text-txt-hi">{{ subject.dueOn === null ? t('common.nothing') : dayLabel(subject.dueOn, locale) }}</dd>
           <dt class="text-txt-low">{{ t('subjects.drawer.progress') }}</dt>
-          <dd class="font-mono text-txt-hi">
+          <dd class="tabular-nums text-txt-hi">
             {{ t('subjects.row.stories', { delivered: subject.progress.delivered, total: subject.progress.total }) }}
           </dd>
         </dl>
@@ -243,7 +243,7 @@ function closeWhenClosed(open: boolean): void {
           :maxlength="NOTE_LIMIT"
           :disabled="deleted"
           :placeholder="t('subjects.drawer.notePlaceholder')"
-          class="min-h-[5.5rem] shrink-0 rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
+          class="field min-h-[5.5rem] shrink-0"
           @change="saveNote"
         />
 
@@ -284,7 +284,7 @@ function closeWhenClosed(open: boolean): void {
         <h3 class="text-xs text-txt-low">{{ t('subjects.drawer.events') }}</h3>
         <ul v-if="events.length > 0" class="flex flex-col gap-1 text-sm text-txt-hi">
           <li v-for="event in events" :key="event.id">
-            <span class="font-mono">{{ dayLabel(event.date, locale) }}</span>
+            <span class="tabular-nums">{{ dayLabel(event.date, locale) }}</span>
             · {{ t(`milestone.${event.type}`) }}<template v-if="event.title !== ''"> · {{ event.title }}</template>
           </li>
         </ul>
@@ -293,7 +293,7 @@ function closeWhenClosed(open: boolean): void {
         <h3 class="text-xs text-txt-low">{{ t('subjects.drawer.history') }}</h3>
         <ol v-if="trail.length > 0" class="flex flex-col gap-1 text-sm text-txt-hi" data-test-id="subject-history">
           <li v-for="(change, index) in trail" :key="index">
-            <span class="font-mono text-txt-mid">{{ dayLabel(change.at.slice(0, 10), locale) }}</span>
+            <span class="tabular-nums text-txt-mid">{{ dayLabel(change.at.slice(0, 10), locale) }}</span>
             · <span class="font-semibold" :class="STATE_TONES[change.state]">{{ t(`epicState.${change.state}`) }}</span>
             · {{ t('subjects.drawer.historyBy', { by: change.by, days: change.days }) }}
           </li>
@@ -345,7 +345,7 @@ function closeWhenClosed(open: boolean): void {
             v-if="deleted"
             type="button"
             :disabled="busy"
-            class="rounded-md bg-acc px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-40"
+            class="btn btn-primary btn-sm"
             data-test-id="drawer-restore"
             @click="restore"
           >

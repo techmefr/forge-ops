@@ -29,7 +29,7 @@ function onCreated(): void {
     <div v-else class="flex flex-wrap items-center gap-3">
       <button
         type="button"
-        class="rounded-lg bg-acc px-4 py-2.5 text-xs font-bold text-ink"
+        class="btn btn-primary btn-sm"
         @click="creating = true"
       >
         {{ t('emptyState.createProject') }}

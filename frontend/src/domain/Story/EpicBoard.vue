@@ -101,7 +101,7 @@ onMounted(async () => {
         }}</span>
         <select
           v-model="chosenProject"
-          class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
+          class="field"
         >
           <option :value="null">{{ t('common.allProjects') }}</option>
           <option v-for="project in projects.data.value ?? []" :key="project.id" :value="project.id">
@@ -129,13 +129,13 @@ onMounted(async () => {
         </div>
       </div>
 
-      <p class="ml-auto font-mono text-xs text-txt-low">
+      <p class="ml-auto tabular-nums text-xs text-txt-low">
         {{ t('epic.chosenCount', { count: picked.length }, picked.length) }}
       </p>
       <button
         type="button"
         :disabled="busy || picked.length === 0 || mixed"
-        class="rounded-lg bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
+        class="btn btn-primary"
         @click="write()"
       >
         {{ t('epic.writeStories', picked.length) }}
@@ -166,7 +166,7 @@ onMounted(async () => {
               :style="{ background: projectOf(epic.projectId)?.colour ?? 'var(--forge-line)' }"
               aria-hidden="true"
             />
-            <span class="font-mono text-xs font-semibold text-acc">{{
+            <span class="tabular-nums text-xs font-semibold text-acc">{{
               projectOf(epic.projectId)?.name ?? t('epic.unknownProject')
             }}</span>
             <label
@@ -189,7 +189,7 @@ onMounted(async () => {
           </button>
 
           <div class="mt-3 flex items-center gap-3 border-t border-hair pt-3">
-            <span class="font-mono text-xs text-txt-low">{{
+            <span class="tabular-nums text-xs text-txt-low">{{
               t('epic.storyCount', { count: epic.storyCount }, epic.storyCount)
             }}</span>
             <span

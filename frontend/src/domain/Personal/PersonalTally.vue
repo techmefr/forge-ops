@@ -29,7 +29,7 @@ onMounted(() => Promise.all([self.reload(), cards.reload()]))
     :aria-label="t('personal.aria')"
   >
     <p v-for="figure in figures" :key="figure.key" class="flex flex-none items-baseline gap-1.5 sm:gap-2">
-      <span class="font-mono text-base tabular-nums" :class="figure.warn ? 'text-orange' : 'text-txt-hi'">{{
+      <span class="tabular-nums text-base tabular-nums" :class="figure.warn ? 'text-orange' : 'text-txt-hi'">{{
         figure.value
       }}</span>
       <span class="text-xs whitespace-nowrap text-txt-low sm:text-sm">{{ t(`personal.${figure.key}`) }}</span>

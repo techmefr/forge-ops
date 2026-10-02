@@ -53,7 +53,7 @@ useRefusalFocus(refusal, formEl)
         v-model="name"
         v-bind="requiredField(refusal, 'project-create-refusal')"
         type="text"
-        class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+        class="field"
       />
     </label>
 
@@ -63,7 +63,7 @@ useRefusalFocus(refusal, formEl)
         v-model="slug"
         v-bind="requiredField(refusal, 'project-create-refusal')"
         type="text"
-        class="rounded-lg border border-line bg-elev px-3 py-2 font-mono text-sm text-txt-hi"
+        class="field font-mono"
       />
       <span class="text-xs text-txt-low">{{ t('projectCreate.slugHint') }}</span>
     </label>
@@ -74,7 +74,7 @@ useRefusalFocus(refusal, formEl)
         v-model="repositoryUrl"
         v-bind="requiredField(refusal, 'project-create-refusal')"
         type="text"
-        class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+        class="field"
       />
     </label>
 
@@ -84,7 +84,7 @@ useRefusalFocus(refusal, formEl)
         v-model="integrationBranch"
         v-bind="requiredField(refusal, 'project-create-refusal')"
         type="text"
-        class="rounded-lg border border-line bg-elev px-3 py-2 font-mono text-sm text-txt-hi"
+        class="field font-mono"
       />
     </label>
 
@@ -97,7 +97,7 @@ useRefusalFocus(refusal, formEl)
       <button
         type="submit"
         :disabled="busy || slug === '' || name === '' || repositoryUrl === '' || integrationBranch === ''"
-        class="rounded-lg bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
+        class="btn btn-primary"
       >
         {{ t('projectCreate.create') }}
       </button>

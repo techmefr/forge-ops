@@ -29,7 +29,7 @@ function closeWhenClosed(open: boolean): void {
           <DialogDescription class="sr-only">{{ t('forge.resource.aria') }}</DialogDescription>
           <button
             type="button"
-            class="rounded-md bg-transparent px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
+            class="btn btn-ghost btn-sm"
             @click="emit('close')"
           >
             {{ t('forge.resource.close') }}

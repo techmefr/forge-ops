@@ -220,7 +220,7 @@ onMounted(async () => {
         </div>
         <select
           v-model="subjectId"
-          class="max-w-full rounded-md border border-line bg-card px-2 py-1 text-xs text-txt-hi"
+          class="field max-w-full"
           :aria-label="t('forge.subjectFilter')"
         >
           <option :value="null">{{ t('forge.allSubjects') }}</option>
@@ -255,13 +255,13 @@ onMounted(async () => {
           v-model="newTitle"
           type="text"
           maxlength="200"
-          class="min-w-[12rem] flex-1 rounded-md border border-line bg-card px-2.5 py-1 text-sm text-txt-hi"
+          class="field min-w-[12rem] flex-1"
           :placeholder="t('forge.addStory')"
           :aria-label="t('forge.addStoryTitle')"
         />
         <select
           v-model="newSubject"
-          class="max-w-full rounded-md border border-line bg-card px-2 py-1 text-xs text-txt-hi"
+          class="field max-w-full"
           :aria-label="t('forge.addStorySubject')"
         >
           <option v-for="subject in addable" :key="subject.id" :value="subject.id">
@@ -270,7 +270,7 @@ onMounted(async () => {
         </select>
         <button
           type="submit"
-          class="rounded-md bg-acc px-3 py-1.5 text-xs font-semibold text-ink hover:opacity-90 disabled:opacity-40 max-sm:min-h-10"
+          class="btn btn-primary btn-sm hover:opacity-90"
           :disabled="newTitle.trim() === ''"
         >
           {{ t('forge.addStoryButton') }}

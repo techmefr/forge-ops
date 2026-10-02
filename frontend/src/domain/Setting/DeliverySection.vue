@@ -52,7 +52,7 @@ void settings.reload()
       :current="grouping"
       @select="choose"
     />
-    <p v-else class="font-mono text-xs text-txt-low">
+    <p v-else class="tabular-nums text-xs text-txt-low">
       {{ t('grouping.label') }} · {{ t(`grouping.${grouping}`) }}
     </p>
 

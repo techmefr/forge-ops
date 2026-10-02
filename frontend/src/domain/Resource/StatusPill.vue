@@ -29,7 +29,7 @@ const DOT = {
   >
     <span class="h-1.5 w-1.5 flex-none rounded-full" :class="DOT[status.level.value]" aria-hidden="true" />
     <span>{{ t('shell.agentCount', { count: live }, live) }}</span>
-    <span class="hidden font-mono sm:inline">{{
+    <span class="hidden tabular-nums sm:inline">{{
       t('forge.resource.budgetValue', { spent: status.spent.value.toFixed(2), cap: status.cap.value.toFixed(2) })
     }}</span>
     <span v-if="status.room.value <= 0" class="text-red">{{ t('forge.resource.fullShort') }}</span>

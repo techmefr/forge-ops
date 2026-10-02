@@ -88,7 +88,7 @@ function closeWhenClosed(open: boolean): void {
               type="text"
               :maxlength="NAME_LIMIT"
               autocomplete="off"
-              class="rounded-md border bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
+              class="field"
               :class="nameError === null ? 'border-line' : 'border-red'"
               :aria-invalid="nameError !== null"
               :aria-describedby="nameError === null ? undefined : 'new-project-name-error'"
@@ -137,7 +137,7 @@ function closeWhenClosed(open: boolean): void {
               autocomplete="off"
               spellcheck="false"
               :placeholder="REPOSITORY_EXAMPLE"
-              class="rounded-md border border-line bg-transparent px-2.5 py-1.5 font-mono text-sm text-txt-hi"
+              class="field font-mono"
               data-test-id="new-project-repository"
             />
             <p class="text-xs text-txt-low">{{ t('projectForm.repositoryHint') }}</p>
@@ -154,7 +154,7 @@ function closeWhenClosed(open: boolean): void {
           <div class="flex flex-wrap items-center justify-end gap-2">
             <button
               type="button"
-              class="rounded-md px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev"
+              class="btn btn-ghost btn-sm"
               @click="emit('close')"
             >
               {{ t('projectForm.cancel') }}
@@ -162,7 +162,7 @@ function closeWhenClosed(open: boolean): void {
             <button
               type="submit"
               :disabled="busy"
-              class="rounded-md bg-acc px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-40"
+              class="btn btn-primary btn-sm"
               data-test-id="new-project-create"
             >
               {{ t('projectForm.create') }}

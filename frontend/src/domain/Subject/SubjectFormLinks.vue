@@ -40,7 +40,7 @@ function broken(link: LinkDraft): boolean {
     <div v-for="(link, index) in modelValue" :key="index" class="flex flex-wrap items-center gap-2" data-test-id="form-link-row">
       <select
         :value="link.kind"
-        class="min-w-28 flex-1 rounded-md border border-line bg-transparent px-2 py-1.5 text-sm text-txt-hi sm:w-28 sm:flex-none"
+        class="field min-w-28 flex-1 sm:w-28 sm:flex-none"
         :aria-label="t('subjects.form.linkKind')"
         @change="replace(index, { kind: ($event.target as HTMLSelectElement).value as LinkKind })"
       >
@@ -53,7 +53,7 @@ function broken(link: LinkDraft): boolean {
         autocomplete="off"
         spellcheck="false"
         placeholder="https://"
-        class="order-last basis-full rounded-md border bg-transparent px-2.5 py-1.5 font-mono text-sm text-txt-hi sm:order-none sm:min-w-40 sm:flex-1 sm:basis-auto"
+        class="field order-last basis-full font-mono sm:order-none sm:min-w-40 sm:flex-1 sm:basis-auto"
         :class="broken(link) ? 'border-red' : 'border-line'"
         :aria-label="t('subjects.form.linkUrl')"
         :aria-invalid="broken(link)"
@@ -63,7 +63,7 @@ function broken(link: LinkDraft): boolean {
       />
       <button
         type="button"
-        class="flex-none rounded-md px-2.5 py-1.5 text-sm text-txt-mid hover:bg-elev"
+        class="btn btn-ghost flex-none"
         :aria-label="t('subjects.form.linkRemove', { position: index + 1 })"
         @click="remove(index)"
       >
@@ -73,7 +73,7 @@ function broken(link: LinkDraft): boolean {
     <div>
       <button
         type="button"
-        class="rounded-md px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev"
+        class="btn btn-ghost btn-sm"
         data-test-id="form-link-add"
         @click="add"
       >

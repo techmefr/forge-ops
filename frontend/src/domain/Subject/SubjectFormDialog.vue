@@ -240,7 +240,7 @@ onMounted(loadMilestone)
               :maxlength="TITLE_LIMIT"
               autocomplete="off"
               :placeholder="t('subjects.form.titlePlaceholder')"
-              class="rounded-md border bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
+              class="field"
               :class="borderOf('title')"
               :aria-invalid="invalid('title')"
               :aria-describedby="describedBy('title')"
@@ -276,7 +276,7 @@ onMounted(loadMilestone)
             <select
               id="subject-form-owner"
               v-model="form.owner"
-              class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
+              class="field"
               data-test-id="subject-form-owner"
             >
               <option value="">{{ t('subjects.form.nobody') }}</option>
@@ -292,7 +292,7 @@ onMounted(loadMilestone)
             <select
               id="subject-form-priority"
               v-model="form.priority"
-              class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
+              class="field"
               data-test-id="subject-form-priority"
             >
               <option v-for="priority in EPIC_PRIORITIES" :key="priority" :value="priority">
@@ -310,7 +310,7 @@ onMounted(loadMilestone)
               :maxlength="REQUESTED_BY_LIMIT"
               autocomplete="off"
               :placeholder="t('subjects.form.requestedByPlaceholder')"
-              class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
+              class="field"
               data-test-id="subject-form-requested-by"
             />
           </div>
@@ -321,7 +321,7 @@ onMounted(loadMilestone)
               id="subject-form-start"
               v-model="form.startedOn"
               type="date"
-              class="rounded-md border border-line bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
+              class="field"
               data-test-id="subject-form-start"
             />
           </div>
@@ -332,7 +332,7 @@ onMounted(loadMilestone)
               id="subject-form-milestone"
               v-model="form.milestone"
               type="date"
-              class="rounded-md border bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
+              class="field"
               :class="borderOf('milestone')"
               :aria-invalid="invalid('milestone')"
               :aria-describedby="describedBy('milestone')"
@@ -370,7 +370,7 @@ onMounted(loadMilestone)
               id="subject-form-note"
               v-model="form.note"
               rows="3"
-              class="rounded-md border bg-transparent px-2.5 py-1.5 text-sm text-txt-hi"
+              class="field"
               :class="borderOf('note')"
               :placeholder="t('subjects.form.notePlaceholder')"
               :aria-invalid="invalid('note')"
@@ -408,7 +408,7 @@ onMounted(loadMilestone)
           <div class="flex flex-wrap items-center justify-end gap-2 min-[760px]:col-span-2">
             <button
               type="button"
-              class="rounded-md px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev"
+              class="btn btn-ghost btn-sm"
               data-test-id="subject-form-cancel"
               @click="leave"
             >
@@ -417,7 +417,7 @@ onMounted(loadMilestone)
             <button
               type="submit"
               :disabled="busy"
-              class="rounded-md bg-acc px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-40"
+              class="btn btn-primary btn-sm"
               data-test-id="subject-form-submit"
             >
               {{ t(editing ? 'subjects.form.save' : 'subjects.form.create') }}

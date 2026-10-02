@@ -103,7 +103,7 @@ onMounted(() => stories.reload())
               v-model="evidencePath"
               type="text"
               :placeholder="t('view.evidencePlaceholder')"
-              class="min-w-[280px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 font-mono text-sm text-txt-hi"
+              class="field min-w-[280px] flex-1 font-mono"
             />
             <button
               type="submit"
@@ -113,7 +113,7 @@ onMounted(() => stories.reload())
               {{ t('view.dropEvidence') }}
             </button>
           </div>
-          <p v-if="deposited !== null" class="mt-2 font-mono text-xs text-green">
+          <p v-if="deposited !== null" class="mt-2 tabular-nums text-xs text-green">
             {{ t('view.provenBy', { path: deposited }) }}
           </p>
           <p v-if="refusal !== null" class="mt-2 text-xs text-red">{{ say(refusal) }}</p>

@@ -129,7 +129,7 @@ onMounted(async () => {
         </span>
         <select
           v-model="chosenProject"
-          class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
+          class="field"
         >
           <option v-for="project in projects.data.value ?? []" :key="project.id" :value="project.id">
             {{ project.name }}
@@ -156,14 +156,14 @@ onMounted(async () => {
           type="text"
           :placeholder="t('project.zonePathPlaceholder')"
           :aria-label="t('project.zonePathPlaceholder')"
-          class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
+          class="field"
         />
         <input
           v-model="zoneName"
           type="text"
           :placeholder="t('project.zoneNamePlaceholder')"
           :aria-label="t('project.zoneNamePlaceholder')"
-          class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
+          class="field"
         />
         <input
           v-model="zoneColour"
@@ -174,7 +174,7 @@ onMounted(async () => {
         <button
           type="submit"
           :disabled="busy"
-          class="rounded-lg bg-card px-4 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
+          class="btn btn-secondary"
         >
           {{ t('project.declareZone') }}
         </button>
@@ -191,7 +191,7 @@ onMounted(async () => {
       <form class="mt-3 flex flex-wrap items-end gap-2" @submit.prevent="reserveScope">
         <select
           v-model="claimStoryId"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          class="field"
           :aria-label="t('project.chooseStoryFirst')"
         >
           <option :value="null">{{ t('storyTab.story') }}</option>
@@ -204,19 +204,19 @@ onMounted(async () => {
           type="text"
           :placeholder="t('project.scopePathPlaceholder')"
           :aria-label="t('project.scopePathPlaceholder')"
-          class="min-w-[220px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          class="field min-w-[220px] flex-1"
         />
         <input
           v-model="claimSymbols"
           type="text"
           :placeholder="t('project.symbolsPlaceholder')"
           :aria-label="t('project.symbolsPlaceholder')"
-          class="min-w-[220px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
+          class="field min-w-[220px] flex-1"
         />
         <button
           type="submit"
           :disabled="busy || claimPath === ''"
-          class="rounded-lg bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
+          class="btn btn-primary"
         >
           {{ t('project.reserve') }}
         </button>
@@ -239,7 +239,7 @@ onMounted(async () => {
           <button
             type="button"
             :disabled="busy"
-            class="ml-auto rounded-lg bg-elev px-2 py-1 text-xs font-bold text-txt-mid disabled:opacity-40"
+            class="btn btn-secondary btn-sm ml-auto"
             @click="releaseScope(reservation.storyId)"
           >
             {{ t('common.release') }}

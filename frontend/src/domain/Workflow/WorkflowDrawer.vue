@@ -98,7 +98,7 @@ onMounted(() => void state.load())
           </DialogTitle>
           <button
             type="button"
-            class="rounded-md px-2.5 py-1.5 text-xs text-txt-mid hover:bg-elev"
+            class="btn btn-ghost btn-sm"
             @click="emit('close')"
           >
             {{ t('workflowSettings.close') }}
@@ -116,7 +116,7 @@ onMounted(() => void state.load())
         </p>
 
         <template v-if="state.workflow.value !== null">
-          <p class="m-0 border-b border-hair pb-2 font-mono text-xs text-txt-low">
+          <p class="m-0 border-b border-hair pb-2 tabular-nums text-xs text-txt-low">
             {{ t('workflowSettings.backlogFixed') }}
           </p>
 
@@ -161,20 +161,20 @@ onMounted(() => void state.load())
                 v-bind="requiredField(state.failure.value, 'workflow-failure')"
                 type="text"
                 maxlength="60"
-                class="rounded-md border border-line bg-card px-2.5 py-1.5 text-sm text-txt-hi"
+                class="field"
               />
             </label>
             <button
               type="submit"
               :disabled="state.busy.value || newName.trim() === ''"
-              class="rounded-md px-3 py-1.5 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
+              class="btn btn-ghost btn-sm"
             >
               {{ t('workflowSettings.addStep') }}
             </button>
             <RequiredNote class="basis-full" />
           </form>
 
-          <p class="m-0 border-t border-hair pt-2 font-mono text-xs text-txt-low">
+          <p class="m-0 border-t border-hair pt-2 tabular-nums text-xs text-txt-low">
             {{ t('workflowSettings.doneFixed') }}
           </p>
           <p class="m-0 text-xs text-txt-low">{{ t('workflowSettings.footnote') }}</p>
