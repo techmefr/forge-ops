@@ -59,6 +59,7 @@ import { createDoctrineSource } from '../technical/Doctrine/DoctrineSource.js'
 import { installGuardrails } from '../technical/Guardrail/GuardrailInstall.js'
 import { carryLocalSettings } from '../technical/Guardrail/LocalSettings.js'
 import { createGuardrailSeal } from '../technical/Guardrail/GuardrailSeal.js'
+import { DEFAULT_PUSH_REMOTE } from '../technical/Guardrail/ShellPolicy.js'
 import { createFileApi } from '../domain/File/FileApi.js'
 import { createFileRepository } from '../domain/File/FileRepository.js'
 import { createStatisticRepository } from '../domain/Statistic/StatisticRepository.js'
@@ -289,6 +290,14 @@ export function startBoardServer({
         onEvent: onSessionEvent,
         forgeRoot: process.cwd(),
         seal: guardrailSeal,
+        shellSeedFor: (order) => {
+          const declared = projectTestCommand(cwdForStory(order.storyId))
+          return {
+            branch: worktrees.findForStory(order.storyId)?.branch ?? null,
+            remote: process.env.FORGE_PUSH_REMOTE?.trim() || DEFAULT_PUSH_REMOTE,
+            testCommands: declared === null ? [] : [declared],
+          }
+        },
       }),
     ),
     codexDriver(

@@ -49,7 +49,11 @@ describe('decideToolPermission', () => {
 
   it('denies writing tools in review and ship phases and unknown phases', () => {
     expect(decideToolPermission({ phase: 'review', tool: 'Write', input: { file_path: 'a' }, root }).behavior).toBe('deny')
-    expect(decideToolPermission({ phase: 'review', tool: 'Bash', input: {}, root }).behavior).toBe('allow')
+    expect(
+      decideToolPermission({ phase: 'review', tool: 'Write', input: { file_path: '.claude/evidence/S-1/review.verdict.json' }, root })
+        .behavior,
+    ).toBe('allow')
+    expect(decideToolPermission({ phase: 'review', tool: 'Bash', input: { command: 'git status' }, root }).behavior).toBe('allow')
     expect(decideToolPermission({ phase: 'nope', tool: 'Read', input: {}, root }).behavior).toBe('deny')
   })
 

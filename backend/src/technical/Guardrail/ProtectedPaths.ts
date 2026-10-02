@@ -1,5 +1,5 @@
 import { existsSync, realpathSync } from 'node:fs'
-import { dirname, isAbsolute, relative, resolve, sep } from 'node:path'
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const SETTINGS_FILE = /^\.claude\/settings[^/]*\.json$/
@@ -8,6 +8,16 @@ const DENY_FILE = '.claude-deny.json'
 const MCP_FILE = '.mcp.json'
 const GIT_FOLDER = '.git'
 const GUARDRAIL_FOLDER = 'backend/src/technical/Guardrail'
+
+const REPRESENTATIVES = [
+  '.claude/settings.json',
+  '.claude/settings.local.json',
+  HOOKS_FOLDER,
+  DENY_FILE,
+  MCP_FILE,
+  GIT_FOLDER,
+  GUARDRAIL_FOLDER,
+] as const
 
 const OWN_GUARDRAIL_FOLDER = dirname(fileURLToPath(import.meta.url))
 
@@ -57,4 +67,23 @@ export function isProtectedPath(root: string, path: string): boolean {
   }
   const rel = relativeToRoot(root, path)
   return rel !== null && protectedRelative(rel)
+}
+
+export function holdsProtectedPath(root: string, path: string): boolean {
+  const rel = relativeToRoot(root, path)
+  if (rel === null) {
+    return false
+  }
+  if (rel === '') {
+    return true
+  }
+  const lowered = rel.toLowerCase()
+  return REPRESENTATIVES.some(
+    (representative) =>
+      representative.toLowerCase().startsWith(`${lowered}/`) && existsSync(join(root, representative)),
+  )
+}
+
+export function protectedRepresentativesOf(root: string): string[] {
+  return REPRESENTATIVES.map((representative) => join(root, representative))
 }

@@ -11,7 +11,6 @@ const EXACT_NAMES = new Set([
   'TZ',
   'PWD',
   'COLORTERM',
-  'SSH_AUTH_SOCK',
   'NODE_PATH',
   'NODE_EXTRA_CA_CERTS',
   'SSL_CERT_FILE',
@@ -40,12 +39,26 @@ export type AgentEnvironmentInput = {
   extraPrefixes?: readonly string[]
 }
 
+export const FORWARD_ENV_VARIABLE = 'FORGE_AGENT_FORWARD_ENV'
+
+const FORWARDABLE_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/
+
+function forwardedNamesOf(source: NodeJS.ProcessEnv): Set<string> {
+  return new Set(
+    (source[FORWARD_ENV_VARIABLE] ?? '')
+      .split(',')
+      .map((name) => name.trim())
+      .filter((name) => FORWARDABLE_NAME.test(name) && name !== FORWARD_ENV_VARIABLE),
+  )
+}
+
 export function agentEnvironmentOf({ source, extraPrefixes = [] }: AgentEnvironmentInput): Record<string, string> {
   const prefixes = [...PREFIXES, ...extraPrefixes]
+  const forwarded = forwardedNamesOf(source)
   const allowed: Record<string, string> = {}
   for (const [name, value] of Object.entries(source)) {
     if (value === undefined) continue
-    if (EXACT_NAMES.has(name) || prefixes.some((prefix) => name.startsWith(prefix))) {
+    if (EXACT_NAMES.has(name) || forwarded.has(name) || prefixes.some((prefix) => name.startsWith(prefix))) {
       allowed[name] = value
     }
   }
