@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import type { ProjectAutopilot } from '@contract/AutopilotContract'
 import { createBoardI18n } from '@/technical/Language/I18n'
-import AutopilotBadge from '@/domain/Workflow/AutopilotBadge.vue'
 import AutopilotSection from '@/domain/Workflow/AutopilotSection.vue'
 
 const read = vi.fn()
@@ -34,19 +33,12 @@ afterEach(() => {
   wrapper = null
 })
 
-async function mountBadge(): Promise<VueWrapper> {
-  wrapper = mount(AutopilotBadge, { props: { projectId: 3 }, global: { plugins: [createBoardI18n('en')] } })
-  await flushPromises()
-  return wrapper
-}
+describe('the automation switch', () => {
+  it('switches the mode off while keeping the other settings', async () => {
+    wrapper = mount(AutopilotSection, { props: { projectId: 3 }, global: { plugins: [createBoardI18n('en')] } })
+    await flushPromises()
 
-describe('the auto badge', () => {
-  it('shows the mode on and switches it off with the whole settings body', async () => {
-    const badge = await mountBadge()
-
-    expect(badge.get('button').attributes('aria-checked')).toBe('true')
-    expect(badge.text()).toContain('auto')
-    await badge.get('button').trigger('click')
+    await wrapper.get('[data-test="autopilot-enabled"]').trigger('change')
     await flushPromises()
 
     expect(send).toHaveBeenCalledWith('/api/projects/3/autopilot', 'PUT', {
@@ -55,17 +47,14 @@ describe('the auto badge', () => {
       autoPublish: true,
       autoMerge: false,
     })
-    expect(badge.get('button').attributes('aria-checked')).toBe('false')
   })
 
   it('is locked for someone who is not the project admin', async () => {
     current = { ...current, maySettle: false }
+    wrapper = mount(AutopilotSection, { props: { projectId: 3 }, global: { plugins: [createBoardI18n('en')] } })
+    await flushPromises()
 
-    const badge = await mountBadge()
-
-    expect(badge.get('button').attributes('disabled')).toBeDefined()
-    await badge.get('button').trigger('click')
-    expect(send).not.toHaveBeenCalled()
+    expect(wrapper.get('[data-test="autopilot-enabled"]').attributes('disabled')).toBeDefined()
   })
 })
 

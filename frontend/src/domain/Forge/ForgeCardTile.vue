@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 import type { ForgeCardView } from '@contract/ForgeCardContract'
 import {
   adjacentStep,
-  minutesOf,
   primaryActionOf,
   type BoardStep,
   type CardAction,
@@ -19,14 +18,12 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   open: []
-  move: [stepKey: string]
   act: [action: CardAction]
   dragging: [dragging: boolean]
 }>()
 
 const { t } = useI18n()
 
-const previous = computed(() => adjacentStep(props.steps, props.card, -1))
 const next = computed(() => adjacentStep(props.steps, props.card, 1))
 const action = computed(() => primaryActionOf(props.card, props.steps))
 const draggable = computed(() => !props.busy && props.card.status !== 'running' && props.card.status !== 'done')
@@ -41,11 +38,29 @@ const actionLabel = computed(() => {
   return t(`forge.action.${action.value}`)
 })
 
-const effort = computed(() =>
-  props.card.durationSeconds > 0 || props.card.costUsd > 0
-    ? `${t('forge.minutes', { count: minutesOf(props.card.durationSeconds) })} · ${t('forge.money', { amount: props.card.costUsd.toFixed(2) })}`
-    : '',
-)
+const statusLabel = computed(() => {
+  if (props.card.auto && props.card.auto.state !== 'running') {
+    return t(props.card.auto.state === 'red' ? 'forge.attention' : 'forge.paused')
+  }
+  return props.card.status === 'idle' ? '' : t(`forge.status.${props.card.status}`)
+})
+
+const statusTone = computed(() => {
+  if (props.card.auto && props.card.auto.state !== 'running') {
+    return props.card.auto.state === 'red' ? 'text-red' : 'text-orange'
+  }
+  const status = props.card.status
+  if (status === 'running') {
+    return 'text-acc'
+  }
+  if (status === 'failed' || status === 'budget_exhausted') {
+    return 'text-red'
+  }
+  if (status === 'to_validate' || status === 'human_review' || status === 'stopped') {
+    return 'text-orange'
+  }
+  return status === 'done' ? 'text-green' : 'text-txt-mid'
+})
 
 function start(event: DragEvent): void {
   event.dataTransfer?.setData('text/plain', String(props.card.id))
@@ -58,7 +73,7 @@ function start(event: DragEvent): void {
 
 <template>
   <li
-    class="flex flex-col gap-1.5 border-b border-hair px-3 py-2.5 last:border-b-0"
+    class="flex flex-col gap-1 border-b border-hair px-3 py-3 last:border-b-0"
     :class="[draggable ? 'cursor-grab' : '', busy ? 'opacity-60' : '']"
     :draggable="draggable"
     :aria-busy="busy"
@@ -75,51 +90,22 @@ function start(event: DragEvent): void {
     >
       {{ card.title }}
     </button>
-    <p class="m-0 flex flex-wrap items-center gap-x-2 text-xs text-txt-low">
-      <span class="font-mono">{{ card.storyReference }}</span>
-      <span class="min-w-0 truncate">{{ card.subjectTitle }}</span>
-    </p>
-    <p
-      v-if="card.status !== 'idle'"
-      class="m-0 flex flex-wrap items-center gap-x-1.5 text-xs"
-      :class="{ 'text-acc': card.status === 'running', 'text-red': card.status === 'failed' || card.status === 'budget_exhausted', 'text-orange': card.status === 'to_validate' || card.status === 'human_review' || card.status === 'stopped', 'text-green': card.status === 'done', }"
-    >
-      <span aria-hidden="true">{{ STATUS_GLYPH[card.status] }}</span>
-      <span>{{ t(`forge.status.${card.status}`) }}</span>
-      <span v-if="effort !== ''" class="font-mono text-txt-low">{{ effort }}</span>
-    </p>
-    <p
-      v-if="card.auto && card.auto.state !== 'running'"
-      class="m-0 text-xs"
-      :class="card.auto.state === 'red' ? 'text-red' : 'text-orange'"
-      data-test="auto-note"
-    >
-      {{ t(card.auto.state === 'red' ? 'autopilot.red' : 'autopilot.paused', { reason: card.auto.reason ?? '' }) }}
-    </p>
-    <div class="flex items-center gap-1">
-      <button
-        type="button"
-        class="h-7 w-7 rounded-md bg-transparent text-txt-mid hover:bg-elev disabled:opacity-30 max-sm:h-10 max-sm:w-10"
-        :disabled="previous === null || busy"
-        :aria-label="previous === null ? t('forge.previous') : t('forge.moveTo', { title: card.title, step: previous.label })"
-        @click="previous !== null && emit('move', previous.key)"
+    <div class="flex min-h-6 flex-wrap items-center gap-x-2 text-xs">
+      <span class="font-mono text-txt-low">{{ card.storyReference }}</span>
+      <span
+        v-if="statusLabel !== ''"
+        class="flex min-w-0 items-center gap-1"
+        :class="statusTone"
+        data-test="card-status"
       >
-        <span aria-hidden="true">‹</span>
-      </button>
-      <button
-        type="button"
-        class="h-7 w-7 rounded-md bg-transparent text-txt-mid hover:bg-elev disabled:opacity-30 max-sm:h-10 max-sm:w-10"
-        :disabled="next === null || busy"
-        :aria-label="next === null ? t('forge.next') : t('forge.moveTo', { title: card.title, step: next.label })"
-        @click="next !== null && emit('move', next.key)"
-      >
-        <span aria-hidden="true">›</span>
-      </button>
+        <span aria-hidden="true">{{ STATUS_GLYPH[card.status] }}</span>
+        <span class="truncate">{{ statusLabel }}</span>
+      </span>
       <span class="flex-1" />
       <button
         v-if="action !== null"
         type="button"
-        class="rounded-md bg-transparent px-2.5 py-1 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
+        class="rounded-md border-0 bg-transparent px-2 py-1 text-xs text-acc hover:bg-elev disabled:opacity-40"
         :disabled="busy"
         @click="emit('act', action)"
       >
