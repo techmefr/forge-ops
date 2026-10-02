@@ -190,7 +190,7 @@ function closeWhenClosed(open: boolean): void {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-40 bg-deep/70" />
       <DialogContent
-        class="fixed inset-y-0 right-0 z-50 flex w-[min(540px,100vw)] flex-col gap-4 overflow-y-auto border-l border-hair bg-panel p-5"
+        class="fixed inset-y-0 right-0 z-50 flex w-[min(540px,100vw)] flex-col gap-4 overflow-y-auto border-l border-hair bg-panel shadow-lg p-5"
         data-test-id="follow-up-drawer"
       >
         <div class="flex items-start gap-3">

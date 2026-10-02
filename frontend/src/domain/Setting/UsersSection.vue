@@ -109,7 +109,7 @@ void users.reload()
       <li
         v-for="user in rows"
         :key="user.id"
-        class="flex flex-wrap items-center gap-3 rounded-md bg-panel px-3 py-2"
+        class="flex flex-wrap items-center gap-3 rounded-md border border-line bg-panel px-3 py-2"
       >
         <span
           class="flex h-8 w-8 items-center justify-center rounded-full bg-elev tabular-nums text-xs text-txt-hi"

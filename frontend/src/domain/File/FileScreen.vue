@@ -140,11 +140,11 @@ onMounted(async () => {
       <MarkLegend class="pb-2" data-tour="file-legend" />
     </div>
 
-    <div class="mt-6 min-h-0 flex-1 max-lg:flex-none">
+    <div class="mt-6 min-h-[22rem] flex-1 max-lg:flex-none">
       <FileBrowser :project-id="chosenProject" />
     </div>
 
-    <details class="mt-6 max-h-[40vh] flex-none overflow-auto border-t border-hair pt-4">
+    <details class="mt-6 max-h-[40vh] flex-none overflow-auto border-t border-line pt-4">
       <summary class="cursor-pointer max-sm:flex max-sm:min-h-10 max-sm:items-center text-xs text-txt-low">
         {{ t('project.zonesSummary') }}
       </summary>
@@ -183,7 +183,7 @@ onMounted(async () => {
 
     <p v-if="refusal !== null" class="mt-3 text-sm text-red" role="alert">{{ say(refusal) }}</p>
 
-    <section class="mt-6 rounded-lg bg-card p-4" data-tour="scope-reservation">
+    <section class="mt-6 card p-6" data-tour="scope-reservation">
       <p class="text-xs text-txt-low">
         {{ t('project.scopeReservation') }}
       </p>
@@ -263,7 +263,7 @@ onMounted(async () => {
       </ul>
     </section>
 
-    <section v-if="(conflicts.data.value ?? []).length > 0" class="mt-6 rounded-lg bg-red-soft/10 p-4">
+    <section v-if="(conflicts.data.value ?? []).length > 0" class="mt-6 card border-red p-4">
       <p class="text-xs text-red">
         {{ t('project.disputedFiles') }}
       </p>
@@ -289,7 +289,7 @@ onMounted(async () => {
           <article
             v-for="overview in zones.data.value ?? []"
             :key="overview.zone.id"
-            class="rounded-lg bg-card p-4"
+            class="card p-4"
           >
             <div class="flex items-center gap-2">
               <span

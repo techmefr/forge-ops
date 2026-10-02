@@ -150,7 +150,7 @@ watch(here, () => void look())
   <div class="flex h-full min-h-0 flex-col gap-4">
     <form
       v-if="tree !== null && !tree.available && tree.reason === 'CheckoutUnknown'"
-      class="rounded-lg bg-card p-4"
+      class="card p-4"
       @submit.prevent="pointCheckout"
     >
       <p class="title-face text-sm text-txt-mid">{{ t('browser.noCheckout') }}</p>
@@ -175,7 +175,7 @@ watch(here, () => void look())
 
     <section
       v-if="clashes !== null && clashes.clashes.length > 0"
-      class="rounded-lg bg-card p-4"
+      class="card p-4"
     >
       <p class="text-xs text-orange">
         {{ t('browser.closeNames') }}

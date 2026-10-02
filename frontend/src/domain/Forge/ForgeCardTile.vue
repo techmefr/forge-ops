@@ -8,7 +8,6 @@ import {
   type BoardStep,
   type CardAction,
 } from './ForgeRule'
-import { STATUS_GLYPH } from './ForgeGlyph'
 
 const props = defineProps<{
   card: ForgeCardView
@@ -47,19 +46,19 @@ const statusLabel = computed(() => {
 
 const statusTone = computed(() => {
   if (props.card.auto && props.card.auto.state !== 'running') {
-    return props.card.auto.state === 'red' ? 'text-red' : 'text-orange'
+    return props.card.auto.state === 'red' ? 'chip-bad' : 'chip-wait'
   }
   const status = props.card.status
   if (status === 'running') {
-    return 'text-acc'
+    return 'chip-run'
   }
   if (status === 'failed' || status === 'budget_exhausted') {
-    return 'text-red'
+    return 'chip-bad'
   }
   if (status === 'to_validate' || status === 'human_review' || status === 'stopped') {
-    return 'text-orange'
+    return 'chip-wait'
   }
-  return status === 'done' ? 'text-green' : 'text-txt-mid'
+  return status === 'done' ? 'chip-ok' : 'chip-idle'
 })
 
 function start(event: DragEvent): void {
@@ -73,7 +72,7 @@ function start(event: DragEvent): void {
 
 <template>
   <li
-    class="flex flex-col gap-1 border-b border-hair px-3 py-3 last:border-b-0"
+    class="card card-hover flex flex-col gap-2 p-4"
     :class="[draggable ? 'cursor-grab' : '', busy ? 'opacity-60' : '']"
     :draggable="draggable"
     :aria-busy="busy"
@@ -84,28 +83,23 @@ function start(event: DragEvent): void {
   >
     <button
       type="button"
-      class="m-0 cursor-pointer border-0 bg-transparent p-0 text-left text-sm text-txt-hi hover:underline"
+      class="m-0 cursor-pointer border-0 bg-transparent p-0 text-left text-sm font-medium text-txt-hi hover:underline"
       :aria-label="t('forge.cardOpen', { title: card.title })"
       @click="emit('open')"
     >
       {{ card.title }}
     </button>
-    <div class="flex min-h-6 flex-wrap items-center gap-x-2 text-xs">
+    <div class="flex min-h-6 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
       <span class="font-mono text-txt-low">{{ card.storyReference }}</span>
-      <span
-        v-if="statusLabel !== ''"
-        class="flex min-w-0 items-center gap-1"
-        :class="statusTone"
-        data-test="card-status"
-      >
-        <span aria-hidden="true">{{ STATUS_GLYPH[card.status] }}</span>
+      <span v-if="statusLabel !== ''" class="chip min-w-0" :class="statusTone" data-test="card-status">
+        <span class="size-1.5 flex-none rounded-full bg-current" aria-hidden="true" />
         <span class="truncate">{{ statusLabel }}</span>
       </span>
       <span class="flex-1" />
       <button
         v-if="action !== null"
         type="button"
-        class="rounded-md border-0 bg-transparent px-2 py-1 text-xs text-acc hover:bg-elev disabled:opacity-40"
+        class="btn btn-ghost btn-sm text-acc"
         :disabled="busy"
         @click="emit('act', action)"
       >

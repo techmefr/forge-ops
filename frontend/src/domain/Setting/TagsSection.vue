@@ -84,7 +84,7 @@ void tags.reload()
       <li
         v-for="tag in tags.data.value ?? []"
         :key="tag.id"
-        class="flex flex-wrap items-center gap-3 rounded-md bg-panel px-3 py-2"
+        class="flex flex-wrap items-center gap-3 rounded-md border border-line bg-panel px-3 py-2"
       >
         <label class="flex items-center">
           <span class="sr-only">{{ t('team.colourOf', { name: tag.label }) }}</span>

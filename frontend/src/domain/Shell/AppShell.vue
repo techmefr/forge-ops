@@ -156,7 +156,7 @@ watch(
 
     <section
       aria-labelledby="page-heading"
-      class="sticky top-0 z-40 flex flex-wrap items-center gap-x-3 gap-y-1 bg-panel/80 px-4 py-2 backdrop-blur sm:gap-4 sm:px-8 sm:py-3"
+      class="sticky top-0 z-40 flex flex-wrap items-center gap-x-3 gap-y-1 bg-panel px-4 py-2 sm:gap-4 sm:px-8 sm:py-3"
     >
       <div class="min-w-0 flex-[1_1_auto] sm:flex-[1_1_240px]" data-tour="shell-heading">
         <div class="flex items-baseline gap-2.5">
