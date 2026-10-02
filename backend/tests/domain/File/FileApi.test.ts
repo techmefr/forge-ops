@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type Database from 'better-sqlite3'
@@ -213,5 +213,80 @@ describe("a checkout path slipped straight into the database", () => {
     db.prepare("UPDATE project SET checkout_path = ? WHERE id = ?").run("/", projectId)
     const answer = await api.request("/api/projects/" + projectId + "/tree")
     expect(((await answer.json()) as { reason: string }).reason).toContain("racines autorisees")
+  })
+})
+
+describe('secret and server data protection', () => {
+  it('never lists or serves dotenv, key, token or database files', async () => {
+    writeFileSync(join(root, '.env'), 'SECRET=1')
+    writeFileSync(join(root, '.env.production'), 'SECRET=2')
+    writeFileSync(join(root, 'server.pem'), 'pem')
+    writeFileSync(join(root, 'deploy.key'), 'key')
+    writeFileSync(join(root, '.forge-token'), 'tok')
+    writeFileSync(join(root, 'forge.db'), 'SQLite format 3')
+    writeFileSync(join(root, 'forge.db-wal'), 'wal')
+    mkdirSync(join(root, '.claude'), { recursive: true })
+    writeFileSync(join(root, '.claude', 'settings.local.json'), '{}')
+    mkdirSync(join(root, '.ssh'), { recursive: true })
+    writeFileSync(join(root, '.ssh', 'config'), 'x')
+
+    const listed = (await (await api.request(`/api/projects/${projectId}/tree?path=`)).json()) as {
+      entries: readonly { name: string }[]
+    }
+    expect(listed.entries.map((entry) => entry.name)).toEqual(['.claude', 'src'])
+    const claude = (await (await api.request(`/api/projects/${projectId}/tree?path=.claude`)).json()) as {
+      entries: readonly { name: string }[]
+    }
+    expect(claude.entries).toEqual([])
+
+    for (const path of [
+      '.env',
+      '.env.production',
+      'server.pem',
+      'deploy.key',
+      '.forge-token',
+      'forge.db',
+      'forge.db-wal',
+      '.claude/settings.local.json',
+      '.ssh/config',
+    ]) {
+      const answer = await api.request(`/api/projects/${projectId}/file?path=${encodeURIComponent(path)}`)
+      expect(answer.status, path).toBe(403)
+      expect(await answer.text()).not.toMatch(/SECRET|SQLite|tok/)
+    }
+  })
+
+  it('refuses a symlink that leads to a secret', async () => {
+    writeFileSync(join(root, '.env'), 'SECRET=1')
+    symlinkSync(join(root, '.env'), join(root, 'innocent.txt'))
+    const answer = await api.request(`/api/projects/${projectId}/file?path=innocent.txt`)
+    expect(answer.status).toBe(403)
+  })
+
+  it('refuses a checkout that contains the server data', async () => {
+    const dataDir = mkdtempSync(join(tmpdir(), 'forge-data-'))
+    writeFileSync(join(dataDir, 'forge.db'), 'SQLite format 3')
+    const guarded = createFileApi({
+      stories: createStoryRepository(db, { checkoutRoots: [tmpdir()] }),
+      files: createFileRepository(db),
+      checkoutRoots: [tmpdir()],
+      serverPaths: [join(dataDir, 'forge.db'), join(dataDir, '.forge-token')],
+      mayAdminister: () => true,
+    })
+    const repository = createStoryRepository(db, { checkoutRoots: [tmpdir()] })
+    repository.setCheckoutPath(projectId, dataDir)
+
+    const tree = await guarded.request(`/api/projects/${projectId}/tree?path=`)
+    expect(tree.status).toBe(422)
+    expect(await tree.json()).toMatchObject({ error: 'CheckoutPathRefused' })
+    const file = await guarded.request(`/api/projects/${projectId}/file?path=forge.db`)
+    expect(file.status).toBe(422)
+
+    const put = await guarded.request(`/api/projects/${projectId}/checkout`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ checkoutPath: dataDir }),
+    })
+    expect(put.status).toBe(422)
   })
 })

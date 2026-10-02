@@ -17,3 +17,13 @@ export class CheckoutUnreadableError extends Error {
     this.path = path
   }
 }
+
+export class SensitivePathError extends Error {
+  readonly asked: string
+
+  constructor(asked: string) {
+    super(`Path ${asked} is not served`)
+    this.name = 'SensitivePathError'
+    this.asked = asked
+  }
+}

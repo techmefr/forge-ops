@@ -1,11 +1,14 @@
+import { realpathSync } from 'node:fs'
 import { stat } from 'node:fs/promises'
+import { isAbsolute, relative, resolve } from 'node:path'
 import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { z } from 'zod'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { listDirectory, readTextFile, statTextFile, walkPaths } from '../../technical/Repository/LocalTree.js'
-import { PathOutsideCheckoutError } from '../../technical/Repository/LocalTreeViolation.js'
+import { PathOutsideCheckoutError, SensitivePathError } from '../../technical/Repository/LocalTreeViolation.js'
 import { assertCheckoutPath, CheckoutPathRefusedError } from '../Story/CheckoutPath.js'
+import { isSensitivePath } from '../../technical/Repository/SensitivePath.js'
 import { createCodeRenderer, type CodeRenderer } from '../../technical/File/CodeRender.js'
 import { createHighlightCache, type HighlightCache } from '../../technical/File/HighlightCache.js'
 import { describeFile } from './FileDigest.js'
@@ -19,6 +22,7 @@ export type FileApiInput = {
   maxFileBytes?: number
   maxWalkedFiles?: number
   checkoutRoots?: readonly string[]
+  serverPaths?: readonly string[]
   mayAdminister: (projectId: number, context: Context) => boolean
   installGuardrails?: (checkoutPath: string) => { settingsPath: string; localSettingsPath: string | null }
   codeRenderer?: CodeRenderer
@@ -43,6 +47,22 @@ type Holder = {
   touches: Map<string, readonly FileTouch[]>
 }
 
+function realOf(path: string): string {
+  try {
+    return realpathSync(resolve(path))
+  } catch {
+    return resolve(path)
+  }
+}
+
+function holdsServerData(checkoutPath: string, serverPaths: readonly string[]): boolean {
+  const checkout = realOf(checkoutPath)
+  return serverPaths.some((served) => {
+    const inside = relative(checkout, realOf(served))
+    return inside === '' || (!inside.startsWith('..') && !isAbsolute(inside))
+  })
+}
+
 function saidBy(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
@@ -53,6 +73,7 @@ export function createFileApi({
   maxFileBytes = DEFAULT_MAX_FILE_BYTES,
   maxWalkedFiles = DEFAULT_MAX_WALKED_FILES,
   checkoutRoots = [process.cwd()],
+  serverPaths = [],
   mayAdminister,
   installGuardrails,
   codeRenderer = createCodeRenderer(),
@@ -81,6 +102,9 @@ export function createFileApi({
     } catch (error) {
       return { refused: error instanceof CheckoutPathRefusedError ? error.message : saidBy(error) }
     }
+    if (holdsServerData(project.checkoutPath, serverPaths)) {
+      return { refused: 'the checkout contains the server data' }
+    }
     return { checkoutPath: project.checkoutPath, touches: files.touchesOfProject(projectId.data) }
   }
 
@@ -104,7 +128,9 @@ export function createFileApi({
         asked === ''
           ? !path.includes('/')
           : path.startsWith(`${asked}/`) && !path.slice(asked.length + 1).includes('/')
-      const missing = [...holder.touches.keys()].filter((path) => !seen.has(path) && inside(path))
+      const missing = [...holder.touches.keys()].filter(
+        (path) => !seen.has(path) && inside(path) && !isSensitivePath(path),
+      )
 
       const said = [
         ...entries.map((entry) => {
@@ -130,6 +156,9 @@ export function createFileApi({
     } catch (error) {
       if (error instanceof PathOutsideCheckoutError) {
         return context.json({ error: 'PathOutsideCheckout' }, 422)
+      }
+      if (error instanceof SensitivePathError) {
+        return context.json({ error: 'PathNotServed' }, 403)
       }
       return context.json({ available: false, reason: saidBy(error), entries: [] })
     }
@@ -170,6 +199,9 @@ export function createFileApi({
     } catch (error) {
       if (error instanceof PathOutsideCheckoutError) {
         return context.json({ error: 'PathOutsideCheckout' }, 422)
+      }
+      if (error instanceof SensitivePathError) {
+        return context.json({ error: 'PathNotServed' }, 403)
       }
       return context.json({ error: 'FileUnreadable', reason: saidBy(error) }, 404)
     }
@@ -220,6 +252,9 @@ export function createFileApi({
     }
     if (!(await isDirectory(body.data.checkoutPath))) {
       return context.json({ error: 'CheckoutNotADirectory' }, 422)
+    }
+    if (holdsServerData(body.data.checkoutPath, serverPaths)) {
+      return context.json({ error: 'CheckoutPathRefused', reason: 'the checkout contains the server data' }, 422)
     }
     try {
       return context.json(stories.setCheckoutPath(projectId.data, body.data.checkoutPath))

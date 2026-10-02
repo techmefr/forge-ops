@@ -632,6 +632,7 @@ export function startBoardServer({
       stories,
       files: createFileRepository(db),
       checkoutRoots: allowedCheckoutRoots,
+      serverPaths: mode === 'hub' ? [dbPath, tokenPath, claudeHome, process.cwd()] : [],
       installGuardrails: (checkout) =>
         installGuardrails({
           checkout,
