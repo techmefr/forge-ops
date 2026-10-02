@@ -144,6 +144,41 @@ describe('createSdkSessionRunner', () => {
     expect(entries[0].hooks[0].args).toEqual([join(process.cwd(), 'backend', 'src', 'technical', 'Guardrail', 'DenyHook.ts')])
   })
 
+  it('carries the story branch and the test command to the shell guardrail and enforces them', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    const runner = createSdkSessionRunner({
+      cwdFor: () => '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: () => undefined,
+      shellSeedFor: () => ({ branch: 'story/forge-7-x', remote: 'origin', testCommands: ['npm test'] }),
+    })
+
+    await runner.launch({ ...ORDER, phase: 'ship' })
+
+    const options = queried.mock.calls[0]![0].options
+    expect(options.env.FORGE_STORY_BRANCH).toBe('story/forge-7-x')
+    expect(JSON.parse(options.env.FORGE_TEST_COMMANDS)).toEqual(['npm test'])
+    expect((await options.canUseTool('Bash', { command: 'git push origin story/forge-7-x' })).behavior).toBe('allow')
+    expect((await options.canUseTool('Bash', { command: 'git push --force-with-lease origin story/forge-7-x' })).behavior).toBe('deny')
+    expect((await options.canUseTool('Bash', { command: 'git push origin main' })).behavior).toBe('deny')
+    expect((await options.canUseTool('Write', { file_path: '/tmp/.claude/settings.json' })).behavior).toBe('deny')
+  })
+
+  it('does not forward the ssh agent socket to the agent process', async () => {
+    queried.mockReturnValue(conversationOf(SPOKEN))
+    process.env.SSH_AUTH_SOCK = '/run/agent.sock'
+    const runner = createSdkSessionRunner({
+      cwdFor: () => '/tmp',
+      live: createLiveSessions<SdkUserTurn>(),
+      onEvent: () => undefined,
+    })
+
+    await runner.launch(ORDER)
+    delete process.env.SSH_AUTH_SOCK
+
+    expect(queried.mock.calls[0]![0].options.env.SSH_AUTH_SOCK).toBeUndefined()
+  })
+
   it('fails the session and refuses the next launch when the guardrail files changed during a turn', async () => {
     queried.mockReturnValue(conversationOf(SPOKEN))
     const events: { name: string; payload: Record<string, unknown> }[] = []

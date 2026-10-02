@@ -14,7 +14,7 @@ export const PHASE_TOOL_POLICY: Readonly<Record<AgentPhase, readonly string[]>> 
 
 export const EVIDENCE_FOLDER = '.claude/evidence/'
 
-export const EVIDENCE_WRITING_PHASES: readonly AgentPhase[] = ['spec', 'architecture']
+export const EVIDENCE_WRITING_PHASES: readonly AgentPhase[] = ["spec", "architecture", "gate", "review", "ship"]
 
 export const EVIDENCE_WRITE_TOOLS: readonly string[] = ['Write', 'Edit', 'MultiEdit']
 
