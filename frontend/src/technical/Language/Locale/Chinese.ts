@@ -232,7 +232,6 @@ export const CHINESE: Message = {
   },
   roadmap: {
     aria: '路线图：项目、项目的议题和事件',
-    title: '路线图',
     newEvent: '新建事件',
     addEvent: '添加事件',
     subjectOwner: '议题 · 负责人',

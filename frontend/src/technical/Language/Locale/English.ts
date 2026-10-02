@@ -230,7 +230,6 @@ export const ENGLISH = {
   },
   roadmap: {
     aria: 'Roadmap: projects, their subjects and their events',
-    title: 'Roadmap',
     newEvent: 'New event',
     addEvent: 'Add an event',
     subjectOwner: 'Subject · owner',
