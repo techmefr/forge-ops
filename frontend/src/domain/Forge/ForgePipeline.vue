@@ -2,7 +2,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ForgeCardView } from '@contract/ForgeCardContract'
-import { DOT_GLYPH } from './ForgeGlyph'
+import Glyph from '@/technical/Ui/Glyph.vue'
+import { DOT_ICON } from './ForgeGlyph'
 import {
   adjacentStep,
   dotsOf,
@@ -100,11 +101,8 @@ function effort(card: ForgeCardView): string {
                 data-test="forge-dot"
                 :data-state="dot.state"
               >
-                <span
-                  class="inline-flex h-4 w-4 items-center justify-center rounded-full border-current text-xs leading-none"
-                  aria-hidden="true"
-                  >{{ DOT_GLYPH[dot.state] }}</span
-                >
+                <Glyph v-if="DOT_ICON[dot.state] !== ''" :name="DOT_ICON[dot.state]" :size="14" />
+                <span v-else class="size-3.5" aria-hidden="true" />
                 <span>{{ dot.label }}</span>
                 <span class="sr-only">{{ t(`forge.dot.${dot.state}`) }}</span>
               </li>
