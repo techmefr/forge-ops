@@ -35,7 +35,7 @@ describe('installGuardrails', () => {
     const { settingsPath } = installGuardrails({ checkout, forgeRoot })
 
     const settings = settingsOf(settingsPath)
-    expect(guardrailHooksMissingFrom(settings)).toEqual([])
+    expect(guardrailHooksMissingFrom(settings, forgeRoot)).toEqual([])
     const serialized = JSON.stringify(settings)
     expect(serialized).toContain(join(forgeRoot, 'backend', 'src', 'technical', 'Guardrail', 'DenyHook.ts'))
     expect(serialized).toContain(join(forgeRoot, 'node_modules', '.bin', 'tsx'))

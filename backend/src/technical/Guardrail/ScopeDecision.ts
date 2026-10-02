@@ -3,6 +3,7 @@ import type { ScopeReservation } from '../../domain/Foremerge/ForemergeRepositor
 import { decideOnWrite, type WriteDecision } from '../../domain/Foremerge/ScopeGuard.js'
 import { isWriteTool, WRITE_TOOLS } from '../../domain/Agent/ToolName.js'
 import { decideOnPhasePayload } from './PhaseDecision.js'
+import { isProtectedPath } from './ProtectedPaths.js'
 
 export const WRITING_TOOLS: readonly string[] = WRITE_TOOLS
 
@@ -85,6 +86,12 @@ export function decideOnScopePayload(
   const wanted = inside(root, path)
   if (wanted === null) {
     return { allowed: false, reason: `${path} est hors du depot, ce hook ne laisse rien sortir du perimetre` }
+  }
+  if (isProtectedPath(root, resolve(root, path))) {
+    return {
+      allowed: false,
+      reason: `${path} is protected: settings, hooks, the deny list, guardrail files and .git are not writable by agents`,
+    }
   }
   try {
     const reservations = read()

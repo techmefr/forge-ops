@@ -4,9 +4,16 @@ import type { SessionTalker, SpokenTurn } from '../../domain/Conversation/Conver
 import type { LiveSessions } from './LiveSessions.js'
 import { deliverTurn, userTurn, type SdkUserTurn } from './TurnDelivery.js'
 import { WORKFLOW_EFFORTS, type WorkflowEffort } from '../../../../contract/WorkflowColumnContract.js'
+import type { Settings } from '@anthropic-ai/claude-agent-sdk'
 import { agentEnvironmentOf } from '../Guardrail/AgentEnvironment.js'
 import { decideToolPermission } from '../Guardrail/ToolPermission.js'
-import { assertGuardrailRegistered, forgeSettingSources } from '../Guardrail/GuardrailRegistration.js'
+import {
+  assertGuardrailRegistered,
+  forgeSettingSources,
+  GuardrailNotRegisteredError,
+  guardrailHookSettings,
+} from '../Guardrail/GuardrailRegistration.js'
+import { createGuardrailSeal, type GuardrailSeal } from '../Guardrail/GuardrailSeal.js'
 
 function effortOptionOf(order: LaunchOrder): { effort?: WorkflowEffort } {
   const effort = WORKFLOW_EFFORTS.find((candidate) => candidate === order.effort)
@@ -19,6 +26,8 @@ export type SdkSessionRunnerInput = {
   cwdFor: (order: LaunchOrder) => string
   onEvent: (event: { name: string; payload: Record<string, unknown> }) => void
   live: LiveSessions<SdkUserTurn>
+  forgeRoot?: string
+  seal?: GuardrailSeal
 }
 
 export class SessionIdentifierMissingError extends Error {
@@ -28,11 +37,22 @@ export class SessionIdentifierMissingError extends Error {
   }
 }
 
-export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunnerInput): SessionRunner {
+export function createSdkSessionRunner({
+  cwdFor,
+  onEvent,
+  live,
+  forgeRoot = process.cwd(),
+  seal = createGuardrailSeal(forgeRoot),
+}: SdkSessionRunnerInput): SessionRunner {
   return {
     launch: async (order: LaunchOrder) => {
       const cwd = cwdFor(order)
-      await assertGuardrailRegistered(cwd)
+      const tampered = seal.tamperedReason(cwd)
+      if (tampered !== null) {
+        throw new GuardrailNotRegisteredError(tampered)
+      }
+      await assertGuardrailRegistered(cwd, forgeRoot)
+      seal.seal(cwd)
       const started = live.start()
       started.channel.push(userTurn(order.prompt))
       const conversation = query({
@@ -40,8 +60,10 @@ export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunn
         options: {
           cwd,
           settingSources: [...forgeSettingSources],
+          settings: guardrailHookSettings(forgeRoot) as Settings,
           permissionMode: 'default',
-          canUseTool: (tool, input) => Promise.resolve(decideToolPermission({ phase: order.phase, tool, input, root: cwd })),
+          canUseTool: (tool, input) =>
+            Promise.resolve(decideToolPermission({ phase: order.phase, tool, input, root: cwd })),
           ...(order.model === undefined ? {} : { model: order.model }),
           ...effortOptionOf(order),
           ...(order.resumeSessionId === undefined ? {} : { resume: order.resumeSessionId }),
@@ -87,7 +109,16 @@ export function createSdkSessionRunner({ cwdFor, onEvent, live }: SdkSessionRunn
         throw error
       }
       const identifier = claudeSessionId
-      void drain(spoken, { ...order, claudeSessionId: identifier }, onEvent).finally(() => {
+      const verifyGuardrails = (): string | null => {
+        const changes = seal.changesSince(cwd)
+        if (changes.length === 0) {
+          return null
+        }
+        seal.markTampered(cwd, changes)
+        conversation.close()
+        return seal.tamperedReason(cwd)
+      }
+      void drain(spoken, { ...order, claudeSessionId: identifier }, onEvent, verifyGuardrails).finally(() => {
         if (forceClose !== null) {
           clearTimeout(forceClose)
         }
@@ -246,9 +277,23 @@ async function drain(
   spoken: AsyncIterator<{ type: string }>,
   order: LaunchOrder & { claudeSessionId: string },
   onEvent: SdkSessionRunnerInput['onEvent'],
+  verifyGuardrails: () => string | null = () => null,
 ): Promise<void> {
   try {
     for await (const message of { [Symbol.asyncIterator]: () => spoken }) {
+      const breach = message.type === 'result' ? verifyGuardrails() : null
+      if (breach !== null) {
+        onEvent({
+          name: 'session.failed',
+          payload: {
+            reference: order.reference,
+            phase: order.phase,
+            claudeSessionId: order.claudeSessionId,
+            message: breach,
+          },
+        })
+        return
+      }
       const failure = failureOf(message)
       onEvent({
         name: `session.${message.type}`,
