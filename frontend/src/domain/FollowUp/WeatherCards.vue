@@ -105,7 +105,7 @@ followUps.reload()
   >
     <ul
       v-if="shown.length > 0"
-      class="grid flex-none grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-x-6 max-[760px]:grid-cols-1"
+      class="flex flex-none flex-wrap gap-x-2 gap-y-0.5"
       :aria-label="t('followUp.cardsAria')"
       data-test-id="weather-cards"
     >
@@ -122,38 +122,30 @@ followUps.reload()
       >
         <button
           type="button"
-          class="flex min-h-10 w-full flex-col gap-1 border-b border-hair px-1 py-2.5 text-left hover:bg-elev/60"
+          class="flex min-h-10 items-center gap-2 rounded-md px-2 py-1 text-left text-sm hover:bg-elev/60"
           :aria-describedby="panelId(entry)"
           @click="openFollowUp(entry)"
         >
-          <span class="flex items-center gap-2">
-            <span
-              class="size-2.5 flex-none rounded-full"
-              :style="{ background: tintOf(entry.project.colour) }"
-              aria-hidden="true"
-            />
-            <strong class="title-face text-sm text-txt-hi">{{ entry.project.name }}</strong>
-            <span class="ml-auto flex items-center gap-1.5 text-sm font-semibold text-txt-hi">
-              <b
-                class="text-xl leading-none"
-                :class="WEATHER_TONES[entry.followUp.weather].text"
-                aria-hidden="true"
-              >
-                {{ WEATHER_TONES[entry.followUp.weather].glyph }}
-              </b>
-              <span data-test-id="weather-word">{{ weatherWord(entry) }}</span>
-            </span>
-          </span>
-          <span v-if="entry.followUp.statusSentence !== null" class="text-sm text-txt-mid">
-            {{ entry.followUp.statusSentence }}
-          </span>
+          <span
+            class="size-2 flex-none rounded-full"
+            :style="{ background: tintOf(entry.project.colour) }"
+            aria-hidden="true"
+          />
+          <strong class="font-medium text-txt-hi">{{ entry.project.name }}</strong>
+          <b class="text-base leading-none" :class="WEATHER_TONES[entry.followUp.weather].text" aria-hidden="true">
+            {{ WEATHER_TONES[entry.followUp.weather].glyph }}
+          </b>
+          <span class="text-txt-mid" data-test-id="weather-word">{{ weatherWord(entry) }}</span>
         </button>
         <div
           v-show="revealed === entry.project.id"
           :id="panelId(entry)"
-          class="absolute inset-x-0 top-full z-20 -mt-1 flex flex-col gap-1 rounded-md bg-panel px-3 py-2.5 text-xs text-txt-mid max-[760px]:hidden"
+          class="absolute top-full left-0 z-20 flex w-72 flex-col gap-1 rounded-md bg-panel px-3 py-2.5 text-xs text-txt-mid max-[760px]:hidden"
           data-test-id="weather-panel"
         >
+          <span v-if="entry.followUp.statusSentence !== null" class="text-sm text-txt-hi">{{
+            entry.followUp.statusSentence
+          }}</span>
           <span v-if="alertLines(entry.followUp.alerts).length === 0">{{ t('followUp.panelNothing') }}</span>
           <span v-else class="font-semibold text-txt-hi">{{ alertLines(entry.followUp.alerts).join(' · ') }}</span>
           <span>{{ nextEventLine(entry) }}</span>
