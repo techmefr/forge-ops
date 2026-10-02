@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router'
 import { DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
 import type { ForgeCardView } from '@contract/ForgeCardContract'
 import { usePhrase } from '@/technical/Language/UsePhrase'
-import { replyRouteOf, submitsOn } from './ConversationRule'
+import { groupThread, replyRouteOf, submitsOn } from './ConversationRule'
 import { STATUS_GLYPH } from './ForgeGlyph'
 import { adjacentStep, minutesOf, primaryActionOf, referenceLabel, secondaryActionOf, type BoardStep, type CardAction } from './ForgeRule'
 import { useCardConversation } from './UseCardConversation'
@@ -54,6 +54,7 @@ const autoNote = computed(() => {
   }
   return t(auto.state === 'red' ? 'autopilot.red' : 'autopilot.paused', { reason: auto.reason ?? '' })
 })
+const grouped = computed(() => groupThread(conversation.items.value))
 const working = computed(() => props.card.status === 'running')
 
 const agentLine = computed(() => {
@@ -173,20 +174,14 @@ onMounted(() => void conversation.load())
           </button>
         </header>
 
-        <dl class="m-0 grid flex-none grid-cols-[auto_1fr] gap-x-4 gap-y-1 border-b border-hair px-5 py-3 text-xs">
-          <dt class="text-txt-low">{{ t('forge.drawer.project') }}</dt>
-          <dd class="m-0 text-txt-hi">{{ projectName }}</dd>
-          <dt class="text-txt-low">{{ t('forge.drawer.subject') }}</dt>
-          <dd class="m-0 truncate text-txt-hi">{{ card.subjectTitle }}</dd>
-          <dt class="text-txt-low">{{ t('forge.drawer.step') }}</dt>
-          <dd class="m-0 text-txt-hi">{{ step?.label }}</dd>
-          <dt class="text-txt-low">{{ t('forge.drawer.agent') }}</dt>
-          <dd class="m-0 min-w-0 truncate font-mono text-txt-mid">{{ agentLine }}</dd>
-          <dt class="text-txt-low">{{ t('forge.drawer.session') }}</dt>
-          <dd class="m-0 font-mono text-txt-mid">
-            <span aria-hidden="true">{{ STATUS_GLYPH[card.status] }} </span>{{ sessionLine }}
-          </dd>
-        </dl>
+        <div class="flex-none border-b border-hair px-5 py-3 text-xs">
+          <p class="m-0 text-txt-hi" data-test="forge-drawer-where">
+            {{ [projectName, card.subjectTitle, step?.label].filter((part) => part).join(' · ') }}
+          </p>
+          <p class="m-0 mt-1 font-mono text-txt-mid sm:truncate" data-test="forge-drawer-who">
+            <span aria-hidden="true">{{ STATUS_GLYPH[card.status] }} </span>{{ [agentLine, sessionLine].filter((part) => part !== '').join(' · ') }}
+          </p>
+        </div>
 
         <p v-if="autoNote !== ''" class="m-0 flex-none border-b border-hair px-5 py-2 text-xs text-orange" data-test="auto-note">
           {{ autoNote }}
@@ -236,6 +231,22 @@ onMounted(() => void conversation.load())
           </button>
         </div>
 
+        <details
+          v-if="grouped.proofs.length > 0"
+          class="flex-none border-b border-hair px-5 py-2 text-xs"
+          data-test="forge-proofs"
+        >
+          <summary class="flex min-h-8 cursor-pointer items-center max-sm:min-h-10 text-txt-mid hover:text-txt-hi">
+            {{ t('forge.drawer.proofs', { count: grouped.proofs.length }) }}
+          </summary>
+          <ul class="m-0 mt-1 flex list-none flex-col gap-1 p-0">
+            <li v-for="proof in grouped.proofs" :key="proof.id" class="flex flex-wrap items-baseline gap-x-3">
+              <span class="text-txt-hi">{{ proof.body }}</span>
+              <span v-if="proof.evidencePath !== null" class="font-mono text-txt-low">{{ proof.evidencePath }}</span>
+            </li>
+          </ul>
+        </details>
+
         <div
           ref="thread"
           class="min-h-0 flex-1 overflow-y-auto px-5 py-3"
@@ -245,13 +256,13 @@ onMounted(() => void conversation.load())
           tabindex="0"
         >
           <p
-            v-if="conversation.items.value.length === 0 && !conversation.pending.value"
+            v-if="grouped.blocks.length === 0 && !conversation.pending.value"
             class="m-0 text-xs text-txt-low"
           >
             {{ t('forge.drawer.empty') }}
           </p>
-          <ol class="m-0 flex list-none flex-col gap-2 p-0">
-            <li v-for="item in conversation.items.value" :key="item.id">
+          <ol class="m-0 flex list-none flex-col gap-3 p-0">
+            <li v-for="item in grouped.blocks" :key="item.id">
               <p
                 v-if="item.kind === 'marker'"
                 class="m-0 flex items-center gap-2 border-t border-hair pt-2 font-mono text-xs text-txt-low"
@@ -260,25 +271,19 @@ onMounted(() => void conversation.load())
                 <span v-if="item.agent !== null">{{ item.agent }}</span>
               </p>
               <div
-                v-else-if="item.kind === 'message'"
+                v-else-if="item.kind === 'group'"
                 class="flex flex-col gap-0.5"
                 :class="item.voice === 'human' ? 'items-end' : 'items-start'"
               >
-                <p class="m-0 flex items-center gap-2 text-xs text-txt-low">
-                  <span>{{ item.voice === 'human' && item.author === 'you' ? t('forge.drawer.you') : item.author }}</span>
-                  <span v-if="item.proof" class="rounded-md px-1.5 font-mono">{{
-                    t('forge.drawer.proof')
-                  }}</span>
+                <p class="m-0 text-xs text-txt-low">
+                  {{ item.voice === 'human' && item.author === 'you' ? t('forge.drawer.you') : item.author }}
                 </p>
-                <p
-                  class="m-0 max-w-[92%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap text-txt-hi"
+                <div
+                  class="flex max-w-[92%] flex-col gap-1.5 rounded-lg px-3 py-2 text-sm whitespace-pre-wrap text-txt-hi"
                   :class="item.voice === 'human' ? 'bg-elev' : 'bg-card'"
                 >
-                  {{ item.body }}
-                </p>
-                <p v-if="item.evidencePath !== null" class="m-0 font-mono text-xs text-txt-low">
-                  {{ item.evidencePath }}
-                </p>
+                  <p v-for="message in item.messages" :key="message.id" class="m-0">{{ message.body }}</p>
+                </div>
               </div>
               <p
                 v-else-if="item.kind === 'tool'"

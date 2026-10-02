@@ -3,6 +3,7 @@ import type { StoryThread } from '@contract/ConversationContract'
 import {
   concernsStory,
   foldEvent,
+  groupThread,
   itemsOfThread,
   replyRouteOf,
   submitsOn,
@@ -136,5 +137,39 @@ describe('withoutPersisted', () => {
     const human: ThreadItem = { ...echoed, voice: 'human' }
 
     expect(withoutPersisted([human], [saved])).toEqual([human])
+  })
+})
+
+describe('groupThread', () => {
+  const said = (id: string, author: string, body: string, proof = false): ThreadItem => ({
+    kind: 'message',
+    id,
+    voice: author === 'you' ? 'human' : 'agent',
+    author,
+    body,
+    at: null,
+    proof,
+    evidencePath: proof ? `.claude/evidence/${id}.md` : null,
+  })
+
+  it('merges consecutive messages of the same author into one group', () => {
+    const { blocks } = groupThread([said('a', 'agent', 'one'), said('b', 'agent', 'two'), said('c', 'you', 'three')])
+    expect(blocks.map((block) => block.kind)).toEqual(['group', 'group'])
+    expect(blocks[0]).toMatchObject({ author: 'agent', messages: [{ body: 'one' }, { body: 'two' }] })
+  })
+
+  it('collects every proof in one list and keeps them out of the conversation', () => {
+    const { blocks, proofs } = groupThread([said('a', 'board', 'spec_done', true), said('b', 'agent', 'hi'), said('c', 'board', 'verified', true)])
+    expect(proofs.map((proof) => proof.body)).toEqual(['spec_done', 'verified'])
+    expect(blocks).toHaveLength(1)
+  })
+
+  it('starts a new group after a marker or a tool line', () => {
+    const { blocks } = groupThread([
+      said('a', 'agent', 'one'),
+      { kind: 'tool', id: 't', name: 'Read', outcome: 'ok' },
+      said('b', 'agent', 'two'),
+    ])
+    expect(blocks.map((block) => block.kind)).toEqual(['group', 'tool', 'group'])
   })
 })
