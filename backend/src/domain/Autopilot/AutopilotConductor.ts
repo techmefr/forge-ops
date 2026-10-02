@@ -64,6 +64,7 @@ export type AutopilotConductorInput = {
   lastAgentMessage: (storyId: number) => string | null
   prover?: StepProver
   baseShaOf?: (storyId: number) => string | null
+  integrityOf?: (storyId: number) => string | null
   publish?: (name: string, payload: Record<string, unknown>) => void
 }
 
@@ -119,6 +120,7 @@ export function createAutopilotConductor({
   lastAgentMessage,
   prover,
   baseShaOf,
+  integrityOf,
   publish,
 }: AutopilotConductorInput): AutopilotConductor {
   let queue: Promise<void> = Promise.resolve()
@@ -230,6 +232,10 @@ export function createAutopilotConductor({
   }
 
   function verify(view: ForgeCardView, step: WorkflowColumn): StepOutcome {
+    const breach = integrityOf?.(view.storyId) ?? null
+    if (breach !== null) {
+      return { kind: 'fail', reason: breach }
+    }
     if (view.status === 'failed') {
       const latest = sessions.listRecentActivity(view.storyId, 1)[0]
       return { kind: 'fail', reason: `The agent session ended with ${latest?.outcome ?? 'an error'}` }

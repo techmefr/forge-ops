@@ -262,6 +262,8 @@ Return codes: `404` unknown story, `409` business refusal (sequence violation, m
 
 ## 6. Execution guardrail
 
+Agents cannot unregister their own guardrails. The two hooks are injected through the SDK options, so rewriting a settings file does not remove them, and a session refuses to start when the project or local settings declare a PreToolUse hook that is not the exact forge command (resolved `tsx` and hook entrypoint, exact matcher, no wrapper), `permissions.allow` rules, an escalating `defaultMode`, `enableAllProjectMcpServers`, disabled hooks or PermissionRequest hooks. `.claude/settings*.json`, `.claude/hooks`, `.claude-deny.json`, `.mcp.json`, `.git` and the guardrail sources are never writable by an agent in any phase, through the permission callback and through the scope hook. The board hashes those files and the git config and hooks before each session and fails the step with the changed paths if they differ afterwards; the checkout then stays refused until the guardrails are reinstalled (`npm run guardrails:install`) or the board is restarted.
+
 `.claude-deny.json` lists the commands that are never executed. The `PreToolUse` hook exits with code 2 along with its reason. It carries two responsibilities from the same entry point: the deny list on `Bash|PowerShell`, and the scope guard that refuses a write outside the scope reserved by the story on `Edit|Write`.
 
 - It inspects the whole command **and every segment** separated by `&&`, `||`, `;`, `|` or a newline: `cd x && rm -rf y` no longer gets through.

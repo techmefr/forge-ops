@@ -8,16 +8,7 @@ import type Database from 'better-sqlite3'
 const queried = vi.fn()
 const resolved = vi.fn()
 
-const REGISTERED = {
-  effective: {
-    hooks: {
-      PreToolUse: [
-        { hooks: [{ type: 'command', command: 'tsx', args: ['backend/src/technical/Guardrail/DenyHook.ts'] }] },
-        { hooks: [{ type: 'command', command: 'tsx', args: ['backend/src/technical/Guardrail/ScopeHook.ts'] }] },
-      ],
-    },
-  },
-}
+const REGISTERED = { effective: {}, sources: [] }
 
 vi.mock('@anthropic-ai/claude-agent-sdk', () => ({
   query: (input: unknown) => queried(input),
