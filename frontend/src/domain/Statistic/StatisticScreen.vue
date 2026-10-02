@@ -47,13 +47,13 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
       data-tour="statistic-tally"
     >
       <article class="border-t border-line pt-4">
-        <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+        <p class="text-xs text-txt-low">
           {{ t('statistic.sessions') }}
         </p>
         <p class="title-face mt-1 text-[28px]">{{ summary.data.value?.sessions ?? 0 }}</p>
       </article>
       <article class="border-t border-line pt-4">
-        <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+        <p class="text-xs text-txt-low">
           {{ t('statistic.totalCost') }}
         </p>
         <p class="title-face mt-1 text-[28px]">
@@ -61,7 +61,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
         </p>
       </article>
       <article class="border-t border-line pt-4">
-        <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+        <p class="text-xs text-txt-low">
           {{ t('statistic.machineTime') }}
         </p>
         <p class="title-face mt-1 text-[28px]">
@@ -73,7 +73,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
     <div class="mt-2 min-h-0 flex-1 overflow-auto pr-1">
     <div class="mt-4 grid gap-4 lg:grid-cols-2">
       <section class="border-t border-line pt-4">
-        <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+        <p class="text-xs text-txt-low">
           {{ t('statistic.busiestAgents') }}
         </p>
         <p v-if="busiest.length === 0" class="mt-2 text-sm text-txt-low">
@@ -82,8 +82,8 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
         <ul class="mt-3 flex flex-col gap-3">
           <li v-for="agent in busiest" :key="agent.agentName" class="text-sm">
             <div class="flex items-center gap-1.5">
-              <span class="font-mono text-[11px] text-txt-hi">{{ agent.agentName }}</span>
-              <span class="ml-auto font-mono text-[11px] text-txt-low"
+              <span class="font-mono text-xs text-txt-hi">{{ agent.agentName }}</span>
+              <span class="ml-auto font-mono text-xs text-txt-low"
                 >{{ t('statistic.sessionCount', { count: agent.sessions }, agent.sessions) }} ·
                 {{ t('common.money', { amount: agent.totalCostUsd.toFixed(2) }) }}</span
               >
@@ -101,7 +101,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
       </section>
 
       <section class="border-t border-line pt-4">
-        <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+        <p class="text-xs text-txt-low">
           {{ t('statistic.timePerPhase') }}
         </p>
         <ul class="mt-3 flex flex-col gap-3">
@@ -110,15 +110,15 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
             :key="phase.phase"
             class="flex items-center gap-1.5 text-sm"
           >
-            <span class="font-mono text-[11px] text-txt-hi">{{ t(`phase.${phase.phase}`) }}</span>
-            <span class="ml-auto font-mono text-[11px] text-txt-low"
+            <span class="font-mono text-xs text-txt-hi">{{ t(`phase.${phase.phase}`) }}</span>
+            <span class="ml-auto font-mono text-xs text-txt-low"
               >{{ t('statistic.sessionCount', { count: phase.sessions }, phase.sessions) }} ·
               {{ say(humanDuration(phase.totalSeconds)) }}</span
             >
           </li>
         </ul>
 
-        <p class="mt-5 font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+        <p class="mt-5 text-xs text-txt-low">
           {{ t('statistic.howSessionsEnd') }}
         </p>
         <ul class="mt-3 flex flex-col gap-1.5">
@@ -127,17 +127,17 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
             :key="outcome.outcome"
             class="flex items-center gap-1.5 text-sm"
           >
-            <span class="font-mono text-[11px]" :class="colourOf(outcome.outcome)">{{
+            <span class="font-mono text-xs" :class="colourOf(outcome.outcome)">{{
               t(sessionEndKey(outcome.outcome, 'finished'))
             }}</span>
-            <span class="ml-auto font-mono text-[11px] text-txt-low">{{ outcome.sessions }}</span>
+            <span class="ml-auto font-mono text-xs text-txt-low">{{ outcome.sessions }}</span>
           </li>
         </ul>
       </section>
     </div>
 
     <section class="mt-6 border-t border-line pt-4">
-      <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+      <p class="text-xs text-txt-low">
         {{ t('statistic.timePerStory') }}
       </p>
       <p v-if="stories.length === 0" class="mt-2 text-sm text-txt-low">
@@ -148,10 +148,10 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
           <div class="flex items-center gap-1.5">
             <RouterLink
               :to="`/me/stories/${story.storyId}`"
-              class="inline-flex min-h-10 items-center font-mono text-[11px] text-txt-mid hover:text-txt-hi sm:min-h-0"
+              class="inline-flex min-h-10 items-center font-mono text-xs text-txt-mid hover:text-txt-hi sm:min-h-0"
               >{{ story.storyReference }}</RouterLink
             >
-            <span class="ml-auto font-mono text-[11px] text-txt-low"
+            <span class="ml-auto font-mono text-xs text-txt-low"
               >{{ t('statistic.sessionCount', { count: story.sessions }, story.sessions) }} ·
               {{ say(humanDuration(story.seconds)) }} ·
               {{ t('common.money', { amount: story.costUsd.toFixed(2) }) }}</span
@@ -170,7 +170,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
     </section>
 
     <section class="mt-6">
-      <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+      <p class="text-xs text-txt-low">
         {{ t('statistic.sessionHistory') }}
       </p>
       <div class="mt-3">
@@ -185,22 +185,22 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
             <table class="w-full border-collapse text-left text-sm">
               <thead>
                 <tr class="border-b border-line text-txt-low">
-                  <th class="py-2 font-mono text-[11px] tracking-[0.16em] uppercase">
+                  <th class="py-2 text-xs">
                     {{ t('statistic.colStory') }}
                   </th>
-                  <th class="py-2 font-mono text-[11px] tracking-[0.16em] uppercase">
+                  <th class="py-2 text-xs">
                     {{ t('statistic.colPhase') }}
                   </th>
-                  <th class="py-2 font-mono text-[11px] tracking-[0.16em] uppercase">
+                  <th class="py-2 text-xs">
                     {{ t('statistic.colAgent') }}
                   </th>
-                  <th class="py-2 font-mono text-[11px] tracking-[0.16em] uppercase">
+                  <th class="py-2 text-xs">
                     {{ t('statistic.colDuration') }}
                   </th>
-                  <th class="py-2 font-mono text-[11px] tracking-[0.16em] uppercase">
+                  <th class="py-2 text-xs">
                     {{ t('statistic.colCost') }}
                   </th>
-                  <th class="py-2 font-mono text-[11px] tracking-[0.16em] uppercase">
+                  <th class="py-2 text-xs">
                     {{ t('statistic.colOutcome') }}
                   </th>
                 </tr>
@@ -208,21 +208,21 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
               <tbody>
                 <tr v-for="entry in history.data.value ?? []" :key="entry.id" class="border-b border-line/60">
                   <td class="py-2">
-                    <RouterLink :to="`/me/stories/${entry.storyId}`" class="inline-flex min-h-10 items-center font-mono text-[11px] text-txt-mid hover:text-txt-hi sm:min-h-0">{{
+                    <RouterLink :to="`/me/stories/${entry.storyId}`" class="inline-flex min-h-10 items-center font-mono text-xs text-txt-mid hover:text-txt-hi sm:min-h-0">{{
                       entry.storyReference
                     }}</RouterLink>
                   </td>
                   <td class="py-2 text-txt-mid">{{ t(`phase.${entry.phase}`) }}</td>
-                  <td class="py-2 font-mono text-[11px] text-txt-hi">{{ entry.agentName }}</td>
+                  <td class="py-2 font-mono text-xs text-txt-hi">{{ entry.agentName }}</td>
                   <td class="py-2 text-txt-mid">{{ say(humanDuration(entry.seconds)) }}</td>
-                  <td class="py-2 font-mono text-[11px] text-txt-mid">
+                  <td class="py-2 font-mono text-xs text-txt-mid">
                     {{
                       entry.costUsd === null
                         ? t('common.nothing')
                         : t('common.money', { amount: entry.costUsd.toFixed(2) })
                     }}
                   </td>
-                  <td class="py-2 font-mono text-[11px]" :class="colourOf(entry.outcome)">
+                  <td class="py-2 font-mono text-xs" :class="colourOf(entry.outcome)">
                     {{ t(sessionEndKey(entry.outcome, entry.lifecycle)) }}
                   </td>
                 </tr>
@@ -232,7 +232,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
         </ScreenState>
       </div>
     </section>
-    <p class="mt-6 text-[11px] text-txt-low">{{ t('statistic.thisMachine') }}</p>
+    <p class="mt-6 text-xs text-txt-low">{{ t('statistic.thisMachine') }}</p>
     </div>
   </div>
 </template>

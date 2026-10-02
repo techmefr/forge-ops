@@ -144,11 +144,7 @@ watch(
           :aria-keyshortcuts="`Alt+Shift+${screen.digit}`"
           :title="t('shell.shortcut', { digit: screen.digit })"
           class="flex min-h-11 flex-col justify-center border-b-2 px-2 transition-colors lg:px-3 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc"
-          :class="
-            current?.key === screen.key
-              ? 'border-acc text-txt-hi'
-              : 'border-transparent text-txt-mid hover:text-txt-hi'
-          "
+          :class="current?.key === screen.key ? 'border-acc text-txt-hi' : 'border-transparent text-txt-mid hover:text-txt-hi'"
         >
           <span class="flex min-w-0 items-center gap-1.5 lg:whitespace-nowrap">
             <Glyph :name="screen.key" :size="14" class="max-[400px]:hidden" />

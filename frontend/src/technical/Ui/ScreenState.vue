@@ -17,7 +17,7 @@ const say = usePhrase()
 </script>
 
 <template>
-  <p v-if="pending" class="font-mono text-xs tracking-[0.2em] text-txt-low uppercase">
+  <p v-if="pending" class="text-xs text-txt-low">
     {{ t('common.loading') }}
   </p>
   <div
@@ -25,13 +25,13 @@ const say = usePhrase()
     class="rounded-2xl border border-red bg-red-soft/10 p-5"
     role="alert"
   >
-    <p class="font-mono text-[11px] tracking-[0.18em] text-red uppercase">
+    <p class="text-xs text-red">
       {{ t('common.boardRefused') }}
     </p>
     <p class="mt-2 text-sm text-txt-hi">{{ say(failure) }}</p>
     <button
       type="button"
-      class="mt-4 rounded-lg border border-line bg-card px-3 py-2 text-xs font-semibold text-txt-mid uppercase hover:border-acc"
+      class="mt-4 rounded-lg border border-line bg-card px-3 py-2 text-xs font-semibold text-txt-mid hover:border-acc"
       @click="emit('retry')"
     >
       {{ t('common.retry') }}

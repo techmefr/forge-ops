@@ -71,7 +71,7 @@ onMounted(() => settings.reload())
       <EffectBadge section="budget" />
     </div>
     <div class="rounded-md bg-panel p-4">
-      <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+      <p class="text-xs text-txt-low">
         {{ t('setting.spentToday') }}
       </p>
       <p class="mt-1 text-xl font-medium">
@@ -89,7 +89,7 @@ onMounted(() => settings.reload())
 
     <form v-if="maySettle" class="flex flex-col gap-6" @submit.prevent="save">
       <label class="flex flex-col gap-2">
-        <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
+        <span class="text-xs text-txt-low">{{
           t('setting.dailyCap')
         }}</span>
         <input
@@ -102,7 +102,7 @@ onMounted(() => settings.reload())
       </label>
 
       <fieldset class="flex flex-col gap-3 border-0 p-0">
-        <legend class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+        <legend class="text-xs text-txt-low">
           {{ t('setting.whenCapFalls') }}
         </legend>
         <label
@@ -114,7 +114,7 @@ onMounted(() => settings.reload())
           <input v-model="draft.conduct" type="radio" :value="conduct" class="mt-1" />
           <span>
             <span class="title-face block text-sm">{{ t(`conduct.${conduct}.label`) }}</span>
-            <span class="mt-1 block text-[13px] text-txt-mid">{{
+            <span class="mt-1 block text-sm text-txt-mid">{{
               t(`conduct.${conduct}.explanation`)
             }}</span>
           </span>
@@ -122,7 +122,7 @@ onMounted(() => settings.reload())
       </fieldset>
 
       <label v-if="draft.conduct === 'downgrade'" class="flex flex-col gap-2">
-        <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
+        <span class="text-xs text-txt-low">{{
           t('setting.fallbackModel')
         }}</span>
         <input
@@ -133,7 +133,7 @@ onMounted(() => settings.reload())
       </label>
 
       <label v-if="draft.conduct === 'reroute'" class="flex flex-col gap-2">
-        <span class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">{{
+        <span class="text-xs text-txt-low">{{
           t('setting.fallbackGateway')
         }}</span>
         <input
@@ -142,21 +142,21 @@ onMounted(() => settings.reload())
           :placeholder="t('setting.gatewayPlaceholder')"
           class="rounded-md border border-line bg-panel px-3 py-2 text-sm text-txt-hi"
         />
-        <span class="text-[13px] text-txt-low">{{ t('setting.httpsOnly') }}</span>
+        <span class="text-sm text-txt-low">{{ t('setting.httpsOnly') }}</span>
       </label>
 
       <div class="flex items-center gap-3">
         <button
           type="submit"
           :disabled="busy"
-          class="rounded-md border border-acc bg-acc px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-40"
+          class="rounded-md border border-acc bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
         >
           {{ t('common.save') }}
         </button>
-        <span v-if="saved" class="text-[13px] text-green">{{ t('setting.conductSaved') }}</span>
+        <span v-if="saved" class="text-sm text-green">{{ t('setting.conductSaved') }}</span>
       </div>
 
-      <p v-if="refusal !== null" class="text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
+      <p v-if="refusal !== null" class="text-sm text-red" role="alert">{{ say(refusal) }}</p>
     </form>
   </section>
 </template>

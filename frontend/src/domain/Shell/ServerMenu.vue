@@ -45,7 +45,7 @@ async function add(): Promise<void> {
   <div v-if="isVisible" class="relative">
     <button
       type="button"
-      class="rounded-lg border border-line bg-elev px-3 py-1.5 font-mono text-[11px] text-txt-hi"
+      class="rounded-lg border border-line bg-elev px-3 py-1.5 text-xs text-txt-hi"
       :aria-label="`${activeName}, ${t('servers.title')}`"
       :aria-expanded="isOpen"
       @click="toggle()"
@@ -59,7 +59,7 @@ async function add(): Promise<void> {
       <li v-for="server in book.servers" :key="server.id" class="flex items-center gap-2">
         <button
           type="button"
-          class="flex-1 rounded px-2 py-1 text-left font-mono text-[11px] text-txt-hi"
+          class="flex-1 rounded px-2 py-1 text-left text-xs text-txt-hi"
           :aria-current="server.id === book.activeId ? 'true' : undefined"
           @click="switchTo(server.id)"
         >
@@ -67,7 +67,7 @@ async function add(): Promise<void> {
         </button>
         <button
           type="button"
-          class="rounded px-2 py-1 text-[11px] text-txt-low"
+          class="rounded px-2 py-1 text-xs text-txt-low"
           :aria-label="`${t('servers.remove')} ${server.name}`"
           @click="forget(server.id)"
         >
@@ -75,7 +75,7 @@ async function add(): Promise<void> {
         </button>
       </li>
       <li>
-        <button type="button" class="w-full rounded px-2 py-1 text-left text-[11px] text-acc" @click="add()">
+        <button type="button" class="w-full rounded px-2 py-1 text-left text-xs text-acc" @click="add()">
           {{ t('servers.add') }}
         </button>
       </li>

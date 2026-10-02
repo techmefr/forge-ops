@@ -49,14 +49,14 @@ onMounted(() => void look())
   <div class="flex h-full min-h-0 max-w-3xl flex-col gap-8 overflow-auto p-8">
     <section class="flex flex-col gap-4">
       <h2 class="m-0 text-base font-semibold text-txt-hi">{{ t('settingHalf.mine') }}</h2>
-      <p class="text-[13px] text-txt-low">{{ t('settingHalf.mineSub') }}</p>
+      <p class="text-sm text-txt-low">{{ t('settingHalf.mineSub') }}</p>
       <AppearanceSection />
       <AccountSection />
     </section>
 
     <section class="flex flex-col gap-4" data-tour="setting-team">
       <h2 class="m-0 text-base font-semibold text-txt-hi">{{ t('settingHalf.team') }}</h2>
-      <p class="text-[13px] text-txt-low">{{ t('settingHalf.teamSub') }}</p>
+      <p class="text-sm text-txt-low">{{ t('settingHalf.teamSub') }}</p>
       <ProjectsSection :self="operator" />
       <TagsSection />
       <UsersSection :self="operator" :manages="manages" />
@@ -64,12 +64,12 @@ onMounted(() => void look())
 
     <section v-if="organisation" class="flex flex-col gap-4" data-tour="setting-organisation">
       <h2 class="m-0 text-base font-semibold text-txt-hi">{{ t('settingHalf.organisation') }}</h2>
-      <p class="text-[13px] text-txt-low">{{ t('settingHalf.organisationSub') }}</p>
+      <p class="text-sm text-txt-low">{{ t('settingHalf.organisationSub') }}</p>
       <TemplateSection />
       <BudgetSection />
       <OrganisationSection />
       <DeliverySection />
     </section>
-    <p v-else class="text-[13px] text-txt-low">{{ t('settingHalf.organisationClosed') }}</p>
+    <p v-else class="text-sm text-txt-low">{{ t('settingHalf.organisationClosed') }}</p>
   </div>
 </template>
