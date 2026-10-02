@@ -154,19 +154,19 @@ watch(here, () => void look())
       @submit.prevent="pointCheckout"
     >
       <p class="title-face text-sm text-txt-mid">{{ t('browser.noCheckout') }}</p>
-      <p class="mt-1 text-[13px] text-txt-low">{{ t('browser.noCheckoutHint') }}</p>
+      <p class="mt-1 text-sm text-txt-low">{{ t('browser.noCheckoutHint') }}</p>
       <div class="mt-3 flex flex-wrap gap-2">
         <input
           v-model="checkoutPath"
           type="text"
           :placeholder="t('browser.checkoutPlaceholder')"
           :aria-label="t('browser.pointFolder')"
-          class="min-w-[280px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 font-mono text-[13px] text-txt-hi"
+          class="min-w-[280px] flex-1 rounded-lg border border-line bg-elev px-3 py-2 font-mono text-sm text-txt-hi"
         />
         <button
           type="submit"
           :disabled="busy || checkoutPath === ''"
-          class="rounded-lg bg-acc px-3 py-2 text-[11px] font-bold text-ink uppercase disabled:opacity-40"
+          class="rounded-lg bg-acc px-3 py-2 text-xs font-bold text-ink disabled:opacity-40"
         >
           {{ t('browser.pointFolder') }}
         </button>
@@ -177,30 +177,28 @@ watch(here, () => void look())
       v-if="clashes !== null && clashes.clashes.length > 0"
       class="rounded-lg border border-orange bg-card p-4"
     >
-      <p class="font-mono text-[11px] tracking-[0.18em] text-orange uppercase">
+      <p class="text-xs text-orange">
         {{ t('browser.closeNames') }}
       </p>
-      <p class="mt-1 text-[13px] text-txt-low">{{ t('browser.closeNamesHint') }}</p>
+      <p class="mt-1 text-sm text-txt-low">{{ t('browser.closeNamesHint') }}</p>
       <div
         tabindex="0"
         role="region"
         :aria-label="t('browser.closeNames')"
         class="mt-2 flex max-h-[16vh] flex-col gap-1.5 overflow-y-auto"
       >
-        <p v-for="clash in clashes.clashes" :key="clash.name" class="text-[13px] text-txt-hi">
-          <span class="font-mono text-[11px] text-orange">{{ clash.name }}</span>
-          <span class="ml-2 font-mono text-[11px] text-txt-low">{{ clash.paths.join('  ·  ') }}</span>
+        <p v-for="clash in clashes.clashes" :key="clash.name" class="text-sm text-txt-hi">
+          <span class="font-mono text-xs text-orange">{{ clash.name }}</span>
+          <span class="ml-2 font-mono text-xs text-txt-low">{{ clash.paths.join('  ·  ') }}</span>
         </p>
       </div>
     </section>
 
-    <p v-if="refusal !== null" class="text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
+    <p v-if="refusal !== null" class="text-sm text-red" role="alert">{{ say(refusal) }}</p>
 
     <div
       class="grid min-h-[240px] flex-1 gap-4"
-      :class="
-        wide === 'split' ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)]' : 'lg:grid-cols-1'
-      "
+      :class="wide === 'split' ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)]' : 'lg:grid-cols-1'"
     >
       <section
         v-if="wide !== 'code'"
@@ -215,10 +213,10 @@ watch(here, () => void look())
         >
           <nav class="flex flex-wrap items-center gap-1" :aria-label="t('browser.pathNav')">
             <template v-for="(crumb, depth) in crumbs" :key="crumb.path">
-              <span v-if="depth > 0" class="font-mono text-[11px] text-txt-low" aria-hidden="true">/</span>
+              <span v-if="depth > 0" class="font-mono text-xs text-txt-low" aria-hidden="true">/</span>
               <button
                 type="button"
-                class="min-h-[24px] max-sm:min-h-10 max-sm:min-w-10 rounded px-1 font-mono text-[11px]"
+                class="min-h-[24px] max-sm:min-h-10 max-sm:min-w-10 rounded px-1 text-xs"
                 :class="depth === crumbs.length - 1 ? 'text-txt-hi' : 'text-txt-low hover:text-acc'"
                 @click="here = crumb.path"
               >
@@ -252,7 +250,7 @@ watch(here, () => void look())
                 />
                 <span class="min-w-0 flex-1">
                   <span class="flex items-center gap-2">
-                    <span class="truncate font-mono text-[13px]" :class="toneOf(entry.mark).text">{{
+                    <span class="truncate font-mono text-sm" :class="toneOf(entry.mark).text">{{
                       entry.name
                     }}</span>
                     <span
@@ -263,12 +261,12 @@ watch(here, () => void look())
                     />
                     <span
                       v-if="spoken(entry) !== ''"
-                      class="truncate text-[11px]"
+                      class="truncate text-xs"
                       :class="toneOf(entry.mark).text"
                       >{{ spoken(entry) }}</span
                     >
                   </span>
-                  <span v-if="entry.description !== null" class="block truncate text-[11px] text-txt-low">{{
+                  <span v-if="entry.description !== null" class="block truncate text-xs text-txt-low">{{
                     t(`fileDescription.${entry.description.key}`, entry.description.values)
                   }}</span>
                 </span>
@@ -289,10 +287,10 @@ watch(here, () => void look())
           @toggle-shown="codeShown = !codeShown"
           @toggle-wide="widen('code')"
         >
-          <p class="truncate font-mono text-[11px] text-txt-hi">
+          <p class="truncate font-mono text-xs text-txt-hi">
             {{ opened === null ? t('browser.noFileOpen') : opened.path }}
           </p>
-          <p v-if="opened !== null && opened.description !== null" class="truncate text-[11px] text-txt-low">
+          <p v-if="opened !== null && opened.description !== null" class="truncate text-xs text-txt-low">
             {{ t(`fileDescription.${opened.description.key}`, opened.description.values) }}
           </p>
         </CardHead>
@@ -303,21 +301,21 @@ watch(here, () => void look())
           <template v-else>
             <p
               v-if="spoken(opened) !== ''"
-              class="border-b border-line px-4 py-2 text-[11px]"
+              class="border-b border-line px-4 py-2 text-xs"
               :class="toneOf(opened.mark).text"
             >
               {{ spoken(opened) }}
             </p>
-            <p v-if="!opened.highlightAvailable" class="border-b border-line px-4 py-2 text-[11px] text-txt-low">
+            <p v-if="!opened.highlightAvailable" class="border-b border-line px-4 py-2 text-xs text-txt-low">
               {{ t('browser.noHighlight') }}
             </p>
             <pre
               tabindex="0"
               role="region"
               :aria-label="t('browser.fileContent')"
-              class="min-h-0 flex-1 overflow-auto px-4 py-3 font-mono text-[11px] leading-relaxed text-txt-mid"
+              class="min-h-0 flex-1 overflow-auto px-4 py-3 font-mono text-xs leading-relaxed text-txt-mid"
             ><code v-html="painted" /></pre>
-            <p v-if="opened.truncated" class="border-t border-line px-4 py-2 text-[11px] text-txt-low">
+            <p v-if="opened.truncated" class="border-t border-line px-4 py-2 text-xs text-txt-low">
               {{ t('browser.truncated', { bytes: opened.bytes }) }}
             </p>
           </template>

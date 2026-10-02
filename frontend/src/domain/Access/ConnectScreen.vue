@@ -48,11 +48,11 @@ async function connect(): Promise<void> {
   <div class="mx-auto max-w-md p-8">
     <section class="rounded-lg border border-line bg-card p-6">
       <p class="title-face text-[22px]">{{ t('connect.title') }}</p>
-      <p class="mt-1 text-[11px] text-txt-low">{{ t('connect.hint') }}</p>
+      <p class="mt-1 text-xs text-txt-low">{{ t('connect.hint') }}</p>
 
       <form class="mt-5 flex flex-col gap-3" @submit.prevent="connect()">
         <label class="flex flex-col gap-1">
-          <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+          <span class="text-xs text-txt-low">
             {{ t('connect.name') }}
           </span>
           <input
@@ -63,7 +63,7 @@ async function connect(): Promise<void> {
           />
         </label>
         <label class="flex flex-col gap-1">
-          <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+          <span class="text-xs text-txt-low">
             {{ t('connect.instance') }}
           </span>
           <input
@@ -75,7 +75,7 @@ async function connect(): Promise<void> {
           />
         </label>
         <label class="flex flex-col gap-1">
-          <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+          <span class="text-xs text-txt-low">
             {{ t('connect.server') }}
           </span>
           <input
@@ -89,11 +89,11 @@ async function connect(): Promise<void> {
         <button
           type="submit"
           :disabled="isBusy || instanceUrl === ''"
-          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2.5 text-[11px] font-bold text-ink uppercase disabled:opacity-40"
+          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-40"
         >
           {{ t('connect.submit') }}
         </button>
-        <p v-if="refusalKey !== null" class="text-[11px] text-red" role="alert">
+        <p v-if="refusalKey !== null" class="text-xs text-red" role="alert">
           {{ t(refusalKey) }}
         </p>
       </form>

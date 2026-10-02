@@ -80,10 +80,10 @@ void tokens.reload()
       <EffectBadge section="organisation" />
     </div>
 
-    <p v-if="refusal !== null" class="text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
+    <p v-if="refusal !== null" class="text-sm text-red" role="alert">{{ say(refusal) }}</p>
 
     <div class="flex flex-col gap-2">
-      <h3 class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+      <h3 class="text-xs text-txt-low">
         {{ t('organisation.waysIn') }}
       </h3>
       <ul class="flex flex-col gap-1.5">
@@ -92,19 +92,19 @@ void tokens.reload()
           :key="provider.kind"
           class="flex items-center gap-3 rounded-md bg-panel px-3 py-2"
         >
-          <span class="text-[13px] text-txt-hi">{{ t(`provider.${provider.kind}`) }}</span>
+          <span class="text-sm text-txt-hi">{{ t(`provider.${provider.kind}`) }}</span>
           <span
-            class="font-mono text-[11px] uppercase"
+            class="text-xs"
             :class="provider.enabled ? 'text-green' : 'text-txt-low'"
             >{{ provider.enabled ? t('organisation.on') : t('organisation.off') }}</span
           >
-          <span v-if="provider.issuer !== null" class="font-mono text-[11px] text-txt-low">{{
+          <span v-if="provider.issuer !== null" class="font-mono text-xs text-txt-low">{{
             provider.issuer
           }}</span>
           <button
             v-if="sheet.data.value?.maySettle"
             type="button"
-            class="ml-auto rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+            class="ml-auto rounded-md border border-line px-2.5 py-1 text-xs text-txt-mid hover:border-acc"
             @click="toggle(provider)"
           >
             {{ provider.enabled ? t('organisation.switchOff') : t('organisation.switchOn') }}
@@ -114,14 +114,14 @@ void tokens.reload()
     </div>
 
     <div class="flex flex-col gap-2">
-      <h3 class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+      <h3 class="text-xs text-txt-low">
         {{ t('organisation.instanceTokens') }}
       </h3>
-      <p class="text-[13px] text-txt-mid">{{ t('organisation.instanceSaid') }}</p>
+      <p class="text-sm text-txt-mid">{{ t('organisation.instanceSaid') }}</p>
 
       <p v-if="minted !== null" class="rounded-md border border-line bg-elev p-3">
-        <span class="font-mono text-[11px] text-txt-hi uppercase">{{ t('organisation.shownOnce') }}</span>
-        <code class="mt-1 block font-mono text-[11px] break-all text-txt-hi">{{ minted }}</code>
+        <span class="text-xs text-txt-hi">{{ t('organisation.shownOnce') }}</span>
+        <code class="mt-1 block font-mono text-xs break-all text-txt-hi">{{ minted }}</code>
       </p>
 
       <ul class="flex flex-col gap-1.5">
@@ -130,14 +130,14 @@ void tokens.reload()
           :key="token.id"
           class="flex items-center gap-3 rounded-md bg-panel px-3 py-2"
         >
-          <span class="text-[13px] text-txt-hi">{{ token.name }}</span>
-          <span v-if="token.revokedAt !== null" class="font-mono text-[11px] text-txt-low uppercase">{{
+          <span class="text-sm text-txt-hi">{{ token.name }}</span>
+          <span v-if="token.revokedAt !== null" class="text-xs text-txt-low">{{
             t('organisation.revoked')
           }}</span>
           <button
             v-else-if="sheet.data.value?.maySettle"
             type="button"
-            class="ml-auto rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-red"
+            class="ml-auto rounded-md border border-line px-2.5 py-1 text-xs text-txt-mid hover:border-red"
             @click="revoke(token)"
           >
             {{ t('organisation.revoke') }}
@@ -157,7 +157,7 @@ void tokens.reload()
         <button
           type="submit"
           :disabled="tokenName.trim() === ''"
-          class="rounded-md border border-acc bg-acc px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-40"
+          class="rounded-md border border-acc bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
         >
           {{ t('organisation.mint') }}
         </button>

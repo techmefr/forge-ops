@@ -70,14 +70,14 @@ void tags.reload()
       <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('team.tags') }}</h2>
       <EffectBadge section="tags" />
     </div>
-    <p class="m-0 text-[13px] text-txt-mid">{{ t('team.tagsSub') }}</p>
+    <p class="m-0 text-sm text-txt-mid">{{ t('team.tagsSub') }}</p>
 
-    <p v-if="refusal !== null" class="m-0 text-[13px] text-red" role="alert">{{ say(refusal) }}</p>
-    <p v-if="tags.failure.value !== null" class="m-0 text-[13px] text-red" role="alert">
+    <p v-if="refusal !== null" class="m-0 text-sm text-red" role="alert">{{ say(refusal) }}</p>
+    <p v-if="tags.failure.value !== null" class="m-0 text-sm text-red" role="alert">
       {{ say(tags.failure.value) }}
     </p>
 
-    <p v-if="(tags.data.value ?? []).length === 0" class="m-0 text-[13px] text-txt-low">
+    <p v-if="(tags.data.value ?? []).length === 0" class="m-0 text-sm text-txt-low">
       {{ t('team.noTags') }}
     </p>
     <ul class="m-0 flex list-none flex-col gap-2 p-0">
@@ -97,13 +97,13 @@ void tags.reload()
         </label>
         <div class="min-w-[9rem] flex-1">
           <span
-            class="inline-block rounded-md border px-2 py-0.5 text-[13px] text-txt-hi"
+            class="inline-block rounded-md border px-2 py-0.5 text-sm text-txt-hi"
             :style="{ borderColor: tag.colour }"
             >#{{ tag.label }}</span
           >
           <p
             :id="`tag-use-${tag.id}`"
-            class="m-0 text-[11px]"
+            class="m-0 text-xs"
             :class="tag.usage === 0 ? 'text-txt-low' : 'text-orange'"
           >
             {{ usage(tag) }}
@@ -111,14 +111,14 @@ void tags.reload()
         </div>
         <RouterLink
           :to="{ path: '/projects/subjects', query: { tag: String(tag.id) } }"
-          class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc max-sm:inline-flex max-sm:min-h-10 max-sm:items-center"
+          class="rounded-md border border-line px-2.5 py-1 text-xs text-txt-mid hover:border-acc max-sm:inline-flex max-sm:min-h-10 max-sm:items-center"
           >{{ t('team.seeSubjects') }}<span class="sr-only"> #{{ tag.label }}</span></RouterLink
         >
         <button
           type="button"
           :disabled="tag.usage > 0"
           :aria-describedby="`tag-use-${tag.id}`"
-          class="rounded-md border border-line px-2.5 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-red disabled:opacity-40"
+          class="rounded-md border border-line px-2.5 py-1 text-xs text-txt-mid hover:border-red disabled:opacity-40"
           @click="remove(tag)"
         >
           {{ t('team.delete') }}<span class="sr-only"> #{{ tag.label }}</span>
@@ -148,16 +148,16 @@ void tags.reload()
       <button
         type="submit"
         :disabled="label.trim() === ''"
-        class="rounded-md border border-acc bg-acc px-4 py-2 text-[13px] font-medium text-ink disabled:opacity-40"
+        class="rounded-md border border-acc bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
       >
         {{ t('team.add') }}
       </button>
       <RequiredNote class="basis-full" />
-      <p v-if="addRefusal !== null" id="tags-add-refusal" class="m-0 basis-full text-[13px] text-red" role="alert">
+      <p v-if="addRefusal !== null" id="tags-add-refusal" class="m-0 basis-full text-sm text-red" role="alert">
         {{ say(addRefusal) }}
       </p>
     </form>
 
-    <p class="m-0 text-[11px] text-txt-low">{{ t('team.tagsFoot') }}</p>
+    <p class="m-0 text-xs text-txt-low">{{ t('team.tagsFoot') }}</p>
   </section>
 </template>

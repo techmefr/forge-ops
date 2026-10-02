@@ -50,22 +50,22 @@ onMounted(() => catalogue.reload())
       <EffectBadge section="templates" />
     </div>
 
-    <p class="text-[13px] text-txt-low">{{ t('template.whatItControls') }}</p>
+    <p class="text-sm text-txt-low">{{ t('template.whatItControls') }}</p>
 
     <ul class="flex flex-col gap-2">
       <li
         v-for="template in known"
         :key="template.id"
-        class="flex flex-wrap items-center gap-2 text-[13px]"
+        class="flex flex-wrap items-center gap-2 text-sm"
       >
-        <span class="font-mono text-[11px] text-txt-hi">{{ template.name }}</span>
-        <span class="font-mono text-[11px] text-txt-low">v{{ template.version }}</span>
-        <span v-if="template.isDefault" class="rounded-md border border-acc px-1.5 py-0.5 font-mono text-[11px] text-acc uppercase">{{
+        <span class="font-mono text-xs text-txt-hi">{{ template.name }}</span>
+        <span class="font-mono text-xs text-txt-low">v{{ template.version }}</span>
+        <span v-if="template.isDefault" class="rounded-md border border-acc px-1.5 py-0.5 text-xs text-acc">{{
           t('template.byDefault')
         }}</span>
         <button
           type="button"
-          class="ml-auto rounded-md border border-line px-2 py-1 font-mono text-[11px] text-txt-mid uppercase hover:border-acc"
+          class="ml-auto rounded-md border border-line px-2 py-1 text-xs text-txt-mid hover:border-acc"
           @click="exportOne(template.id)"
         >
           {{ t('template.export') }}
@@ -73,12 +73,12 @@ onMounted(() => catalogue.reload())
       </li>
     </ul>
 
-    <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+    <label class="flex flex-col gap-1 text-sm text-txt-mid">
       {{ t('template.jsonl') }}
       <textarea
         v-model="carried"
         rows="6"
-        class="rounded-md border border-line bg-panel px-2 py-1.5 font-mono text-[11px] text-txt-hi"
+        class="rounded-md border border-line bg-panel px-2 py-1.5 font-mono text-xs text-txt-hi"
       />
     </label>
 
@@ -86,15 +86,15 @@ onMounted(() => catalogue.reload())
       <button
         type="button"
         :disabled="busy || carried.trim() === '' || !(catalogue.data.value?.maySettle ?? false)"
-        class="rounded-md border border-acc bg-acc px-3 py-1.5 font-mono text-[11px] font-bold text-ink uppercase disabled:opacity-40"
+        class="rounded-md border border-acc bg-acc px-3 py-1.5 text-xs font-bold text-ink disabled:opacity-40"
         @click="importOne()"
       >
         {{ t('template.import') }}
       </button>
-      <span v-if="imported" class="font-mono text-[11px] text-green uppercase">{{
+      <span v-if="imported" class="text-xs text-green">{{
         t('template.imported')
       }}</span>
-      <span v-if="refusal !== null" class="text-[11px] text-red" role="alert">{{ say(refusal) }}</span>
+      <span v-if="refusal !== null" class="text-xs text-red" role="alert">{{ say(refusal) }}</span>
     </div>
   </section>
 </template>

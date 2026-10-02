@@ -15,7 +15,7 @@ const { t } = useI18n()
     <Tooltip :label="wide ? t('browser.shrink') : t('browser.widen')">
       <button
         type="button"
-        class="min-h-[24px] min-w-[24px] max-sm:min-h-10 max-sm:min-w-10 rounded border border-line px-1.5 font-mono text-[11px] text-txt-low hover:border-acc hover:text-acc"
+        class="min-h-[24px] min-w-[24px] max-sm:min-h-10 max-sm:min-w-10 rounded border border-line px-1.5 text-xs text-txt-low hover:border-acc hover:text-acc"
         :aria-label="wide ? t('browser.shrink') : t('browser.widen')"
         :aria-pressed="wide"
         @click="emit('toggleWide')"
@@ -26,7 +26,7 @@ const { t } = useI18n()
     <Tooltip :label="shown ? t('browser.collapse') : t('browser.expand')">
       <button
         type="button"
-        class="min-h-[24px] min-w-[24px] max-sm:min-h-10 max-sm:min-w-10 rounded border border-line px-1.5 font-mono text-[11px] text-txt-low hover:border-acc hover:text-acc"
+        class="min-h-[24px] min-w-[24px] max-sm:min-h-10 max-sm:min-w-10 rounded border border-line px-1.5 text-xs text-txt-low hover:border-acc hover:text-acc"
         :aria-label="shown ? t('browser.collapse') : t('browser.expand')"
         :aria-expanded="shown"
         @click="emit('toggleShown')"
