@@ -140,7 +140,7 @@ onMounted(async () => {
       <MarkLegend class="pb-2" data-tour="file-legend" />
     </div>
 
-    <div class="mt-6 min-h-0 flex-1">
+    <div class="mt-6 min-h-0 flex-1 max-lg:flex-none">
       <FileBrowser :project-id="chosenProject" />
     </div>
 
