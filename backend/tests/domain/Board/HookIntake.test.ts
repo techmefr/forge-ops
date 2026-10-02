@@ -104,6 +104,33 @@ describe('POST /api/hooks', () => {
     expect(agentSessions.listTouchedPaths(storyId)).toEqual(['src/domain/Story/Story.ts'])
   })
 
+  it('records an absolute path reported from a story worktree as a path relative to that worktree', async () => {
+    const worktree = '/home/gaetan/.forge-ops/worktrees/story-1'
+    const response = await postHook({
+      session_id: CLAUDE_SESSION_ID,
+      hook_event_name: 'PostToolUse',
+      tool_name: 'Edit',
+      tool_input: { file_path: `${worktree}/src/domain/Story/Story.ts` },
+      cwd: worktree,
+    })
+
+    expect(response.status).toBe(202)
+    expect(agentSessions.listTouchedPaths(storyId)).toEqual(['src/domain/Story/Story.ts'])
+  })
+
+  it('still refuses an absolute path outside the directory the hook ran in', async () => {
+    const response = await postHook({
+      session_id: CLAUDE_SESSION_ID,
+      hook_event_name: 'PostToolUse',
+      tool_name: 'Edit',
+      tool_input: { file_path: '/etc/passwd' },
+      cwd: '/home/gaetan/.forge-ops/worktrees/story-1',
+    })
+
+    expect(response.status).toBe(422)
+    expect(agentSessions.listTouchedPaths(storyId)).toEqual([])
+  })
+
   it('records a written file too', async () => {
     await postToolUse('Write', 'src/domain/Board/BoardApi.ts')
 
