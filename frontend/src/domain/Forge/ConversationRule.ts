@@ -135,3 +135,36 @@ export function replyRouteOf(stepKind: 'backlog' | 'step' | 'done', humanStep: b
 export function submitsOn(key: string, shift: boolean, composing: boolean): boolean {
   return key === 'Enter' && !shift && !composing
 }
+
+export type ProofLine = { id: string; author: string; body: string; evidencePath: string | null }
+
+export type ThreadMessage = { id: string; body: string; evidencePath: string | null }
+
+export type ThreadBlock =
+  | Exclude<ThreadItem, { kind: 'message' }>
+  | { kind: 'group'; id: string; voice: ThreadVoice; author: string; messages: readonly ThreadMessage[] }
+
+export type GroupedThread = { blocks: readonly ThreadBlock[]; proofs: readonly ProofLine[] }
+
+export function groupThread(items: readonly ThreadItem[]): GroupedThread {
+  const blocks: ThreadBlock[] = []
+  const proofs: ProofLine[] = []
+  for (const item of items) {
+    if (item.kind !== 'message') {
+      blocks.push(item)
+      continue
+    }
+    if (item.proof) {
+      proofs.push({ id: item.id, author: item.author, body: item.body, evidencePath: item.evidencePath })
+      continue
+    }
+    const message = { id: item.id, body: item.body, evidencePath: item.evidencePath }
+    const last = blocks[blocks.length - 1]
+    if (last !== undefined && last.kind === 'group' && last.voice === item.voice && last.author === item.author) {
+      blocks[blocks.length - 1] = { ...last, messages: [...last.messages, message] }
+      continue
+    }
+    blocks.push({ kind: 'group', id: item.id, voice: item.voice, author: item.author, messages: [message] })
+  }
+  return { blocks, proofs }
+}
