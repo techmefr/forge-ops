@@ -1,9 +1,36 @@
 @import 'tailwindcss';
+@import './Fonts.css';
 
 @theme {
-  --font-display: 'Archivo', system-ui, sans-serif;
-  --font-body: var(--forge-font-body, 'Barlow', system-ui, sans-serif);
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-display: 'Lexend', system-ui, sans-serif;
+  --font-body: var(--forge-font-body, 'DM Sans', system-ui, sans-serif);
+  --font-mono: 'Roboto Mono', ui-monospace, monospace;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5714;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.4;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 1.3333;
+  --text-2xl: 2rem;
+  --text-2xl--line-height: 1.25;
+
+  --radius-xs: 4px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 12px;
+
+  --shadow-sm: 0 1px 2px 0 var(--forge-shadow-sm);
+  --shadow-md: 0 2px 8px 0 var(--forge-shadow-md);
+  --shadow-lg: 0 4px 16px 0 var(--forge-shadow-lg);
+  --shadow-xl: 0 4px 16px 0 var(--forge-shadow-lg);
+  --shadow-2xl: 0 4px 16px 0 var(--forge-shadow-lg);
 
   --color-deep: var(--forge-deep);
   --color-panel: var(--forge-panel);
@@ -32,11 +59,14 @@
 }
 
 :root {
-  --forge-deep: #191a21;
-  --forge-panel: #21222c;
-  --forge-card: #282a36;
-  --forge-elev: #343746;
-  --forge-line: #44475a;
+  --forge-shadow-sm: rgb(0 0 0 / 0.2);
+  --forge-shadow-md: rgb(0 0 0 / 0.3);
+  --forge-shadow-lg: rgb(0 0 0 / 0.4);
+  --forge-deep: #282a36;
+  --forge-panel: #2c2e3b;
+  --forge-card: #313343;
+  --forge-elev: #353847;
+  --forge-line: #4a4d62;
   --forge-ink: #191a21;
   --forge-txthi: #f8f8f2;
   --forge-txtmid: #bfc7d5;
@@ -55,16 +85,19 @@
   --forge-orangealt: #ff9e4a;
   --forge-warn: #f1fa8c;
   --forge-warnsoft: #f6fcb8;
-  --forge-edge: #7983ae;
+  --forge-edge: #7781ab;
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-mode="dark"]) {
-    --forge-deep: #ece9df;
+    --forge-shadow-sm: rgb(40 30 10 / 0.05);
+    --forge-shadow-md: rgb(40 30 10 / 0.08);
+    --forge-shadow-lg: rgb(40 30 10 / 0.1);
+    --forge-deep: #f4f0e1;
     --forge-panel: #fffbeb;
-    --forge-card: #f8f4e4;
-    --forge-elev: #e6e2d0;
-    --forge-line: #cfcfde;
+    --forge-card: #fffef8;
+    --forge-elev: #ece7d3;
+    --forge-line: #d9d4c0;
     --forge-ink: #fffbeb;
     --forge-txthi: #1f1f1f;
     --forge-txtmid: #3f3b2a;
@@ -79,20 +112,23 @@
     --forge-greensoft: #24711b;
     --forge-red: #b53326;
     --forge-redsoft: #a84133;
-    --forge-orange: #934512;
+    --forge-orange: #a34d14;
     --forge-orangealt: #9b4d1c;
     --forge-warn: #746113;
     --forge-warnsoft: #716318;
-    --forge-edge: #817d6f;
+    --forge-edge: #847f66;
   }
 }
 
 :root[data-mode="light"] {
-  --forge-deep: #ece9df;
+  --forge-shadow-sm: rgb(40 30 10 / 0.05);
+  --forge-shadow-md: rgb(40 30 10 / 0.08);
+  --forge-shadow-lg: rgb(40 30 10 / 0.1);
+  --forge-deep: #f4f0e1;
   --forge-panel: #fffbeb;
-  --forge-card: #f8f4e4;
-  --forge-elev: #e6e2d0;
-  --forge-line: #cfcfde;
+  --forge-card: #fffef8;
+  --forge-elev: #ece7d3;
+  --forge-line: #d9d4c0;
   --forge-ink: #fffbeb;
   --forge-txthi: #1f1f1f;
   --forge-txtmid: #3f3b2a;
@@ -107,11 +143,11 @@
   --forge-greensoft: #24711b;
   --forge-red: #b53326;
   --forge-redsoft: #a84133;
-  --forge-orange: #934512;
+  --forge-orange: #a34d14;
   --forge-orangealt: #9b4d1c;
   --forge-warn: #746113;
   --forge-warnsoft: #716318;
-  --forge-edge: #817d6f;
+  --forge-edge: #847f66;
 }
 
 html,
@@ -125,13 +161,15 @@ body {
   background: var(--forge-deep);
   color: var(--forge-txthi);
   font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.5714;
   -webkit-font-smoothing: antialiased;
 }
 
 .title-face {
   font-family: var(--font-display);
   font-weight: 600;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
 }
 
 * {

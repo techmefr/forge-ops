@@ -29,7 +29,7 @@ describe('default appearance', () => {
 
   it('resolves to the dark palette when the system prefers dark', () => {
     const mode = resolveMode(DEFAULT_MODE_CHOICE, true)
-    expect(resolvePalette(DEFAULT_THEME, mode).card).toBe('#282A36')
+    expect(resolvePalette(DEFAULT_THEME, mode).card).toBe('#313343')
   })
 
   it('resolves to Alucard when the system prefers light', () => {
@@ -118,7 +118,7 @@ describe('first paint', () => {
       variables: paletteVariables(resolvePalette('dracula', 'dark')),
     })
     const { properties, root } = run({ 'forge.palette': cache }, true)
-    expect(properties['--forge-card']).toBe('#282A36')
+    expect(properties['--forge-card']).toBe('#313343')
     expect(root.dataset.theme).toBe('dracula')
   })
 

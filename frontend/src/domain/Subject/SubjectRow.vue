@@ -118,7 +118,7 @@ function changeState(event: Event): void {
           />
           {{ project.name }}
         </span>
-        <span v-if="blocked !== null" class="text-warn" data-test-id="subject-blocked">
+        <span v-if="blocked !== null && blocked > 0" class="text-warn" data-test-id="subject-blocked">
           {{ t('subjects.row.blockedFor', { days: blocked }) }}
         </span>
         <span v-if="showOwner">{{ ownerName ?? t('subjects.row.nobody') }}</span>

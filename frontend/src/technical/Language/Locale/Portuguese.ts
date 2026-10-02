@@ -1212,10 +1212,10 @@ export const PORTUGUESE: Message = {
     system: 'Como o sistema',
   },
   fontFace: {
-    house: 'Barlow',
+    house: 'DM Sans',
     system: 'Do sistema',
     serif: 'Com serifas',
-    mono: 'JetBrains Mono',
+    mono: 'Roboto Mono',
   },
   fontScale: {
     small: 'Apertada',

@@ -205,7 +205,7 @@ function closeWhenClosed(open: boolean): void {
           <dd>
             <span class="font-semibold" :class="STATE_TONES[subject.state]">{{ t(`epicState.${subject.state}`) }}</span>
             <small v-if="subject.storyCount > 0" class="ml-2 text-txt-low">{{ t('subjects.row.derived') }}</small>
-            <small v-if="blocked !== null" class="ml-2 text-warn">{{ t('subjects.row.blockedFor', { days: blocked }) }}</small>
+            <small v-if="blocked !== null && blocked > 0" class="ml-2 text-warn">{{ t('subjects.row.blockedFor', { days: blocked }) }}</small>
           </dd>
           <dt class="text-txt-low"><label for="drawer-priority">{{ t('subjects.drawer.priority') }}</label></dt>
           <dd>

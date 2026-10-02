@@ -1214,10 +1214,10 @@ export const GERMAN: Message = {
     system: 'Wie das System',
   },
   fontFace: {
-    house: 'Barlow',
+    house: 'DM Sans',
     system: 'Vom System',
     serif: 'Mit Serifen',
-    mono: 'JetBrains Mono',
+    mono: 'Roboto Mono',
   },
   fontScale: {
     small: 'Eng',

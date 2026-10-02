@@ -1213,10 +1213,10 @@ export const SPANISH: Message = {
     system: 'Como el sistema',
   },
   fontFace: {
-    house: 'Barlow',
+    house: 'DM Sans',
     system: 'Del sistema',
     serif: 'Con remates',
-    mono: 'JetBrains Mono',
+    mono: 'Roboto Mono',
   },
   fontScale: {
     small: 'Apretada',

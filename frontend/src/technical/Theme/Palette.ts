@@ -64,11 +64,11 @@ const BASE_PALETTES: Record<ThemeName, Palette> = {
     warnSoft: '#FFB98A',
   },
   dracula: {
-    deep: '#191A21',
-    panel: '#21222C',
-    card: '#282A36',
-    elev: '#343746',
-    line: '#44475A',
+    deep: '#282A36',
+    panel: '#2C2E3B',
+    card: '#313343',
+    elev: '#353847',
+    line: '#4A4D62',
     ink: '#191A21',
     txtHi: '#F8F8F2',
     txtMid: '#BFC7D5',
@@ -193,11 +193,11 @@ const BASE_PALETTES: Record<ThemeName, Palette> = {
 export const DEFAULT_THEME: ThemeName = 'dracula'
 
 const ALUCARD: Palette = {
-  deep: '#ECE9DF',
+  deep: '#F4F0E1',
   panel: '#FFFBEB',
-  card: '#F8F4E4',
-  elev: '#E6E2D0',
-  line: '#CFCFDE',
+  card: '#FFFEF8',
+  elev: '#ECE7D3',
+  line: '#D9D4C0',
   ink: '#FFFBEB',
   txtHi: '#1F1F1F',
   txtMid: '#3F3B2A',
