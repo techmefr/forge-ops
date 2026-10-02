@@ -4,7 +4,7 @@ import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { StoryNotFoundError, StoryViolationError } from '../Story/StoryViolation.js'
-import { assertStoryHand } from '../Story/StoryHand.js'
+import { assertHandOf } from '../Story/StoryHand.js'
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import { framedTurn, type SessionTalker } from './Conversation.js'
 import { openingOf, threadOf, validationRefusalOf, voiceOf } from './Thread.js'
@@ -62,7 +62,7 @@ export function createConversationApi({
       return context.json({ error: 'EmptyTurn' }, 422)
     }
     const story = stories.findStory(storyId.data)
-    assertStoryHand(story.reference, stories.assigneeOf(story.epicId), operatorOf(context))
+    assertHandOf(context, story.reference, stories.assigneeOf(story.epicId))
     const session = sessions.latestSessionOf(story.id)
     if (session === null) {
       return context.json({ error: 'NoSessionToTalkTo', reference: story.reference }, 409)
@@ -100,7 +100,7 @@ export function createConversationApi({
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
     const story = stories.findStory(storyId.data)
-    assertStoryHand(story.reference, stories.assigneeOf(story.epicId), operatorOf(context))
+    assertHandOf(context, story.reference, stories.assigneeOf(story.epicId))
     const session = sessions.latestSessionOf(story.id)
     if (session === null || session.lifecycle === 'finished') {
       return context.json({ hungUp: false })
@@ -144,7 +144,7 @@ export function createConversationApi({
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
     const story = stories.findStory(storyId.data)
-    assertStoryHand(story.reference, stories.assigneeOf(story.epicId), operatorOf(context))
+    assertHandOf(context, story.reference, stories.assigneeOf(story.epicId))
     const refusal = validationRefusalOf(
       story.state,
       voiceOf(context.req.header(AGENT_SESSION_HEADER) ?? null),

@@ -2,9 +2,8 @@ import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { z } from 'zod'
 import type { EventBus } from '../../technical/Http/EventBus.js'
-import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import { GitCommandFailedError } from '../../technical/Git/GitWorktree.js'
-import { assertStoryHand } from '../Story/StoryHand.js'
+import { assertHandOf } from '../Story/StoryHand.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { StoryNotFoundError, StoryNotYoursError } from '../Story/StoryViolation.js'
 import { baseRefSchema } from './Worktree.js'
@@ -36,7 +35,7 @@ export function createWorktreeApi({ worktrees, stories, events }: WorktreeApiInp
 
   function assertHand(context: Context, storyId: number): void {
     const story = stories.findStory(storyId)
-    assertStoryHand(story.reference, stories.assigneeOf(story.epicId), operatorOf(context))
+    assertHandOf(context, story.reference, stories.assigneeOf(story.epicId))
   }
 
   api.onError((error, context) => {

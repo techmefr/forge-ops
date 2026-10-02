@@ -2,8 +2,7 @@ import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { z } from 'zod'
 import { mapApiError } from '../Board/ApiErrorMap.js'
-import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
-import { assertStoryHand } from '../Story/StoryHand.js'
+import { assertHandOf } from '../Story/StoryHand.js'
 import type { ForgeCardMoved } from '../../../../contract/ForgeCardContract.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
@@ -51,7 +50,7 @@ export function createForgeBoardApi({
   api.onError(mapApiError)
 
   function assertHand(context: Context, subjectId: number, reference: string): void {
-    assertStoryHand(reference, stories.assigneeOf(subjectId), operatorOf(context))
+    assertHandOf(context, reference, stories.assigneeOf(subjectId))
   }
 
   function announce(moved: ForgeCardMoved): void {
