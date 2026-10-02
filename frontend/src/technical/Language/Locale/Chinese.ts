@@ -798,8 +798,6 @@ export const CHINESE: Message = {
     colVersion: '版本',
   },
   machine: {
-    aria: '机器状态',
-    mute: '机器无响应',
     cpu: 'CPU',
     ram: 'RAM',
     disk: '磁盘',
@@ -1039,12 +1037,10 @@ export const CHINESE: Message = {
     },
     resource: {
       aria: '实例资源',
-      sessions: '{count} 个会话进行中',
-      budget: '今日预算',
       budgetValue: '{spent} / {cap} $',
       room: '还可再容纳 {count} 个会话',
       full: '机器已满：请等待会话结束',
-      unknown: '无法读取机器状态',
+      fullShort: '已满',
       details: '资源详情',
       detailsTitle: '资源',
       close: '关闭',

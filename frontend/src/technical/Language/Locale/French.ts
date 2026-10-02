@@ -804,8 +804,6 @@ export const FRENCH: Message = {
     colVersion: 'Version',
   },
   machine: {
-    aria: 'État de la machine',
-    mute: 'machine muette',
     cpu: 'CPU',
     ram: 'RAM',
     disk: 'Disque',
@@ -1045,12 +1043,10 @@ export const FRENCH: Message = {
     },
     resource: {
       aria: 'Ressources de l’instance',
-      sessions: '{count} session en cours | {count} sessions en cours',
-      budget: 'Budget du jour',
       budgetValue: '{spent} / {cap} $',
       room: 'Place pour {count} session de plus | Place pour {count} sessions de plus',
       full: 'Machine pleine : attends la fin d’une session',
-      unknown: 'Machine illisible',
+      fullShort: 'Plein',
       details: 'Détail des ressources',
       detailsTitle: 'Ressources',
       close: 'Fermer',

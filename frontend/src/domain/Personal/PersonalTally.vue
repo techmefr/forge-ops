@@ -25,7 +25,7 @@ onMounted(() => Promise.all([self.reload(), cards.reload()]))
 
 <template>
   <section
-    class="flex flex-none flex-wrap items-baseline gap-x-8 gap-y-1 border-b border-hair bg-panel px-4 py-2.5 sm:px-8"
+    class="flex flex-none flex-wrap items-baseline gap-x-8 gap-y-1 bg-panel px-4 py-2.5 sm:px-8"
     :aria-label="t('personal.aria')"
   >
     <p v-for="figure in figures" :key="figure.key" class="flex min-w-0 items-baseline gap-2">

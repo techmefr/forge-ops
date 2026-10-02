@@ -796,8 +796,6 @@ export const ENGLISH = {
     colVersion: 'Version',
   },
   machine: {
-    aria: 'State of the machine',
-    mute: 'machine silent',
     cpu: 'CPU',
     ram: 'RAM',
     disk: 'Disk',
@@ -1037,12 +1035,10 @@ export const ENGLISH = {
     },
     resource: {
       aria: 'Resources of the instance',
-      sessions: '{count} session in progress | {count} sessions in progress',
-      budget: 'Budget today',
       budgetValue: '{spent} / {cap} $',
       room: 'Room for {count} more session | Room for {count} more sessions',
       full: 'Machine full: wait for a session to end',
-      unknown: 'Machine not readable',
+      fullShort: 'Full',
       details: 'Resource details',
       detailsTitle: 'Resources',
       close: 'Close',
