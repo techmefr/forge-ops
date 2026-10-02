@@ -161,3 +161,7 @@ No page title that repeats the tab name. Event markers are 8px diamonds inside a
 ### Phone header
 
 At 375 the chrome above the content stays under about 200px. The main navigation and the sub tabs are single rows that scroll sideways (no wrapping grid), the page subtitle is hidden, the title shares a line with the shell controls, the personal tally is one scrolling line, and the weather line scrolls sideways. The skip link stays the first focusable element and every target keeps 40px.
+
+### Card drawer
+
+The header is two lines: where the card lives (project, subject, step) and who works on it (agent and session). Proofs are one collapsed section with a count, never bubbles in the conversation. The conversation shows an author label only when the author changes, and consecutive messages of one author share a single bubble.
