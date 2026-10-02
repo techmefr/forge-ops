@@ -65,6 +65,7 @@ import { createLiveSessions } from '../technical/ClaudeCode/LiveSessions.js'
 import { createDiscussionApi } from '../domain/Discussion/DiscussionApi.js'
 import { createDiscussionRepository } from '../domain/Discussion/DiscussionRepository.js'
 import { operatorOf } from '../technical/Auth/BoardIdentity.js'
+import { createStoryHandGuard } from '../domain/Story/StoryHandGuard.js'
 import { mayAdministerProject } from '../domain/Project/ProjectAuthority.js'
 import { readSuperAdminConfiguration } from '../technical/Auth/SuperAdminConfiguration.js'
 import { createTemplateRepository } from '../domain/Template/TemplateRepository.js'
@@ -384,6 +385,14 @@ export function startBoardServer({
     }),
   )
   guarded.get('/api/auth/whoami', (context) => context.json({ authenticated: true }))
+  guarded.use(
+    '/api/*',
+    createStoryHandGuard({
+      stories,
+      isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
+      isDirector: (login) => identities.findUser(login)?.role === 'director',
+    }),
+  )
   if (mode === 'local') {
     guarded.route('/', createSessionApi({ token, sessions: browserSessions }))
   }
