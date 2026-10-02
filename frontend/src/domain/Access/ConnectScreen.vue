@@ -47,7 +47,7 @@ async function connect(): Promise<void> {
 <template>
   <div class="mx-auto max-w-md p-8">
     <section class="rounded-lg border border-line bg-card p-6">
-      <p class="display-italic text-[22px]">{{ t('connect.title') }}</p>
+      <p class="title-face text-[22px]">{{ t('connect.title') }}</p>
       <p class="mt-1 text-[11px] text-txt-low">{{ t('connect.hint') }}</p>
 
       <form class="mt-5 flex flex-col gap-3" @submit.prevent="connect()">

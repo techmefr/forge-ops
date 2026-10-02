@@ -27,9 +27,9 @@ Five named steps, each one Tailwind class. Nothing outside this list on new or t
 |---|---|---|
 | label | `text-[11px]` | Meta text: shortcut digits, counters, status pills, timestamps |
 | body | `text-sm` (14px) | Default running text: tab labels, descriptions, list rows |
-| emphasis | `text-[13px]` with `font-semibold` or `display-italic` | A line that needs to stand slightly above body without becoming a heading |
-| display | `text-[22px]` with `display-italic` | A brand or section mark in a strip of chrome (the `Forge.ops` logotype) |
-| display-lg | `text-[28px]` with `display-italic` | The one page-title heading in a screen's header |
+| emphasis | `text-[13px]` with `font-semibold` or `title-face` | A line that needs to stand slightly above body without becoming a heading |
+| display | `text-[22px]` with `title-face` | A brand or section mark in a strip of chrome (the `Forge.ops` logotype) |
+| display-lg | `text-[28px]` with `title-face` | The one page-title heading in a screen's header |
 
 `text-[9px]`/`text-[9.5px]`/`text-[10px]`/`text-[12px]`/`text-[12.5px]`/`text-[34px]` and similar one-off sizes are legacy from before this pass; they still work but are not reused when a component is touched - collapse to the nearest step above instead.
 

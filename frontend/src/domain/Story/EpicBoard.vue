@@ -188,7 +188,7 @@ onMounted(async () => {
           </div>
 
           <button type="button" class="mt-2 text-left" @click="toggle(epic.id)">
-            <h2 class="display-italic text-[22px]">{{ epic.title }}</h2>
+            <h2 class="title-face text-[22px]">{{ epic.title }}</h2>
             <p class="mt-2 line-clamp-3 text-sm text-txt-mid">{{ epic.businessIntent }}</p>
           </button>
 

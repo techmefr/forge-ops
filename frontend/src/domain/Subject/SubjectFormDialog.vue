@@ -218,7 +218,7 @@ onMounted(loadMilestone)
         data-test-id="subject-form-dialog"
         @escape-key-down="keepDialogWhileListboxOpen"
       >
-        <DialogTitle class="display-italic text-[13px] text-txt-hi uppercase">
+        <DialogTitle class="title-face text-[13px] text-txt-hi uppercase">
           {{ t(editing ? 'subjects.form.editTitle' : 'subjects.form.newTitle') }}
         </DialogTitle>
         <DialogDescription class="mt-1 text-[13px] text-txt-mid">

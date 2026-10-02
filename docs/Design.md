@@ -60,3 +60,44 @@ Introduce Reka UI incrementally, smallest and lowest-risk first, each as its own
 3. **`Dialog`** once an actual modal/overlay need exists (there isn't one yet - `CardDrawer.vue` is a persistent side panel, not a dialog. Don't introduce a `Dialog` usage looking for a problem).
 
 The native `<select>` in `AppearanceSection.vue` stays as-is - it's simpler, accessible by default, and has no real gap to close today. Revisit only if a richer picker (icons, previews) becomes an actual requirement, not preemptively.
+
+## Calm pass (October 2026)
+
+The interface was too busy. This pass keeps Dracula and Alucard, WCAG AA and the seven locales, and moves the product toward a calm, dense tool for engineers in the spirit of Linear, Vercel and Supabase. VisualDirection.md still owns radius and colour restraint; the points below replace its type rules where they differ.
+
+### Direction
+
+Quiet surfaces, clear hierarchy, editorial whitespace. Structure comes from spacing and one hairline per region, not from boxes, pills and caps.
+
+### Type scale
+
+Four sizes, one weight pair.
+
+| Role | Class | Weight |
+|---|---|---|
+| Page title | `text-xl` with `title-face` | 600 |
+| Body and controls | `text-sm` | 400, 500 for labels |
+| Meta | `text-xs` | 400 |
+| Figures and ids | `font-mono text-sm` | 400 |
+
+Monospace is for ids, numbers and code only. Titles are sentence case, never italic, never uppercase. No letter-spacing on labels.
+
+### Spacing scale
+
+4px base: 1, 1.5, 2, 3, 4, 6, 8 (Tailwind steps). Gap inside a group 1.5 to 2, between groups 4 to 6, page gutters 4 on phones and 8 on desktop.
+
+### Colour roles
+
+Surface: deep, panel, card, elev. Text: hi, mid, low. Accent marks the current tab and the one primary action. Status colours only for real status. Both themes keep 4.5:1 on body text.
+
+### Removed and why
+
+- Heavy italic uppercase titles: shouting, no function.
+- Letter-spaced uppercase captions: replaced by sentence case.
+- Four bordered stat tiles: replaced by one inline row of figures.
+- Shortcut digits stacked above tabs and titles: the shortcut stays in the tab title and aria-keyshortcuts.
+- Redundant borders and pills where spacing is enough.
+
+### Copy rules
+
+Short sentences. No hype words, no exclamation marks, no emoji bullets. Sentence case. Say what the control does. Locale parity is kept: every key exists in the seven locales.

@@ -25,27 +25,17 @@ onMounted(() => Promise.all([self.reload(), cards.reload()]))
 
 <template>
   <section
-    class="grid flex-none grid-cols-2 gap-x-4 gap-y-3 border-b border-line bg-panel px-4 py-3 sm:px-6 min-[760px]:grid-cols-4"
+    class="flex flex-none flex-wrap items-baseline gap-x-8 gap-y-1 border-b border-line bg-panel px-4 py-2.5 sm:px-8"
     :aria-label="t('personal.aria')"
   >
-    <article
-      v-for="figure in figures"
-      :key="figure.key"
-      class="min-w-0 border-l-2 pl-3"
-      :class="figure.warn ? 'border-orange' : 'border-line'"
-    >
-      <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
-        {{ t(`personal.${figure.key}`) }}
-      </p>
-      <p
-        class="display-italic mt-1 text-[22px] leading-none"
-        :class="figure.warn ? 'text-orange' : 'text-txt-hi'"
-      >
-        {{ figure.value }}
-      </p>
-      <p v-if="figure.key === 'soon'" class="mt-1 text-[11px] text-txt-low">
-        {{ t('personal.soonHint', { count: SOON_IN_DAYS }, SOON_IN_DAYS) }}
-      </p>
-    </article>
+    <p v-for="figure in figures" :key="figure.key" class="flex min-w-0 items-baseline gap-2">
+      <span class="font-mono text-base tabular-nums" :class="figure.warn ? 'text-orange' : 'text-txt-hi'">{{
+        figure.value
+      }}</span>
+      <span class="text-sm text-txt-low">{{ t(`personal.${figure.key}`) }}</span>
+      <span v-if="figure.key === 'soon'" class="text-xs text-txt-low">{{
+        t('personal.soonHint', { count: SOON_IN_DAYS }, SOON_IN_DAYS)
+      }}</span>
+    </p>
   </section>
 </template>

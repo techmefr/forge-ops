@@ -195,7 +195,7 @@ function closeWhenClosed(open: boolean): void {
       >
         <div class="flex items-start gap-3">
           <div class="min-w-0 flex-1">
-            <DialogTitle class="display-italic flex items-center gap-2 text-lg text-txt-hi uppercase">
+            <DialogTitle class="title-face flex items-center gap-2 text-lg text-txt-hi uppercase">
               <span
                 class="size-2.5 flex-none rounded-full"
                 :style="{ background: tintOf(entry.project.colour) }"

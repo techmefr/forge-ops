@@ -132,7 +132,7 @@ followUps.reload()
               :style="{ background: tintOf(entry.project.colour) }"
               aria-hidden="true"
             />
-            <strong class="display-italic text-sm text-txt-hi uppercase">{{ entry.project.name }}</strong>
+            <strong class="title-face text-sm text-txt-hi uppercase">{{ entry.project.name }}</strong>
             <span class="ml-auto flex items-center gap-1.5 text-[13px] font-semibold text-txt-hi">
               <b
                 class="text-xl leading-none"

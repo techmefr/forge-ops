@@ -50,13 +50,13 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.sessions') }}
         </p>
-        <p class="display-italic mt-1 text-[28px]">{{ summary.data.value?.sessions ?? 0 }}</p>
+        <p class="title-face mt-1 text-[28px]">{{ summary.data.value?.sessions ?? 0 }}</p>
       </article>
       <article class="border-t border-line pt-4">
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.totalCost') }}
         </p>
-        <p class="display-italic mt-1 text-[28px]">
+        <p class="title-face mt-1 text-[28px]">
           {{ t('common.money', { amount: (summary.data.value?.totalCostUsd ?? 0).toFixed(2) }) }}
         </p>
       </article>
@@ -64,7 +64,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
         <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
           {{ t('statistic.machineTime') }}
         </p>
-        <p class="display-italic mt-1 text-[28px]">
+        <p class="title-face mt-1 text-[28px]">
           {{ say(humanDuration(summary.data.value?.totalSeconds ?? 0)) }}
         </p>
       </article>

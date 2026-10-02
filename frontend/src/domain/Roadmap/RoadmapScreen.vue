@@ -233,7 +233,7 @@ onMounted(() => {
 <template>
   <div class="flex h-full min-h-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 sm:p-8">
     <div class="flex flex-none flex-wrap items-center gap-3">
-      <h2 class="display-italic text-xl text-txt-hi uppercase">{{ t('roadmap.title') }}</h2>
+      <h2 class="title-face text-xl text-txt-hi uppercase">{{ t('roadmap.title') }}</h2>
       <button
         type="button"
         class="ml-auto rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase"
@@ -325,7 +325,7 @@ onMounted(() => {
                       :style="{ background: tintOf(block.entry.project.colour) }"
                       aria-hidden="true"
                     />
-                    <strong class="display-italic text-sm text-txt-hi uppercase">
+                    <strong class="title-face text-sm text-txt-hi uppercase">
                       {{ block.entry.project.name }}
                     </strong>
                   </span>
