@@ -105,13 +105,13 @@ function dragging(card: ForgeCardView, on: boolean): void {
           <h3 class="m-0 min-w-0 flex-1 truncate text-sm font-semibold text-txt-hi">{{ step.label }}</h3>
           <span
             v-if="step.auto"
-            class="rounded-md border border-line px-1.5 font-mono text-[11px] text-txt-mid"
+            class="rounded-md border border-line px-1.5 font-mono text-xs text-txt-mid"
             :title="t('forge.autoHint')"
             >{{ t('forge.auto') }}</span
           >
-          <span class="font-mono text-[11px] text-txt-low">{{ cardsOfStep(cards, step.key).length }}</span>
+          <span class="font-mono text-xs text-txt-low">{{ cardsOfStep(cards, step.key).length }}</span>
         </div>
-        <p class="m-0 truncate text-[11px] text-txt-low">{{ hint(step) }}</p>
+        <p class="m-0 truncate text-xs text-txt-low">{{ hint(step) }}</p>
       </header>
       <ul class="m-0 flex min-h-[3rem] flex-1 list-none flex-col p-0">
         <ForgeCardTile
@@ -125,7 +125,7 @@ function dragging(card: ForgeCardView, on: boolean): void {
           @act="(action) => emit('act', card, action)"
           @dragging="(on) => dragging(card, on)"
         />
-        <li v-if="cardsOfStep(cards, step.key).length === 0" class="px-3 py-3 text-[11px] text-txt-low">
+        <li v-if="cardsOfStep(cards, step.key).length === 0" class="px-3 py-3 text-xs text-txt-low">
           {{ t('forge.emptyColumn') }}
         </li>
       </ul>

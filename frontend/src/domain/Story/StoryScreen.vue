@@ -196,16 +196,14 @@ onMounted(async () => {
       type="button"
       :aria-current="bench === desk ? 'page' : undefined"
       class="max-w-[22rem] border-b-[3px] px-3 py-2 text-left"
-      :class="
-        bench === desk ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'
-      "
+      :class="bench === desk ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'"
       @click="desk = bench"
     >
-      <span class="block font-mono text-[11px] font-bold uppercase">
+      <span class="block text-xs font-bold">
         {{ t(`desk.${bench}.label`) }}
         <span v-if="bench === 'reports' && reported > 0" class="ml-1 text-acc">{{ reported }}</span>
       </span>
-      <span class="mt-0.5 block text-[11px] leading-snug text-txt-low normal-case">{{
+      <span class="mt-0.5 block text-xs leading-snug text-txt-low normal-case">{{
         t(`desk.${bench}.said`)
       }}</span>
     </button>
@@ -222,7 +220,7 @@ onMounted(async () => {
     <section class="min-h-0 border-b border-line p-5 lg:overflow-auto lg:border-r lg:border-b-0">
       <button
         type="button"
-        class="rounded-lg border border-line bg-card px-3 py-2 font-mono text-[11px] font-bold text-txt-mid uppercase hover:border-acc"
+        class="rounded-lg border border-line bg-card px-3 py-2 text-xs font-bold text-txt-mid hover:border-acc"
         @click="backToEpics()"
       >
         {{ t('story.backToEpics') }}
@@ -230,10 +228,10 @@ onMounted(async () => {
 
       <template v-if="queue.length > 0">
         <h2 class="title-face mt-6 text-sm text-txt-mid">{{ t('story.batch') }}</h2>
-        <p class="mt-1 text-[11px] text-txt-low">{{ t('story.batchHint') }}</p>
+        <p class="mt-1 text-xs text-txt-low">{{ t('story.batchHint') }}</p>
 
         <div v-for="epic in queueEpics" :key="epic.id" class="mt-4">
-          <p class="font-mono text-[11px] tracking-[0.16em] text-acc uppercase">{{ epic.title }}</p>
+          <p class="text-xs text-acc">{{ epic.title }}</p>
 
           <ol class="mt-1.5 flex flex-col gap-1">
             <li v-for="story in storiesOf(epic.id)" :key="story.id">
@@ -242,14 +240,10 @@ onMounted(async () => {
                 :disabled="busy"
                 :aria-current="story.id === openId ? 'true' : undefined"
                 class="w-full rounded-lg border px-3 py-2 text-left text-sm disabled:opacity-40"
-                :class="
-                  story.id === openId
-                    ? 'border-acc bg-card text-txt-hi'
-                    : 'border-line bg-card text-txt-low hover:border-acc'
-                "
+                :class="story.id === openId ? 'border-acc bg-card text-txt-hi' : 'border-line bg-card text-txt-low hover:border-acc'"
                 @click="openWritten(story.id)"
               >
-                <span class="font-mono whitespace-nowrap text-[11px] text-txt-low">{{ story.reference }}</span>
+                <span class="font-mono whitespace-nowrap text-xs text-txt-low">{{ story.reference }}</span>
                 <span class="mt-0.5 block">{{ story.title }}</span>
               </button>
             </li>
@@ -258,7 +252,7 @@ onMounted(async () => {
           <button
             type="button"
             :disabled="busy"
-            class="mt-1.5 w-full rounded-lg border border-dashed border-line px-3 py-2 font-mono text-[11px] text-txt-mid uppercase hover:border-acc disabled:opacity-40"
+            class="mt-1.5 w-full rounded-lg border border-dashed border-line px-3 py-2 text-xs text-txt-mid hover:border-acc disabled:opacity-40"
             @click="newStory(epic)"
           >
             {{ storiesOf(epic.id).length === 0 ? t('story.firstStory') : t('story.oneMoreStory') }}
@@ -285,13 +279,9 @@ onMounted(async () => {
           v-for="(utterance, index) in said"
           :key="index"
           class="rounded-lg border p-3"
-          :class="
-            utterance.name === 'session.human'
-              ? 'ml-8 border-acc bg-acc-soft/10'
-              : 'mr-8 border-line bg-card'
-          "
+          :class="utterance.name === 'session.human' ? 'ml-8 border-acc bg-acc-soft/10' : 'mr-8 border-line bg-card'"
         >
-          <p class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+          <p class="text-xs text-txt-low">
             {{ utterance.name === 'session.human' ? t('story.you') : t('story.claude') }}
             <span v-if="utterance.phase !== null"> · {{ t(`phase.${utterance.phase}`) }}</span>
           </p>
@@ -301,7 +291,7 @@ onMounted(async () => {
           >
             {{ utterance.text ?? t(utterance.textKey ?? '') }}
           </p>
-          <p v-if="utterance.costUsd !== null" class="mt-1.5 font-mono text-[11px] text-acc">
+          <p v-if="utterance.costUsd !== null" class="mt-1.5 font-mono text-xs text-acc">
             {{ t('common.money', { amount: utterance.costUsd.toFixed(4) }) }}
           </p>
         </article>
@@ -317,7 +307,7 @@ onMounted(async () => {
         <button
           type="submit"
           :disabled="busy || turn.trim() === '' || ticket.data.value === null"
-          class="flex-none self-end rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink uppercase disabled:opacity-40"
+          class="flex-none self-end rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
         >
           {{ t('common.send') }}
         </button>
@@ -331,7 +321,7 @@ onMounted(async () => {
         <button
           type="button"
           :disabled="busy || !complete"
-          class="rounded-lg border border-line bg-card px-4 py-2 text-sm font-bold text-txt-mid uppercase disabled:opacity-40"
+          class="rounded-lg border border-line bg-card px-4 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
           @click="toBacklog()"
         >
           {{ t('story.sendToStore') }}
@@ -340,7 +330,7 @@ onMounted(async () => {
           v-if="queue.length > 0"
           type="button"
           :disabled="busy"
-          class="rounded-lg border border-line bg-card px-4 py-2 text-sm font-bold text-txt-mid uppercase disabled:opacity-40"
+          class="rounded-lg border border-line bg-card px-4 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
           @click="backToEpics()"
         >
           {{ t('story.finishBatch') }}
@@ -355,10 +345,8 @@ onMounted(async () => {
           :key="name"
           type="button"
           :aria-current="name === part ? 'page' : undefined"
-          class="border-b-[3px] px-3 py-2.5 font-mono text-[11px] font-bold whitespace-nowrap uppercase"
-          :class="
-            name === part ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'
-          "
+          class="border-b-[3px] px-3 py-2.5 text-xs font-bold whitespace-nowrap"
+          :class="name === part ? 'border-acc text-txt-hi' : 'border-transparent text-txt-low hover:text-txt-hi'"
           @click="part = name"
         >
           {{ t(`storyPart.${name}`) }}
@@ -375,7 +363,7 @@ onMounted(async () => {
           @submit.prevent="linkBlocker"
         >
           <label
-            class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase"
+            class="text-xs text-txt-low"
             for="blocker"
           >
             {{ t('story.blockerLabel') }}
@@ -393,7 +381,7 @@ onMounted(async () => {
           <button
             type="submit"
             :disabled="busy || blockingStoryId === null"
-            class="self-start rounded-lg border border-line bg-elev px-3 py-2 text-sm font-bold text-txt-mid uppercase disabled:opacity-40"
+            class="self-start rounded-lg border border-line bg-elev px-3 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
           >
             {{ t('common.link') }}
           </button>
@@ -420,7 +408,7 @@ onMounted(async () => {
           <button
             type="submit"
             :disabled="busy"
-            class="rounded-lg border border-violet bg-card px-3 py-2 text-sm font-bold text-violet uppercase disabled:opacity-50"
+            class="rounded-lg border border-violet bg-card px-3 py-2 text-sm font-bold text-violet disabled:opacity-50"
           >
             {{ t('story.writeTwin') }}
           </button>

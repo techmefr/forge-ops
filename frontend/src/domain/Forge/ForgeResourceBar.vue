@@ -66,7 +66,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1.5 border-b border-line px-4 py-2 text-[11px] text-txt-mid"
+    class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1.5 border-b border-line px-4 py-2 text-xs text-txt-mid"
     role="group"
     :aria-label="t('forge.resource.aria')"
     data-test="forge-resources"
@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
     <span class="flex-1" />
     <button
       type="button"
-      class="rounded-md border border-line bg-transparent px-2.5 py-1 font-mono text-txt-hi hover:bg-elev"
+      class="rounded-md border border-line bg-transparent px-2.5 py-1 text-txt-hi hover:bg-elev"
       @click="emit('details')"
     >
       {{ t('forge.resource.details') }}

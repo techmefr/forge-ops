@@ -142,13 +142,13 @@ onMounted(() => void conversation.load())
       >
         <header class="flex flex-none items-start gap-3 border-b border-line px-5 py-3">
           <div class="min-w-0 flex-1">
-            <p class="m-0 font-mono text-[11px] text-txt-low">{{ referenceLabel(card) }}</p>
-            <DialogTitle class="m-0 text-[13px] font-semibold text-txt-hi">{{ card.title }}</DialogTitle>
+            <p class="m-0 font-mono text-xs text-txt-low">{{ referenceLabel(card) }}</p>
+            <DialogTitle class="m-0 text-sm font-semibold text-txt-hi">{{ card.title }}</DialogTitle>
             <DialogDescription class="sr-only">{{ t('forge.drawer.threadAria') }}</DialogDescription>
           </div>
           <button
             type="button"
-            class="rounded-md border border-line bg-transparent px-2.5 py-1 font-mono text-[11px] text-txt-mid hover:bg-elev"
+            class="rounded-md border border-line bg-transparent px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
             data-test="forge-open-story"
             @click="openStory"
           >
@@ -156,14 +156,14 @@ onMounted(() => void conversation.load())
           </button>
           <button
             type="button"
-            class="rounded-md border border-line bg-transparent px-2.5 py-1 font-mono text-[11px] text-txt-mid hover:bg-elev"
+            class="rounded-md border border-line bg-transparent px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
             @click="emit('close')"
           >
             {{ t('forge.drawer.close') }}
           </button>
         </header>
 
-        <dl class="m-0 grid flex-none grid-cols-[auto_1fr] gap-x-4 gap-y-1 border-b border-line px-5 py-3 text-[11px]">
+        <dl class="m-0 grid flex-none grid-cols-[auto_1fr] gap-x-4 gap-y-1 border-b border-line px-5 py-3 text-xs">
           <dt class="text-txt-low">{{ t('forge.drawer.project') }}</dt>
           <dd class="m-0 text-txt-hi">{{ projectName }}</dd>
           <dt class="text-txt-low">{{ t('forge.drawer.subject') }}</dt>
@@ -185,7 +185,7 @@ onMounted(() => void conversation.load())
           <button
             v-if="action !== null"
             type="button"
-            class="rounded-md border border-line bg-transparent px-3 py-1.5 font-mono text-[11px] text-txt-hi hover:bg-elev disabled:opacity-40"
+            class="rounded-md border border-line bg-transparent px-3 py-1.5 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
             :disabled="busy"
             data-test="forge-drawer-action"
             @click="emit('act', action)"
@@ -195,7 +195,7 @@ onMounted(() => void conversation.load())
           <button
             v-if="secondaryAction !== null"
             type="button"
-            class="rounded-md border border-line bg-transparent px-3 py-1.5 font-mono text-[11px] text-txt-mid hover:bg-elev disabled:opacity-40"
+            class="rounded-md border border-line bg-transparent px-3 py-1.5 text-xs text-txt-mid hover:bg-elev disabled:opacity-40"
             :disabled="busy"
             data-test="forge-drawer-secondary-action"
             @click="emit('act', secondaryAction)"
@@ -214,7 +214,7 @@ onMounted(() => void conversation.load())
         >
           <p
             v-if="conversation.items.value.length === 0 && !conversation.pending.value"
-            class="m-0 text-[11px] text-txt-low"
+            class="m-0 text-xs text-txt-low"
           >
             {{ t('forge.drawer.empty') }}
           </p>
@@ -222,7 +222,7 @@ onMounted(() => void conversation.load())
             <li v-for="item in conversation.items.value" :key="item.id">
               <p
                 v-if="item.kind === 'marker'"
-                class="m-0 flex items-center gap-2 border-t border-line pt-2 font-mono text-[11px] text-txt-low"
+                class="m-0 flex items-center gap-2 border-t border-line pt-2 font-mono text-xs text-txt-low"
               >
                 <span>{{ t(`phase.${item.phase}`) }}</span>
                 <span v-if="item.agent !== null">{{ item.agent }}</span>
@@ -232,7 +232,7 @@ onMounted(() => void conversation.load())
                 class="flex flex-col gap-0.5"
                 :class="item.voice === 'human' ? 'items-end' : 'items-start'"
               >
-                <p class="m-0 flex items-center gap-2 text-[11px] text-txt-low">
+                <p class="m-0 flex items-center gap-2 text-xs text-txt-low">
                   <span>{{ item.voice === 'human' && item.author === 'you' ? t('forge.drawer.you') : item.author }}</span>
                   <span v-if="item.proof" class="rounded-md border border-line px-1.5 font-mono">{{
                     t('forge.drawer.proof')
@@ -244,13 +244,13 @@ onMounted(() => void conversation.load())
                 >
                   {{ item.body }}
                 </p>
-                <p v-if="item.evidencePath !== null" class="m-0 font-mono text-[11px] text-txt-low">
+                <p v-if="item.evidencePath !== null" class="m-0 font-mono text-xs text-txt-low">
                   {{ item.evidencePath }}
                 </p>
               </div>
               <p
                 v-else-if="item.kind === 'tool'"
-                class="m-0 flex items-center gap-2 font-mono text-[11px]"
+                class="m-0 flex items-center gap-2 font-mono text-xs"
                 :class="item.outcome === 'failed' ? 'text-red' : 'text-txt-mid'"
                 data-test="forge-tool"
               >
@@ -258,12 +258,12 @@ onMounted(() => void conversation.load())
                 <span>{{ t('forge.drawer.tool', { name: item.name === '' ? '·' : item.name }) }}</span>
                 <span class="text-txt-low">{{ outcomeLabel(item.outcome) }}</span>
               </p>
-              <p v-else class="m-0 text-[11px] text-red" role="alert">{{ item.text }}</p>
+              <p v-else class="m-0 text-xs text-red" role="alert">{{ item.text }}</p>
             </li>
           </ol>
           <p
             v-if="working"
-            class="m-0 mt-2 flex items-center gap-2 text-[11px] text-acc"
+            class="m-0 mt-2 flex items-center gap-2 text-xs text-acc"
             data-test="forge-working"
           >
             <span class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-acc motion-reduce:animate-none" aria-hidden="true" />
@@ -276,10 +276,10 @@ onMounted(() => void conversation.load())
         </p>
 
         <form class="flex flex-none flex-col gap-1.5 border-t border-line px-5 py-3" @submit.prevent="submit">
-          <p v-if="conversation.failure.value !== null" class="m-0 text-[11px] text-red" role="alert">
+          <p v-if="conversation.failure.value !== null" class="m-0 text-xs text-red" role="alert">
             {{ say(conversation.failure.value) }}
           </p>
-          <label class="text-[11px] text-txt-low" for="forge-reply">
+          <label class="text-xs text-txt-low" for="forge-reply">
             {{ route === 'note' ? t('forge.drawer.noteLabel') : t('forge.drawer.replyLabel') }}
           </label>
           <div class="flex items-end gap-2">
@@ -294,13 +294,13 @@ onMounted(() => void conversation.load())
             />
             <button
               type="submit"
-              class="rounded-md border border-line bg-transparent px-3 py-1.5 font-mono text-[11px] text-txt-hi hover:bg-elev disabled:opacity-40"
+              class="rounded-md border border-line bg-transparent px-3 py-1.5 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
               :disabled="conversation.sending.value || draft.trim() === ''"
             >
               {{ route === 'note' ? t('forge.drawer.sendNote') : t('forge.drawer.send') }}
             </button>
           </div>
-          <small class="text-[11px] text-txt-low">{{ t('forge.drawer.hint') }}</small>
+          <small class="text-xs text-txt-low">{{ t('forge.drawer.hint') }}</small>
         </form>
       </DialogContent>
     </DialogPortal>
