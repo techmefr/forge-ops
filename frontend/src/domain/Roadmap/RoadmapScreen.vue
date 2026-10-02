@@ -233,10 +233,10 @@ onMounted(() => {
 <template>
   <div class="flex h-full min-h-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 sm:p-8">
     <div class="flex flex-none flex-wrap items-center gap-3">
-      <h2 class="title-face text-xl text-txt-hi uppercase">{{ t('roadmap.title') }}</h2>
+      <h2 class="title-face text-xl text-txt-hi">{{ t('roadmap.title') }}</h2>
       <button
         type="button"
-        class="ml-auto rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase"
+        class="ml-auto rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink"
         @click="openNew()"
       >
         {{ t('roadmap.newEvent') }}
@@ -257,7 +257,7 @@ onMounted(() => {
         :aria-label="t('roadmap.upcoming')"
         data-test-id="roadmap-upcoming"
       >
-        <h3 class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+        <h3 class="text-xs text-txt-low">
           {{ t('roadmap.upcoming') }}
         </h3>
         <p v-if="upcoming.length === 0" class="mt-2 text-sm text-txt-low">
@@ -270,11 +270,11 @@ onMounted(() => {
               class="flex min-w-40 flex-col items-start gap-0.5 rounded-lg border border-line bg-elev px-3 py-2 text-left hover:border-acc"
               @click="openEvent(item.event)"
             >
-              <span class="font-mono text-[11px] font-bold" :class="EVENT_TONES[item.event.type].text">
+              <span class="font-mono text-xs font-bold" :class="EVENT_TONES[item.event.type].text">
                 {{ daysLeftLabel(item.daysLeft) }} · {{ dayLabel(item.event.date) }}
               </span>
               <span class="text-sm font-semibold text-txt-hi">{{ eventName(item.event) }}</span>
-              <span class="text-[11px] text-txt-mid">
+              <span class="text-xs text-txt-mid">
                 {{ typeLabel(item.event) }} · {{ projectNameOf(item.event) }}
               </span>
             </button>
@@ -291,14 +291,14 @@ onMounted(() => {
       >
         <div class="min-w-[760px]">
           <div class="grid grid-cols-[minmax(170px,240px)_1fr] border-b border-line bg-panel">
-            <div class="px-3 py-2 font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+            <div class="px-3 py-2 text-xs text-txt-low">
               {{ t('roadmap.subjectOwner') }}
             </div>
             <div class="relative h-9" aria-hidden="true">
               <span
                 v-for="tick in ticks"
                 :key="tick"
-                class="absolute top-2 -translate-x-1/2 font-mono text-[10px] text-txt-low"
+                class="absolute top-2 -translate-x-1/2 font-mono text-xs text-txt-low"
                 :style="{ left: `${percentOf(tick, view)}%` }"
               >
                 {{ dayLabel(tick) }}
@@ -325,11 +325,11 @@ onMounted(() => {
                       :style="{ background: tintOf(block.entry.project.colour) }"
                       aria-hidden="true"
                     />
-                    <strong class="title-face text-sm text-txt-hi uppercase">
+                    <strong class="title-face text-sm text-txt-hi">
                       {{ block.entry.project.name }}
                     </strong>
                   </span>
-                  <span class="text-[11px] text-txt-mid">
+                  <span class="text-xs text-txt-mid">
                     {{
                       t(
                         'roadmap.subjectCount',
@@ -343,7 +343,7 @@ onMounted(() => {
                   </span>
                   <span
                     v-if="block.toWriteCount > 0"
-                    class="w-fit rounded border border-orange px-1.5 py-0.5 text-[11px] font-bold text-orange"
+                    class="w-fit rounded border border-orange px-1.5 py-0.5 text-xs font-bold text-orange"
                   >
                     {{ t('roadmap.minutesCount', { count: block.toWriteCount }, block.toWriteCount) }}
                   </span>
@@ -357,7 +357,7 @@ onMounted(() => {
                         :href="safeHref(link.url)"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="rounded border border-line px-1.5 py-0.5 text-[11px] text-info hover:border-acc max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
+                        class="rounded border border-line px-1.5 py-0.5 text-xs text-info hover:border-acc max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
                       >
                         {{ t(`linkKind.${link.kind}`) }}
                       </a>
@@ -385,7 +385,7 @@ onMounted(() => {
                       />
                     </button>
                     <span
-                      class="pointer-events-none absolute -translate-x-1/2 text-[10px] font-semibold whitespace-nowrap"
+                      class="pointer-events-none absolute -translate-x-1/2 text-xs font-semibold whitespace-nowrap"
                       :class="EVENT_TONES[event.type].text"
                       :style="{
                         left: `${percentOf(event.date, view)}%`,
@@ -406,22 +406,22 @@ onMounted(() => {
                   class="grid grid-cols-[minmax(170px,240px)_1fr] border-b border-line/60"
                 >
                   <div class="flex flex-col px-3 py-1.5 pl-6">
-                    <strong class="text-[13px] text-txt-hi">
+                    <strong class="text-sm text-txt-hi">
                       {{ row.subject.title }}
                       <span
                         v-if="row.bar.lateDays > 0"
-                        class="ml-1 rounded border border-red px-1 text-[10px] font-bold text-red uppercase"
+                        class="ml-1 rounded border border-red px-1 text-xs font-bold text-red"
                       >
                         {{ t('roadmap.late') }}
                       </span>
                       <span
                         v-if="row.toWrite"
-                        class="ml-1 rounded border border-orange px-1 text-[10px] font-bold text-orange"
+                        class="ml-1 rounded border border-orange px-1 text-xs font-bold text-orange"
                       >
                         {{ t('roadmap.minutesToWrite') }}
                       </span>
                     </strong>
-                    <small class="text-[11px] text-txt-mid">
+                    <small class="text-xs text-txt-mid">
                       {{ ownerOf(row.subject) }} · {{ t(`epicState.${row.subject.state}`) }}
                     </small>
                   </div>
@@ -434,7 +434,7 @@ onMounted(() => {
                     <span
                       role="img"
                       tabindex="0"
-                      class="absolute top-2.5 flex h-6 items-center overflow-hidden rounded px-2 text-[11px] font-semibold whitespace-nowrap text-ink"
+                      class="absolute top-2.5 flex h-6 items-center overflow-hidden rounded px-2 text-xs font-semibold whitespace-nowrap text-ink"
                       :class="barTone(row.subject)"
                       :style="{ left: `${row.extent.left}%`, width: `${row.extent.width}%` }"
                       :aria-label="barAria(row)"
@@ -454,7 +454,7 @@ onMounted(() => {
                     />
                     <span
                       v-if="!row.placement.inside"
-                      class="pointer-events-none absolute top-3 text-[11px] font-semibold whitespace-nowrap text-txt-hi"
+                      class="pointer-events-none absolute top-3 text-xs font-semibold whitespace-nowrap text-txt-hi"
                       :style="outsideStyle(row.placement)"
                       aria-hidden="true"
                     >
@@ -489,7 +489,7 @@ onMounted(() => {
         class="flex-none rounded-lg border border-line bg-card p-4"
         :data-test-id="`roadmap-undated-${block.entry.project.id}`"
       >
-        <h3 class="text-[13px] font-bold text-txt-hi">
+        <h3 class="text-sm font-bold text-txt-hi">
           {{ block.entry.project.name }} · {{ t('roadmap.undated') }}
         </h3>
         <ul class="mt-2 flex flex-wrap gap-2">
@@ -501,7 +501,7 @@ onMounted(() => {
             {{ subject.title }}
             <button
               type="button"
-              class="text-[11px] font-bold text-acc uppercase"
+              class="text-xs font-bold text-acc"
               :aria-label="`${t('roadmap.addEvent')}, ${subject.title}`"
               @click="openNew(block.entry.project.id, subject.id)"
             >

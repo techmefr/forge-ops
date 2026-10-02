@@ -71,15 +71,15 @@ function closeWhenClosed(open: boolean): void {
         class="fixed top-1/2 left-1/2 z-[70] max-h-[calc(100dvh-2rem)] w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-line bg-panel p-5"
         data-test-id="new-project-dialog"
       >
-        <DialogTitle class="title-face text-[13px] text-txt-hi uppercase">
+        <DialogTitle class="title-face text-sm text-txt-hi">
           {{ t('projectForm.title') }}
         </DialogTitle>
-        <DialogDescription class="mt-1 text-[13px] text-txt-mid">
+        <DialogDescription class="mt-1 text-sm text-txt-mid">
           {{ t('projectForm.description') }}
         </DialogDescription>
 
         <form class="mt-4 flex flex-col gap-3" novalidate @submit.prevent="create">
-          <div class="flex flex-col gap-1 text-[13px] text-txt-mid">
+          <div class="flex flex-col gap-1 text-sm text-txt-mid">
             <label for="new-project-name">{{ t('projectForm.name') }}</label>
             <input
               id="new-project-name"
@@ -97,14 +97,14 @@ function closeWhenClosed(open: boolean): void {
             <p
               v-if="nameError !== null"
               id="new-project-name-error"
-              class="text-[11px] text-red"
+              class="text-xs text-red"
               data-test-id="new-project-name-error"
             >
               {{ t(nameError) }}
             </p>
           </div>
 
-          <div class="flex flex-col gap-1 text-[13px] text-txt-mid">
+          <div class="flex flex-col gap-1 text-sm text-txt-mid">
             <label for="new-project-colour">{{ t('projectForm.colour') }}</label>
             <div class="flex flex-wrap items-center gap-2">
               <input
@@ -128,7 +128,7 @@ function closeWhenClosed(open: boolean): void {
             </div>
           </div>
 
-          <div class="flex flex-col gap-1 text-[13px] text-txt-mid">
+          <div class="flex flex-col gap-1 text-sm text-txt-mid">
             <label for="new-project-repository">{{ t('projectForm.repository') }}</label>
             <input
               id="new-project-repository"
@@ -140,7 +140,7 @@ function closeWhenClosed(open: boolean): void {
               class="rounded-md border border-line bg-transparent px-2.5 py-1.5 font-mono text-sm text-txt-hi"
               data-test-id="new-project-repository"
             />
-            <p class="text-[11px] text-txt-low">{{ t('projectForm.repositoryHint') }}</p>
+            <p class="text-xs text-txt-low">{{ t('projectForm.repositoryHint') }}</p>
           </div>
 
           <p
@@ -154,7 +154,7 @@ function closeWhenClosed(open: boolean): void {
           <div class="flex flex-wrap items-center justify-end gap-2">
             <button
               type="button"
-              class="rounded-md border border-line px-3 py-1.5 text-[11px] font-semibold text-txt-mid uppercase hover:bg-elev"
+              class="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev"
               @click="emit('close')"
             >
               {{ t('projectForm.cancel') }}
@@ -162,7 +162,7 @@ function closeWhenClosed(open: boolean): void {
             <button
               type="submit"
               :disabled="busy"
-              class="rounded-md bg-acc px-3 py-1.5 text-[11px] font-semibold text-ink uppercase disabled:opacity-40"
+              class="rounded-md bg-acc px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-40"
               data-test-id="new-project-create"
             >
               {{ t('projectForm.create') }}

@@ -29,7 +29,7 @@ const scoreColour = computed(() => {
   <p v-if="ticket === null" class="text-sm text-txt-low">{{ t('ticket.noStory') }}</p>
 
   <article v-else class="flex flex-col gap-5">
-    <p class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+    <p class="text-xs text-txt-low">
       {{ t('ticket.readOnly') }}
     </p>
 
@@ -42,8 +42,8 @@ const scoreColour = computed(() => {
 
     <header v-else class="border-t border-line pt-4">
       <div class="flex items-baseline gap-2">
-        <span class="font-mono whitespace-nowrap text-[11px] font-semibold text-acc">{{ shown.reference }}</span>
-        <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">{{
+        <span class="font-mono whitespace-nowrap text-xs font-semibold text-acc">{{ shown.reference }}</span>
+        <span class="text-xs text-txt-low">{{
           t(`state.${shown.state}`)
         }}</span>
       </div>
@@ -64,7 +64,7 @@ const scoreColour = computed(() => {
         {{ shown.body }}
       </button>
 
-      <p class="mt-3 font-mono text-[11px]" :class="scoreColour">
+      <p class="mt-3 font-mono text-xs" :class="scoreColour">
         {{ t('ticket.completeness', { score: ticket.completeness.score }) }}
         <span v-if="!ticket.completeness.launchable"> {{ t('ticket.belowLaunch') }}</span>
       </p>
@@ -82,7 +82,7 @@ const scoreColour = computed(() => {
     </header>
 
     <section class="border-t border-line pt-4">
-      <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+      <p class="text-xs text-txt-low">
         {{ t('ticket.criteria') }}
       </p>
       <p v-if="ticket.criteria.length === 0" class="mt-2 text-sm text-orange">
@@ -100,7 +100,7 @@ const scoreColour = computed(() => {
               :class="criterion.satisfied ? 'bg-green' : 'bg-line'"
             />
             <span>
-              <span class="font-mono whitespace-nowrap text-[11px] text-txt-low">{{ criterion.reference }}</span>
+              <span class="font-mono whitespace-nowrap text-xs text-txt-low">{{ criterion.reference }}</span>
               <span class="ml-1.5 text-txt-hi">{{ criterion.statement }}</span>
               <span v-if="criterion.expectsRefusal" class="ml-1.5 text-orange">{{
                 t('ticket.expectsRefusal')
@@ -115,7 +115,7 @@ const scoreColour = computed(() => {
     </section>
 
     <section class="border-t border-line pt-4">
-      <p class="font-mono text-[11px] tracking-[0.18em] text-txt-low uppercase">
+      <p class="text-xs text-txt-low">
         {{ t('ticket.definitionOfDone') }}
       </p>
       <ol class="mt-2 flex flex-col gap-1.5">
@@ -131,7 +131,7 @@ const scoreColour = computed(() => {
               :class="step.proven ? 'bg-green' : 'bg-line'"
             />
             {{ t(`checkpoint.${step.name}`) }}
-            <span v-if="step.evidencePath !== null" class="ml-auto font-mono text-[11px] text-acc">{{
+            <span v-if="step.evidencePath !== null" class="ml-auto font-mono text-xs text-acc">{{
               step.evidencePath
             }}</span>
           </button>
@@ -140,11 +140,11 @@ const scoreColour = computed(() => {
     </section>
 
     <section v-if="ticket.blockers.length > 0" class="rounded-lg border border-red bg-red-soft/10 p-4">
-      <p class="font-mono text-[11px] tracking-[0.18em] text-red uppercase">
+      <p class="text-xs text-red">
         {{ t('ticket.blockedBy') }}
       </p>
       <ul class="mt-2 flex flex-col gap-1">
-        <li v-for="blocker in ticket.blockers" :key="blocker" class="font-mono text-[11px] text-txt-hi">
+        <li v-for="blocker in ticket.blockers" :key="blocker" class="font-mono text-xs text-txt-hi">
           {{ blocker }}
         </li>
       </ul>

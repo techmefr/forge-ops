@@ -58,7 +58,7 @@ function effort(card: ForgeCardView): string {
   <div class="h-full min-w-0 overflow-auto rounded-lg border border-line bg-panel" data-test="forge-pipeline">
     <table class="w-full min-w-[640px] border-collapse text-left" :aria-label="t('forge.pipeline.aria')">
       <thead class="sticky top-0 z-10 bg-panel">
-        <tr class="border-b border-line text-[11px] text-txt-low">
+        <tr class="border-b border-line text-xs text-txt-low">
           <th scope="col" class="px-3 py-2 font-normal">{{ t('forge.pipeline.story') }}</th>
           <th scope="col" class="px-3 py-2 font-normal">{{ t('forge.pipeline.steps', { name: projectName }) }}</th>
           <th scope="col" class="px-3 py-2 font-normal">{{ t('forge.pipeline.status') }}</th>
@@ -69,7 +69,7 @@ function effort(card: ForgeCardView): string {
       </thead>
       <tbody>
         <tr v-if="rows.length === 0">
-          <td colspan="4" class="px-3 py-4 text-[11px] text-txt-low">{{ t('forge.pipeline.empty') }}</td>
+          <td colspan="4" class="px-3 py-4 text-xs text-txt-low">{{ t('forge.pipeline.empty') }}</td>
         </tr>
         <tr
           v-for="card in rows"
@@ -87,27 +87,21 @@ function effort(card: ForgeCardView): string {
             >
               {{ card.title }}
             </button>
-            <span class="block truncate text-[11px] text-txt-low">{{ card.subjectTitle }}</span>
+            <span class="block truncate text-xs text-txt-low">{{ card.subjectTitle }}</span>
           </td>
           <td class="px-3 py-2 align-top">
             <ol class="m-0 flex list-none flex-wrap gap-x-3 gap-y-1 p-0">
               <li
                 v-for="dot in dotsOf(card, steps)"
                 :key="dot.key"
-                class="flex items-center gap-1 text-[11px]"
-                :class="{
-                  'text-acc': dot.state === 'running',
-                  'text-red': dot.state === 'failed' || dot.state === 'budget_exhausted',
-                  'text-orange': dot.state === 'to_validate' || dot.state === 'human_review' || dot.state === 'stopped',
-                  'text-green': dot.state === 'passed',
-                  'text-txt-low': dot.state === 'to_come' || dot.state === 'waiting',
-                }"
+                class="flex items-center gap-1 text-xs"
+                :class="{ 'text-acc': dot.state === 'running', 'text-red': dot.state === 'failed' || dot.state === 'budget_exhausted', 'text-orange': dot.state === 'to_validate' || dot.state === 'human_review' || dot.state === 'stopped', 'text-green': dot.state === 'passed', 'text-txt-low': dot.state === 'to_come' || dot.state === 'waiting', }"
                 :title="`${dot.label} · ${t(`forge.dot.${dot.state}`)}`"
                 data-test="forge-dot"
                 :data-state="dot.state"
               >
                 <span
-                  class="inline-flex h-4 w-4 items-center justify-center rounded-full border border-current text-[11px] leading-none"
+                  class="inline-flex h-4 w-4 items-center justify-center rounded-full border border-current text-xs leading-none"
                   aria-hidden="true"
                   >{{ DOT_GLYPH[dot.state] }}</span
                 >
@@ -116,15 +110,9 @@ function effort(card: ForgeCardView): string {
               </li>
             </ol>
           </td>
-          <td class="px-3 py-2 align-top text-[11px]">
+          <td class="px-3 py-2 align-top text-xs">
             <span
-              :class="{
-                'text-acc': card.status === 'running',
-                'text-red': card.status === 'failed' || card.status === 'budget_exhausted',
-                'text-orange': card.status === 'to_validate' || card.status === 'human_review' || card.status === 'stopped',
-                'text-green': card.status === 'done',
-                'text-txt-mid': card.status === 'idle',
-              }"
+              :class="{ 'text-acc': card.status === 'running', 'text-red': card.status === 'failed' || card.status === 'budget_exhausted', 'text-orange': card.status === 'to_validate' || card.status === 'human_review' || card.status === 'stopped', 'text-green': card.status === 'done', 'text-txt-mid': card.status === 'idle', }"
               >{{ labelOf(card) }}</span
             >
             <span v-if="effort(card) !== ''" class="block font-mono text-txt-low">{{ effort(card) }}</span>
@@ -140,7 +128,7 @@ function effort(card: ForgeCardView): string {
             <button
               v-if="primaryActionOf(card, steps) !== null"
               type="button"
-              class="rounded-md border border-line bg-transparent px-2.5 py-1 font-mono text-[11px] whitespace-nowrap text-txt-hi hover:bg-elev disabled:opacity-40"
+              class="rounded-md border border-line bg-transparent px-2.5 py-1 text-xs whitespace-nowrap text-txt-hi hover:bg-elev disabled:opacity-40"
               :disabled="busy.has(card.id)"
               @click="emit('act', card, primaryActionOf(card, steps)!)"
             >

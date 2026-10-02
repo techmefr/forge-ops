@@ -108,7 +108,7 @@ function changeState(event: Event): void {
         </button>
         <span
           v-if="project !== null"
-          class="inline-flex items-center gap-1 text-[11px] text-txt-mid uppercase"
+          class="inline-flex items-center gap-1 text-xs text-txt-mid"
         >
           <span
             class="size-1.5 flex-none rounded-full"
@@ -119,7 +119,7 @@ function changeState(event: Event): void {
         </span>
         <span
           v-if="subject.priority !== 'normal'"
-          class="text-[11px] font-semibold uppercase"
+          class="text-xs font-semibold"
           :class="subject.priority === 'max' ? 'text-red' : 'text-orange'"
         >
           {{ t(`epicPriority.${subject.priority}`) }}
@@ -127,7 +127,7 @@ function changeState(event: Event): void {
         <span
           v-for="tag in subject.tags"
           :key="tag.id"
-          class="inline-flex items-center gap-1 text-[11px] text-txt-low"
+          class="inline-flex items-center gap-1 text-xs text-txt-low"
         >
           <span
             class="size-1.5 flex-none rounded-full"
@@ -137,10 +137,10 @@ function changeState(event: Event): void {
           {{ tag.label }}
         </span>
       </div>
-      <p v-if="subject.statusNote !== null" class="text-[13px] text-txt-mid">
+      <p v-if="subject.statusNote !== null" class="text-sm text-txt-mid">
         {{ subject.statusNote }}
       </p>
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-txt-low">
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-txt-low">
         <span v-if="blocked !== null" class="font-semibold text-warn" data-test-id="subject-blocked">
           {{ t('subjects.row.blockedFor', { days: blocked }) }}
         </span>
@@ -185,7 +185,7 @@ function changeState(event: Event): void {
 
     <select
       v-if="editableState"
-      class="justify-self-start rounded-md bg-elev px-2 py-1 text-[11px] font-semibold"
+      class="justify-self-start rounded-md bg-elev px-2 py-1 text-xs font-semibold"
       :class="STATE_TONES[subject.state]"
       :value="subject.state"
       :aria-label="`${t(`epicState.${subject.state}`)}, ${t('subjects.row.stateOf', { title: subject.title })}`"
@@ -198,7 +198,7 @@ function changeState(event: Event): void {
     </select>
     <span
       v-else
-      class="w-fit justify-self-start px-2 py-1 text-[11px] font-semibold"
+      class="w-fit justify-self-start px-2 py-1 text-xs font-semibold"
       :class="STATE_TONES[subject.state]"
       :title="deleted ? undefined : t('subjects.row.derived')"
       data-test-id="subject-state-label"
@@ -207,7 +207,7 @@ function changeState(event: Event): void {
     </span>
 
     <span
-      class="w-fit justify-self-start px-1 py-1 font-mono text-[11px] font-semibold"
+      class="w-fit justify-self-start px-1 py-1 font-mono text-xs font-semibold"
       :class="DUE_TONES[badge.kind]"
       :title="badgeTitle"
       data-test-id="subject-due"
@@ -219,7 +219,7 @@ function changeState(event: Event): void {
     <button
       v-if="deleted"
       type="button"
-      class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-[11px] font-semibold text-txt-hi uppercase hover:bg-elev"
+      class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-hi hover:bg-elev"
       :aria-label="t('subjects.row.restoreAria', { title: subject.title })"
       data-test-id="subject-restore"
       @click="emit('restore', subject)"
@@ -229,7 +229,7 @@ function changeState(event: Event): void {
     <button
       v-else-if="canTake"
       type="button"
-      class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-[11px] font-semibold text-txt-hi uppercase hover:bg-elev"
+      class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-hi hover:bg-elev"
       :aria-label="`${t('subjects.row.take')}, ${subject.title}`"
       data-test-id="subject-take"
       @click="emit('take', subject)"
@@ -239,7 +239,7 @@ function changeState(event: Event): void {
     <button
       v-else-if="canRelease"
       type="button"
-      class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-[11px] font-semibold text-txt-low uppercase hover:bg-elev hover:text-txt-hi"
+      class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-low hover:bg-elev hover:text-txt-hi"
       :aria-label="t('subjects.row.releaseAria', { title: subject.title })"
       data-test-id="subject-release"
       @click="emit('release', subject)"
