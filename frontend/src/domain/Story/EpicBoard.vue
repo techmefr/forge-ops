@@ -120,7 +120,7 @@ onMounted(async () => {
             :key="name"
             type="button"
             :aria-pressed="name === ownership"
-            class="rounded-md px-3 py-2 text-xs font-semibold"
+            class="min-w-10 rounded-md px-3 py-2 text-xs font-semibold"
             :class="name === ownership ? 'bg-acc text-ink' : 'bg-card text-txt-mid hover:bg-elev'"
             @click="ownership = name"
           >
