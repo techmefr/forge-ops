@@ -10,6 +10,7 @@ All notable changes to this project are documented here. The format follows [Kee
 - Automatic Done: when the last step passes, the card closes, the branch is pushed and a pull request or merge request is opened. Auto-merge is a separate switch, off by default. Settings are per project (`GET`/`PUT /api/projects/:id/autopilot`, project admin) and the Forge screen has an `auto` badge, with `Paused` and `Red` reasons on the card.
 - Guardrail registration on an external project checkout: `npm run guardrails:install -- <checkout>` and `POST /api/projects/:id/guardrails`. The step prompts carry the doctrine from the project, else from the forge-ops install.
 - A story worktree is opened when a card enters an agent step.
+- Story worktrees carry the PostToolUse hook: the local settings file is copied into each worktree, so file touches are recorded there, and the guardrails installer ignores it through .git/info/exclude so the board token never reaches a commit.
 - `DELETE /api/stories/:id/talk` stops the Claude process and keeps the cost of the turn.
 
 ### Changed

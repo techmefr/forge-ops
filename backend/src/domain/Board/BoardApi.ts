@@ -36,7 +36,7 @@ import { createHumanGateApi } from '../Story/HumanGateApi.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
 import type { CascadeStep } from '../Checkpoint/ReviewCascade.js'
 import { mapApiError } from './ApiErrorMap.js'
-import { isConfinedPath } from '../File/ConfinedPath.js'
+import { isConfinedPath, relativeToDirectory } from '../File/ConfinedPath.js'
 import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
 import { attentionOf, daysLeft, nextMilestone } from './CardAttention.js'
 import type { StoryHold } from '../Discussion/Discussion.js'
@@ -80,6 +80,7 @@ const stateWithClaimSchema = z.enum(MANUAL_EPIC_STATES).optional()
 const hookPayloadSchema = z.object({
   session_id: z.string().min(1),
   hook_event_name: z.string().min(1),
+  cwd: z.string().nullish(),
   tool_name: z.string().nullish(),
   tool_input: z.object({ file_path: z.string().nullish() }).passthrough().nullish(),
 })
@@ -283,7 +284,8 @@ export function createBoardApi({
     if (agentSessions.findByClaudeSessionId(hook.session_id) !== null) {
       agentSessions.recordHeartbeat(hook.session_id)
     }
-    const path = hook.tool_input?.file_path
+    const reported = hook.tool_input?.file_path
+    const path = typeof reported === 'string' ? relativeToDirectory(reported, hook.cwd) : reported
     const touchesAFile =
       hook.hook_event_name === 'PostToolUse' &&
       hook.tool_name !== null &&

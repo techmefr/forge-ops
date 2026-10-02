@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'no
 import { dirname, join, resolve } from 'node:path'
 import { buildHookSettings } from '../Auth/HookSettings.js'
 import { guardrailHookFiles } from './GuardrailRegistration.js'
+import { excludeLocalFiles } from './LocalSettings.js'
 
 export class GuardrailInstallRefusedError extends Error {
   constructor(reason: string) {
@@ -19,6 +20,7 @@ export type GuardrailInstallInput = {
 export type GuardrailInstallResult = {
   settingsPath: string
   localSettingsPath: string | null
+  excludeFile: string | null
 }
 
 type Settings = Record<string, unknown>
@@ -86,11 +88,12 @@ export function installGuardrails({ checkout, forgeRoot, hook }: GuardrailInstal
     { matcher: SCOPE_MATCHER, hooks: [commandHook(forgeRoot, 'ScopeHook.ts')] },
   ])
   write(settingsPath, shared)
+  const excludeFile = excludeLocalFiles(root)
   if (hook === undefined) {
-    return { settingsPath, localSettingsPath: null }
+    return { settingsPath, localSettingsPath: null, excludeFile }
   }
   const localSettingsPath = join(root, '.claude', 'settings.local.json')
   const postHooks = (buildHookSettings(hook).hooks as Settings).PostToolUse as HookEntry[]
   write(localSettingsPath, withHooks(readSettings(localSettingsPath), 'PostToolUse', postHooks))
-  return { settingsPath, localSettingsPath }
+  return { settingsPath, localSettingsPath, excludeFile }
 }
