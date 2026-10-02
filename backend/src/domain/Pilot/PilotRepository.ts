@@ -2,6 +2,7 @@ import type Database from 'better-sqlite3'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import {
   LIVE_STATES,
+  type DestinationGuard,
   type PilotAct,
   type PilotDriver,
   type PilotObservation,
@@ -10,6 +11,7 @@ import {
   type PilotRunState,
   type PilotStep,
 } from './Pilot.js'
+import type { DestinationPolicy } from './PilotDestination.js'
 import { checkDestination, checkScript } from './PilotScript.js'
 import {
   PilotBrowserLostError,
@@ -35,7 +37,8 @@ export type PilotRepository = {
 
 export type PilotRepositoryInput = {
   stories: StoryRepository
-  openDriver: () => PilotDriver
+  openDriver: (guard: DestinationGuard) => PilotDriver
+  destinations?: DestinationPolicy
 }
 
 type RunRow = {
@@ -89,7 +92,7 @@ function toAct(row: ActRow): PilotAct {
 
 export function createPilotRepository(
   db: Database.Database,
-  { stories, openDriver }: PilotRepositoryInput,
+  { stories, openDriver, destinations }: PilotRepositoryInput,
 ): PilotRepository {
   const drivers = new Map<number, PilotDriver>()
   const insertRun = db.prepare<[number, string, string, string]>(
@@ -188,12 +191,22 @@ export function createPilotRepository(
       const story = stories.findStory(order.storyId)
       const url = checkDestination(order.url)
       const script = checkScript(order.script)
+      if (destinations !== undefined) {
+        await destinations.assertAllowed(url, order.storyId)
+        for (const step of script) {
+          if (step.kind === 'goto') {
+            await destinations.assertAllowed(step.target ?? '', order.storyId)
+          }
+        }
+      }
       if (selectLiveForStory.get(order.storyId) !== undefined) {
         throw new PilotRunAlreadyLiveError(story.reference)
       }
       const written = insertRun.run(order.storyId, url, order.pace, JSON.stringify(script))
       const runId = Number(written.lastInsertRowid)
-      const driver = openDriver()
+      const driver = openDriver((target) =>
+        destinations === undefined ? Promise.resolve(true) : destinations.isAllowed(target, order.storyId),
+      )
       drivers.set(runId, driver)
       await driver.open(url, order.pace)
       return reload(runId)
@@ -209,6 +222,9 @@ export function createPilotRepository(
       let outcome: PilotAct['outcome'] = 'passed'
       let seen: PilotObservation
       try {
+        if (destinations !== undefined && step.kind === 'goto') {
+          await destinations.assertAllowed(step.target ?? '', run.storyId)
+        }
         seen = await driver.perform(step)
         if (seen.consoleErrors.length > 0) {
           outcome = 'failed'
