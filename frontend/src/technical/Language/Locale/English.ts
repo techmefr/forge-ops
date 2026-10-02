@@ -1251,6 +1251,12 @@ export const ENGLISH = {
     createAccount: 'Create the account',
     enter: 'Enter',
   },
+  getStarted: {
+    label: 'Getting started',
+    project: 'Create a project',
+    workflow: 'Define the steps',
+    story: 'Add a story',
+  },
   emptyState: {
     title: 'No project yet',
     body: 'Create your first project to start dispatching stories, or check the workflow configuration first.',

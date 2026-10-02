@@ -17,12 +17,15 @@ const say = usePhrase()
 </script>
 
 <template>
-  <p v-if="pending" class="text-xs text-txt-low">
-    {{ t('common.loading') }}
-  </p>
+  <div v-if="pending" class="flex flex-col gap-3" role="status" data-test-id="screen-loading">
+    <span class="h-4 w-1/3 animate-pulse rounded-sm bg-elev" aria-hidden="true" />
+    <span class="h-16 w-full animate-pulse rounded-md bg-elev" aria-hidden="true" />
+    <span class="h-16 w-full animate-pulse rounded-md bg-elev" aria-hidden="true" />
+    <span class="text-xs text-txt-mid">{{ t('common.loading') }}</span>
+  </div>
   <div
     v-else-if="failure !== null"
-    class="rounded-2xl bg-red-soft/10 p-5"
+    class="card border-red p-6"
     role="alert"
   >
     <p class="text-xs text-red">
@@ -37,6 +40,12 @@ const say = usePhrase()
       {{ t('common.retry') }}
     </button>
   </div>
-  <p v-else-if="empty" class="text-sm text-txt-low">{{ t(emptyKey) }}</p>
+  <p
+    v-else-if="empty"
+    class="rounded-md border border-dashed border-line px-4 py-8 text-center text-sm text-txt-mid"
+    data-test-id="screen-empty"
+  >
+    {{ t(emptyKey) }}
+  </p>
   <slot v-else />
 </template>

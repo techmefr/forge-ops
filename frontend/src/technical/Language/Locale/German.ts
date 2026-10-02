@@ -1264,6 +1264,12 @@ export const GERMAN: Message = {
     createAccount: 'Das Konto anlegen',
     enter: 'Eintreten',
   },
+  getStarted: {
+    label: 'Erste Schritte',
+    project: 'Projekt anlegen',
+    workflow: 'Schritte festlegen',
+    story: 'Story hinzufügen',
+  },
   emptyState: {
     title: 'Noch kein Projekt',
     body: 'Lege dein erstes Projekt an, um Stories zu verteilen, oder pruefe zuerst die Workflow-Konfiguration.',
