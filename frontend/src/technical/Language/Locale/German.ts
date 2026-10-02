@@ -787,7 +787,7 @@ export const GERMAN: Message = {
     processor: 'Prozessor',
     memoryUsed: 'Belegter Speicher',
     memoryFree: 'Freier Speicher',
-    disk: 'Festplatte',
+    disk: 'Platte',
     load1: 'Last, 1 Min',
     megabytes: '{value} MB',
     estimateTitle: 'Schätzung vor dem Start einer Charge',
@@ -812,7 +812,7 @@ export const GERMAN: Message = {
     mute: 'Maschine stumm',
     cpu: 'CPU',
     ram: 'RAM',
-    disk: 'PLATTE',
+    disk: 'Platte',
     gigabytes: '{used} / {total} GB',
   },
   statistic: {
@@ -1308,7 +1308,7 @@ export const GERMAN: Message = {
   visit: {
     dismiss: "Schließen",
     title: 'Live-Demo',
-    body: 'Dies ist ein Demo-Board mit Beispieldaten. Ihre Änderungen bleiben in diesem Tab und bleiben beim Neuladen bis zum Zurücksetzen erhalten, die Agenten sind simuliert. Installieren Sie das Board, um es wirklich zu betreiben.',
+    body: 'Demo-Board mit Beispieldaten. Änderungen bleiben in diesem Tab, bis Sie die Demo zurücksetzen. Die Agenten sind simuliert.',
     reset: 'Demo zurücksetzen',
     readOnly: 'Diese Aktion ist in der Demo nur lesbar. Installieren Sie das Board, um sie wirklich zu nutzen.',
     source: 'Das Repository',

@@ -808,7 +808,7 @@ export const FRENCH: Message = {
     mute: 'machine muette',
     cpu: 'CPU',
     ram: 'RAM',
-    disk: 'DISQUE',
+    disk: 'Disque',
     gigabytes: '{used} / {total} Go',
   },
   statistic: {
@@ -1305,7 +1305,7 @@ export const FRENCH: Message = {
   visit: {
     dismiss: "Fermer",
     title: 'Démo interactive',
-    body: 'Ceci est un board de démonstration sur des données d’exemple. Vos changements restent dans cet onglet et sont conservés au rechargement jusqu’à la réinitialisation, les agents sont simulés. Installez le board pour le lancer pour de vrai.',
+    body: 'Tableau de démonstration avec des données d’exemple. Vos changements restent dans cet onglet jusqu’à la réinitialisation. Les agents sont simulés.',
     reset: 'Réinitialiser',
     readOnly: 'Cette action est en lecture seule dans la démo. Installez le board pour l’utiliser pour de vrai.',
     source: 'Le dépôt',

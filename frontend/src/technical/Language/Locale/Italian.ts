@@ -811,7 +811,7 @@ export const ITALIAN: Message = {
     mute: 'macchina muta',
     cpu: 'CPU',
     ram: 'RAM',
-    disk: 'DISCO',
+    disk: 'Disco',
     gigabytes: '{used} / {total} GB',
   },
   statistic: {
@@ -1307,7 +1307,7 @@ export const ITALIAN: Message = {
   visit: {
     dismiss: "Chiudi",
     title: 'Demo interattiva',
-    body: 'Questa è una bacheca dimostrativa con dati di esempio. Le tue modifiche restano in questa scheda e restano dopo il ricaricamento fino al ripristino, gli agenti sono simulati. Installa il board per usarlo davvero.',
+    body: 'Board dimostrativa con dati di esempio. Le modifiche restano in questa scheda finché non reimposti la demo. Gli agenti sono simulati.',
     reset: 'Reimposta demo',
     readOnly: 'Questa azione è di sola lettura nella demo. Installa il board per usarla davvero.',
     source: 'Il repository',

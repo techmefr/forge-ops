@@ -802,7 +802,7 @@ export const CHINESE: Message = {
     mute: '机器无响应',
     cpu: 'CPU',
     ram: 'RAM',
-    disk: 'DISK',
+    disk: '磁盘',
     gigabytes: '{used} / {total} GB',
   },
   statistic: {
@@ -1297,7 +1297,7 @@ export const CHINESE: Message = {
   visit: {
     dismiss: "关闭",
     title: '在线演示',
-    body: '这是一个使用示例数据的演示看板。你的更改只保留在此浏览器标签页中，刷新后仍会保留，直到你重置演示；其中的智能体均为模拟。安装看板即可真正使用。',
+    body: '示例数据的演示看板。更改保留在此标签页中，直到重置演示。代理为模拟运行。',
     reset: '重置演示',
     readOnly: '此操作在演示中为只读。安装看板即可真正使用。',
     source: '仓库',

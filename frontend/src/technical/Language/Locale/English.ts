@@ -800,7 +800,7 @@ export const ENGLISH = {
     mute: 'machine silent',
     cpu: 'CPU',
     ram: 'RAM',
-    disk: 'DISK',
+    disk: 'Disk',
     gigabytes: '{used} / {total} GB',
   },
   statistic: {
@@ -1295,7 +1295,7 @@ export const ENGLISH = {
   visit: {
     dismiss: "Dismiss",
     title: 'Live demo',
-    body: 'This is a demonstration board on sample data. Your changes stay in this browser tab and are kept across reloads until you reset the demo, and the agents are simulated. Install the board to run it for real.',
+    body: 'Demo board with sample data. Changes stay in this browser tab until you reset the demo. The agents are simulated.',
     reset: 'Reset demo',
     readOnly: 'This action is read-only in the demo. Install the board to use it for real.',
     source: 'The repository',
