@@ -188,7 +188,7 @@ onMounted(async () => {
             <p class="mt-2 line-clamp-3 text-sm text-txt-mid">{{ epic.businessIntent }}</p>
           </button>
 
-          <div class="mt-3 flex items-center gap-3 border-t border-line pt-3">
+          <div class="mt-3 flex items-center gap-3 border-t border-hair pt-3">
             <span class="font-mono text-xs text-txt-low">{{
               t('epic.storyCount', { count: epic.storyCount }, epic.storyCount)
             }}</span>

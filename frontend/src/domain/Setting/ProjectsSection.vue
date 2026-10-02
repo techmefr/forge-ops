@@ -60,7 +60,7 @@ void users.reload()
 </script>
 
 <template>
-  <section class="flex flex-col gap-4 border-t border-line pt-6" data-tour="setting-projects">
+  <section class="flex flex-col gap-4 border-t border-hair pt-6" data-tour="setting-projects">
     <div class="flex flex-wrap items-center gap-3">
       <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('team.projects') }}</h2>
       <EffectBadge section="projects" />

@@ -33,7 +33,7 @@ onMounted(() => void state.load())
 <template>
   <section
     v-if="state.autopilot.value !== null"
-    class="flex flex-col gap-2 border-b border-line pb-3"
+    class="flex flex-col gap-2 border-b border-hair pb-3"
     data-test="autopilot-section"
   >
     <h3 class="m-0 text-xs text-txt-hi">{{ t('autopilot.title') }}</h3>

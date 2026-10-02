@@ -133,7 +133,7 @@ onMounted(async () => {
           <article
             v-for="incident in incidents.data.value ?? []"
             :key="incident.id"
-            class="rounded-lg border border-line bg-card p-4"
+            class="rounded-lg bg-card p-4"
           >
             <div class="flex flex-wrap items-center gap-3">
               <span class="text-xs text-txt-low">{{
@@ -179,7 +179,7 @@ onMounted(async () => {
               <button
                 type="button"
                 :disabled="busy"
-                class="rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid disabled:opacity-40"
+                class="rounded-lg bg-elev px-3 py-2 text-xs font-bold text-txt-mid disabled:opacity-40"
                 @click="refuse(incident)"
               >
                 {{ t('common.refuse') }}

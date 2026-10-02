@@ -63,7 +63,7 @@ function broken(link: LinkDraft): boolean {
       />
       <button
         type="button"
-        class="flex-none rounded-md border border-line px-2.5 py-1.5 text-sm text-txt-mid hover:bg-elev"
+        class="flex-none rounded-md px-2.5 py-1.5 text-sm text-txt-mid hover:bg-elev"
         :aria-label="t('subjects.form.linkRemove', { position: index + 1 })"
         @click="remove(index)"
       >
@@ -73,7 +73,7 @@ function broken(link: LinkDraft): boolean {
     <div>
       <button
         type="button"
-        class="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev"
+        class="rounded-md px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev"
         data-test-id="form-link-add"
         @click="add"
       >

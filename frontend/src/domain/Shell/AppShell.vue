@@ -125,7 +125,7 @@ watch(
       {{ t('shell.skipToContent') }}
     </a>
     <header
-      class="flex flex-none flex-wrap items-stretch gap-x-3 border-b border-line bg-panel px-4 sm:gap-x-6 sm:px-6 lg:flex-nowrap"
+      class="flex flex-none flex-wrap items-stretch gap-x-3 border-b border-hair bg-panel px-4 sm:gap-x-6 sm:px-6 lg:flex-nowrap"
     >
       <div class="flex flex-none items-center gap-3 py-3 sm:py-4">
         <p class="title-face text-base leading-none">Forge<span class="text-acc">.</span>ops</p>
@@ -158,7 +158,7 @@ watch(
 
     <section
       aria-labelledby="page-heading"
-      class="sticky top-0 z-40 flex flex-wrap items-center gap-3 border-b border-line bg-panel/80 px-4 py-3 backdrop-blur sm:gap-4 sm:px-8 sm:py-3"
+      class="sticky top-0 z-40 flex flex-wrap items-center gap-3 border-b border-hair bg-panel/80 px-4 py-3 backdrop-blur sm:gap-4 sm:px-8 sm:py-3"
     >
       <div class="min-w-0 flex-[1_1_240px]" data-tour="shell-heading">
         <div class="flex items-baseline gap-2.5">

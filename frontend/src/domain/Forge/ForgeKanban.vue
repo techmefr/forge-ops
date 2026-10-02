@@ -95,7 +95,7 @@ function dragging(card: ForgeCardView, on: boolean): void {
       @dragleave="overKey === step.key && (overKey = null)"
       @drop="drop(step, $event)"
     >
-      <header class="sticky top-0 z-10 flex flex-col gap-0.5 border-b border-line bg-panel px-3 py-2.5">
+      <header class="sticky top-0 z-10 flex flex-col gap-0.5 border-b border-hair bg-panel px-3 py-2.5">
         <div class="flex items-center gap-2">
           <span
             class="h-2 w-2 flex-none rounded-full"
@@ -105,7 +105,7 @@ function dragging(card: ForgeCardView, on: boolean): void {
           <h3 class="m-0 min-w-0 flex-1 truncate text-sm font-semibold text-txt-hi">{{ step.label }}</h3>
           <span
             v-if="step.auto"
-            class="rounded-md border border-line px-1.5 font-mono text-xs text-txt-mid"
+            class="rounded-md px-1.5 font-mono text-xs text-txt-mid"
             :title="t('forge.autoHint')"
             >{{ t('forge.auto') }}</span
           >

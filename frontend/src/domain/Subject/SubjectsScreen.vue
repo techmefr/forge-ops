@@ -362,7 +362,7 @@ onMounted(() => {
       <div class="grid flex-none grid-cols-[minmax(0,1fr)] items-start gap-4 min-[760px]:grid-cols-[232px_1fr] min-[760px]:gap-8">
         <div
           ref="peopleRoot"
-          class="relative flex min-w-0 flex-row gap-0.5 overflow-x-auto border-b border-line pb-2 min-[760px]:flex-col min-[760px]:overflow-x-visible min-[760px]:border-r min-[760px]:border-b-0 min-[760px]:pr-4 min-[760px]:pb-0"
+          class="relative flex min-w-0 flex-row gap-0.5 overflow-x-auto border-b border-hair pb-2 min-[760px]:flex-col min-[760px]:overflow-x-visible min-[760px]:border-r min-[760px]:border-b-0 min-[760px]:pr-4 min-[760px]:pb-0"
           role="group"
           :aria-label="t('subjects.teamAria')"
           data-test-id="subjects-people"
@@ -446,7 +446,7 @@ onMounted(() => {
         </div>
 
         <section class="min-w-0" :aria-label="heading">
-          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-2">
+          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-hair pb-2">
             <h2 class="title-face text-sm text-txt-hi" data-test-id="list-title">{{ heading }}</h2>
             <p class="text-xs text-txt-low" aria-live="polite" data-test-id="list-summary">{{ summary }}</p>
           </div>

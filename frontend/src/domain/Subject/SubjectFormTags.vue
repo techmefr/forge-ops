@@ -108,7 +108,7 @@ async function add(): Promise<void> {
       <button
         type="button"
         :disabled="busy"
-        class="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev disabled:opacity-40"
+        class="rounded-md px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev disabled:opacity-40"
         data-test-id="form-tag-add"
         @click="add"
       >

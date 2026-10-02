@@ -202,7 +202,7 @@ function createLabel(name: string): string {
         tabindex="-1"
         :disabled="disabled"
         :aria-label="t('projectPicker.toggle')"
-        class="-ml-px max-sm:min-w-10 rounded-r-md border border-line px-2 text-txt-mid hover:bg-elev disabled:opacity-60"
+        class="-ml-px max-sm:min-w-10 rounded-r-md px-2 text-txt-mid hover:bg-elev disabled:opacity-60"
         @mousedown.prevent
         @click="toggle"
       >
@@ -226,7 +226,7 @@ function createLabel(name: string): string {
         role="option"
         :aria-selected="isSelected(option)"
         class="flex cursor-pointer items-center gap-2 px-2.5 py-1.5 text-sm text-txt-hi"
-        :class="[ index === active ? 'bg-line' : '', option.kind === 'create' ? 'border-t border-line text-acc' : '', ]"
+        :class="[ index === active ? 'bg-line' : '', option.kind === 'create' ? 'border-t border-hair text-acc' : '', ]"
         :data-test-id="`project-option-${optionKey(option)}`"
         @mouseenter="active = index"
         @click="choose(option)"

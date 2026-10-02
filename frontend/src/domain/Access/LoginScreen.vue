@@ -174,7 +174,7 @@ useRefusalFocus(refusal, signForm)
   <div class="mx-auto max-w-md p-8">
     <section
       v-if="mode.data.value?.mode === 'local' && (mode.data.value?.localTrusted !== true || autologinFailed)"
-      class="rounded-lg border border-line bg-card p-6"
+      class="rounded-lg bg-card p-6"
     >
       <p class="title-face text-[22px]">{{ t('access.enterBoard') }}</p>
       <p class="mt-1 text-xs text-txt-low">{{ t('access.tokenHint') }}</p>
@@ -208,7 +208,7 @@ useRefusalFocus(refusal, signForm)
 
     <section
       v-else-if="mode.data.value?.mode !== 'local'"
-      class="rounded-lg border border-line bg-card p-6"
+      class="rounded-lg bg-card p-6"
     >
       <p class="title-face text-[22px]">
         {{
@@ -298,7 +298,7 @@ useRefusalFocus(refusal, signForm)
           v-for="provider in providers"
           :key="provider"
           type="button"
-          class="rounded-lg border border-line bg-elev px-4 py-2.5 text-center text-xs font-bold text-txt-hi"
+          class="rounded-lg bg-elev px-4 py-2.5 text-center text-xs font-bold text-txt-hi"
           @click="continueWith(provider)"
         >
           {{ t('access.continueWith', { provider: labelOf(provider) }) }}

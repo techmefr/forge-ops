@@ -198,7 +198,7 @@ onBeforeUnmount(() => {
     <div class="mt-1 flex flex-wrap items-center gap-2">
       <button
         type="button"
-        class="rounded-lg border border-line bg-card px-3 py-2 text-xs font-bold text-txt-mid disabled:opacity-40"
+        class="rounded-lg bg-card px-3 py-2 text-xs font-bold text-txt-mid disabled:opacity-40"
         :disabled="tour.first.value"
         @click="tour.goBack()"
       >
@@ -213,7 +213,7 @@ onBeforeUnmount(() => {
       </button>
       <button
         type="button"
-        class="ml-auto rounded-lg border border-line bg-card px-3 py-2 text-xs font-bold text-txt-low"
+        class="ml-auto rounded-lg bg-card px-3 py-2 text-xs font-bold text-txt-low"
         @click="leave()"
       >
         {{ t('tour.skip') }}

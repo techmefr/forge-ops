@@ -58,7 +58,7 @@ function start(event: DragEvent): void {
 
 <template>
   <li
-    class="flex flex-col gap-1.5 border-b border-line px-3 py-2.5 last:border-b-0"
+    class="flex flex-col gap-1.5 border-b border-hair px-3 py-2.5 last:border-b-0"
     :class="[draggable ? 'cursor-grab' : '', busy ? 'opacity-60' : '']"
     :draggable="draggable"
     :aria-busy="busy"
@@ -99,7 +99,7 @@ function start(event: DragEvent): void {
     <div class="flex items-center gap-1">
       <button
         type="button"
-        class="h-7 w-7 rounded-md border border-line bg-transparent text-txt-mid hover:bg-elev disabled:opacity-30 max-sm:h-10 max-sm:w-10"
+        class="h-7 w-7 rounded-md bg-transparent text-txt-mid hover:bg-elev disabled:opacity-30 max-sm:h-10 max-sm:w-10"
         :disabled="previous === null || busy"
         :aria-label="previous === null ? t('forge.previous') : t('forge.moveTo', { title: card.title, step: previous.label })"
         @click="previous !== null && emit('move', previous.key)"
@@ -108,7 +108,7 @@ function start(event: DragEvent): void {
       </button>
       <button
         type="button"
-        class="h-7 w-7 rounded-md border border-line bg-transparent text-txt-mid hover:bg-elev disabled:opacity-30 max-sm:h-10 max-sm:w-10"
+        class="h-7 w-7 rounded-md bg-transparent text-txt-mid hover:bg-elev disabled:opacity-30 max-sm:h-10 max-sm:w-10"
         :disabled="next === null || busy"
         :aria-label="next === null ? t('forge.next') : t('forge.moveTo', { title: card.title, step: next.label })"
         @click="next !== null && emit('move', next.key)"
@@ -119,7 +119,7 @@ function start(event: DragEvent): void {
       <button
         v-if="action !== null"
         type="button"
-        class="rounded-md border border-line bg-transparent px-2.5 py-1 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
+        class="rounded-md bg-transparent px-2.5 py-1 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
         :disabled="busy"
         @click="emit('act', action)"
       >

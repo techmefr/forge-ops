@@ -190,7 +190,7 @@ function closeWhenClosed(open: boolean): void {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-40 bg-deep/70" />
       <DialogContent
-        class="fixed inset-y-0 right-0 z-50 flex w-[min(540px,100vw)] flex-col gap-4 overflow-y-auto border-l border-line bg-panel p-5"
+        class="fixed inset-y-0 right-0 z-50 flex w-[min(540px,100vw)] flex-col gap-4 overflow-y-auto border-l border-hair bg-panel p-5"
         data-test-id="follow-up-drawer"
       >
         <div class="flex items-start gap-3">
@@ -275,11 +275,11 @@ function closeWhenClosed(open: boolean): void {
             <li
               v-for="risk in followUp.risks"
               :key="risk.id"
-              class="flex items-start gap-2 rounded-lg border border-line bg-card p-2.5"
+              class="flex items-start gap-2 rounded-lg bg-card p-2.5"
               :class="{ 'opacity-70': risk.closedOn !== null }"
               :data-test-id="`risk-${risk.id}`"
             >
-              <span class="flex-none rounded border border-line px-1.5 py-0.5 text-xs font-bold text-txt-hi">
+              <span class="flex-none rounded px-1.5 py-0.5 text-xs font-bold text-txt-hi">
                 {{ t(`riskLevel.${risk.level}`) }}
               </span>
               <div class="min-w-0 flex-1">
@@ -354,7 +354,7 @@ function closeWhenClosed(open: boolean): void {
             <li
               v-for="decision in followUp.decisions"
               :key="decision.id"
-              class="flex items-start gap-2 rounded-lg border border-line bg-card p-2.5"
+              class="flex items-start gap-2 rounded-lg bg-card p-2.5"
             >
               <span class="flex-none font-mono text-xs text-txt-mid">
                 {{ dayLabel(decision.decidedOn, locale, true) }}
@@ -404,7 +404,7 @@ function closeWhenClosed(open: boolean): void {
             <li
               v-for="event in sortedEvents"
               :key="event.id"
-              class="flex items-start gap-2 rounded-lg border border-line bg-card p-2.5"
+              class="flex items-start gap-2 rounded-lg bg-card p-2.5"
               :data-test-id="`event-${event.id}`"
             >
               <span class="flex-none text-xs font-bold" :class="EVENT_TONES[event.type].text">

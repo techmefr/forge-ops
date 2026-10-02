@@ -88,7 +88,7 @@ onMounted(() => void state.load())
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-40 bg-deep/70" />
       <DialogContent
-        class="fixed top-0 right-0 z-50 flex h-dvh w-full flex-col gap-3 overflow-y-auto border-l border-line bg-panel px-6 py-4 min-[760px]:w-[min(560px,100vw)]"
+        class="fixed top-0 right-0 z-50 flex h-dvh w-full flex-col gap-3 overflow-y-auto border-l border-hair bg-panel px-6 py-4 min-[760px]:w-[min(560px,100vw)]"
         ref="drawerEl"
         data-test="workflow-drawer"
       >
@@ -116,7 +116,7 @@ onMounted(() => void state.load())
         </p>
 
         <template v-if="state.workflow.value !== null">
-          <p class="m-0 border-b border-line pb-2 font-mono text-xs text-txt-low">
+          <p class="m-0 border-b border-hair pb-2 font-mono text-xs text-txt-low">
             {{ t('workflowSettings.backlogFixed') }}
           </p>
 
@@ -167,14 +167,14 @@ onMounted(() => void state.load())
             <button
               type="submit"
               :disabled="state.busy.value || newName.trim() === ''"
-              class="rounded-md border border-line px-3 py-1.5 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
+              class="rounded-md px-3 py-1.5 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
             >
               {{ t('workflowSettings.addStep') }}
             </button>
             <RequiredNote class="basis-full" />
           </form>
 
-          <p class="m-0 border-t border-line pt-2 font-mono text-xs text-txt-low">
+          <p class="m-0 border-t border-hair pt-2 font-mono text-xs text-txt-low">
             {{ t('workflowSettings.doneFixed') }}
           </p>
           <p class="m-0 text-xs text-txt-low">{{ t('workflowSettings.footnote') }}</p>

@@ -51,7 +51,7 @@ function remove(id: number): void {
       <li
         v-for="entry in picked"
         :key="entry.id"
-        class="inline-flex items-center gap-1.5 rounded-md border border-line px-2 py-1 text-xs text-txt-hi"
+        class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-txt-hi"
       >
         {{ entry.title }}
         <button
@@ -80,7 +80,7 @@ function remove(id: number): void {
       <button
         type="button"
         :disabled="chosen === ''"
-        class="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev disabled:opacity-40"
+        class="rounded-md px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev disabled:opacity-40"
         data-test-id="form-dependency-add"
         @click="add"
       >

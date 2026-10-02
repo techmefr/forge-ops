@@ -122,7 +122,7 @@ followUps.reload()
       >
         <button
           type="button"
-          class="flex min-h-10 w-full flex-col gap-1 border-b border-line px-1 py-2.5 text-left hover:bg-elev/60"
+          class="flex min-h-10 w-full flex-col gap-1 border-b border-hair px-1 py-2.5 text-left hover:bg-elev/60"
           :aria-describedby="panelId(entry)"
           @click="openFollowUp(entry)"
         >
@@ -151,7 +151,7 @@ followUps.reload()
         <div
           v-show="revealed === entry.project.id"
           :id="panelId(entry)"
-          class="absolute inset-x-0 top-full z-20 -mt-1 flex flex-col gap-1 rounded-md border border-line bg-panel px-3 py-2.5 text-xs text-txt-mid max-[760px]:hidden"
+          class="absolute inset-x-0 top-full z-20 -mt-1 flex flex-col gap-1 rounded-md bg-panel px-3 py-2.5 text-xs text-txt-mid max-[760px]:hidden"
           data-test-id="weather-panel"
         >
           <span v-if="alertLines(entry.followUp.alerts).length === 0">{{ t('followUp.panelNothing') }}</span>

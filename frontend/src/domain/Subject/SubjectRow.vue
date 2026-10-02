@@ -91,7 +91,7 @@ function changeState(event: Event): void {
 
 <template>
   <li
-    class="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-line/60 px-4 py-2.5 hover:bg-elev/60 min-[760px]:grid min-[760px]:grid-cols-[1fr_auto_auto_auto] min-[760px]:items-start min-[760px]:gap-x-4"
+    class="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-hair/60 px-4 py-2.5 hover:bg-elev/60 min-[760px]:grid min-[760px]:grid-cols-[1fr_auto_auto_auto] min-[760px]:items-start min-[760px]:gap-x-4"
     :data-test-id="`subject-row-${subject.id}`"
     @click="openFromClick"
   >
@@ -219,7 +219,7 @@ function changeState(event: Event): void {
     <button
       v-if="deleted"
       type="button"
-      class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-hi hover:bg-elev"
+      class="justify-self-start rounded-md px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-hi hover:bg-elev"
       :aria-label="t('subjects.row.restoreAria', { title: subject.title })"
       data-test-id="subject-restore"
       @click="emit('restore', subject)"
@@ -229,7 +229,7 @@ function changeState(event: Event): void {
     <button
       v-else-if="canTake"
       type="button"
-      class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-hi hover:bg-elev"
+      class="justify-self-start rounded-md px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-hi hover:bg-elev"
       :aria-label="`${t('subjects.row.take')}, ${subject.title}`"
       data-test-id="subject-take"
       @click="emit('take', subject)"
@@ -239,7 +239,7 @@ function changeState(event: Event): void {
     <button
       v-else-if="canRelease"
       type="button"
-      class="justify-self-start rounded-md border border-line px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-low hover:bg-elev hover:text-txt-hi"
+      class="justify-self-start rounded-md px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-low hover:bg-elev hover:text-txt-hi"
       :aria-label="t('subjects.row.releaseAria', { title: subject.title })"
       data-test-id="subject-release"
       @click="emit('release', subject)"

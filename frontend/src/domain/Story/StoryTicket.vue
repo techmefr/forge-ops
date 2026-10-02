@@ -40,7 +40,7 @@ const scoreColour = computed(() => {
       {{ t('ticket.partNotWritten', { part: t(`storyPart.${part}`) }) }}
     </p>
 
-    <header v-else class="border-t border-line pt-4">
+    <header v-else class="border-t border-hair pt-4">
       <div class="flex items-baseline gap-2">
         <span class="font-mono whitespace-nowrap text-xs font-semibold text-acc">{{ shown.reference }}</span>
         <span class="text-xs text-txt-low">{{
@@ -81,7 +81,7 @@ const scoreColour = computed(() => {
       </ul>
     </header>
 
-    <section class="border-t border-line pt-4">
+    <section class="border-t border-hair pt-4">
       <p class="text-xs text-txt-low">
         {{ t('ticket.criteria') }}
       </p>
@@ -114,7 +114,7 @@ const scoreColour = computed(() => {
       </ul>
     </section>
 
-    <section class="border-t border-line pt-4">
+    <section class="border-t border-hair pt-4">
       <p class="text-xs text-txt-low">
         {{ t('ticket.definitionOfDone') }}
       </p>

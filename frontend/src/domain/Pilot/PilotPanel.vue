@@ -49,7 +49,7 @@ function addDraft(): void {
 </script>
 
 <template>
-  <section class="rounded-lg border border-line bg-card p-4">
+  <section class="rounded-lg bg-card p-4">
     <div class="flex flex-wrap items-baseline gap-3">
       <p class="text-xs text-txt-low">
         {{ t('pilot.title') }}
@@ -70,7 +70,7 @@ function addDraft(): void {
     <template v-if="!live">
       <div
         v-if="desk.suggestion.value !== null"
-        class="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-line bg-elev p-3"
+        class="mt-3 flex flex-wrap items-center gap-3 rounded-lg bg-elev p-3"
       >
         <p class="flex-1 text-sm text-txt-mid">{{ suggestionReason(desk.suggestion.value) }}</p>
         <button
@@ -130,7 +130,7 @@ function addDraft(): void {
         />
         <button
           type="button"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid"
+          class="rounded-lg bg-elev px-3 py-2 text-xs font-bold text-txt-mid"
           @click="addDraft"
         >
           {{ t('pilot.addStep') }}
@@ -183,7 +183,7 @@ function addDraft(): void {
           v-if="desk.run.value?.state === 'running'"
           type="button"
           :disabled="desk.busy.value"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
+          class="rounded-lg bg-elev px-3 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
           @click="desk.pause()"
         >
           {{ t('pilot.pause') }}
@@ -200,7 +200,7 @@ function addDraft(): void {
         <button
           type="button"
           :disabled="desk.busy.value"
-          class="rounded-lg border border-line bg-elev px-3 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
+          class="rounded-lg bg-elev px-3 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
           @click="desk.inspect()"
         >
           {{ t('pilot.inspect') }}
@@ -221,7 +221,7 @@ function addDraft(): void {
       tabindex="0"
       role="region"
       :aria-label="t('pilot.sightDetail')"
-      class="mt-3 max-h-48 overflow-auto rounded-lg border border-line bg-elev p-3 font-mono text-xs whitespace-pre-wrap text-txt-mid"
+      class="mt-3 max-h-48 overflow-auto rounded-lg bg-elev p-3 font-mono text-xs whitespace-pre-wrap text-txt-mid"
       >{{ desk.sight.value.detail }}</pre
     >
 

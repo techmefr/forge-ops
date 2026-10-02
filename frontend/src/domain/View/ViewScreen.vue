@@ -56,7 +56,7 @@ onMounted(() => stories.reload())
 
 <template>
   <div class="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]">
-    <section class="min-h-0 overflow-auto border-b border-line p-5 lg:border-r lg:border-b-0">
+    <section class="min-h-0 overflow-auto border-b border-hair p-5 lg:border-r lg:border-b-0">
       <h2 class="title-face text-sm text-txt-mid">{{ t('view.sessionsToWatch') }}</h2>
       <ScreenState
         :pending="stories.pending.value"
@@ -96,7 +96,7 @@ onMounted(() => stories.reload())
           <PilotPanel :story-id="openStoryId" @proven="evidencePath = $event.evidencePath" />
         </div>
 
-        <form class="mt-5 border-t border-line pt-4" @submit.prevent="prove">
+        <form class="mt-5 border-t border-hair pt-4" @submit.prevent="prove">
           <p class="title-face text-sm text-txt-mid">{{ t('view.keepScreenshot') }}</p>
           <div class="mt-3 flex flex-wrap gap-3">
             <input
