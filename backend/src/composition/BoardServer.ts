@@ -38,6 +38,10 @@ import { createStoryPublisher } from '../technical/Git/StoryPublication.js'
 import { clearVerdictFile } from '../technical/Evidence/VerdictFile.js'
 import { createStepEntry } from '../domain/Dispatch/StepEntry.js'
 import { cleanUpAfterMerge } from '../domain/Deployment/MergeCleanup.js'
+import { projectTestCommand } from '../technical/Gate/ProjectTestCommand.js'
+import { createStoryInspection } from '../technical/Git/StoryInspection.js'
+import { writeEvidenceFile } from '../technical/Evidence/EvidenceFileWriter.js'
+import { createStepProver } from '../domain/Autopilot/StepProver.js'
 import { createCheckoutResolver, createProofGates } from './ProjectCheckout.js'
 import { createGitWorktree } from '../technical/Git/GitWorktree.js'
 import { createForemergeRepository } from '../domain/Foremerge/ForemergeRepository.js'
@@ -261,6 +265,8 @@ export function startBoardServer({
     testsDir,
     redCommand: process.env.FORGE_RED_TEST_COMMAND ?? DEFAULT_RED_TEST_COMMAND,
     mutationCommand: process.env.FORGE_MUTATION_TEST_COMMAND ?? DEFAULT_MUTATION_TEST_COMMAND,
+    mutationCommandOf: (root) =>
+      process.env.FORGE_MUTATION_TEST_COMMAND === undefined ? projectTestCommand(root) : null,
     cwdForStory,
   })
   const worktrees = createWorktreeRepository(db, {
@@ -567,6 +573,14 @@ export function startBoardServer({
     clearVerdict: clearVerdictFile,
     mover: forgeCardMover,
     closer: forgeCardCloser,
+    prover: createStepProver({
+      checkpoints: cascadeCheckpoints,
+      criteria: pilotCriteria,
+      inspection: createStoryInspection({ testCommandOf: (root) => projectTestCommand(root) }),
+      writeEvidence: writeEvidenceFile,
+      latestSessionOf: (storyId) => sessions.latestSessionOf(storyId),
+    }),
+    baseShaOf: (storyId) => worktrees.findForStory(storyId)?.baseSha ?? null,
     lastAgentMessage: (storyId) =>
       messages
         .listOfStory(storyId)

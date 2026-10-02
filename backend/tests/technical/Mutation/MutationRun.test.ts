@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { spawn } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -191,5 +191,22 @@ describe('runMutationCheck against a symlink', () => {
     expect(outcomes).toEqual([])
     expect(readFileSync(victim, 'utf-8')).toBe(SOURCE)
     rmSync(outside, { recursive: true, force: true })
+  })
+})
+
+describe('createCommandTestRunner environment', () => {
+  it('hides the server secrets from the command it runs', () => {
+    vi.stubEnv('FORGE_SUPER_ADMIN_PASSWORD', 'hunter2')
+    vi.stubEnv('FORGE_SETUP_TOKEN', 'setup-secret')
+    const leak = join(root, 'leak.txt')
+    const runTests = createCommandTestRunner({
+      command: `printenv FORGE_SUPER_ADMIN_PASSWORD FORGE_SETUP_TOKEN > '${leak}'; true`,
+      cwd: root,
+    })
+
+    runTests()
+
+    expect(readFileSync(leak, 'utf-8')).toBe('')
+    vi.unstubAllEnvs()
   })
 })

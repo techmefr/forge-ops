@@ -77,6 +77,7 @@ function promptFor(
   preprompt: string,
   doctrineText: string | null,
   brief: readonly string[],
+  proveByFile: boolean,
 ): string {
   const doctrine = contract.command.endsWith('.md')
     ? doctrineText === null
@@ -84,7 +85,7 @@ function promptFor(
       : `Follow this doctrine (${contract.command}):\n\n${doctrineText}\n`
     : `Use the command ${contract.command}.`
   const sections =
-    contract.proves === null
+    contract.proves === null || !proveByFile
       ? []
       : [
           `Prove ${contract.proves} with a file under .claude/evidence/${story.reference}/ whose section headings carry: ${EVIDENCE_SHAPE[contract.proves].join(', ')}.`,
@@ -274,6 +275,8 @@ export function createDispatcher({
               storyReference: story.reference,
               stepKey: step.key,
               proves: contract.proves,
+              phase: order.phase,
+              criteriaReferences: criteria.listCriteria(order.storyId).map((criterion) => criterion.reference),
               feedback: order.feedback,
             })
       const prompt = promptFor(
@@ -283,6 +286,7 @@ export function createDispatcher({
         step === null ? (configured?.preprompt ?? '') : step.preprompt,
         contract.command.endsWith('.md') ? doctrineFor(order.storyId, contract.command) : null,
         brief,
+        step === null || order.lens !== undefined,
       )
       const model = decision.model ?? (step === null || step.model === '' ? undefined : step.model)
       const stepSettings = {

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -71,5 +71,17 @@ describe('runRedReport', () => {
 
     expect(redVerdictOf(report).kind).toBe('uncollected')
     expect(report.files[0]?.message).toMatch(/interrompu/)
+  })
+
+  it('hides the server secrets from the command it runs', () => {
+    vi.stubEnv('FORGE_SUPER_ADMIN_PASSWORD', 'hunter2')
+    vi.stubEnv('FORGE_SETUP_TOKEN', 'setup-secret')
+    const report = runRedReport({
+      command: 'node -e "console.log(JSON.stringify({testResults:[{name:String(process.env.FORGE_SUPER_ADMIN_PASSWORD)+String(process.env.FORGE_SETUP_TOKEN),assertionResults:[]}]}))"',
+      cwd: root,
+    })
+
+    expect(report.files[0]?.name).toBe('undefinedundefined')
+    vi.unstubAllEnvs()
   })
 })

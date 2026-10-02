@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3'
 import { join } from 'node:path'
 import { allocatePort, DEFAULT_BASE_PORT, DEFAULT_PORT_RANGE } from '../../technical/Network/PortAllocator.js'
+import { GitCommandFailedError } from '../../technical/Git/GitWorktree.js'
 import { isPortBindable } from '../../technical/Network/PortProbe.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { branchNameFor, worktreeFolderFor } from './Branch.js'
@@ -173,11 +174,17 @@ export function createWorktreeRepository(
       }
       const repositoryRoot = checkoutOf?.(storyId)
       git.removeWorktree(live.path, repositoryRoot)
-      if (options.deleteBranch === true) {
-        git.deleteBranch(live.branch, repositoryRoot)
-      }
       releaseReservation.run(live.id)
       markRemoved.run(live.id)
+      if (options.deleteBranch === true) {
+        try {
+          git.deleteBranch(live.branch, repositoryRoot)
+        } catch (error) {
+          if (!(error instanceof GitCommandFailedError)) {
+            throw error
+          }
+        }
+      }
     },
 
     findForStory: (storyId) => {

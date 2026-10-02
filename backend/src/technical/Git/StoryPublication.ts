@@ -70,6 +70,17 @@ export function createStoryPublisher(run: CommandRunner = runCommand): StoryPubl
     }
   }
 
+  function unavailableNote(forge: 'github' | 'gitlab', cwd: string): string | null {
+    const cli = forge === 'github' ? 'gh' : 'glab'
+    try {
+      run(cli, ['auth', 'status'], cwd)
+      return null
+    } catch {
+      const noun = forge === 'github' ? 'pull' : 'merge'
+      return `${cli} is missing or not signed in, the branch is pushed: open the ${noun} request by hand`
+    }
+  }
+
   return {
     publish: (order) => {
       let remoteUrl: string
@@ -94,6 +105,10 @@ export function createStoryPublisher(run: CommandRunner = runCommand): StoryPubl
           mergeRequested: false,
           note: 'The remote is neither GitHub nor GitLab, open the merge request by hand',
         }
+      }
+      const unavailable = unavailableNote(forge, order.worktreePath)
+      if (unavailable !== null) {
+        return { branch: order.branch, pushed: true, requestUrl: null, mergeRequested: false, note: unavailable }
       }
       if (forge === 'github') {
         const created = attempt(

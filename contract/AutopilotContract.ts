@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { FINDING_SEVERITY_SEQUENCE } from './CheckpointContract.js'
 
 export type AutopilotSettings = {
   enabled: boolean
@@ -42,10 +43,48 @@ export const MAX_AUTO_TRANSITIONS = 40
 
 export const VERDICT_STATUSES = ['pass', 'fail', 'blocked'] as const
 
+export const MAX_VERDICT_FINDINGS = 50
+
+export const lensVerdictSchema = z
+  .object({
+    status: z.enum(['pass', 'fail']),
+    findings: z
+      .array(
+        z.object({
+          severity: z.enum(FINDING_SEVERITY_SEQUENCE),
+          path: z.string().min(1).max(300),
+          statement: z.string().min(1).max(1000),
+        }),
+      )
+      .max(MAX_VERDICT_FINDINGS)
+      .optional(),
+  })
+  .passthrough()
+
+export type LensVerdict = z.infer<typeof lensVerdictSchema>
+
+export const criterionVerdictSchema = z
+  .object({
+    reference: z.string().min(1).max(100),
+    status: z.enum(['met', 'unmet']),
+    evidence: z.string().min(1).max(300).optional(),
+  })
+  .passthrough()
+
+export type CriterionVerdict = z.infer<typeof criterionVerdictSchema>
+
 export const stepVerdictSchema = z
   .object({
     status: z.enum(VERDICT_STATUSES),
     reason: z.string().max(4000).optional(),
+    lenses: z
+      .object({
+        quality: lensVerdictSchema.optional(),
+        security: lensVerdictSchema.optional(),
+        accessibility: lensVerdictSchema.optional(),
+      })
+      .optional(),
+    criteria: z.array(criterionVerdictSchema).max(200).optional(),
   })
   .passthrough()
 

@@ -40,6 +40,7 @@ export type ProofGatesInput = {
   testsDir: string
   redCommand: string
   mutationCommand: string
+  mutationCommandOf?: (root: string) => string | null
   cwdForStory: (storyId: number) => string
 }
 
@@ -50,7 +51,14 @@ function requiredRoot(root: string | undefined): string {
   return root
 }
 
-export function createProofGates({ readEvidence, testsDir, redCommand, mutationCommand, cwdForStory }: ProofGatesInput) {
+export function createProofGates({
+  readEvidence,
+  testsDir,
+  redCommand,
+  mutationCommand,
+  mutationCommandOf,
+  cwdForStory,
+}: ProofGatesInput) {
   return {
     takeCensus: (root?: string) => censusOfTree(resolve(requiredRoot(root), testsDir)),
     readEvidence,
@@ -59,7 +67,10 @@ export function createProofGates({ readEvidence, testsDir, redCommand, mutationC
       runMutationCheck({
         paths,
         root: requiredRoot(root),
-        runTests: createCommandTestRunner({ command: mutationCommand, cwd: requiredRoot(root) }),
+        runTests: createCommandTestRunner({
+          command: mutationCommandOf?.(requiredRoot(root)) ?? mutationCommand,
+          cwd: requiredRoot(root),
+        }),
       }),
     checkoutOf: cwdForStory,
   }
