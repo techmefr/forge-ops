@@ -110,7 +110,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
   <div class="flex h-full min-h-0 flex-col p-8">
     <div class="flex flex-none flex-wrap items-end gap-3">
       <label class="flex flex-col gap-1">
-        <span class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">{{
+        <span class="text-xs text-txt-low">{{
           t('deployment.integrationBranch')
         }}</span>
         <input
@@ -119,23 +119,23 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
           class="rounded-lg border border-line bg-card px-3 py-2 text-sm text-txt-hi"
         />
       </label>
-      <p class="ml-auto font-mono text-[11px] text-txt-low">
+      <p class="ml-auto font-mono text-xs text-txt-low">
         {{ t('deployment.openWorktrees', { count: openCount }, openCount) }}
       </p>
     </div>
 
     <section v-if="conflicted.length > 0" class="mt-6 rounded-lg border border-red bg-card p-4">
-      <p class="font-mono text-[11px] tracking-[0.18em] text-red uppercase">
+      <p class="text-xs text-red">
         {{ t('deployment.mergeConflicts') }}
       </p>
       <ul class="mt-2 flex flex-col gap-2">
         <li v-for="story in conflicted" :key="story.id" class="flex items-center gap-3 text-sm">
-          <span class="font-mono whitespace-nowrap text-[11px] text-red">{{ story.reference }}</span>
+          <span class="font-mono whitespace-nowrap text-xs text-red">{{ story.reference }}</span>
           <span class="text-txt-hi">{{ story.title }}</span>
           <button
             type="button"
             :disabled="busy"
-            class="ml-auto rounded-lg border border-line bg-elev px-3 py-1.5 text-[11px] font-bold text-txt-mid uppercase disabled:opacity-40"
+            class="ml-auto rounded-lg border border-line bg-elev px-3 py-1.5 text-xs font-bold text-txt-mid disabled:opacity-40"
             @click="clearConflict(story)"
           >
             {{ t('deployment.conflictResolved') }}
@@ -167,16 +167,16 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
             class="border-t border-line pt-4"
           >
             <div class="flex items-center gap-3">
-              <span class="font-mono whitespace-nowrap text-[11px] font-semibold text-acc">{{ story.reference }}</span>
-              <span class="ml-auto font-mono text-[11px] text-txt-low uppercase">{{
+              <span class="font-mono whitespace-nowrap text-xs font-semibold text-acc">{{ story.reference }}</span>
+              <span class="ml-auto text-xs text-txt-low">{{
                 t(`state.${story.state}`)
               }}</span>
             </div>
             <h2 class="title-face mt-1 text-[22px]">{{ story.title }}</h2>
 
             <div v-if="worktreeOf(story.id) !== null" class="mt-3 rounded-lg border border-line bg-elev p-3">
-              <p class="font-mono text-[11px] text-txt-hi">{{ worktreeOf(story.id)?.branch }}</p>
-              <p class="mt-1 font-mono text-[11px] text-txt-low">
+              <p class="font-mono text-xs text-txt-hi">{{ worktreeOf(story.id)?.branch }}</p>
+              <p class="mt-1 font-mono text-xs text-txt-low">
                 {{
                   t('deployment.worktreeMeta', {
                     port: worktreeOf(story.id)?.port ?? '',
@@ -189,7 +189,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
                 <button
                   type="button"
                   :disabled="busy"
-                  class="rounded-lg border border-line bg-card px-2.5 py-1.5 text-[11px] font-bold text-txt-mid uppercase disabled:opacity-40"
+                  class="rounded-lg border border-line bg-card px-2.5 py-1.5 text-xs font-bold text-txt-mid disabled:opacity-40"
                   @click="closeWorktree(story, false)"
                 >
                   {{ t('common.close') }}
@@ -197,7 +197,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
                 <button
                   type="button"
                   :disabled="busy"
-                  class="rounded-lg border border-red bg-card px-2.5 py-1.5 text-[11px] font-bold text-red uppercase disabled:opacity-40"
+                  class="rounded-lg border border-red bg-card px-2.5 py-1.5 text-xs font-bold text-red disabled:opacity-40"
                   @click="closeWorktree(story, true)"
                 >
                   {{ t('deployment.forceClose') }}
@@ -208,14 +208,14 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
               v-else
               type="button"
               :disabled="busy"
-              class="mt-3 w-full rounded-lg border border-line bg-elev px-3 py-2 text-[11px] font-bold text-txt-mid uppercase disabled:opacity-40"
+              class="mt-3 w-full rounded-lg border border-line bg-elev px-3 py-2 text-xs font-bold text-txt-mid disabled:opacity-40"
               @click="openWorktree(story)"
             >
               {{ t('deployment.openBranch') }}
             </button>
 
             <div class="mt-4">
-              <p class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+              <p class="text-xs text-txt-low">
                 {{ t('deployment.featureFlag', { percent: story.rolloutPercent ?? 0 }) }}
               </p>
               <div class="mt-2 h-1.5 rounded bg-elev">
@@ -237,7 +237,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
                 <button
                   type="button"
                   :disabled="busy"
-                  class="rounded-lg border border-line bg-elev px-3 py-1.5 text-[11px] font-bold text-txt-mid uppercase disabled:opacity-40"
+                  class="rounded-lg border border-line bg-elev px-3 py-1.5 text-xs font-bold text-txt-mid disabled:opacity-40"
                   @click="rollOut(story)"
                 >
                   {{ t('deployment.deploy') }}
@@ -249,7 +249,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
               v-if="story.state !== 'done'"
               type="button"
               :disabled="busy"
-              class="mt-4 w-full rounded-lg border border-green bg-card px-3 py-2 text-[11px] font-bold text-green uppercase disabled:opacity-40"
+              class="mt-4 w-full rounded-lg border border-green bg-card px-3 py-2 text-xs font-bold text-green disabled:opacity-40"
               @click="markDone(story)"
             >
               {{ t('deployment.inProductionUnblock') }}
@@ -259,6 +259,6 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
       </ScreenState>
     </div>
 
-    <p v-if="refusal !== null" class="mt-4 text-[11px] text-red" role="alert">{{ say(refusal) }}</p>
+    <p v-if="refusal !== null" class="mt-4 text-xs text-red" role="alert">{{ say(refusal) }}</p>
   </div>
 </template>

@@ -295,7 +295,7 @@ onMounted(() => {
       role="search"
       :aria-label="t('subjects.toolbar.aria')"
     >
-      <div class="flex items-center gap-1.5 text-[11px] text-txt-low">
+      <div class="flex items-center gap-1.5 text-xs text-txt-low">
         <label for="subjects-project">{{ t('subjects.toolbar.project') }}</label>
         <div class="w-48">
           <ProjectPicker
@@ -309,7 +309,7 @@ onMounted(() => {
           />
         </div>
       </div>
-      <label class="flex items-center gap-1.5 text-[11px] text-txt-low" for="subjects-tag">
+      <label class="flex items-center gap-1.5 text-xs text-txt-low" for="subjects-tag">
         {{ t('subjects.toolbar.tag') }}
         <select
           id="subjects-tag"
@@ -333,7 +333,7 @@ onMounted(() => {
       />
       <button
         type="button"
-        class="ml-auto rounded-md bg-acc px-3 py-1.5 text-[11px] font-semibold text-ink uppercase"
+        class="ml-auto rounded-md bg-acc px-3 py-1.5 text-xs font-semibold text-ink"
         data-test-id="subjects-new"
         @click="creating = true"
       >
@@ -368,7 +368,7 @@ onMounted(() => {
           data-test-id="subjects-people"
           @keydown="moveWithArrows"
         >
-          <h2 class="hidden px-2.5 pb-1 text-[11px] tracking-wider text-txt-low uppercase min-[760px]:block">
+          <h2 class="hidden px-2.5 pb-1 text-xs text-txt-low min-[760px]:block">
             {{ t('subjects.views') }}
           </h2>
           <button
@@ -384,17 +384,17 @@ onMounted(() => {
             @click="select(view.key)"
           >
             <span
-              class="flex size-5 flex-none items-center justify-center rounded-full bg-elev text-[11px] font-semibold text-txt-hi"
+              class="flex size-5 flex-none items-center justify-center rounded-full bg-elev text-xs font-semibold text-txt-hi"
               :class="view.key === VIEW_LATE ? 'text-red' : 'text-txt-mid'"
               aria-hidden="true"
             >
               {{ view.glyph }}
             </span>
             <span class="flex-1 whitespace-nowrap">{{ view.label }}</span>
-            <span class="font-mono text-[11px] text-txt-low" :data-test-id="view.countId">{{ view.count }}</span>
+            <span class="font-mono text-xs text-txt-low" :data-test-id="view.countId">{{ view.count }}</span>
           </button>
 
-          <h2 class="hidden px-2.5 pt-4 pb-1 text-[11px] tracking-wider text-txt-low uppercase min-[760px]:block">
+          <h2 class="hidden px-2.5 pt-4 pb-1 text-xs text-txt-low min-[760px]:block">
             {{ t('subjects.team') }}
           </h2>
           <button
@@ -410,7 +410,7 @@ onMounted(() => {
             @click="select(row.person.login)"
           >
             <span
-              class="flex size-5 flex-none items-center justify-center rounded-full bg-elev text-[11px] font-semibold text-txt-mid"
+              class="flex size-5 flex-none items-center justify-center rounded-full bg-elev text-xs font-semibold text-txt-mid"
               aria-hidden="true"
             >
               {{ initialsOfLogin(row.person.displayName) }}
@@ -421,7 +421,7 @@ onMounted(() => {
               </span>
               <span
                 v-if="row.flags.late > 0 || row.flags.blocked > 0"
-                class="flex flex-wrap gap-x-2 text-[11px]"
+                class="flex flex-wrap gap-x-2 text-xs"
               >
                 <span v-if="row.flags.late > 0" class="whitespace-nowrap text-red" data-test-id="flag-late">
                   {{ t('subjects.flagLate', { count: row.flags.late }, row.flags.late) }}
@@ -432,7 +432,7 @@ onMounted(() => {
               </span>
             </span>
             <span
-              class="flex-none rounded-md px-1.5 py-0.5 font-mono text-[11px] font-semibold"
+              class="flex-none rounded-md px-1.5 py-0.5 font-mono text-xs font-semibold"
               :class="TONE_CLASSES[row.tone]"
               :title="loadDescription(row)"
               :data-tone="row.tone"
@@ -442,13 +442,13 @@ onMounted(() => {
               <span class="sr-only">{{ loadDescription(row) }}</span>
             </span>
           </button>
-          <p class="hidden px-2.5 pt-4 text-[11px] text-txt-low min-[760px]:block">{{ t('subjects.hint') }}</p>
+          <p class="hidden px-2.5 pt-4 text-xs text-txt-low min-[760px]:block">{{ t('subjects.hint') }}</p>
         </div>
 
         <section class="min-w-0" :aria-label="heading">
           <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line pb-2">
-            <h2 class="title-face text-[13px] text-txt-hi uppercase" data-test-id="list-title">{{ heading }}</h2>
-            <p class="text-[11px] text-txt-low" aria-live="polite" data-test-id="list-summary">{{ summary }}</p>
+            <h2 class="title-face text-sm text-txt-hi" data-test-id="list-title">{{ heading }}</h2>
+            <p class="text-xs text-txt-low" aria-live="polite" data-test-id="list-summary">{{ summary }}</p>
           </div>
           <div
             v-if="selection === VIEW_ALL"
@@ -460,7 +460,7 @@ onMounted(() => {
               v-for="option in SUBJECT_FILTERS"
               :key="option"
               type="button"
-              class="rounded-md px-2.5 py-1 text-[11px] font-semibold"
+              class="rounded-md px-2.5 py-1 text-xs font-semibold"
               :class="filter === option ? 'bg-elev text-txt-hi' : 'text-txt-low hover:bg-elev/60 hover:text-txt-mid'"
               :aria-pressed="filter === option"
               :data-test-id="`filter-${option}`"

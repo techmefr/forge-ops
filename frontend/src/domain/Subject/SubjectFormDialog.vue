@@ -218,10 +218,10 @@ onMounted(loadMilestone)
         data-test-id="subject-form-dialog"
         @escape-key-down="keepDialogWhileListboxOpen"
       >
-        <DialogTitle class="title-face text-[13px] text-txt-hi uppercase">
+        <DialogTitle class="title-face text-sm text-txt-hi">
           {{ t(editing ? 'subjects.form.editTitle' : 'subjects.form.newTitle') }}
         </DialogTitle>
-        <DialogDescription class="mt-1 text-[13px] text-txt-mid">
+        <DialogDescription class="mt-1 text-sm text-txt-mid">
           {{ t(editing ? 'subjects.form.editDescription' : 'subjects.form.description') }}
         </DialogDescription>
 
@@ -231,7 +231,7 @@ onMounted(loadMilestone)
           novalidate
           @submit.prevent="submit"
         >
-          <div class="flex flex-col gap-1 text-[13px] text-txt-mid min-[760px]:col-span-2" data-field="title">
+          <div class="flex flex-col gap-1 text-sm text-txt-mid min-[760px]:col-span-2" data-field="title">
             <label for="subject-form-title">{{ t('subjects.form.title') }} *</label>
             <input
               id="subject-form-title"
@@ -246,12 +246,12 @@ onMounted(loadMilestone)
               :aria-describedby="describedBy('title')"
               data-test-id="subject-form-title"
             />
-            <p v-if="messageOf('title') !== null" id="subject-form-title-error" class="text-[11px] text-red">
+            <p v-if="messageOf('title') !== null" id="subject-form-title-error" class="text-xs text-red">
               {{ t(messageOf('title') ?? '') }}
             </p>
           </div>
 
-          <div class="flex flex-col gap-1 text-[13px] text-txt-mid" data-field="project">
+          <div class="flex flex-col gap-1 text-sm text-txt-mid" data-field="project">
             <label for="subject-form-project">{{ t('subjects.form.project') }} *</label>
             <ProjectPicker
               id="subject-form-project"
@@ -263,15 +263,15 @@ onMounted(loadMilestone)
               test-id="subject-form-project"
               @created="emit('changed')"
             />
-            <p v-if="messageOf('project') !== null" id="subject-form-project-error" class="text-[11px] text-red">
+            <p v-if="messageOf('project') !== null" id="subject-form-project-error" class="text-xs text-red">
               {{ t(messageOf('project') ?? '') }}
             </p>
-            <p v-else class="text-[11px] text-txt-low">
+            <p v-else class="text-xs text-txt-low">
               {{ t(editing ? 'subjects.form.projectLocked' : 'subjects.form.projectHint') }}
             </p>
           </div>
 
-          <div class="flex flex-col gap-1 text-[13px] text-txt-mid">
+          <div class="flex flex-col gap-1 text-sm text-txt-mid">
             <label for="subject-form-owner">{{ t('subjects.form.owner') }}</label>
             <select
               id="subject-form-owner"
@@ -284,10 +284,10 @@ onMounted(loadMilestone)
                 {{ person.displayName }}
               </option>
             </select>
-            <p class="text-[11px] text-txt-low">{{ t('subjects.form.ownerHint') }}</p>
+            <p class="text-xs text-txt-low">{{ t('subjects.form.ownerHint') }}</p>
           </div>
 
-          <div class="flex flex-col gap-1 text-[13px] text-txt-mid">
+          <div class="flex flex-col gap-1 text-sm text-txt-mid">
             <label for="subject-form-priority">{{ t('subjects.form.priority') }}</label>
             <select
               id="subject-form-priority"
@@ -301,7 +301,7 @@ onMounted(loadMilestone)
             </select>
           </div>
 
-          <div class="flex flex-col gap-1 text-[13px] text-txt-mid" data-field="requestedBy">
+          <div class="flex flex-col gap-1 text-sm text-txt-mid" data-field="requestedBy">
             <label for="subject-form-requested-by">{{ t('subjects.form.requestedBy') }}</label>
             <input
               id="subject-form-requested-by"
@@ -315,7 +315,7 @@ onMounted(loadMilestone)
             />
           </div>
 
-          <div class="flex flex-col gap-1 text-[13px] text-txt-mid">
+          <div class="flex flex-col gap-1 text-sm text-txt-mid">
             <label for="subject-form-start">{{ t('subjects.form.start') }}</label>
             <input
               id="subject-form-start"
@@ -326,7 +326,7 @@ onMounted(loadMilestone)
             />
           </div>
 
-          <div class="flex flex-col gap-1 text-[13px] text-txt-mid" data-field="milestone">
+          <div class="flex flex-col gap-1 text-sm text-txt-mid" data-field="milestone">
             <label for="subject-form-milestone">{{ t('subjects.form.milestone') }}</label>
             <input
               id="subject-form-milestone"
@@ -338,10 +338,10 @@ onMounted(loadMilestone)
               :aria-describedby="describedBy('milestone')"
               data-test-id="subject-form-milestone"
             />
-            <p v-if="messageOf('milestone') !== null" id="subject-form-milestone-error" class="text-[11px] text-red">
+            <p v-if="messageOf('milestone') !== null" id="subject-form-milestone-error" class="text-xs text-red">
               {{ t(messageOf('milestone') ?? '') }}
             </p>
-            <p v-else class="text-[11px] text-txt-low">{{ t('subjects.form.milestoneHint') }}</p>
+            <p v-else class="text-xs text-txt-low">{{ t('subjects.form.milestoneHint') }}</p>
           </div>
 
           <div class="min-[760px]:col-span-2">
@@ -350,7 +350,7 @@ onMounted(loadMilestone)
 
           <div class="min-[760px]:col-span-2" data-field="links">
             <SubjectFormLinks v-model="form.links" describedby="subject-form-links-error" />
-            <p v-if="messageOf('links') !== null" id="subject-form-links-error" class="mt-1 text-[11px] text-red">
+            <p v-if="messageOf('links') !== null" id="subject-form-links-error" class="mt-1 text-xs text-red">
               {{ t(messageOf('links') ?? '') }}
             </p>
           </div>
@@ -364,7 +364,7 @@ onMounted(loadMilestone)
             />
           </div>
 
-          <div class="flex flex-col gap-1 text-[13px] text-txt-mid min-[760px]:col-span-2" data-field="note">
+          <div class="flex flex-col gap-1 text-sm text-txt-mid min-[760px]:col-span-2" data-field="note">
             <label for="subject-form-note">{{ t('subjects.form.note') }}</label>
             <textarea
               id="subject-form-note"
@@ -379,7 +379,7 @@ onMounted(loadMilestone)
             />
             <p
               id="subject-form-note-error"
-              class="text-[11px]"
+              class="text-xs"
               :class="invalid('note') ? 'text-red' : 'text-txt-low'"
             >
               {{ invalid('note') ? t(messageOf('note') ?? '') : t('subjects.form.noteCount', { count: form.note.length, limit: NOTE_LIMIT }) }}
@@ -408,7 +408,7 @@ onMounted(loadMilestone)
           <div class="flex flex-wrap items-center justify-end gap-2 min-[760px]:col-span-2">
             <button
               type="button"
-              class="rounded-md border border-line px-3 py-1.5 text-[11px] font-semibold text-txt-mid uppercase hover:bg-elev"
+              class="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev"
               data-test-id="subject-form-cancel"
               @click="leave"
             >
@@ -417,7 +417,7 @@ onMounted(loadMilestone)
             <button
               type="submit"
               :disabled="busy"
-              class="rounded-md bg-acc px-3 py-1.5 text-[11px] font-semibold text-ink uppercase disabled:opacity-40"
+              class="rounded-md bg-acc px-3 py-1.5 text-xs font-semibold text-ink disabled:opacity-40"
               data-test-id="subject-form-submit"
             >
               {{ t(editing ? 'subjects.form.save' : 'subjects.form.create') }}
