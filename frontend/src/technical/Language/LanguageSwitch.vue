@@ -21,7 +21,7 @@ function pick(event: Event): void {
     <select
       :id="fieldId"
       :value="language"
-      class="min-h-11 rounded-lg border border-line bg-card px-2.5 py-1.5 text-xs text-txt-hi sm:min-h-0"
+      class="min-h-10 rounded-lg border border-line bg-card px-2 py-1.5 text-xs text-txt-hi sm:min-h-0"
       @change="pick"
     >
       <option v-for="name in LANGUAGES" :key="name" :value="name">

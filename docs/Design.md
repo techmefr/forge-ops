@@ -157,3 +157,7 @@ A subject row shows the title, one status and the due date. The project, the own
 ### Roadmap timeline
 
 No page title that repeats the tab name. Event markers are 8px diamonds inside a 24px hit area (40px at 375). Markers whose hit areas would overlap are stacked on separate lanes, so two events one day apart never share a target. Only the next three events of a project carry a visible label; the others show it on hover or focus. Subject rows carry the bar only; their events live on the project band.
+
+### Phone header
+
+At 375 the chrome above the content stays under about 200px. The main navigation and the sub tabs are single rows that scroll sideways (no wrapping grid), the page subtitle is hidden, the title shares a line with the shell controls, the personal tally is one scrolling line, and the weather line scrolls sideways. The skip link stays the first focusable element and every target keeps 40px.

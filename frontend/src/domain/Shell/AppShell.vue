@@ -125,13 +125,13 @@ watch(
     <header
       class="flex flex-none flex-wrap items-stretch gap-x-3 bg-panel px-4 sm:gap-x-6 sm:px-6 lg:flex-nowrap"
     >
-      <div class="flex flex-none items-center gap-3 py-3 sm:py-4">
+      <div class="flex flex-none items-center gap-3 py-2 sm:py-4">
         <p class="title-face text-base leading-none">Forge<span class="text-acc">.</span>ops</p>
       </div>
       <nav
         ref="strip"
         data-tour="shell-pipeline"
-        class="scrollbar-none order-last grid basis-full grid-cols-2 gap-0.5 min-[480px]:grid-cols-4 lg:order-none lg:flex lg:min-w-0 lg:basis-auto lg:items-stretch lg:overflow-x-auto"
+        class="scrollbar-none order-last -mx-4 flex basis-full gap-0.5 overflow-x-auto px-4 sm:mx-0 sm:px-0 lg:order-none lg:min-w-0 lg:basis-auto lg:items-stretch"
         :aria-label="t('shell.pipeline')"
         @keydown="ride"
       >
@@ -141,12 +141,12 @@ watch(
           :to="screen.path"
           :aria-keyshortcuts="`Alt+Shift+${screen.digit}`"
           :title="t('shell.shortcut', { digit: screen.digit })"
-          class="flex min-h-11 flex-col justify-center border-b-2 px-2 transition-colors lg:px-3 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc"
+          class="flex min-h-11 flex-1 flex-none flex-col justify-center border-b-2 px-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-acc lg:flex-none"
           :class="current?.key === screen.key ? 'border-acc text-txt-hi' : 'border-transparent text-txt-mid hover:text-txt-hi'"
         >
-          <span class="flex min-w-0 items-center gap-1.5 lg:whitespace-nowrap">
+          <span class="flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap lg:justify-start">
             <Glyph :name="screen.key" :size="14" class="max-[400px]:hidden" />
-            <span class="min-w-0 text-sm font-medium [overflow-wrap:anywhere] lg:[overflow-wrap:normal]">{{
+            <span class="min-w-0 text-sm font-medium">{{
               t(`screen.${screen.key}.label`)
             }}</span>
           </span>
@@ -156,16 +156,16 @@ watch(
 
     <section
       aria-labelledby="page-heading"
-      class="sticky top-0 z-40 flex flex-wrap items-center gap-3 bg-panel/80 px-4 py-3 backdrop-blur sm:gap-4 sm:px-8 sm:py-3"
+      class="sticky top-0 z-40 flex flex-wrap items-center gap-x-3 gap-y-1 bg-panel/80 px-4 py-2 backdrop-blur sm:gap-4 sm:px-8 sm:py-3"
     >
-      <div class="min-w-0 flex-[1_1_240px]" data-tour="shell-heading">
+      <div class="min-w-0 flex-[1_1_auto] sm:flex-[1_1_240px]" data-tour="shell-heading">
         <div class="flex items-baseline gap-2.5">
-          <h1 id="page-heading" class="title-face m-0 text-xl leading-tight">{{ heading.label }}</h1>
+          <h1 id="page-heading" class="title-face m-0 text-base leading-tight sm:text-xl">{{ heading.label }}</h1>
         </div>
-        <p class="mt-0.5 text-sm text-txt-low">{{ heading.sub }}</p>
+        <p class="mt-0.5 text-sm text-txt-low max-sm:hidden">{{ heading.sub }}</p>
       </div>
 
-      <div class="ml-auto flex flex-wrap items-center gap-3">
+      <div class="ml-auto flex items-center gap-1.5 sm:flex-wrap sm:gap-3">
         <span id="tour-slot" class="contents" />
         <ServerMenu />
         <LanguageSwitch />

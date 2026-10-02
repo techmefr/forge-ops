@@ -167,7 +167,7 @@ onBeforeUnmount(() => {
       v-if="tour.offered.value"
       ref="reopenButton"
       type="button"
-      class="min-h-10 rounded-md border-0 bg-transparent px-3 text-xs text-acc hover:bg-elev sm:min-h-9"
+      class="min-h-10 rounded-md border-0 bg-transparent px-2 text-xs text-acc hover:bg-elev sm:min-h-9 sm:px-3"
       @click="tour.reopen()"
     >
       {{ t('tour.reopen') }}
