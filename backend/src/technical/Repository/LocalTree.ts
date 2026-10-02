@@ -1,6 +1,7 @@
 import { readdir, readFile, realpath, stat } from 'node:fs/promises'
 import { isAbsolute, join, relative, resolve, sep } from 'node:path'
-import { CheckoutUnreadableError, PathOutsideCheckoutError } from './LocalTreeViolation.js'
+import { CheckoutUnreadableError, PathOutsideCheckoutError, SensitivePathError } from './LocalTreeViolation.js'
+import { isSensitivePath } from './SensitivePath.js'
 
 export type TreeEntry = {
   path: string
@@ -34,6 +35,9 @@ async function insideOf(root: string, asked: string): Promise<ResolvedPath> {
   if (inside.startsWith('..') || inside.startsWith(`${sep}..`) || isAbsolute(inside)) {
     throw new PathOutsideCheckoutError(asked)
   }
+  if (isSensitivePath(asked) || isSensitivePath(inside)) {
+    throw new SensitivePathError(asked)
+  }
   return { base, full }
 }
 
@@ -47,7 +51,7 @@ export async function listDirectory(root: string, asked: string): Promise<readon
     throw new CheckoutUnreadableError(asked, error.code ?? 'UNKNOWN')
   })
 
-  const kept = found.filter((entry) => !HIDDEN.includes(entry.name))
+  const kept = found.filter((entry) => !HIDDEN.includes(entry.name) && !isSensitivePath(slashed(base, join(full, entry.name))))
   const entries = await Promise.all(
     kept.map(async (entry): Promise<TreeEntry> => {
       const child = join(full, entry.name)
