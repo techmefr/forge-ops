@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Avatar from '@/technical/Ui/Avatar.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MANUAL_EPIC_STATES, type ManualEpicState } from '@contract/EpicContract'
@@ -121,7 +122,10 @@ function changeState(event: Event): void {
         <span v-if="blocked !== null && blocked > 0" class="text-warn" data-test-id="subject-blocked">
           {{ t('subjects.row.blockedFor', { days: blocked }) }}
         </span>
-        <span v-if="showOwner">{{ ownerName ?? t('subjects.row.nobody') }}</span>
+        <span v-if="showOwner" class="inline-flex items-center gap-1.5">
+          <Avatar v-if="ownerName !== null" :name="ownerName" :size="20" />
+          {{ ownerName ?? t('subjects.row.nobody') }}
+        </span>
         <span v-if="showProgress">
           {{
             t('subjects.row.stories', {

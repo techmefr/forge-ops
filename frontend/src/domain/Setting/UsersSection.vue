@@ -4,7 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { CAPACITY_MAX, CAPACITY_MIN, type BoardUserSheet } from '@contract/ProjectContract'
 import { ACCOUNT_ROLE_SEQUENCE, type AccountRole } from '@contract/IdentityContract'
 import EffectBadge from './EffectBadge.vue'
-import { capacityFrom, initialsOf, type TeamSelf } from './TeamRule'
+import Avatar from '@/technical/Ui/Avatar.vue'
+import { capacityFrom, type TeamSelf } from './TeamRule'
 import { board } from '@/technical/Api/Board'
 import { reasonOf, useResource } from '@/technical/Api/UseResource'
 import { phrase, type Phrase } from '@/technical/Language/Phrase'
@@ -111,11 +112,7 @@ void users.reload()
         :key="user.id"
         class="flex flex-wrap items-center gap-3 rounded-md border border-line bg-panel px-3 py-2"
       >
-        <span
-          class="flex h-8 w-8 items-center justify-center rounded-full bg-elev tabular-nums text-xs text-txt-hi"
-          aria-hidden="true"
-          >{{ initialsOf(user.displayName) }}</span
-        >
+        <Avatar :name="user.displayName" :size="32" />
         <div class="min-w-[9rem] flex-1">
           <strong class="text-sm text-txt-hi">{{ user.displayName }}</strong>
           <p class="m-0 font-mono text-xs text-txt-low">

@@ -25,11 +25,3 @@ export function dayLabel(day: string, locale: string): string {
     timeZone: 'UTC',
   })
 }
-
-export function initialsOfLogin(name: string): string {
-  const words = name.trim().split(/[\s._-]+/).filter((word) => word !== '')
-  return words
-    .slice(0, 2)
-    .map((word) => word.charAt(0).toUpperCase())
-    .join('')
-}
