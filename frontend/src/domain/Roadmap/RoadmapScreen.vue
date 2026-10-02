@@ -373,7 +373,7 @@ onMounted(() => {
                   <template v-for="event in block.entry.events" :key="event.id">
                     <button
                       type="button"
-                      class="absolute top-2 flex size-5 max-sm:top-0 max-sm:min-w-10 -translate-x-1/2 items-center justify-center rounded"
+                      class="absolute top-2 flex size-6 max-sm:top-0 max-sm:min-w-10 -translate-x-1/2 items-center justify-center rounded"
                       :style="{ left: `${percentOf(event.date, view)}%` }"
                       :aria-label="eventLabel(event)"
                       :title="eventLabel(event)"
@@ -464,7 +464,7 @@ onMounted(() => {
                       v-for="event in row.events"
                       :key="event.id"
                       type="button"
-                      class="absolute top-3 flex size-5 max-sm:top-0 max-sm:min-w-10 -translate-x-1/2 items-center justify-center rounded"
+                      class="absolute top-3 flex size-6 max-sm:top-0 max-sm:min-w-10 -translate-x-1/2 items-center justify-center rounded"
                       :style="{ left: `${percentOf(event.date, view)}%` }"
                       :aria-label="eventLabel(event)"
                       :title="eventLabel(event)"

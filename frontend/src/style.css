@@ -350,6 +350,11 @@ textarea {
 }
 
 @media (max-width: 639px) {
+  label:has(> input[type="checkbox"], > input[type="radio"]) {
+    min-height: 40px;
+    align-items: center;
+  }
+
   button:not([data-dense]),
   select,
   input:not([type="checkbox"], [type="radio"], [type="range"]) {
