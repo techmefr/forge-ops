@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import type { Hono } from 'hono'
+import { Hono } from 'hono'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
 import { createStoryRepository, type StoryRepository } from '../../../src/domain/Story/StoryRepository.js'
 import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSessionRepository.js'
@@ -172,7 +172,38 @@ describe('unexpected failures', () => {
 })
 
 describe('GET /api/fleet', () => {
-  it('reports the daemon roster and the running jobs', async () => {
+  let fleetApi: Hono
+
+  function asLogin(login: string): Promise<Response> {
+    return fleetApi.request('/api/fleet', { headers: { 'x-login': login } }) as Promise<Response>
+  }
+
+  beforeEach(() => {
+    const board = createBoardApi({
+      repository,
+      agentSessions,
+      checkpoints,
+      criteria,
+      zones,
+      budget,
+      events: createEventBus(),
+      dispatcher: stubDispatch,
+      claudeHome,
+      isSuperAdmin: (login) => login === 'root',
+      isDirector: (login) => login === 'dir',
+      cleanUpAfterMerge: () => ({ scopesReleased: 0, worktreeClosed: false, worktreeRefusal: null }),
+      advanceReviewCascade: () =>
+        Promise.resolve({ dispatched: null, reason: 'pas de cascade dans ce test' }),
+    })
+    fleetApi = new Hono()
+    fleetApi.use('*', async (context, next) => {
+      context.set('login', context.req.header('x-login') ?? 'local')
+      await next()
+    })
+    fleetApi.route('/', board)
+  })
+
+  it('reports the daemon roster and the running jobs to an admin', async () => {
     mkdirSync(join(claudeHome, 'daemon'), { recursive: true })
     writeFileSync(
       join(claudeHome, 'daemon', 'roster.json'),
@@ -186,7 +217,7 @@ describe('GET /api/fleet', () => {
       'utf-8',
     )
 
-    const response = await api.request('/api/fleet')
+    const response = await asLogin('root')
 
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toEqual({
@@ -196,10 +227,26 @@ describe('GET /api/fleet', () => {
   })
 
   it('reports an absent daemon without failing', async () => {
-    const response = await api.request('/api/fleet')
+    const response = await asLogin('dir')
 
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toEqual({ roster: null, jobs: [] })
+  })
+
+  it('keeps the host sessions from a plain member', async () => {
+    mkdirSync(join(claudeHome, 'jobs', 'c3905d1d'), { recursive: true })
+    writeFileSync(
+      join(claudeHome, 'jobs', 'c3905d1d', 'state.json'),
+      JSON.stringify({ state: 'done', cwd: '/home/gaetan/private', tokens: 1 }),
+      'utf-8',
+    )
+
+    const response = await asLogin('alice')
+
+    expect(response.status).toBe(403)
+    const text = await response.text()
+    expect(text).not.toContain('/home/gaetan/private')
+    expect(JSON.parse(text)).toEqual({ error: 'FleetNeedsAnAdmin' })
   })
 })
 
