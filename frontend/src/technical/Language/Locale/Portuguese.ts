@@ -810,7 +810,7 @@ export const PORTUGUESE: Message = {
     mute: 'máquina muda',
     cpu: 'CPU',
     ram: 'RAM',
-    disk: 'DISCO',
+    disk: 'Disco',
     gigabytes: '{used} / {total} GB',
   },
   statistic: {
@@ -1306,7 +1306,7 @@ export const PORTUGUESE: Message = {
   visit: {
     dismiss: "Fechar",
     title: 'Demonstração interativa',
-    body: 'Este é um quadro de demonstração com dados de exemplo. As suas alterações ficam neste separador e mantêm-se ao recarregar até repor a demonstração, os agentes são simulados. Instale o board para o executar a sério.',
+    body: 'Quadro de demonstração com dados de exemplo. As alterações ficam neste separador até repor a demo. Os agentes são simulados.',
     reset: 'Repor demonstração',
     readOnly: 'Esta ação é só de leitura na demonstração. Instale o board para a usar a sério.',
     source: 'O repositório',

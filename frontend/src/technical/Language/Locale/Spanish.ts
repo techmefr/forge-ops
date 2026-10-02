@@ -811,7 +811,7 @@ export const SPANISH: Message = {
     mute: 'máquina muda',
     cpu: 'CPU',
     ram: 'RAM',
-    disk: 'DISCO',
+    disk: 'Disco',
     gigabytes: '{used} / {total} GB',
   },
   statistic: {
@@ -1307,7 +1307,7 @@ export const SPANISH: Message = {
   visit: {
     dismiss: "Cerrar",
     title: 'Demo interactiva',
-    body: 'Este es un tablero de demostración con datos de ejemplo. Tus cambios se quedan en esta pestaña y se conservan al recargar hasta restablecer la demo, los agentes son simulados. Instala el board para usarlo de verdad.',
+    body: 'Tablero de demostración con datos de ejemplo. Los cambios se quedan en esta pestaña hasta que reinicies la demo. Los agentes son simulados.',
     reset: 'Restablecer demo',
     readOnly: 'Esta acción es de solo lectura en la demo. Instala el board para usarla de verdad.',
     source: 'El repositorio',
