@@ -89,7 +89,7 @@ async function connect(): Promise<void> {
         <button
           type="submit"
           :disabled="isBusy || instanceUrl === ''"
-          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-40"
+          class="mt-2 rounded-lg bg-acc px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-40"
         >
           {{ t('connect.submit') }}
         </button>

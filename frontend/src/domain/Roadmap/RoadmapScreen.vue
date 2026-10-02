@@ -236,7 +236,7 @@ onMounted(() => {
       <h2 class="title-face text-xl text-txt-hi">{{ t('roadmap.title') }}</h2>
       <button
         type="button"
-        class="ml-auto rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink"
+        class="ml-auto rounded-lg bg-acc px-4 py-2 text-xs font-bold text-ink"
         @click="openNew()"
       >
         {{ t('roadmap.newEvent') }}
@@ -253,7 +253,7 @@ onMounted(() => {
       @retry="roadmap.reload()"
     >
       <section
-        class="flex-none rounded-lg bg-card p-4"
+        class="flex-none"
         :aria-label="t('roadmap.upcoming')"
         data-test-id="roadmap-upcoming"
       >
@@ -267,7 +267,7 @@ onMounted(() => {
           <li v-for="item in upcoming" :key="item.event.id" class="flex-none">
             <button
               type="button"
-              class="flex min-w-40 flex-col items-start gap-0.5 rounded-lg border border-line bg-elev px-3 py-2 text-left hover:border-acc"
+              class="flex min-w-40 flex-col items-start gap-0.5 rounded-lg bg-card px-3 py-2 text-left hover:bg-elev"
               @click="openEvent(item.event)"
             >
               <span class="font-mono text-xs font-bold" :class="EVENT_TONES[item.event.type].text">
@@ -343,7 +343,7 @@ onMounted(() => {
                   </span>
                   <span
                     v-if="block.toWriteCount > 0"
-                    class="w-fit rounded border border-orange px-1.5 py-0.5 text-xs font-bold text-orange"
+                    class="w-fit text-xs font-bold text-orange"
                   >
                     {{ t('roadmap.minutesCount', { count: block.toWriteCount }, block.toWriteCount) }}
                   </span>
@@ -357,7 +357,7 @@ onMounted(() => {
                         :href="safeHref(link.url)"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="rounded border border-line px-1.5 py-0.5 text-xs text-info hover:border-acc max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
+                        class="rounded px-1.5 py-0.5 text-xs text-info hover:bg-elev max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
                       >
                         {{ t(`linkKind.${link.kind}`) }}
                       </a>
@@ -410,13 +410,13 @@ onMounted(() => {
                       {{ row.subject.title }}
                       <span
                         v-if="row.bar.lateDays > 0"
-                        class="ml-1 rounded border border-red px-1 text-xs font-bold text-red"
+                        class="ml-1 text-xs font-bold text-red"
                       >
                         {{ t('roadmap.late') }}
                       </span>
                       <span
                         v-if="row.toWrite"
-                        class="ml-1 rounded border border-orange px-1 text-xs font-bold text-orange"
+                        class="ml-1 rounded px-1 text-xs font-bold text-orange"
                       >
                         {{ t('roadmap.minutesToWrite') }}
                       </span>

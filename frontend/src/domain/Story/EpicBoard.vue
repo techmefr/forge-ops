@@ -120,8 +120,8 @@ onMounted(async () => {
             :key="name"
             type="button"
             :aria-pressed="name === ownership"
-            class="rounded-md border px-3 py-2 text-xs font-semibold"
-            :class="name === ownership ? 'border-acc bg-acc text-ink' : 'border-line bg-card text-txt-mid hover:border-acc'"
+            class="rounded-md px-3 py-2 text-xs font-semibold"
+            :class="name === ownership ? 'bg-acc text-ink' : 'bg-card text-txt-mid hover:bg-elev'"
             @click="ownership = name"
           >
             {{ t(`ownership.${name}`) }}
@@ -135,7 +135,7 @@ onMounted(async () => {
       <button
         type="button"
         :disabled="busy || picked.length === 0 || mixed"
-        class="rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
+        class="rounded-lg bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
         @click="write()"
       >
         {{ t('epic.writeStories', picked.length) }}
@@ -157,8 +157,8 @@ onMounted(async () => {
         <article
           v-for="epic in shown"
           :key="epic.id"
-          class="flex flex-col rounded-lg border bg-card p-4 transition-colors"
-          :class="picked.includes(epic.id) ? 'border-acc' : 'border-line'"
+          class="flex flex-col rounded-lg p-4 transition-colors"
+          :class="picked.includes(epic.id) ? 'bg-elev' : 'bg-card'"
         >
           <div class="flex items-center gap-2">
             <span

@@ -141,8 +141,8 @@ void users.reload()
         </label>
 
         <span
-          class="rounded-full border px-2 py-0.5 text-xs font-semibold"
-          :class="user.active ? 'border-green text-green' : 'border-line text-txt-low'"
+          class="text-xs font-semibold"
+          :class="user.active ? 'text-green' : 'text-txt-low'"
           >{{ user.active ? t('team.active') : t('team.inactive') }}</span
         >
 
@@ -150,7 +150,7 @@ void users.reload()
           v-if="self?.superAdmin"
           type="button"
           :aria-label="`${t(user.superAdmin ? 'team.revokeSuperAdmin' : 'team.grantSuperAdmin')}: ${user.displayName}`"
-          class="rounded-md border border-line px-2.5 py-1 text-xs text-txt-mid hover:border-acc"
+          class="rounded-md px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
           @click="toggleSuperAdmin(user)"
         >
           {{ user.superAdmin ? t('team.revokeSuperAdmin') : t('team.grantSuperAdmin') }}
@@ -159,7 +159,7 @@ void users.reload()
         <button
           v-if="manages"
           type="button"
-          class="rounded-md border border-line px-2.5 py-1 text-xs text-txt-mid hover:border-acc"
+          class="rounded-md px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
           @click="toggle(user)"
         >
           {{ user.active ? t('team.deactivate') : t('team.reactivate')
@@ -219,7 +219,7 @@ void users.reload()
       <button
         type="submit"
         :disabled="!draftReady"
-        class="self-start rounded-md border border-acc bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+        class="self-start rounded-md bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
       >
         {{ t('team.add') }}
       </button>

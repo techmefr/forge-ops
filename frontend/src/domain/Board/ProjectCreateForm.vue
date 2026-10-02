@@ -97,7 +97,7 @@ useRefusalFocus(refusal, formEl)
       <button
         type="submit"
         :disabled="busy || slug === '' || name === '' || repositoryUrl === '' || integrationBranch === ''"
-        class="rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
+        class="rounded-lg bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
       >
         {{ t('projectCreate.create') }}
       </button>

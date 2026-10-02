@@ -18,8 +18,8 @@ const emit = defineEmits<{ select: [T] }>()
         :key="option.key"
         type="button"
         :aria-pressed="option.key === current"
-        class="rounded-md border px-3 py-2 text-xs font-semibold"
-        :class="option.key === current ? 'border-acc bg-acc text-ink' : 'border-line bg-card text-txt-mid hover:border-acc'"
+        class="rounded-md px-3 py-2 text-xs font-semibold"
+        :class="option.key === current ? 'bg-acc text-ink' : 'bg-card text-txt-mid hover:bg-elev'"
         @click="emit('select', option.key)"
       >
         {{ option.label }}

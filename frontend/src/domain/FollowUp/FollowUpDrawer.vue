@@ -209,14 +209,14 @@ function closeWhenClosed(open: boolean): void {
           </div>
           <button
             type="button"
-            class="flex-none rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-txt-mid hover:border-acc"
+            class="flex-none rounded-lg bg-card px-3 py-1.5 text-xs font-bold text-txt-mid hover:bg-elev"
             @click="emit('close')"
           >
             {{ t('followUp.drawer.close') }}
           </button>
         </div>
 
-        <p v-if="refusal !== null" class="rounded-lg border border-red bg-red-soft/10 p-3 text-sm text-txt-hi" role="alert">
+        <p v-if="refusal !== null" class="rounded-lg bg-red-soft/10 p-3 text-sm text-txt-hi" role="alert">
           {{ say(refusal) }}
         </p>
 
@@ -259,7 +259,7 @@ function closeWhenClosed(open: boolean): void {
           <button
             type="button"
             :disabled="busy"
-            class="w-fit rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-txt-mid hover:border-acc disabled:opacity-40"
+            class="w-fit rounded-lg bg-card px-3 py-1.5 text-xs font-bold text-txt-mid hover:bg-elev disabled:opacity-40"
             @click="saveSentence"
           >
             {{ t('followUp.drawer.saveStatus') }}
@@ -294,7 +294,7 @@ function closeWhenClosed(open: boolean): void {
               <button
                 type="button"
                 :disabled="busy"
-                class="flex-none rounded-lg border border-line bg-elev px-2.5 py-1 text-xs font-bold text-txt-mid hover:border-acc disabled:opacity-40"
+                class="flex-none rounded-lg bg-elev px-2.5 py-1 text-xs font-bold text-txt-mid hover:bg-elev disabled:opacity-40"
                 :aria-label="t(risk.closedOn === null ? 'followUp.drawer.closeRiskLabel' : 'followUp.drawer.reopenRiskLabel', { text: risk.text })"
                 @click="toggleRisk(risk)"
               >
@@ -338,7 +338,7 @@ function closeWhenClosed(open: boolean): void {
             <button
               type="submit"
               :disabled="busy || riskText.trim() === ''"
-              class="w-fit rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink disabled:opacity-40"
+              class="w-fit rounded-lg bg-acc px-4 py-2 text-xs font-bold text-ink disabled:opacity-40"
             >
               {{ t('followUp.drawer.addRisk') }}
             </button>
@@ -388,7 +388,7 @@ function closeWhenClosed(open: boolean): void {
             <button
               type="submit"
               :disabled="busy || decisionText.trim() === ''"
-              class="w-fit self-end rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink disabled:opacity-40"
+              class="w-fit self-end rounded-lg bg-acc px-4 py-2 text-xs font-bold text-ink disabled:opacity-40"
             >
               {{ t('followUp.drawer.addDecision') }}
             </button>
@@ -419,7 +419,7 @@ function closeWhenClosed(open: boolean): void {
                 <p v-if="event.minutes !== null" class="mt-1 text-xs whitespace-pre-line text-txt-mid">{{ event.minutes }}</p>
                 <span
                   v-else-if="minutesToWrite(event, today)"
-                  class="mt-1 inline-block rounded border border-orange px-1.5 text-xs font-bold text-orange"
+                  class="mt-1 inline-block rounded px-1.5 text-xs font-bold text-orange"
                 >
                   {{ t('followUp.drawer.minutesToWrite') }}
                 </span>
@@ -427,7 +427,7 @@ function closeWhenClosed(open: boolean): void {
               </div>
               <button
                 type="button"
-                class="flex-none rounded-lg border border-line bg-elev px-2.5 py-1 text-xs font-bold text-txt-mid hover:border-acc"
+                class="flex-none rounded-lg bg-elev px-2.5 py-1 text-xs font-bold text-txt-mid hover:bg-elev"
                 :aria-label="`${t(event.minutes === null && minutesToWrite(event, today) ? 'followUp.drawer.writeMinutes' : 'followUp.drawer.editMinutes')} · ${eventName(event)}`"
                 @click="dialog = { event }"
               >
@@ -437,7 +437,7 @@ function closeWhenClosed(open: boolean): void {
           </ul>
           <button
             type="button"
-            class="w-fit rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-txt-mid hover:border-acc"
+            class="w-fit rounded-lg bg-card px-3 py-1.5 text-xs font-bold text-txt-mid hover:bg-elev"
             @click="dialog = { event: null }"
           >
             {{ t('followUp.drawer.newEvent') }}
@@ -455,7 +455,7 @@ function closeWhenClosed(open: boolean): void {
                 :href="safeHref(link.url)"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="rounded border border-line px-2 py-1 text-xs text-info hover:border-acc max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
+                class="rounded px-2 py-1 text-xs text-info hover:bg-elev max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
               >
                 {{ t(`linkKind.${link.kind}`) }}
               </a>

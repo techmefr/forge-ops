@@ -129,7 +129,7 @@ onMounted(load)
           <button
             type="submit"
             :disabled="busy"
-            class="rounded-md border border-acc bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+            class="rounded-md bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
           >
             {{ t('common.save') }}
           </button>
@@ -171,7 +171,7 @@ onMounted(load)
           <button
             type="submit"
             :disabled="busy"
-            class="rounded-md border border-acc bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+            class="rounded-md bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
           >
             {{ t('setting.changePassword') }}
           </button>

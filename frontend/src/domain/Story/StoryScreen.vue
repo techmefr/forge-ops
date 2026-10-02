@@ -220,7 +220,7 @@ onMounted(async () => {
     <section class="min-h-0 border-b border-hair p-5 lg:overflow-auto lg:border-r lg:border-b-0">
       <button
         type="button"
-        class="rounded-lg border border-line bg-card px-3 py-2 text-xs font-bold text-txt-mid hover:border-acc"
+        class="rounded-lg bg-card px-3 py-2 text-xs font-bold text-txt-mid hover:bg-elev"
         @click="backToEpics()"
       >
         {{ t('story.backToEpics') }}
@@ -239,8 +239,8 @@ onMounted(async () => {
                 type="button"
                 :disabled="busy"
                 :aria-current="story.id === openId ? 'true' : undefined"
-                class="w-full rounded-lg border px-3 py-2 text-left text-sm disabled:opacity-40"
-                :class="story.id === openId ? 'border-acc bg-card text-txt-hi' : 'border-line bg-card text-txt-low hover:border-acc'"
+                class="w-full rounded-lg px-3 py-2 text-left text-sm disabled:opacity-40"
+                :class="story.id === openId ? 'bg-elev text-txt-hi' : 'text-txt-low hover:bg-card'"
                 @click="openWritten(story.id)"
               >
                 <span class="font-mono whitespace-nowrap text-xs text-txt-low">{{ story.reference }}</span>
@@ -278,8 +278,8 @@ onMounted(async () => {
         <article
           v-for="(utterance, index) in said"
           :key="index"
-          class="rounded-lg border p-3"
-          :class="utterance.name === 'session.human' ? 'ml-8 border-acc bg-acc-soft/10' : 'mr-8 border-line bg-card'"
+          class="rounded-lg p-3"
+          :class="utterance.name === 'session.human' ? 'ml-8 bg-elev' : 'mr-8 bg-card'"
         >
           <p class="text-xs text-txt-low">
             {{ utterance.name === 'session.human' ? t('story.you') : t('story.claude') }}
@@ -307,7 +307,7 @@ onMounted(async () => {
         <button
           type="submit"
           :disabled="busy || turn.trim() === '' || ticket.data.value === null"
-          class="flex-none self-end rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
+          class="flex-none self-end rounded-lg bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
         >
           {{ t('common.send') }}
         </button>
@@ -330,7 +330,7 @@ onMounted(async () => {
           v-if="queue.length > 0"
           type="button"
           :disabled="busy"
-          class="rounded-lg border border-line bg-card px-4 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
+          class="rounded-lg bg-card px-4 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
           @click="backToEpics()"
         >
           {{ t('story.finishBatch') }}
@@ -389,7 +389,7 @@ onMounted(async () => {
 
         <form
           v-if="part === 'tests' && ticket.data.value?.tests === null"
-          class="mt-6 flex flex-col gap-2 rounded-lg border border-violet bg-card p-4"
+          class="mt-6 flex flex-col gap-2 rounded-lg bg-card p-4"
           @submit.prevent="submitTwin"
         >
           <p class="title-face text-sm text-violet">{{ t('story.twinTitle') }}</p>
@@ -408,7 +408,7 @@ onMounted(async () => {
           <button
             type="submit"
             :disabled="busy"
-            class="rounded-lg border border-violet bg-card px-3 py-2 text-sm font-bold text-violet disabled:opacity-50"
+            class="rounded-lg bg-card px-3 py-2 text-sm font-bold text-violet disabled:opacity-50"
           >
             {{ t('story.writeTwin') }}
           </button>

@@ -196,7 +196,7 @@ useRefusalFocus(refusal, signForm)
         <button
           type="submit"
           :disabled="busy || boardToken === ''"
-          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-40"
+          class="mt-2 rounded-lg bg-acc px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-40"
         >
           {{ t('access.openSession') }}
         </button>
@@ -286,7 +286,7 @@ useRefusalFocus(refusal, signForm)
         <button
           type="submit"
           :disabled="busy || login === '' || password === ''"
-          class="mt-2 rounded-lg border border-acc bg-acc px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-40"
+          class="mt-2 rounded-lg bg-acc px-4 py-2.5 text-xs font-bold text-ink disabled:opacity-40"
         >
           {{
             state.data.value?.enrolmentOpen === true ? t('access.createAccount') : t('access.enter')

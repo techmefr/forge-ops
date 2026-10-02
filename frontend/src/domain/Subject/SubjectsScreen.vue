@@ -345,7 +345,7 @@ onMounted(() => {
 
     <p
       v-if="refusal !== null"
-      class="rounded-md border border-red px-3 py-2 text-sm text-txt-hi"
+      class="rounded-md px-3 py-2 text-sm text-txt-hi"
       role="alert"
       data-test-id="subjects-refusal"
     >

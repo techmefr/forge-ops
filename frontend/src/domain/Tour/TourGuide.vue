@@ -183,7 +183,7 @@ onBeforeUnmount(() => {
     aria-modal="false"
     :aria-label="t('tour.label')"
     :class="CORNER_CLASSES[corner]"
-    class="fixed z-50 flex w-[min(380px,calc(100vw-1.5rem))] flex-col gap-3 rounded-lg border border-acc bg-panel p-6 shadow-2xl"
+    class="fixed z-50 flex w-[min(380px,calc(100vw-1.5rem))] flex-col gap-3 rounded-lg bg-panel p-6 shadow-2xl"
   >
     <p class="text-xs text-txt-low" role="status">
       {{ t('tour.progress', { current: tour.index.value + 1, total: tour.total }) }}
@@ -206,7 +206,7 @@ onBeforeUnmount(() => {
       </button>
       <button
         type="button"
-        class="rounded-lg border border-acc bg-acc px-3 py-2 text-xs font-bold text-ink"
+        class="rounded-lg bg-acc px-3 py-2 text-xs font-bold text-ink"
         @click="tour.goNext()"
       >
         {{ tour.last.value ? t('tour.finish') : t('tour.next') }}

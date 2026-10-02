@@ -77,7 +77,7 @@ function drop(index: number): void {
       <button
         type="submit"
         :disabled="address.trim() === ''"
-        class="rounded-md border border-line px-3 py-1.5 text-xs text-txt-mid hover:border-acc disabled:opacity-40"
+        class="rounded-md px-3 py-1.5 text-xs text-txt-mid hover:bg-elev disabled:opacity-40"
       >
         {{ t('team.addLink') }}
       </button>

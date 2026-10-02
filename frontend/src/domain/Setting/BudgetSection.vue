@@ -108,8 +108,8 @@ onMounted(() => settings.reload())
         <label
           v-for="conduct in COST_CAP_CONDUCT_SEQUENCE"
           :key="conduct"
-          class="flex cursor-pointer gap-3 rounded-md border p-3"
-          :class="draft.conduct === conduct ? 'border-acc bg-acc-soft/10' : 'border-line bg-card'"
+          class="flex cursor-pointer gap-3 rounded-md p-3"
+          :class="draft.conduct === conduct ? 'bg-elev' : 'hover:bg-card'"
         >
           <input v-model="draft.conduct" type="radio" :value="conduct" class="mt-1" />
           <span>
@@ -149,7 +149,7 @@ onMounted(() => settings.reload())
         <button
           type="submit"
           :disabled="busy"
-          class="rounded-md border border-acc bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+          class="rounded-md bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
         >
           {{ t('common.save') }}
         </button>

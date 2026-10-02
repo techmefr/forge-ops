@@ -236,7 +236,7 @@ function closeWhenClosed(open: boolean): void {
 
           <p
             v-if="refusal !== null"
-            class="rounded-lg border border-red bg-red-soft/10 p-3 text-sm text-txt-hi sm:col-span-2"
+            class="rounded-lg bg-red-soft/10 p-3 text-sm text-txt-hi sm:col-span-2"
             role="alert"
             tabindex="-1"
           >
@@ -248,14 +248,14 @@ function closeWhenClosed(open: boolean): void {
               v-if="editing"
               type="button"
               :disabled="busy"
-              class="rounded-lg border border-red px-4 py-2 text-xs font-bold text-red disabled:opacity-40"
+              class="rounded-lg px-4 py-2 text-xs font-bold text-red disabled:opacity-40"
               @click="remove"
             >
               {{ t(confirmingRemoval ? 'roadmap.form.confirmDelete' : 'roadmap.form.delete') }}
             </button>
             <button
               type="button"
-              class="ml-auto rounded-lg border border-line bg-card px-4 py-2 text-xs font-bold text-txt-mid hover:border-acc"
+              class="ml-auto rounded-lg bg-card px-4 py-2 text-xs font-bold text-txt-mid hover:bg-elev"
               @click="emit('close')"
             >
               {{ t('roadmap.form.cancel') }}
@@ -263,7 +263,7 @@ function closeWhenClosed(open: boolean): void {
             <button
               type="submit"
               :disabled="busy || date === ''"
-              class="rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink disabled:opacity-40"
+              class="rounded-lg bg-acc px-4 py-2 text-xs font-bold text-ink disabled:opacity-40"
             >
               {{ t(editing ? 'roadmap.form.save' : 'roadmap.form.add') }}
             </button>

@@ -97,8 +97,8 @@ void tags.reload()
         </label>
         <div class="min-w-[9rem] flex-1">
           <span
-            class="inline-block rounded-md border px-2 py-0.5 text-sm text-txt-hi"
-            :style="{ borderColor: tag.colour }"
+            class="inline-block rounded-md px-2 py-0.5 text-sm text-txt-hi"
+            :style="{ background: `color-mix(in srgb, ${tag.colour} 24%, transparent)` }"
             >#{{ tag.label }}</span
           >
           <p
@@ -111,14 +111,14 @@ void tags.reload()
         </div>
         <RouterLink
           :to="{ path: '/projects/subjects', query: { tag: String(tag.id) } }"
-          class="rounded-md border border-line px-2.5 py-1 text-xs text-txt-mid hover:border-acc max-sm:inline-flex max-sm:min-h-10 max-sm:items-center"
+          class="rounded-md px-2.5 py-1 text-xs text-txt-mid hover:bg-elev max-sm:inline-flex max-sm:min-h-10 max-sm:items-center"
           >{{ t('team.seeSubjects') }}<span class="sr-only"> #{{ tag.label }}</span></RouterLink
         >
         <button
           type="button"
           :disabled="tag.usage > 0"
           :aria-describedby="`tag-use-${tag.id}`"
-          class="rounded-md border border-line px-2.5 py-1 text-xs text-txt-mid hover:border-red disabled:opacity-40"
+          class="rounded-md px-2.5 py-1 text-xs text-txt-mid hover:bg-elev disabled:opacity-40"
           @click="remove(tag)"
         >
           {{ t('team.delete') }}<span class="sr-only"> #{{ tag.label }}</span>
@@ -148,7 +148,7 @@ void tags.reload()
       <button
         type="submit"
         :disabled="label.trim() === ''"
-        class="rounded-md border border-acc bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
+        class="rounded-md bg-acc px-4 py-2 text-sm font-medium text-ink disabled:opacity-40"
       >
         {{ t('team.add') }}
       </button>

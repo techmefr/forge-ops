@@ -175,7 +175,7 @@ watch(here, () => void look())
 
     <section
       v-if="clashes !== null && clashes.clashes.length > 0"
-      class="rounded-lg border border-orange bg-card p-4"
+      class="rounded-lg bg-card p-4"
     >
       <p class="text-xs text-orange">
         {{ t('browser.closeNames') }}

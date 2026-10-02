@@ -216,7 +216,7 @@ onMounted(async () => {
         <button
           type="submit"
           :disabled="busy || claimPath === ''"
-          class="rounded-lg border border-acc bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
+          class="rounded-lg bg-acc px-4 py-2 text-sm font-bold text-ink disabled:opacity-40"
         >
           {{ t('project.reserve') }}
         </button>
@@ -263,7 +263,7 @@ onMounted(async () => {
       </ul>
     </section>
 
-    <section v-if="(conflicts.data.value ?? []).length > 0" class="mt-6 rounded-lg border border-red bg-red-soft/10 p-4">
+    <section v-if="(conflicts.data.value ?? []).length > 0" class="mt-6 rounded-lg bg-red-soft/10 p-4">
       <p class="text-xs text-red">
         {{ t('project.disputedFiles') }}
       </p>
