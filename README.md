@@ -1,6 +1,6 @@
 # forge-ops — story-driven board for agent sessions
 
-Branch `main`. Complete rewrite: the unit of work is no longer the task, it is the **story**, always accompanied by its **twin test story**. The board orchestrates Claude Code sessions on those stories and refuses to let a story move forward without proof.
+forge-ops is a board that runs Claude Code sessions on user stories, each paired with a twin test story, and refuses to let a story move forward without proof.
 
 **Look at it without installing anything:** [techmefr.github.io/forge-ops](https://techmefr.github.io/forge-ops/) — the demonstration board, frozen, with its guided tour in seven languages. Nothing runs there; it is a visit, not a trial. A presentation page, in the same seven languages, is at [techmefr.github.io/forge-ops/about](https://techmefr.github.io/forge-ops/about/).
 
@@ -10,7 +10,7 @@ Branch `main`. Complete rewrite: the unit of work is no longer the task, it is t
 
 It speaks French, English, German, Spanish, Italian, Portuguese and Chinese, in six colour themes (light and dark) and four text sizes, down to a phone screen.
 
-**Where this is going.** A rework was decided on 2026-09-18: the tool splits into a shared server and an executing instance, the interface comes down to four screens, the kanban columns become a template an organisation writes for itself, and the agent behind a card becomes a driver. [docs/Architecture.md](docs/Architecture.md) says what is being built and why; [docs/Deployment.md](docs/Deployment.md) says how it is run. This README describes what exists today — section 11 is the honest state of it.
+**Status.** The board, the proof checks, the guardrail, the autopilot, the desktop app and the seven languages exist and are used. The split into a shared server and an executing instance is in progress: [docs/Architecture.md](docs/Architecture.md) says what is being built and why, [docs/Deployment.md](docs/Deployment.md) says how it is run, and [section 11](#11-implementation-state) lists every block.
 
 ## 0. What it looks like
 
