@@ -150,7 +150,7 @@ watch(here, () => void look())
   <div class="flex h-full min-h-0 flex-col gap-4">
     <form
       v-if="tree !== null && !tree.available && tree.reason === 'CheckoutUnknown'"
-      class="rounded-lg border border-line bg-card p-4"
+      class="rounded-lg bg-card p-4"
       @submit.prevent="pointCheckout"
     >
       <p class="title-face text-sm text-txt-mid">{{ t('browser.noCheckout') }}</p>
@@ -202,7 +202,7 @@ watch(here, () => void look())
     >
       <section
         v-if="wide !== 'code'"
-        class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-line bg-card"
+        class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg bg-card"
         :class="treeShown ? '' : 'self-start'"
       >
         <CardHead
@@ -239,7 +239,7 @@ watch(here, () => void look())
             <li v-for="entry in tree.entries" :key="entry.path">
               <button
                 type="button"
-                class="flex min-h-[36px] w-full items-center gap-2.5 border-b border-line/60 px-4 py-2 text-left hover:bg-elev"
+                class="flex min-h-[36px] w-full items-center gap-2.5 border-b border-hair/60 px-4 py-2 text-left hover:bg-elev"
                 :class="opened?.path === entry.path ? 'bg-elev' : ''"
                 @click="enter(entry)"
               >
@@ -278,7 +278,7 @@ watch(here, () => void look())
 
       <section
         v-if="wide !== 'tree'"
-        class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-line bg-card"
+        class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg bg-card"
         :class="codeShown ? '' : 'self-start'"
       >
         <CardHead
@@ -301,12 +301,12 @@ watch(here, () => void look())
           <template v-else>
             <p
               v-if="spoken(opened) !== ''"
-              class="border-b border-line px-4 py-2 text-xs"
+              class="border-b border-hair px-4 py-2 text-xs"
               :class="toneOf(opened.mark).text"
             >
               {{ spoken(opened) }}
             </p>
-            <p v-if="!opened.highlightAvailable" class="border-b border-line px-4 py-2 text-xs text-txt-low">
+            <p v-if="!opened.highlightAvailable" class="border-b border-hair px-4 py-2 text-xs text-txt-low">
               {{ t('browser.noHighlight') }}
             </p>
             <pre
@@ -315,7 +315,7 @@ watch(here, () => void look())
               :aria-label="t('browser.fileContent')"
               class="min-h-0 flex-1 overflow-auto px-4 py-3 font-mono text-xs leading-relaxed text-txt-mid"
             ><code v-html="painted" /></pre>
-            <p v-if="opened.truncated" class="border-t border-line px-4 py-2 text-xs text-txt-low">
+            <p v-if="opened.truncated" class="border-t border-hair px-4 py-2 text-xs text-txt-low">
               {{ t('browser.truncated', { bytes: opened.bytes }) }}
             </p>
           </template>

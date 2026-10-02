@@ -19,17 +19,17 @@ function closeWhenClosed(open: boolean): void {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-40 bg-deep/70" />
       <DialogContent
-        class="fixed top-0 right-0 z-50 flex h-dvh w-full flex-col border-l border-line bg-panel min-[760px]:w-[min(880px,100vw)]"
+        class="fixed top-0 right-0 z-50 flex h-dvh w-full flex-col border-l border-hair bg-panel min-[760px]:w-[min(880px,100vw)]"
         data-test="forge-resource-drawer"
       >
-        <header class="flex flex-none items-center gap-3 border-b border-line px-5 py-3">
+        <header class="flex flex-none items-center gap-3 border-b border-hair px-5 py-3">
           <DialogTitle class="m-0 flex-1 text-sm font-semibold text-txt-hi">
             {{ t('forge.resource.detailsTitle') }}
           </DialogTitle>
           <DialogDescription class="sr-only">{{ t('forge.resource.aria') }}</DialogDescription>
           <button
             type="button"
-            class="rounded-md border border-line bg-transparent px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
+            class="rounded-md bg-transparent px-2.5 py-1 text-xs text-txt-mid hover:bg-elev"
             @click="emit('close')"
           >
             {{ t('forge.resource.close') }}

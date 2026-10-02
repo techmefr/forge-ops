@@ -189,7 +189,7 @@ onMounted(async () => {
 
 <template>
   <div class="flex h-full min-h-0 flex-col">
-  <nav class="flex flex-none gap-0.5 border-b border-line px-6" :aria-label="t('story.deskNav')">
+  <nav class="flex flex-none gap-0.5 border-b border-hair px-6" :aria-label="t('story.deskNav')">
     <button
       v-for="bench in DESKS"
       :key="bench"
@@ -217,7 +217,7 @@ onMounted(async () => {
     v-else
     class="grid min-h-0 flex-1 grid-cols-1 overflow-auto lg:h-full lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,400px)] lg:overflow-hidden"
   >
-    <section class="min-h-0 border-b border-line p-5 lg:overflow-auto lg:border-r lg:border-b-0">
+    <section class="min-h-0 border-b border-hair p-5 lg:overflow-auto lg:border-r lg:border-b-0">
       <button
         type="button"
         class="rounded-lg border border-line bg-card px-3 py-2 text-xs font-bold text-txt-mid hover:border-acc"
@@ -261,7 +261,7 @@ onMounted(async () => {
       </template>
     </section>
 
-    <section class="flex min-h-0 min-w-0 flex-col border-b border-line p-6 lg:border-r lg:border-b-0">
+    <section class="flex min-h-0 min-w-0 flex-col border-b border-hair p-6 lg:border-r lg:border-b-0">
       <h2 class="title-face text-[22px]">{{ t('story.writeWithClaude') }}</h2>
       <p class="mt-1 text-sm text-txt-low">{{ t('story.writeWithClaudeHint') }}</p>
 
@@ -321,7 +321,7 @@ onMounted(async () => {
         <button
           type="button"
           :disabled="busy || !complete"
-          class="rounded-lg border border-line bg-card px-4 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
+          class="rounded-lg bg-card px-4 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
           @click="toBacklog()"
         >
           {{ t('story.sendToStore') }}
@@ -339,7 +339,7 @@ onMounted(async () => {
     </section>
 
     <section class="flex min-h-0 min-w-0 flex-col p-6">
-      <nav class="flex flex-none gap-0.5 border-b border-line" :aria-label="t('story.partsNav')">
+      <nav class="flex flex-none gap-0.5 border-b border-hair" :aria-label="t('story.partsNav')">
         <button
           v-for="name in PARTS"
           :key="name"
@@ -359,7 +359,7 @@ onMounted(async () => {
 
         <form
           v-if="part === 'functional' && ticket.data.value !== null"
-          class="mt-6 flex flex-col gap-2 border-t border-line pt-4"
+          class="mt-6 flex flex-col gap-2 border-t border-hair pt-4"
           @submit.prevent="linkBlocker"
         >
           <label
@@ -381,7 +381,7 @@ onMounted(async () => {
           <button
             type="submit"
             :disabled="busy || blockingStoryId === null"
-            class="self-start rounded-lg border border-line bg-elev px-3 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
+            class="self-start rounded-lg bg-elev px-3 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
           >
             {{ t('common.link') }}
           </button>

@@ -101,3 +101,39 @@ Surface: deep, panel, card, elev. Text: hi, mid, low. Accent marks the current t
 ### Copy rules
 
 Short sentences. No hype words, no exclamation marks, no emoji bullets. Sentence case. Say what the control does. Locale parity is kept: every key exists in the seven locales.
+
+## Calm pass 2 (October 2026)
+
+The first pass removed the loudest decoration. This pass removes boxes.
+
+### Surfaces and borders
+
+- Cards, panels, tiles and chips have no border. They are a background step (deep, panel, card, elev) with spacing around them.
+- A divider is one hairline, the `border-hair` token (the line colour at 55 percent). One hairline per region, never a box inside a box.
+- Inputs, selects and the primary button keep a visible edge so the control boundary stays above 3:1 (WCAG 1.4.11). Ghost and text buttons have no border and show a background step on hover and focus.
+- A coloured border is reserved for a real state (error, drop target, selected).
+- Floating layers (tooltips, menus) keep their edge because nothing else separates them from the page.
+
+### One action
+
+Each view has one primary button. Everything else is a ghost or text button.
+
+### Board card
+
+A card shows the title, the story id and one status line. Step details, agent, model, effort, cost and paused reasons live in the drawer or a tooltip. The single contextual action (Launch, Retry, Stop, Validate) stays on the card. Moving a card between steps lives in the drawer and in drag and drop.
+
+### One status
+
+The machine load, the running sessions, the budget and the room left are one quiet line in the shell. It opens the Resource details drawer. Nothing is shown twice.
+
+### Lists
+
+Subjects, roadmap events, statistics and settings are rows with 12 to 16px of vertical padding and one hairline between them, not tiles.
+
+### Touch
+
+Every target is at least 40px at 375 wide. Checkboxes and radios keep their visual size and get a 40px label hit area.
+
+### Checks
+
+After each change: screenshots of the changed screens in both themes at 1280 and 375, axe with 0 violations, and a touch-target sweep at 375.

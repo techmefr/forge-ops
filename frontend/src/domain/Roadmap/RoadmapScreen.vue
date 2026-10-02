@@ -253,7 +253,7 @@ onMounted(() => {
       @retry="roadmap.reload()"
     >
       <section
-        class="flex-none rounded-lg border border-line bg-card p-4"
+        class="flex-none rounded-lg bg-card p-4"
         :aria-label="t('roadmap.upcoming')"
         data-test-id="roadmap-upcoming"
       >
@@ -283,14 +283,14 @@ onMounted(() => {
       </section>
 
       <div
-        class="min-w-0 flex-none overflow-x-auto rounded-lg border border-line bg-card"
+        class="min-w-0 flex-none overflow-x-auto rounded-lg bg-card"
         role="region"
         tabindex="0"
         :aria-label="t('roadmap.aria')"
         data-test-id="roadmap-frame"
       >
         <div class="min-w-[760px]">
-          <div class="grid grid-cols-[minmax(170px,240px)_1fr] border-b border-line bg-panel">
+          <div class="grid grid-cols-[minmax(170px,240px)_1fr] border-b border-hair bg-panel">
             <div class="px-3 py-2 text-xs text-txt-low">
               {{ t('roadmap.subjectOwner') }}
             </div>
@@ -317,7 +317,7 @@ onMounted(() => {
               :key="block.entry.project.id"
               :data-test-id="`roadmap-project-${block.entry.project.id}`"
             >
-              <div class="grid grid-cols-[minmax(170px,240px)_1fr] border-b border-line bg-elev/40">
+              <div class="grid grid-cols-[minmax(170px,240px)_1fr] border-b border-hair bg-elev/40">
                 <div class="flex flex-col gap-1 px-3 py-2">
                   <span class="flex items-center gap-2">
                     <span
@@ -403,7 +403,7 @@ onMounted(() => {
                 <li
                   v-for="row in block.rows"
                   :key="row.subject.id"
-                  class="grid grid-cols-[minmax(170px,240px)_1fr] border-b border-line/60"
+                  class="grid grid-cols-[minmax(170px,240px)_1fr] border-b border-hair/60"
                 >
                   <div class="flex flex-col px-3 py-1.5 pl-6">
                     <strong class="text-sm text-txt-hi">
@@ -486,7 +486,7 @@ onMounted(() => {
       <section
         v-for="block in withoutDates"
         :key="`undated-${block.entry.project.id}`"
-        class="flex-none rounded-lg border border-line bg-card p-4"
+        class="flex-none rounded-lg bg-card p-4"
         :data-test-id="`roadmap-undated-${block.entry.project.id}`"
       >
         <h3 class="text-sm font-bold text-txt-hi">
@@ -496,7 +496,7 @@ onMounted(() => {
           <li
             v-for="subject in block.undated"
             :key="subject.id"
-            class="flex items-center gap-2 rounded-lg border border-line bg-elev px-3 py-1.5 text-sm text-txt-hi"
+            class="flex items-center gap-2 rounded-lg bg-elev px-3 py-1.5 text-sm text-txt-hi"
           >
             {{ subject.title }}
             <button

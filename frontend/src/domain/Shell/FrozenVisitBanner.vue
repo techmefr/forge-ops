@@ -12,7 +12,7 @@ const open = ref(true)
 <template>
   <aside
     v-if="open"
-    class="flex flex-none items-center gap-x-2 border-t border-line bg-panel px-2 sm:gap-x-4 sm:px-6"
+    class="flex flex-none items-center gap-x-2 border-t border-hair bg-panel px-2 sm:gap-x-4 sm:px-6"
     :aria-label="t('visit.title')"
   >
     <p class="text-xs font-medium whitespace-nowrap text-txt-mid">

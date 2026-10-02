@@ -30,7 +30,7 @@ onBeforeUnmount(() => {
   <div class="pointer-events-none fixed right-3 bottom-3 z-50 max-w-[340px]" role="status" aria-live="polite">
     <p
       v-if="shown"
-      class="pointer-events-auto rounded-[10px] border border-line bg-panel p-3 text-sm leading-snug text-txt-hi shadow-lg"
+      class="pointer-events-auto rounded-[10px] bg-panel p-3 text-sm leading-snug text-txt-hi shadow-lg"
       data-test-id="demo-readonly"
     >
       {{ t('visit.readOnly') }}

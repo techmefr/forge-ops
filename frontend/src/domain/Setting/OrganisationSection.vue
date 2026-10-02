@@ -74,7 +74,7 @@ void tokens.reload()
 </script>
 
 <template>
-  <section class="flex flex-col gap-6 border-t border-line pt-6">
+  <section class="flex flex-col gap-6 border-t border-hair pt-6">
     <div class="flex flex-wrap items-center gap-3">
       <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('setting.organisation') }}</h2>
       <EffectBadge section="organisation" />
@@ -119,7 +119,7 @@ void tokens.reload()
       </h3>
       <p class="text-sm text-txt-mid">{{ t('organisation.instanceSaid') }}</p>
 
-      <p v-if="minted !== null" class="rounded-md border border-line bg-elev p-3">
+      <p v-if="minted !== null" class="rounded-md bg-elev p-3">
         <span class="text-xs text-txt-hi">{{ t('organisation.shownOnce') }}</span>
         <code class="mt-1 block font-mono text-xs break-all text-txt-hi">{{ minted }}</code>
       </p>

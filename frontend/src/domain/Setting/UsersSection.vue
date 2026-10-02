@@ -90,7 +90,7 @@ void users.reload()
 </script>
 
 <template>
-  <section class="flex flex-col gap-4 border-t border-line pt-6" data-tour="setting-users">
+  <section class="flex flex-col gap-4 border-t border-hair pt-6" data-tour="setting-users">
     <div class="flex flex-wrap items-center gap-3">
       <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('team.users') }}</h2>
       <EffectBadge section="users" />
@@ -112,7 +112,7 @@ void users.reload()
         class="flex flex-wrap items-center gap-3 rounded-md bg-panel px-3 py-2"
       >
         <span
-          class="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-elev font-mono text-xs text-txt-hi"
+          class="flex h-8 w-8 items-center justify-center rounded-full bg-elev font-mono text-xs text-txt-hi"
           aria-hidden="true"
           >{{ initialsOf(user.displayName) }}</span
         >

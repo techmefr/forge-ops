@@ -88,7 +88,7 @@ onMounted(load)
 </script>
 
 <template>
-  <section class="flex flex-col gap-6 border-t border-line pt-6">
+  <section class="flex flex-col gap-6 border-t border-hair pt-6">
     <div class="flex flex-wrap items-center gap-3">
       <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('setting.account') }}</h2>
       <EffectBadge section="account" />
@@ -141,7 +141,7 @@ onMounted(load)
         </p>
       </form>
 
-      <form ref="passwordForm" class="flex flex-col gap-4 border-t border-line pt-5" @submit.prevent="savePassword">
+      <form ref="passwordForm" class="flex flex-col gap-4 border-t border-hair pt-5" @submit.prevent="savePassword">
         <label class="flex flex-col gap-2">
           <span class="text-xs text-txt-low">{{
             t('setting.currentPassword')

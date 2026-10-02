@@ -33,7 +33,7 @@ function drop(index: number): void {
       <li
         v-for="(link, index) in links"
         :key="`${link.kind}-${link.url}-${index}`"
-        class="relative flex max-w-full items-center gap-1.5 rounded-md border border-line bg-panel px-2 py-1 text-xs"
+        class="relative flex max-w-full items-center gap-1.5 rounded-md bg-panel px-2 py-1 text-xs"
       >
         <span class="text-txt-mid">{{ t(`linkKind.${link.kind}`) }}</span>
         <a

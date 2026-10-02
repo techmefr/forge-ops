@@ -16,7 +16,7 @@ function onCreated(): void {
 
 <template>
   <section
-    class="flex flex-col gap-4 border-t border-line pt-6"
+    class="flex flex-col gap-4 border-t border-hair pt-6"
     :aria-label="t('emptyState.title')"
   >
     <div>

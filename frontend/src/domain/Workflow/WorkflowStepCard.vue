@@ -244,7 +244,7 @@ function pickEffort(event: Event): void {
       <button
         type="button"
         :disabled="!dirty || busy"
-        class="rounded-md border border-line px-3 py-1.5 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
+        class="rounded-md px-3 py-1.5 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
         @click="emit('save', draft)"
       >
         {{ t('workflowSettings.save') }}

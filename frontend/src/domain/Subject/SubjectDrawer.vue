@@ -152,7 +152,7 @@ function closeWhenClosed(open: boolean): void {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-40 bg-deep/70" />
       <DialogContent
-        class="fixed top-0 right-0 bottom-0 z-50 grid w-[min(520px,100vw)] content-start gap-3 overflow-y-auto border-l border-line bg-panel p-5"
+        class="fixed top-0 right-0 bottom-0 z-50 grid w-[min(520px,100vw)] content-start gap-3 overflow-y-auto border-l border-hair bg-panel p-5"
         data-test-id="subject-drawer"
       >
         <div class="flex flex-wrap items-center gap-2">
@@ -178,7 +178,7 @@ function closeWhenClosed(open: boolean): void {
           <button
             v-if="!deleted"
             type="button"
-            class="ml-auto rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-txt-hi hover:bg-elev"
+            class="ml-auto rounded-md px-2.5 py-1 text-xs font-semibold text-txt-hi hover:bg-elev"
             data-test-id="drawer-edit"
             @click="emit('edit')"
           >
@@ -186,7 +186,7 @@ function closeWhenClosed(open: boolean): void {
           </button>
           <button
             type="button"
-            class="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-txt-mid hover:bg-elev"
+            class="rounded-md px-2.5 py-1 text-xs font-semibold text-txt-mid hover:bg-elev"
             :class="deleted ? 'ml-auto' : ''"
             data-test-id="drawer-close"
             @click="emit('close')"
@@ -307,7 +307,7 @@ function closeWhenClosed(open: boolean): void {
               :href="safeHref(link.url)"
               target="_blank"
               rel="noopener noreferrer"
-              class="rounded-md border border-line px-2 py-0.5 text-xs text-info hover:bg-elev max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
+              class="rounded-md px-2 py-0.5 text-xs text-info hover:bg-elev max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
             >
               {{ t(`linkKind.${link.kind}`) }}<span class="sr-only"> {{ t('team.opensNewTab') }}</span>
             </a>
@@ -324,7 +324,7 @@ function closeWhenClosed(open: boolean): void {
               :href="safeHref(link.url)"
               target="_blank"
               rel="noopener noreferrer"
-              class="rounded-md border border-line px-2 py-0.5 text-xs text-info hover:bg-elev max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
+              class="rounded-md px-2 py-0.5 text-xs text-info hover:bg-elev max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
             >
               {{ t(`linkKind.${link.kind}`) }}<span class="sr-only"> {{ t('team.opensNewTab') }}</span>
             </a>

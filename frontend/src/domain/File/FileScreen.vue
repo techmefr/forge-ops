@@ -144,7 +144,7 @@ onMounted(async () => {
       <FileBrowser :project-id="chosenProject" />
     </div>
 
-    <details class="mt-6 max-h-[40vh] flex-none overflow-auto border-t border-line pt-4">
+    <details class="mt-6 max-h-[40vh] flex-none overflow-auto border-t border-hair pt-4">
       <summary class="cursor-pointer max-sm:flex max-sm:min-h-10 max-sm:items-center text-xs text-txt-low">
         {{ t('project.zonesSummary') }}
       </summary>
@@ -174,7 +174,7 @@ onMounted(async () => {
         <button
           type="submit"
           :disabled="busy"
-          class="rounded-lg border border-line bg-card px-4 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
+          class="rounded-lg bg-card px-4 py-2 text-sm font-bold text-txt-mid disabled:opacity-40"
         >
           {{ t('project.declareZone') }}
         </button>
@@ -183,7 +183,7 @@ onMounted(async () => {
 
     <p v-if="refusal !== null" class="mt-3 text-sm text-red" role="alert">{{ say(refusal) }}</p>
 
-    <section class="mt-6 rounded-lg border border-line bg-card p-4" data-tour="scope-reservation">
+    <section class="mt-6 rounded-lg bg-card p-4" data-tour="scope-reservation">
       <p class="text-xs text-txt-low">
         {{ t('project.scopeReservation') }}
       </p>
@@ -239,7 +239,7 @@ onMounted(async () => {
           <button
             type="button"
             :disabled="busy"
-            class="ml-auto rounded-lg border border-line bg-elev px-2 py-1 text-xs font-bold text-txt-mid disabled:opacity-40"
+            class="ml-auto rounded-lg bg-elev px-2 py-1 text-xs font-bold text-txt-mid disabled:opacity-40"
             @click="releaseScope(reservation.storyId)"
           >
             {{ t('common.release') }}
@@ -289,7 +289,7 @@ onMounted(async () => {
           <article
             v-for="overview in zones.data.value ?? []"
             :key="overview.zone.id"
-            class="rounded-lg border border-line bg-card p-4"
+            class="rounded-lg bg-card p-4"
           >
             <div class="flex items-center gap-2">
               <span

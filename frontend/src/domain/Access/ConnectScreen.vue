@@ -46,7 +46,7 @@ async function connect(): Promise<void> {
 
 <template>
   <div class="mx-auto max-w-md p-8">
-    <section class="rounded-lg border border-line bg-card p-6">
+    <section class="rounded-lg bg-card p-6">
       <p class="title-face text-[22px]">{{ t('connect.title') }}</p>
       <p class="mt-1 text-xs text-txt-low">{{ t('connect.hint') }}</p>
 

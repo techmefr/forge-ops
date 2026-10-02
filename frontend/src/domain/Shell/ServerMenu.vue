@@ -45,7 +45,7 @@ async function add(): Promise<void> {
   <div v-if="isVisible" class="relative">
     <button
       type="button"
-      class="rounded-lg border border-line bg-elev px-3 py-1.5 text-xs text-txt-hi"
+      class="rounded-lg bg-elev px-3 py-1.5 text-xs text-txt-hi"
       :aria-label="`${activeName}, ${t('servers.title')}`"
       :aria-expanded="isOpen"
       @click="toggle()"
@@ -54,7 +54,7 @@ async function add(): Promise<void> {
     </button>
     <ul
       v-if="isOpen"
-      class="absolute right-0 z-50 mt-1 flex min-w-56 flex-col gap-1 rounded-lg border border-line bg-card p-2"
+      class="absolute right-0 z-50 mt-1 flex min-w-56 flex-col gap-1 rounded-lg bg-card p-2"
     >
       <li v-for="server in book.servers" :key="server.id" class="flex items-center gap-2">
         <button

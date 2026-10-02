@@ -57,25 +57,25 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
 <template>
   <div class="flex h-full min-h-0 flex-col p-8">
     <div class="grid flex-none gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
-      <article class="rounded-lg border border-line bg-card p-4">
+      <article class="rounded-lg bg-card p-4">
         <p class="text-xs text-txt-low">
           {{ t('resource.liveSessions') }}
         </p>
         <p class="title-face mt-1 text-[28px]">{{ alive.length }}</p>
       </article>
-      <article class="rounded-lg border border-line bg-card p-4">
+      <article class="rounded-lg bg-card p-4">
         <p class="text-xs text-txt-low">
           {{ t('resource.supervisors') }}
         </p>
         <p class="title-face mt-1 text-[28px]">{{ fleet.data.value?.roster?.workerCount ?? 0 }}</p>
       </article>
-      <article class="rounded-lg border border-line bg-card p-4">
+      <article class="rounded-lg bg-card p-4">
         <p class="text-xs text-txt-low">
           {{ t('resource.tokensInFlight') }}
         </p>
         <p class="title-face mt-1 text-[28px]">{{ tokens }}</p>
       </article>
-      <article class="rounded-lg border border-line bg-card p-4">
+      <article class="rounded-lg bg-card p-4">
         <p class="text-xs text-txt-low">
           {{ t('resource.spentToday') }}
         </p>
@@ -89,7 +89,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
     </div>
 
     <div class="mt-2 min-h-0 flex-1 overflow-auto pr-1">
-    <section class="mt-4 rounded-lg border border-line bg-card p-5">
+    <section class="mt-4 rounded-lg bg-card p-5">
       <p class="text-xs text-txt-low">
         {{ t('resource.machineReading') }}
       </p>
@@ -208,7 +208,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
       >
         <table class="w-full border-collapse text-left text-sm">
           <thead>
-            <tr class="border-b border-line text-txt-low">
+            <tr class="border-b border-hair text-txt-low">
               <th class="py-2 text-xs">
                 {{ t('resource.colSession') }}
               </th>
@@ -227,7 +227,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
             </tr>
           </thead>
           <tbody>
-            <tr v-for="job in jobs" :key="job.id" class="border-b border-line/60">
+            <tr v-for="job in jobs" :key="job.id" class="border-b border-hair/60">
               <td class="py-2 font-mono text-xs text-txt-hi">{{ job.name ?? job.id }}</td>
               <td class="py-2 text-txt-mid">{{ jobState(job.state) }}</td>
               <td class="py-2 text-txt-mid">{{ job.intent ?? t('common.nothing') }}</td>

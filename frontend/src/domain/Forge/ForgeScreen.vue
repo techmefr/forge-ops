@@ -211,7 +211,7 @@ onMounted(async () => {
       <div class="flex min-w-0 flex-none flex-wrap items-center gap-x-4 gap-y-2 px-4 pt-3">
         <h2 class="sr-only">{{ t('forge.title') }}</h2>
         <small class="ml-auto text-xs text-txt-low">{{ t('forge.viewKept') }}</small>
-        <div class="flex rounded-md border border-line" role="group" :aria-label="t('forge.viewAria')">
+        <div class="flex rounded-md " role="group" :aria-label="t('forge.viewAria')">
           <button
             v-for="choice in FORGE_VIEWS"
             :key="choice"
@@ -279,7 +279,7 @@ onMounted(async () => {
         </select>
         <button
           type="submit"
-          class="rounded-md border border-line bg-transparent px-3 py-1 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
+          class="rounded-md bg-transparent px-3 py-1 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
           :disabled="newTitle.trim() === ''"
         >
           {{ t('forge.addStoryButton') }}

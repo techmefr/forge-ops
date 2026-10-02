@@ -68,7 +68,7 @@ function closeWhenClosed(open: boolean): void {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-[60] bg-deep/70" />
       <DialogContent
-        class="fixed top-1/2 left-1/2 z-[70] max-h-[calc(100dvh-2rem)] w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-line bg-panel p-5"
+        class="fixed top-1/2 left-1/2 z-[70] max-h-[calc(100dvh-2rem)] w-[min(420px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg bg-panel p-5"
         data-test-id="new-project-dialog"
       >
         <DialogTitle class="title-face text-sm text-txt-hi">
@@ -118,7 +118,7 @@ function closeWhenClosed(open: boolean): void {
                 v-for="swatch in SWATCHES"
                 :key="swatch"
                 type="button"
-                class="size-5 rounded-full border border-line"
+                class="bg-elev size-5 rounded-full "
                 :style="{ background: swatch }"
                 :aria-label="swatch"
                 :aria-pressed="colour === swatch"
@@ -154,7 +154,7 @@ function closeWhenClosed(open: boolean): void {
           <div class="flex flex-wrap items-center justify-end gap-2">
             <button
               type="button"
-              class="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev"
+              class="rounded-md px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev"
               @click="emit('close')"
             >
               {{ t('projectForm.cancel') }}

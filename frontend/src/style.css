@@ -10,6 +10,7 @@
   --color-card: var(--forge-card);
   --color-elev: var(--forge-elev);
   --color-line: var(--forge-line);
+  --color-hair: color-mix(in srgb, var(--forge-line) 55%, transparent);
   --color-ink: var(--forge-ink);
   --color-txt-hi: var(--forge-txthi);
   --color-txt-mid: var(--forge-txtmid);

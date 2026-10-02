@@ -10,7 +10,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <div class="flex min-w-0 items-center gap-2 border-b border-line px-4 py-2">
+  <div class="flex min-w-0 items-center gap-2 border-b border-hair px-4 py-2">
     <div class="min-w-0 flex-1"><slot /></div>
     <Tooltip :label="wide ? t('browser.shrink') : t('browser.widen')">
       <button
