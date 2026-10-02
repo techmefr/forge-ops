@@ -132,8 +132,8 @@ followUps.reload()
               :style="{ background: tintOf(entry.project.colour) }"
               aria-hidden="true"
             />
-            <strong class="title-face text-sm text-txt-hi uppercase">{{ entry.project.name }}</strong>
-            <span class="ml-auto flex items-center gap-1.5 text-[13px] font-semibold text-txt-hi">
+            <strong class="title-face text-sm text-txt-hi">{{ entry.project.name }}</strong>
+            <span class="ml-auto flex items-center gap-1.5 text-sm font-semibold text-txt-hi">
               <b
                 class="text-xl leading-none"
                 :class="WEATHER_TONES[entry.followUp.weather].text"
@@ -144,7 +144,7 @@ followUps.reload()
               <span data-test-id="weather-word">{{ weatherWord(entry) }}</span>
             </span>
           </span>
-          <span v-if="entry.followUp.statusSentence !== null" class="text-[13px] text-txt-mid">
+          <span v-if="entry.followUp.statusSentence !== null" class="text-sm text-txt-mid">
             {{ entry.followUp.statusSentence }}
           </span>
         </button>
@@ -158,7 +158,7 @@ followUps.reload()
           <span v-else class="font-semibold text-txt-hi">{{ alertLines(entry.followUp.alerts).join(' · ') }}</span>
           <span>{{ nextEventLine(entry) }}</span>
           <span>{{ t(entry.followUp.source === 'manual' ? 'followUp.manual' : 'followUp.computed') }}</span>
-          <span class="text-[11px] text-txt-low">{{ t('followUp.hint') }}</span>
+          <span class="text-xs text-txt-low">{{ t('followUp.hint') }}</span>
         </div>
       </li>
     </ul>

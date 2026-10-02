@@ -21,7 +21,7 @@ function onCreated(): void {
   >
     <div>
       <p class="text-base font-semibold">{{ t('emptyState.title') }}</p>
-      <p class="mt-1 text-[13px] text-txt-low">{{ t('emptyState.body') }}</p>
+      <p class="mt-1 text-sm text-txt-low">{{ t('emptyState.body') }}</p>
     </div>
 
     <ProjectCreateForm v-if="creating" @created="onCreated" @cancel="creating = false" />
@@ -29,12 +29,12 @@ function onCreated(): void {
     <div v-else class="flex flex-wrap items-center gap-3">
       <button
         type="button"
-        class="rounded-lg border border-acc bg-acc px-4 py-2.5 text-[11px] font-bold text-ink uppercase"
+        class="rounded-lg border border-acc bg-acc px-4 py-2.5 text-xs font-bold text-ink"
         @click="creating = true"
       >
         {{ t('emptyState.createProject') }}
       </button>
-      <RouterLink to="/settings" class="text-[13px] text-acc underline">
+      <RouterLink to="/settings" class="text-sm text-acc underline">
         {{ t('emptyState.reviewWorkflow') }}
       </RouterLink>
     </div>

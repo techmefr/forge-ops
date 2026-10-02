@@ -56,11 +56,11 @@ function colourOf(percent: number | null): string {
     role="group"
     :aria-label="t('machine.aria')"
   >
-    <p v-if="gauges.length === 0" class="font-mono text-[11px] text-txt-low">
+    <p v-if="gauges.length === 0" class="font-mono text-xs text-txt-low">
       {{ t('machine.mute') }}
     </p>
     <div v-for="gauge in gauges" :key="gauge.nameKey" class="flex items-center gap-1.5">
-      <span class="flex items-center gap-1.5 font-mono text-[11px] text-txt-low">
+      <span class="flex items-center gap-1.5 font-mono text-xs text-txt-low">
         <Glyph :name="gauge.glyph" :size="13" />
         {{ t(gauge.nameKey) }}
       </span>
@@ -71,7 +71,7 @@ function colourOf(percent: number | null): string {
           :style="{ width: `${Math.min(gauge.percent ?? 0, 100)}%` }"
         />
       </span>
-      <span class="font-mono text-[11px] whitespace-nowrap text-txt-mid">{{ say(gauge.said) }}</span>
+      <span class="font-mono text-xs whitespace-nowrap text-txt-mid">{{ say(gauge.said) }}</span>
     </div>
   </div>
 </template>
