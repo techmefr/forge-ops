@@ -253,7 +253,7 @@ describe('SubjectsScreen counts and lists', () => {
     expect(send).toHaveBeenCalledWith('/api/epics/6/restore', 'POST')
   })
 
-  it('says how long a subject has been blocked and what it waits on', async () => {
+  it('says how long a subject has been blocked', async () => {
     serve({
       live: [
         epic({
@@ -266,7 +266,7 @@ describe('SubjectsScreen counts and lists', () => {
     })
     const screen = await mounted()
     expect(screen.find('[data-test-id="subject-blocked"]').text()).toBe('Blocked for 4 d')
-    expect(screen.find('[data-test-id="subject-waiting"]').text()).toBe('Waiting on Billing')
+    expect(screen.find('[data-test-id="subject-waiting"]').exists()).toBe(false)
   })
 
   it('badges the due date as D+x when late and D-x when ahead', async () => {

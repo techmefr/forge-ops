@@ -137,3 +137,19 @@ Every target is at least 40px at 375 wide. Checkboxes and radios keep their visu
 ### Checks
 
 After each change: screenshots of the changed screens in both themes at 1280 and 375, axe with 0 violations, and a touch-target sweep at 375.
+
+## Calm pass 3 (October 2026)
+
+The third pass trims the densest screens. Each rule below applies to the whole product.
+
+### Weather and project status
+
+Project weather is one compact line of buttons (colour dot, name, weather glyph, word). The status sentence, alerts and next event open on hover or focus and in the follow-up drawer. Never render weather as a grid of cards.
+
+### Lists with a sidebar
+
+Sidebar views and team members are plain text rows: a label and one figure. No avatars, glyph discs or chips. A row shows its flags (late, blocked) inline after the label.
+
+### Subject rows
+
+A subject row shows the title, one status and the due date. The project, the owner, the story count and the blocked duration are one muted meta line. Tags, requester, links, next event, waiting-on and the status note live in the drawer. The Release action appears on hover or focus of the row (always visible on touch and on the open row).
