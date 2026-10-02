@@ -7,8 +7,7 @@ import { screenOfArrow } from '@/technical/Router/TabRing'
 import { ARMED, IDLE, resolveStroke, type Phase } from '@/technical/Router/Shortcut'
 import { useAppearance } from '@/technical/Appearance/UseAppearance'
 import { useTheme } from '@/technical/Theme/UseTheme'
-import { useFleet } from './UseFleet'
-import MachineBadge from '@/domain/Resource/MachineBadge.vue'
+import StatusPill from '@/domain/Resource/StatusPill.vue'
 import ServerMenu from './ServerMenu.vue'
 import LanguageSwitch from '@/technical/Language/LanguageSwitch.vue'
 import Glyph from '@/technical/Ui/Glyph.vue'
@@ -21,7 +20,6 @@ const router = useRouter()
 const { t } = useI18n()
 useTheme()
 useAppearance()
-const { live } = useFleet()
 
 const current = computed(() => screenOfPath(route.path))
 
@@ -125,7 +123,7 @@ watch(
       {{ t('shell.skipToContent') }}
     </a>
     <header
-      class="flex flex-none flex-wrap items-stretch gap-x-3 border-b border-hair bg-panel px-4 sm:gap-x-6 sm:px-6 lg:flex-nowrap"
+      class="flex flex-none flex-wrap items-stretch gap-x-3 bg-panel px-4 sm:gap-x-6 sm:px-6 lg:flex-nowrap"
     >
       <div class="flex flex-none items-center gap-3 py-3 sm:py-4">
         <p class="title-face text-base leading-none">Forge<span class="text-acc">.</span>ops</p>
@@ -158,7 +156,7 @@ watch(
 
     <section
       aria-labelledby="page-heading"
-      class="sticky top-0 z-40 flex flex-wrap items-center gap-3 border-b border-hair bg-panel/80 px-4 py-3 backdrop-blur sm:gap-4 sm:px-8 sm:py-3"
+      class="sticky top-0 z-40 flex flex-wrap items-center gap-3 bg-panel/80 px-4 py-3 backdrop-blur sm:gap-4 sm:px-8 sm:py-3"
     >
       <div class="min-w-0 flex-[1_1_240px]" data-tour="shell-heading">
         <div class="flex items-baseline gap-2.5">
@@ -171,14 +169,7 @@ watch(
         <span id="tour-slot" class="contents" />
         <ServerMenu />
         <LanguageSwitch />
-        <MachineBadge class="hidden sm:flex" />
-        <span class="flex items-center gap-2 text-xs text-txt-low">
-          <span
-            class="h-1.5 w-1.5 flex-none rounded-full"
-            :class="live === 0 ? 'bg-line' : 'bg-green'"
-          />
-          {{ t('shell.agentCount', { count: live }, live) }}
-        </span>
+        <StatusPill v-if="current !== null" />
         <span
           v-if="phase !== IDLE"
           class="rounded-md border border-acc px-2.5 py-1.5 text-xs text-acc"

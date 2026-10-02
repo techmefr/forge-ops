@@ -20,7 +20,7 @@ async function mounted() {
     attachTo: document.body,
     global: {
       plugins: [createBoardI18n('en'), router],
-      stubs: { MachineBadge: true, LanguageSwitch: true, TourGuide: true, ServerMenu: true },
+      stubs: { StatusPill: true, LanguageSwitch: true, TourGuide: true, ServerMenu: true },
     },
   })
   await flushPromises()

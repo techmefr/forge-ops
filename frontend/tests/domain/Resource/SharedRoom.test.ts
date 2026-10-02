@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createBoardI18n } from '@/technical/Language/I18n'
-import ForgeResourceBar from '@/domain/Forge/ForgeResourceBar.vue'
+import StatusPill from '@/domain/Resource/StatusPill.vue'
 import ResourceScreen from '@/domain/Resource/ResourceScreen.vue'
 
 const read = vi.fn()
@@ -13,10 +13,13 @@ vi.mock('@/technical/Api/Board', () => ({
   },
 }))
 
-vi.mock('@/domain/Shell/UseFleet', () => ({
-  useFleet: () => ({ working: { length: 0 } }),
-  isWorking: () => false,
-}))
+vi.mock('@/domain/Shell/UseFleet', async () => {
+  const { ref } = await import('vue')
+  return {
+    useFleet: () => ({ working: { length: 0 }, live: ref(0) }),
+    isWorking: () => false,
+  }
+})
 
 function serve(sessions: { running: number; cap: number } | null): void {
   read.mockImplementation((path: string) => {
@@ -46,10 +49,10 @@ beforeEach(() => {
 })
 
 describe('the room for more sessions', () => {
-  it('is the same number on the bar and on the Resources screen, capped by the dispatcher', async () => {
+  it('is the same number on the status pill and on the Resources screen, capped by the dispatcher', async () => {
     serve({ running: 3, cap: 5 })
 
-    const bar = await roomOf(ForgeResourceBar, '[data-test="forge-resource-room"]')
+    const bar = await roomOf(StatusPill, '[data-test="status-room"]')
     const screen = await roomOf(ResourceScreen, '[data-test="resource-room"]')
 
     expect(bar).toBe('Room for 2 more sessions')
@@ -59,7 +62,7 @@ describe('the room for more sessions', () => {
   it('says the machine is full on both when the dispatcher is saturated', async () => {
     serve({ running: 5, cap: 5 })
 
-    const bar = await roomOf(ForgeResourceBar, '[data-test="forge-resource-room"]')
+    const bar = await roomOf(StatusPill, '[data-test="status-room"]')
     const screen = await roomOf(ResourceScreen, '[data-test="resource-room"]')
 
     expect(bar).toBe(screen)

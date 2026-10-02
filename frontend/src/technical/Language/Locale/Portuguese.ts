@@ -806,8 +806,6 @@ export const PORTUGUESE: Message = {
     colVersion: 'Versão',
   },
   machine: {
-    aria: 'Estado da máquina',
-    mute: 'máquina muda',
     cpu: 'CPU',
     ram: 'RAM',
     disk: 'Disco',
@@ -1047,12 +1045,10 @@ export const PORTUGUESE: Message = {
     },
     resource: {
       aria: 'Recursos da instância',
-      sessions: '{count} sessão em curso | {count} sessões em curso',
-      budget: 'Orçamento de hoje',
       budgetValue: '{spent} / {cap} $',
       room: 'Lugar para mais {count} sessão | Lugar para mais {count} sessões',
       full: 'Máquina cheia: espera que uma sessão termine',
-      unknown: 'Máquina ilegível',
+      fullShort: 'Cheio',
       details: 'Detalhe dos recursos',
       detailsTitle: 'Recursos',
       close: 'Fechar',

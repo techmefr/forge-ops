@@ -16,8 +16,6 @@ import { starterSteps, templateLabelKey } from '@/domain/Workflow/WorkflowRule'
 import ForgeDrawer from './ForgeDrawer.vue'
 import ForgeKanban from './ForgeKanban.vue'
 import ForgePipeline from './ForgePipeline.vue'
-import ForgeResourceBar from './ForgeResourceBar.vue'
-import ForgeResourceDrawer from './ForgeResourceDrawer.vue'
 import {
   DEFAULT_FORGE_VIEW,
   FORGE_PROJECT_KEY,
@@ -44,7 +42,6 @@ const view = ref<ForgeView>(readPreference(FORGE_VIEW_KEY, FORGE_VIEWS, DEFAULT_
 const projectId = ref<number | null>(null)
 const subjectId = ref<number | null>(null)
 const openedId = ref<number | null>(null)
-const resourcesOpen = ref(false)
 const announcement = ref('')
 const newTitle = ref('')
 const newSubject = ref<number | null>(null)
@@ -196,8 +193,6 @@ onMounted(async () => {
 
 <template>
   <div class="flex h-full min-h-0 min-w-0 flex-col overflow-x-hidden overflow-y-auto" data-test="forge-screen">
-    <ForgeResourceBar @details="resourcesOpen = true" />
-
     <p
       v-if="projectId === null && !projects.pending.value"
       class="m-0 px-4 py-6 text-sm text-txt-mid"
@@ -339,6 +334,5 @@ onMounted(async () => {
       @move="(key) => move(opened!, key)"
       @settled="forge.refresh()"
     />
-    <ForgeResourceDrawer v-if="resourcesOpen" @close="resourcesOpen = false" />
   </div>
 </template>

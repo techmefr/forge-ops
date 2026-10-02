@@ -444,30 +444,6 @@ describe('the project pills and the filters', () => {
   })
 })
 
-describe('the resources bar', () => {
-  it('shows the sessions, the gauges, the budget and the room left', async () => {
-    const screen = await mountScreen()
-
-    const bar = screen.get('[data-test="forge-resources"]')
-    expect(bar.text()).toContain('1 session in progress')
-    expect(bar.text()).toContain('CPU')
-    expect(bar.text()).toContain('3.40 / 20.00 $')
-    expect(bar.get('[data-test="forge-resource-room"]').text()).toBe('Room for 4 more sessions')
-  })
-
-  it('opens the resource details in a drawer', async () => {
-    const screen = await mountScreen()
-
-    await screen
-      .findAll('button')
-      .find((button) => button.text() === 'Resource details')
-      ?.trigger('click')
-    await flushPromises()
-
-    expect(inBody('[data-test="forge-resource-drawer"]')?.textContent).toContain('resource-content')
-  })
-})
-
 describe('the card drawer', () => {
   async function openCard(title: string): Promise<VueWrapper> {
     const screen = await mountScreen()

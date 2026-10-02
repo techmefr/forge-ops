@@ -808,8 +808,6 @@ export const GERMAN: Message = {
     colVersion: 'Version',
   },
   machine: {
-    aria: 'Zustand der Maschine',
-    mute: 'Maschine stumm',
     cpu: 'CPU',
     ram: 'RAM',
     disk: 'Platte',
@@ -1049,12 +1047,10 @@ export const GERMAN: Message = {
     },
     resource: {
       aria: 'Ressourcen der Instanz',
-      sessions: '{count} Sitzung läuft | {count} Sitzungen laufen',
-      budget: 'Budget heute',
       budgetValue: '{spent} / {cap} $',
       room: 'Platz für {count} weitere Sitzung | Platz für {count} weitere Sitzungen',
       full: 'Maschine voll: warte, bis eine Sitzung endet',
-      unknown: 'Maschine nicht lesbar',
+      fullShort: 'Voll',
       details: 'Ressourcendetails',
       detailsTitle: 'Ressourcen',
       close: 'Schließen',
