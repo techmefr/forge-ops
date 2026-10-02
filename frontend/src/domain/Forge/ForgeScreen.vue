@@ -9,7 +9,6 @@ import { useResource } from '@/technical/Api/UseResource'
 import { readPreference, writePreference } from '@/technical/Appearance/Preference'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import { tintOf } from '@/technical/Ui/Tint'
-import AutopilotBadge from '@/domain/Workflow/AutopilotBadge.vue'
 import WorkflowBar from '@/domain/Workflow/WorkflowBar.vue'
 import WorkflowEmptyState from '@/domain/Workflow/WorkflowEmptyState.vue'
 import { useProjectWorkflow } from '@/domain/Workflow/UseProjectWorkflow'
@@ -208,32 +207,15 @@ onMounted(async () => {
     </p>
 
     <template v-if="projectId !== null">
-      <div class="flex min-w-0 flex-none flex-wrap items-center gap-x-4 gap-y-2 px-4 pt-3">
-        <h2 class="sr-only">{{ t('forge.title') }}</h2>
-        <small class="ml-auto text-xs text-txt-low">{{ t('forge.viewKept') }}</small>
-        <div class="flex rounded-md " role="group" :aria-label="t('forge.viewAria')">
-          <button
-            v-for="choice in FORGE_VIEWS"
-            :key="choice"
-            type="button"
-            class="border-0 bg-transparent px-3 py-1 text-xs first:rounded-l-md last:rounded-r-md"
-            :class="view === choice ? 'bg-elev text-txt-hi' : 'text-txt-mid hover:bg-elev'"
-            :aria-pressed="view === choice"
-            @click="chooseView(choice)"
-          >
-            {{ choice === 'kanban' ? t('forge.viewKanban') : t('forge.viewPipeline') }}
-          </button>
-        </div>
-      </div>
-
       <div class="flex min-w-0 flex-none flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-        <div class="flex min-w-0 flex-wrap gap-1.5" role="group" :aria-label="t('forge.projectsAria')">
+        <h2 class="sr-only">{{ t('forge.title') }}</h2>
+        <div class="flex min-w-0 flex-wrap gap-1" role="group" :aria-label="t('forge.projectsAria')">
           <button
             v-for="entry in projects.data.value ?? []"
             :key="entry.id"
             type="button"
-            class="flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs"
-            :class="entry.id === projectId ? 'border-acc text-txt-hi' : 'border-line text-txt-mid hover:bg-elev'"
+            class="flex items-center gap-2 rounded-md border-0 px-2.5 py-1.5 text-sm"
+            :class="entry.id === projectId ? 'bg-elev text-txt-hi' : 'bg-transparent text-txt-mid hover:bg-elev'"
             :aria-pressed="entry.id === projectId"
             @click="chooseProject(entry.id)"
           >
@@ -251,8 +233,22 @@ onMounted(async () => {
             {{ subject.title }}
           </option>
         </select>
-        <AutopilotBadge :key="`auto-${projectId}`" :project-id="projectId" />
-        <WorkflowBar :key="`${projectId}-${workflowBarVersion}`" :project-id="projectId" :project-name="projectName" @changed="forge.load()" />
+        <div class="ml-auto flex items-center gap-3">
+          <WorkflowBar :key="`${projectId}-${workflowBarVersion}`" :project-id="projectId" :project-name="projectName" @changed="forge.load()" />
+          <div class="flex rounded-md" role="group" :aria-label="t('forge.viewAria')">
+            <button
+              v-for="choice in FORGE_VIEWS"
+              :key="choice"
+              type="button"
+              class="border-0 px-3 py-1.5 text-xs first:rounded-l-md last:rounded-r-md"
+              :class="view === choice ? 'bg-elev text-txt-hi' : 'bg-transparent text-txt-mid hover:bg-elev'"
+              :aria-pressed="view === choice"
+              @click="chooseView(choice)"
+            >
+              {{ choice === 'kanban' ? t('forge.viewKanban') : t('forge.viewPipeline') }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <form
@@ -340,6 +336,7 @@ onMounted(async () => {
       :busy="forge.busy.value.has(opened.id)"
       @close="openedId = null"
       @act="(action) => act(opened!, action)"
+      @move="(key) => move(opened!, key)"
       @settled="forge.refresh()"
     />
     <ForgeResourceDrawer v-if="resourcesOpen" @close="resourcesOpen = false" />

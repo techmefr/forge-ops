@@ -20,6 +20,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: []
   act: [action: CardAction]
+  move: [stepKey: string]
   settled: []
 }>()
 
@@ -44,6 +45,15 @@ const step = computed(() => props.steps.find((candidate) => candidate.key === pr
 const route = computed(() => replyRouteOf(step.value?.kind ?? 'backlog', step.value?.human ?? false))
 const action = computed(() => primaryActionOf(props.card, props.steps))
 const secondaryAction = computed(() => secondaryActionOf(props.card))
+const previous = computed(() => adjacentStep(props.steps, props.card, -1))
+const following = computed(() => adjacentStep(props.steps, props.card, 1))
+const autoNote = computed(() => {
+  const auto = props.card.auto
+  if (!auto || auto.state === 'running') {
+    return ''
+  }
+  return t(auto.state === 'red' ? 'autopilot.red' : 'autopilot.paused', { reason: auto.reason ?? '' })
+})
 const working = computed(() => props.card.status === 'running')
 
 const agentLine = computed(() => {
@@ -178,14 +188,15 @@ onMounted(() => void conversation.load())
           </dd>
         </dl>
 
-        <div
-          v-if="action !== null || secondaryAction !== null"
-          class="flex flex-none items-center gap-2 border-b border-hair px-5 py-2"
-        >
+        <p v-if="autoNote !== ''" class="m-0 flex-none border-b border-hair px-5 py-2 text-xs text-orange" data-test="auto-note">
+          {{ autoNote }}
+        </p>
+
+        <div class="flex flex-none flex-wrap items-center gap-2 border-b border-hair px-5 py-2">
           <button
             v-if="action !== null"
             type="button"
-            class="rounded-md bg-transparent px-3 py-1.5 text-xs text-txt-hi hover:bg-elev disabled:opacity-40"
+            class="rounded-md border-0 bg-acc px-3 py-1.5 text-xs font-medium text-ink hover:opacity-90 disabled:opacity-40"
             :disabled="busy"
             data-test="forge-drawer-action"
             @click="emit('act', action)"
@@ -201,6 +212,27 @@ onMounted(() => void conversation.load())
             @click="emit('act', secondaryAction)"
           >
             {{ t(`forge.action.${secondaryAction}`) }}
+          </button>
+          <span class="flex-1" />
+          <button
+            v-if="previous !== null"
+            type="button"
+            class="rounded-md bg-transparent px-3 py-1.5 text-xs text-txt-mid hover:bg-elev disabled:opacity-40"
+            :disabled="busy"
+            data-test="forge-drawer-previous"
+            @click="emit('move', previous.key)"
+          >
+            {{ t('forge.drawer.moveBack', { step: previous.label }) }}
+          </button>
+          <button
+            v-if="following !== null"
+            type="button"
+            class="rounded-md bg-transparent px-3 py-1.5 text-xs text-txt-mid hover:bg-elev disabled:opacity-40"
+            :disabled="busy"
+            data-test="forge-drawer-next"
+            @click="emit('move', following.key)"
+          >
+            {{ t('forge.drawer.moveOn', { step: following.label }) }}
           </button>
         </div>
 

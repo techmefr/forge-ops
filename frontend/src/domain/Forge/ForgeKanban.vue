@@ -25,23 +25,6 @@ const overKey = ref<string | null>(null)
 
 const dragged = computed(() => props.cards.find((card) => card.id === draggedId.value) ?? null)
 
-function hint(step: BoardStep): string {
-  if (step.kind === 'backlog') {
-    return t('forge.backlogHint')
-  }
-  if (step.kind === 'done') {
-    return t('forge.doneHint')
-  }
-  if (step.human) {
-    return t('forge.humanStep')
-  }
-  const column = step.column
-  if (column === null) {
-    return ''
-  }
-  return [column.provider, column.model, column.effort].filter((part) => part !== '').join(' · ')
-}
-
 function accepts(step: BoardStep): boolean {
   return dragged.value !== null && canDropInto(dragged.value, step)
 }
@@ -86,8 +69,8 @@ function dragging(card: ForgeCardView, on: boolean): void {
     <section
       v-for="step in steps"
       :key="step.key"
-      class="flex h-full w-[min(272px,82vw)] flex-none flex-col overflow-y-auto overscroll-contain rounded-lg border bg-panel"
-      :class="overKey === step.key ? 'border-acc' : 'border-line'"
+      class="flex h-full w-[min(272px,82vw)] flex-none flex-col overflow-y-auto overscroll-contain rounded-lg bg-panel"
+      :class="overKey === step.key ? 'outline-2 outline-acc' : ''"
       :aria-label="t('forge.columnAria', { step: step.label, count: cardsOfStep(cards, step.key).length }, cardsOfStep(cards, step.key).length)"
       :data-step="step.key"
       @dragover="enter(step, $event)"
@@ -95,7 +78,7 @@ function dragging(card: ForgeCardView, on: boolean): void {
       @dragleave="overKey === step.key && (overKey = null)"
       @drop="drop(step, $event)"
     >
-      <header class="sticky top-0 z-10 flex flex-col gap-0.5 border-b border-hair bg-panel px-3 py-2.5">
+      <header class="sticky top-0 z-10 flex flex-col gap-0.5 border-b border-hair bg-panel px-3 py-3">
         <div class="flex items-center gap-2">
           <span
             class="h-2 w-2 flex-none rounded-full"
@@ -103,15 +86,8 @@ function dragging(card: ForgeCardView, on: boolean): void {
             aria-hidden="true"
           />
           <h3 class="m-0 min-w-0 flex-1 truncate text-sm font-semibold text-txt-hi">{{ step.label }}</h3>
-          <span
-            v-if="step.auto"
-            class="rounded-md px-1.5 font-mono text-xs text-txt-mid"
-            :title="t('forge.autoHint')"
-            >{{ t('forge.auto') }}</span
-          >
           <span class="font-mono text-xs text-txt-low">{{ cardsOfStep(cards, step.key).length }}</span>
         </div>
-        <p class="m-0 truncate text-xs text-txt-low">{{ hint(step) }}</p>
       </header>
       <ul class="m-0 flex min-h-[3rem] flex-1 list-none flex-col p-0">
         <ForgeCardTile
@@ -121,7 +97,6 @@ function dragging(card: ForgeCardView, on: boolean): void {
           :steps="steps"
           :busy="busy.has(card.id)"
           @open="emit('open', card)"
-          @move="(key) => emit('move', card, key)"
           @act="(action) => emit('act', card, action)"
           @dragging="(on) => dragging(card, on)"
         />

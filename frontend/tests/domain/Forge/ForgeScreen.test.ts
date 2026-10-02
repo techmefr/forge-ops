@@ -267,19 +267,6 @@ describe('the kanban', () => {
     expect(screen.get('section[data-step="spec"]').text()).toContain('Story 3')
   })
 
-  it('moves a card to the next step with the arrow button, without any drag', async () => {
-    const screen = await mountScreen()
-
-    const next = screen
-      .get('section[data-step="backlog"]')
-      .findAll('button')
-      .find((button) => button.attributes('aria-label') === 'Move Story 1 to Spec')
-    await next?.trigger('click')
-    await flushPromises()
-
-    expect(send).toHaveBeenCalledWith('/api/forge-cards/1/move', 'POST', { stepKey: 'spec' })
-  })
-
   it('moves a card by drag and drop', async () => {
     const screen = await mountScreen()
     const dataTransfer = { setData: vi.fn(), effectAllowed: '', dropEffect: '' }
@@ -305,11 +292,13 @@ describe('the kanban', () => {
     expect(running?.attributes('draggable')).toBe('false')
   })
 
-  it('offers no arrow past the ends', async () => {
+  it('keeps the card to a title, an id and one status line', async () => {
     const screen = await mountScreen()
 
-    const inBacklog = screen.get('section[data-step="backlog"] [data-test="forge-card"]').findAll('button')
-    expect(inBacklog.find((button) => button.text() === '‹')?.attributes('disabled')).toBeDefined()
+    const card = screen.get('section[data-step="spec"] [data-test="forge-card"]')
+    expect(card.findAll('button').some((button) => ['‹', '›'].includes(button.text()))).toBe(false)
+    expect(card.text()).toContain('Story 2')
+    expect(card.findAll('[data-test="card-status"]')).toHaveLength(1)
   })
 
   it('launches a backlog card by moving it into the first step', async () => {
@@ -359,7 +348,7 @@ describe('the kanban', () => {
     await screen
       .get('section[data-step="backlog"]')
       .findAll('button')
-      .find((button) => button.attributes('aria-label') === 'Move Story 1 to Spec')
+      .find((button) => button.text() === 'Launch')
       ?.trigger('click')
     await flushPromises()
 
@@ -551,6 +540,16 @@ describe('the card drawer', () => {
     expect(drawer?.querySelector('[data-test="forge-tool"]')?.textContent).toContain('Tool Read')
     expect(drawer?.querySelector('[data-test="forge-tool"]')?.textContent).toContain('failed')
     expect(drawer?.querySelector('[role="status"]')?.textContent).toContain('The agent says: Reading the spec')
+  })
+
+  it('moves a card to the next step from the drawer, without any drag', async () => {
+    await openCard('Story 1')
+
+    expect(inBody('[data-test="forge-drawer-previous"]')).toBeNull()
+    ;(inBody('[data-test="forge-drawer-next"]') as HTMLButtonElement).click()
+    await flushPromises()
+
+    expect(send).toHaveBeenCalledWith('/api/forge-cards/1/move', 'POST', { stepKey: 'spec' })
   })
 
   it('launches or validates from the drawer and closes with the button', async () => {
