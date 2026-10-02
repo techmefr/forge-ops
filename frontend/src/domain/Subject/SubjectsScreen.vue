@@ -15,7 +15,6 @@ import ProjectPicker from '@/domain/Project/ProjectPicker.vue'
 import SubjectFormDialog from './SubjectFormDialog.vue'
 import SubjectDrawer from './SubjectDrawer.vue'
 import SubjectRow from './SubjectRow.vue'
-import { initialsOfLogin } from './SubjectFormat'
 import {
   VIEWS,
   VIEW_ALL,
@@ -100,9 +99,9 @@ const blocksOfOpened = computed(() =>
 )
 
 const viewRows = computed(() => [
-  { key: VIEW_ALL, label: t('subjects.viewAll'), glyph: '*', count: counts.value.all, testId: 'view-all', countId: 'count-all' },
-  { key: VIEW_LATE, label: t('subjects.viewLate'), glyph: '!', count: counts.value.late, testId: 'view-late', countId: 'count-late' },
-  { key: VIEW_NONE, label: t('subjects.viewNone'), glyph: '?', count: counts.value.none, testId: 'view-none', countId: 'count-none' },
+  { key: VIEW_ALL, label: t('subjects.viewAll'), count: counts.value.all, testId: 'view-all', countId: 'count-all' },
+  { key: VIEW_LATE, label: t('subjects.viewLate'), count: counts.value.late, testId: 'view-late', countId: 'count-late' },
+  { key: VIEW_NONE, label: t('subjects.viewNone'), count: counts.value.none, testId: 'view-none', countId: 'count-none' },
 ])
 
 const heading = computed(() => {
@@ -383,15 +382,8 @@ onMounted(() => {
             :data-test-id="view.testId"
             @click="select(view.key)"
           >
-            <span
-              class="flex size-5 flex-none items-center justify-center rounded-full bg-elev text-xs font-semibold text-txt-hi"
-              :class="view.key === VIEW_LATE ? 'text-red' : 'text-txt-mid'"
-              aria-hidden="true"
-            >
-              {{ view.glyph }}
-            </span>
             <span class="flex-1 whitespace-nowrap">{{ view.label }}</span>
-            <span class="font-mono text-xs text-txt-low" :data-test-id="view.countId">{{ view.count }}</span>
+            <span class="font-mono text-xs" :class="view.key === VIEW_LATE && view.count > 0 ? 'text-red' : 'text-txt-low'" :data-test-id="view.countId">{{ view.count }}</span>
           </button>
 
           <h2 class="hidden px-2.5 pt-4 pb-1 text-xs text-txt-low min-[760px]:block">
@@ -409,13 +401,7 @@ onMounted(() => {
             :data-test-id="`person-${row.person.login}`"
             @click="select(row.person.login)"
           >
-            <span
-              class="flex size-5 flex-none items-center justify-center rounded-full bg-elev text-xs font-semibold text-txt-mid"
-              aria-hidden="true"
-            >
-              {{ initialsOfLogin(row.person.displayName) }}
-            </span>
-            <span class="flex min-w-0 flex-1 flex-col">
+            <span class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2">
               <span class="truncate whitespace-nowrap">
                 {{ row.person.displayName }}<span v-if="row.person.login === self" class="ml-1 text-txt-low">{{ t('subjects.me') }}</span><span v-if="!row.person.active" class="ml-1 text-txt-low" data-test-id="person-inactive">{{ t('team.inactive') }}</span>
               </span>
@@ -432,7 +418,7 @@ onMounted(() => {
               </span>
             </span>
             <span
-              class="flex-none rounded-md px-1.5 py-0.5 font-mono text-xs font-semibold"
+              class="flex-none font-mono text-xs"
               :class="TONE_CLASSES[row.tone]"
               :title="loadDescription(row)"
               :data-tone="row.tone"
@@ -442,7 +428,6 @@ onMounted(() => {
               <span class="sr-only">{{ loadDescription(row) }}</span>
             </span>
           </button>
-          <p class="hidden px-2.5 pt-4 text-xs text-txt-low min-[760px]:block">{{ t('subjects.hint') }}</p>
         </div>
 
         <section class="min-w-0" :aria-label="heading">
@@ -483,6 +468,7 @@ onMounted(() => {
               :show-owner="showOwner"
               :today="today"
               :self="self"
+              :selected="openId === subject.id"
               :deleted="deletedView"
               @open="openId = $event"
               @take="take"

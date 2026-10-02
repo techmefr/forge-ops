@@ -15,6 +15,7 @@ const props = defineProps<{
   today: string
   self: string | null
   deleted: boolean
+  selected?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -38,17 +39,11 @@ const canRelease = computed(
     props.subject.assignee === props.self &&
     props.subject.state !== 'done',
 )
-const badge = computed(() => dueBadge(props.subject.dueOn, props.subject.state, props.today))
 const blocked = computed(() => blockedDays(props.subject.blockedSince, props.today))
+const badge = computed(() => dueBadge(props.subject.dueOn, props.subject.state, props.today))
 const stateName = computed(() => t(`epicState.${props.subject.state}`))
-const waiting = computed(() => props.subject.waitingOn[0] ?? null)
 const showProgress = computed(
   () => props.subject.state !== 'todo' && props.subject.progress.total > 0,
-)
-const progressPercent = computed(() =>
-  props.subject.progress.total === 0
-    ? 0
-    : Math.round((props.subject.progress.delivered / props.subject.progress.total) * 100),
 )
 
 const badgeText = computed(() => {
@@ -91,11 +86,11 @@ function changeState(event: Event): void {
 
 <template>
   <li
-    class="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-hair/60 px-4 py-3 hover:bg-elev/60 min-[760px]:grid min-[760px]:grid-cols-[1fr_auto_auto_auto] min-[760px]:items-start min-[760px]:gap-x-4"
+    class="group flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-hair/60 px-4 py-3 hover:bg-elev/60 min-[760px]:grid min-[760px]:grid-cols-[1fr_auto_auto_auto] min-[760px]:items-start min-[760px]:gap-x-4"
     :data-test-id="`subject-row-${subject.id}`"
     @click="openFromClick"
   >
-    <div class="flex w-full min-w-0 flex-col gap-1 min-[760px]:w-auto">
+    <div class="flex w-full min-w-0 flex-col gap-0.5 min-[760px]:w-auto">
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
         <button
           type="button"
@@ -107,9 +102,15 @@ function changeState(event: Event): void {
           {{ subject.title }}
         </button>
         <span
-          v-if="project !== null"
-          class="inline-flex items-center gap-1 text-xs text-txt-mid"
+          v-if="subject.priority !== 'normal'"
+          class="text-xs font-semibold"
+          :class="subject.priority === 'max' ? 'text-red' : 'text-orange'"
         >
+          {{ t(`epicPriority.${subject.priority}`) }}
+        </span>
+      </div>
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-txt-low">
+        <span v-if="project !== null" class="inline-flex items-center gap-1">
           <span
             class="size-1.5 flex-none rounded-full"
             :style="{ background: tintOf(project.colour) }"
@@ -117,59 +118,11 @@ function changeState(event: Event): void {
           />
           {{ project.name }}
         </span>
-        <span
-          v-if="subject.priority !== 'normal'"
-          class="text-xs font-semibold"
-          :class="subject.priority === 'max' ? 'text-red' : 'text-orange'"
-        >
-          {{ t(`epicPriority.${subject.priority}`) }}
-        </span>
-        <span
-          v-for="tag in subject.tags"
-          :key="tag.id"
-          class="inline-flex items-center gap-1 text-xs text-txt-low"
-        >
-          <span
-            class="size-1.5 flex-none rounded-full"
-            :style="{ background: tintOf(tag.colour) }"
-            aria-hidden="true"
-          />
-          {{ tag.label }}
-        </span>
-      </div>
-      <p v-if="subject.statusNote !== null" class="text-sm text-txt-mid">
-        {{ subject.statusNote }}
-      </p>
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-txt-low">
-        <span v-if="blocked !== null" class="font-semibold text-warn" data-test-id="subject-blocked">
+        <span v-if="blocked !== null" class="text-warn" data-test-id="subject-blocked">
           {{ t('subjects.row.blockedFor', { days: blocked }) }}
         </span>
-        <span v-if="waiting !== null" data-test-id="subject-waiting">
-          {{
-            subject.waitingOn.length > 1
-              ? t('subjects.row.waitingMore', { title: waiting.title, count: subject.waitingOn.length - 1 })
-              : t('subjects.row.waitingOn', { title: waiting.title })
-          }}
-        </span>
-        <span v-if="subject.nextEvent !== null" data-test-id="subject-event">
-          {{
-            t('subjects.row.nextEvent', {
-              type: t(`milestone.${subject.nextEvent.type}`),
-              date: dayLabel(subject.nextEvent.date, locale),
-            })
-          }}
-        </span>
-        <span v-if="subject.links.length > 0">
-          {{ t('subjects.row.links', { count: subject.links.length }, subject.links.length) }}
-        </span>
         <span v-if="showOwner">{{ ownerName ?? t('subjects.row.nobody') }}</span>
-        <span v-if="subject.requestedBy !== null">
-          {{ t('subjects.row.forWhom', { name: subject.requestedBy }) }}
-        </span>
-        <span v-if="showProgress" class="inline-flex items-center gap-1.5">
-          <span class="h-1 w-12 overflow-hidden rounded-full bg-line" aria-hidden="true">
-            <span class="block h-full bg-txt-mid" :style="{ width: `${progressPercent}%` }" />
-          </span>
+        <span v-if="showProgress">
           {{
             t('subjects.row.stories', {
               delivered: subject.progress.delivered,
@@ -239,7 +192,8 @@ function changeState(event: Event): void {
     <button
       v-else-if="canRelease"
       type="button"
-      class="justify-self-start rounded-md px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-low hover:bg-elev hover:text-txt-hi"
+      class="justify-self-start rounded-md px-2.5 py-1 max-[759px]:min-h-10 text-xs font-semibold text-txt-low hover:bg-elev hover:text-txt-hi focus-visible:opacity-100"
+      :class="selected ? '' : '[@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100'"
       :aria-label="t('subjects.row.releaseAria', { title: subject.title })"
       data-test-id="subject-release"
       @click="emit('release', subject)"
