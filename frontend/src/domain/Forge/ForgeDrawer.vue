@@ -6,7 +6,6 @@ import { DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRo
 import type { ForgeCardView } from '@contract/ForgeCardContract'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import { groupThread, replyRouteOf, submitsOn } from './ConversationRule'
-import { STATUS_GLYPH } from './ForgeGlyph'
 import { adjacentStep, minutesOf, primaryActionOf, referenceLabel, secondaryActionOf, type BoardStep, type CardAction } from './ForgeRule'
 import { useCardConversation } from './UseCardConversation'
 
@@ -151,10 +150,10 @@ onMounted(() => void conversation.load())
         class="fixed top-0 right-0 z-50 flex h-dvh w-full flex-col border-l border-hair bg-panel shadow-lg min-[760px]:w-[min(760px,100vw)]"
         data-test="forge-drawer"
       >
-        <header class="flex flex-none items-start gap-3 border-b border-hair px-5 py-3">
+        <header class="flex flex-none items-start gap-3 border-b border-line px-6 py-4">
           <div class="min-w-0 flex-1">
             <p class="m-0 font-mono text-xs text-txt-low">{{ referenceLabel(card) }}</p>
-            <DialogTitle class="m-0 text-sm font-semibold text-txt-hi">{{ card.title }}</DialogTitle>
+            <DialogTitle class="title-face m-0 text-lg text-txt-hi">{{ card.title }}</DialogTitle>
             <DialogDescription class="sr-only">{{ t('forge.drawer.threadAria') }}</DialogDescription>
           </div>
           <button
@@ -174,12 +173,12 @@ onMounted(() => void conversation.load())
           </button>
         </header>
 
-        <div class="flex-none border-b border-hair px-5 py-3 text-xs">
+        <div class="flex-none border-b border-line px-6 py-3 text-sm">
           <p class="m-0 text-txt-hi" data-test="forge-drawer-where">
             {{ [projectName, card.subjectTitle, step?.label].filter((part) => part).join(' · ') }}
           </p>
           <p class="m-0 mt-1 tabular-nums text-txt-mid sm:truncate" data-test="forge-drawer-who">
-            <span aria-hidden="true">{{ STATUS_GLYPH[card.status] }} </span>{{ [agentLine, sessionLine].filter((part) => part !== '').join(' · ') }}
+            <span class="mr-1 inline-block size-2 rounded-full bg-current align-middle" aria-hidden="true" />{{ [agentLine, sessionLine].filter((part) => part !== '').join(' · ') }}
           </p>
         </div>
 
@@ -191,7 +190,7 @@ onMounted(() => void conversation.load())
           <button
             v-if="action !== null"
             type="button"
-            class="btn btn-primary btn-sm border-0 hover:opacity-90"
+            class="btn btn-primary btn-sm"
             :disabled="busy"
             data-test="forge-drawer-action"
             @click="emit('act', action)"

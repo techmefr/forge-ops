@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import type { ProjectSheet } from '@contract/ProjectContract'
 import {
   capacityFrom,
-  initialsOf,
   mayChangeAdmin,
   positionAfterMove,
   usedBy,
@@ -82,9 +81,3 @@ describe('capacityFrom', () => {
   })
 })
 
-describe('initialsOf', () => {
-  it('keeps the first letters of the first two words', () => {
-    expect(initialsOf('ana maria da silva')).toBe('AM')
-    expect(initialsOf('Bob')).toBe('B')
-  })
-})

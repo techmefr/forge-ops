@@ -39,11 +39,3 @@ export function capacityFrom(text: string): number | null | 'refused' {
   const value = Number(trimmed)
   return value < CAPACITY_MIN || value > CAPACITY_MAX ? 'refused' : value
 }
-
-export function initialsOf(displayName: string): string {
-  const words = displayName.trim().split(/\s+/).filter((word) => word !== '')
-  return words
-    .slice(0, 2)
-    .map((word) => word.charAt(0).toUpperCase())
-    .join('')
-}
