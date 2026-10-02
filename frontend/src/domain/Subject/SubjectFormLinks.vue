@@ -33,9 +33,9 @@ function broken(link: LinkDraft): boolean {
 
 <template>
   <fieldset class="flex min-w-0 flex-col gap-2">
-    <legend class="text-[13px] text-txt-mid">
+    <legend class="text-sm text-txt-mid">
       {{ t('subjects.form.links') }}
-      <span class="text-[11px] text-txt-low">{{ t('subjects.form.linksHint') }}</span>
+      <span class="text-xs text-txt-low">{{ t('subjects.form.linksHint') }}</span>
     </legend>
     <div v-for="(link, index) in modelValue" :key="index" class="flex flex-wrap items-center gap-2" data-test-id="form-link-row">
       <select
@@ -73,7 +73,7 @@ function broken(link: LinkDraft): boolean {
     <div>
       <button
         type="button"
-        class="rounded-md border border-line px-3 py-1.5 text-[11px] font-semibold text-txt-mid uppercase hover:bg-elev"
+        class="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev"
         data-test-id="form-link-add"
         @click="add"
       >

@@ -195,7 +195,7 @@ function closeWhenClosed(open: boolean): void {
       >
         <div class="flex items-start gap-3">
           <div class="min-w-0 flex-1">
-            <DialogTitle class="title-face flex items-center gap-2 text-lg text-txt-hi uppercase">
+            <DialogTitle class="title-face flex items-center gap-2 text-lg text-txt-hi">
               <span
                 class="size-2.5 flex-none rounded-full"
                 :style="{ background: tintOf(entry.project.colour) }"
@@ -203,13 +203,13 @@ function closeWhenClosed(open: boolean): void {
               />
               {{ t('followUp.drawer.title', { project: entry.project.name }) }}
             </DialogTitle>
-            <DialogDescription class="mt-1 text-[13px] text-txt-mid">
+            <DialogDescription class="mt-1 text-sm text-txt-mid">
               {{ t('followUp.drawer.description') }}
             </DialogDescription>
           </div>
           <button
             type="button"
-            class="flex-none rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-txt-mid uppercase hover:border-acc"
+            class="flex-none rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-txt-mid hover:border-acc"
             @click="emit('close')"
           >
             {{ t('followUp.drawer.close') }}
@@ -221,10 +221,10 @@ function closeWhenClosed(open: boolean): void {
         </p>
 
         <section class="flex flex-col gap-2" :aria-labelledby="`fu-weather-${projectId}`">
-          <h3 :id="`fu-weather-${projectId}`" class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+          <h3 :id="`fu-weather-${projectId}`" class="text-xs text-txt-low">
             {{ t('followUp.drawer.weatherSection') }}
           </h3>
-          <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+          <label class="flex flex-col gap-1 text-sm text-txt-mid">
             {{ t('followUp.drawer.weatherField') }}
             <select
               class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
@@ -241,12 +241,12 @@ function closeWhenClosed(open: boolean): void {
               </option>
             </select>
           </label>
-          <p class="text-[12px] text-txt-mid" data-test-id="weather-now">
+          <p class="text-xs text-txt-mid" data-test-id="weather-now">
             {{ weatherWord(followUp.weather) }} ·
             {{ t(followUp.source === 'manual' ? 'followUp.manual' : 'followUp.computed') }} ·
             {{ t('followUp.drawer.scoreDetail', followUp.score) }}
           </p>
-          <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+          <label class="flex flex-col gap-1 text-sm text-txt-mid">
             {{ t('followUp.drawer.statusLabel') }}
             <textarea
               v-model="sentence"
@@ -259,7 +259,7 @@ function closeWhenClosed(open: boolean): void {
           <button
             type="button"
             :disabled="busy"
-            class="w-fit rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-txt-mid uppercase hover:border-acc disabled:opacity-40"
+            class="w-fit rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-txt-mid hover:border-acc disabled:opacity-40"
             @click="saveSentence"
           >
             {{ t('followUp.drawer.saveStatus') }}
@@ -267,7 +267,7 @@ function closeWhenClosed(open: boolean): void {
         </section>
 
         <section class="flex flex-col gap-2" :aria-labelledby="`fu-risks-${projectId}`">
-          <h3 :id="`fu-risks-${projectId}`" class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+          <h3 :id="`fu-risks-${projectId}`" class="text-xs text-txt-low">
             {{ t('followUp.drawer.risksSection', { count: openRisks.length }) }}
           </h3>
           <p v-if="followUp.risks.length === 0" class="text-sm text-txt-low">{{ t('followUp.drawer.noRisks') }}</p>
@@ -279,12 +279,12 @@ function closeWhenClosed(open: boolean): void {
               :class="{ 'opacity-70': risk.closedOn !== null }"
               :data-test-id="`risk-${risk.id}`"
             >
-              <span class="flex-none rounded border border-line px-1.5 py-0.5 text-[11px] font-bold text-txt-hi uppercase">
+              <span class="flex-none rounded border border-line px-1.5 py-0.5 text-xs font-bold text-txt-hi">
                 {{ t(`riskLevel.${risk.level}`) }}
               </span>
               <div class="min-w-0 flex-1">
                 <b class="text-sm text-txt-hi">{{ risk.text }}</b>
-                <small class="block text-[11px] text-txt-mid">
+                <small class="block text-xs text-txt-mid">
                   {{ riskMeta(risk) }}
                   <template v-if="risk.closedOn !== null">
                     · {{ t('followUp.drawer.closedOn', { date: dayLabel(risk.closedOn, locale, true) }) }}
@@ -294,7 +294,7 @@ function closeWhenClosed(open: boolean): void {
               <button
                 type="button"
                 :disabled="busy"
-                class="flex-none rounded-lg border border-line bg-elev px-2.5 py-1 text-xs font-bold text-txt-mid uppercase hover:border-acc disabled:opacity-40"
+                class="flex-none rounded-lg border border-line bg-elev px-2.5 py-1 text-xs font-bold text-txt-mid hover:border-acc disabled:opacity-40"
                 :aria-label="t(risk.closedOn === null ? 'followUp.drawer.closeRiskLabel' : 'followUp.drawer.reopenRiskLabel', { text: risk.text })"
                 @click="toggleRisk(risk)"
               >
@@ -303,7 +303,7 @@ function closeWhenClosed(open: boolean): void {
             </li>
           </ul>
           <form class="grid grid-cols-1 gap-2 sm:grid-cols-2" @submit.prevent="addRisk">
-            <label class="flex flex-col gap-1 text-[13px] text-txt-mid sm:col-span-2">
+            <label class="flex flex-col gap-1 text-sm text-txt-mid sm:col-span-2">
               {{ t('followUp.drawer.riskText') }}
               <input
                 v-model="riskText"
@@ -313,13 +313,13 @@ function closeWhenClosed(open: boolean): void {
                 class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
               />
             </label>
-            <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+            <label class="flex flex-col gap-1 text-sm text-txt-mid">
               {{ t('followUp.drawer.riskLevel') }}
               <select v-model="riskLevel" class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi">
                 <option v-for="level in RISK_LEVELS" :key="level" :value="level">{{ t(`riskLevel.${level}`) }}</option>
               </select>
             </label>
-            <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+            <label class="flex flex-col gap-1 text-sm text-txt-mid">
               {{ t('followUp.drawer.riskOwner') }}
               <input
                 v-model="riskOwner"
@@ -328,7 +328,7 @@ function closeWhenClosed(open: boolean): void {
                 class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
               />
             </label>
-            <label class="flex flex-col gap-1 text-[13px] text-txt-mid sm:col-span-2">
+            <label class="flex flex-col gap-1 text-sm text-txt-mid sm:col-span-2">
               {{ t('followUp.drawer.riskSubject') }}
               <select v-model="riskEpic" class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi">
                 <option :value="null">{{ t('followUp.drawer.wholeProject') }}</option>
@@ -338,7 +338,7 @@ function closeWhenClosed(open: boolean): void {
             <button
               type="submit"
               :disabled="busy || riskText.trim() === ''"
-              class="w-fit rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+              class="w-fit rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink disabled:opacity-40"
             >
               {{ t('followUp.drawer.addRisk') }}
             </button>
@@ -346,7 +346,7 @@ function closeWhenClosed(open: boolean): void {
         </section>
 
         <section class="flex flex-col gap-2" :aria-labelledby="`fu-decisions-${projectId}`">
-          <h3 :id="`fu-decisions-${projectId}`" class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+          <h3 :id="`fu-decisions-${projectId}`" class="text-xs text-txt-low">
             {{ t('followUp.drawer.decisionsSection') }}
           </h3>
           <p v-if="followUp.decisions.length === 0" class="text-sm text-txt-low">{{ t('followUp.drawer.noDecisions') }}</p>
@@ -356,17 +356,17 @@ function closeWhenClosed(open: boolean): void {
               :key="decision.id"
               class="flex items-start gap-2 rounded-lg border border-line bg-card p-2.5"
             >
-              <span class="flex-none font-mono text-[11px] text-txt-mid">
+              <span class="flex-none font-mono text-xs text-txt-mid">
                 {{ dayLabel(decision.decidedOn, locale, true) }}
               </span>
               <div class="min-w-0 flex-1">
                 <b class="text-sm text-txt-hi">{{ decision.text }}</b>
-                <small class="block text-[11px] text-txt-mid">{{ decision.decidedBy }}</small>
+                <small class="block text-xs text-txt-mid">{{ decision.decidedBy }}</small>
               </div>
             </li>
           </ul>
           <form class="grid grid-cols-1 gap-2 sm:grid-cols-2" @submit.prevent="addDecision">
-            <label class="flex flex-col gap-1 text-[13px] text-txt-mid sm:col-span-2">
+            <label class="flex flex-col gap-1 text-sm text-txt-mid sm:col-span-2">
               {{ t('followUp.drawer.decisionText') }}
               <input
                 v-model="decisionText"
@@ -376,7 +376,7 @@ function closeWhenClosed(open: boolean): void {
                 class="rounded-lg border border-line bg-elev px-3 py-2 text-sm text-txt-hi"
               />
             </label>
-            <label class="flex flex-col gap-1 text-[13px] text-txt-mid">
+            <label class="flex flex-col gap-1 text-sm text-txt-mid">
               {{ t('followUp.drawer.decisionBy') }}
               <input
                 v-model="decisionBy"
@@ -388,7 +388,7 @@ function closeWhenClosed(open: boolean): void {
             <button
               type="submit"
               :disabled="busy || decisionText.trim() === ''"
-              class="w-fit self-end rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink uppercase disabled:opacity-40"
+              class="w-fit self-end rounded-lg border border-acc bg-acc px-4 py-2 text-xs font-bold text-ink disabled:opacity-40"
             >
               {{ t('followUp.drawer.addDecision') }}
             </button>
@@ -396,7 +396,7 @@ function closeWhenClosed(open: boolean): void {
         </section>
 
         <section class="flex flex-col gap-2" :aria-labelledby="`fu-meetings-${projectId}`">
-          <h3 :id="`fu-meetings-${projectId}`" class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+          <h3 :id="`fu-meetings-${projectId}`" class="text-xs text-txt-low">
             {{ t('followUp.drawer.meetingsSection') }}
           </h3>
           <p v-if="sortedEvents.length === 0" class="text-sm text-txt-low">{{ t('followUp.drawer.noEvents') }}</p>
@@ -407,27 +407,27 @@ function closeWhenClosed(open: boolean): void {
               class="flex items-start gap-2 rounded-lg border border-line bg-card p-2.5"
               :data-test-id="`event-${event.id}`"
             >
-              <span class="flex-none text-[11px] font-bold uppercase" :class="EVENT_TONES[event.type].text">
+              <span class="flex-none text-xs font-bold" :class="EVENT_TONES[event.type].text">
                 {{ typeLabel(event) }}
               </span>
               <div class="min-w-0 flex-1">
                 <b class="text-sm text-txt-hi">{{ eventName(event) }}</b>
-                <small class="block text-[11px] text-txt-mid">
+                <small class="block text-xs text-txt-mid">
                   {{ dayLabel(event.date, locale, true) }}
                   <template v-if="subjectTitle(event.epicId) !== null"> · {{ subjectTitle(event.epicId) }}</template>
                 </small>
-                <p v-if="event.minutes !== null" class="mt-1 text-[12px] whitespace-pre-line text-txt-mid">{{ event.minutes }}</p>
+                <p v-if="event.minutes !== null" class="mt-1 text-xs whitespace-pre-line text-txt-mid">{{ event.minutes }}</p>
                 <span
                   v-else-if="minutesToWrite(event, today)"
-                  class="mt-1 inline-block rounded border border-orange px-1.5 text-[11px] font-bold text-orange"
+                  class="mt-1 inline-block rounded border border-orange px-1.5 text-xs font-bold text-orange"
                 >
                   {{ t('followUp.drawer.minutesToWrite') }}
                 </span>
-                <span v-else class="mt-1 block text-[11px] text-txt-low">{{ t('followUp.drawer.upcoming') }}</span>
+                <span v-else class="mt-1 block text-xs text-txt-low">{{ t('followUp.drawer.upcoming') }}</span>
               </div>
               <button
                 type="button"
-                class="flex-none rounded-lg border border-line bg-elev px-2.5 py-1 text-xs font-bold text-txt-mid uppercase hover:border-acc"
+                class="flex-none rounded-lg border border-line bg-elev px-2.5 py-1 text-xs font-bold text-txt-mid hover:border-acc"
                 :aria-label="`${t(event.minutes === null && minutesToWrite(event, today) ? 'followUp.drawer.writeMinutes' : 'followUp.drawer.editMinutes')} · ${eventName(event)}`"
                 @click="dialog = { event }"
               >
@@ -437,7 +437,7 @@ function closeWhenClosed(open: boolean): void {
           </ul>
           <button
             type="button"
-            class="w-fit rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-txt-mid uppercase hover:border-acc"
+            class="w-fit rounded-lg border border-line bg-card px-3 py-1.5 text-xs font-bold text-txt-mid hover:border-acc"
             @click="dialog = { event: null }"
           >
             {{ t('followUp.drawer.newEvent') }}
@@ -445,7 +445,7 @@ function closeWhenClosed(open: boolean): void {
         </section>
 
         <section class="flex flex-col gap-2" :aria-labelledby="`fu-links-${projectId}`">
-          <h3 :id="`fu-links-${projectId}`" class="font-mono text-[11px] tracking-[0.16em] text-txt-low uppercase">
+          <h3 :id="`fu-links-${projectId}`" class="text-xs text-txt-low">
             {{ t('followUp.drawer.linksSection') }}
           </h3>
           <p v-if="(links.data.value ?? []).length === 0" class="text-sm text-txt-low">{{ t('followUp.drawer.noLinks') }}</p>
@@ -455,7 +455,7 @@ function closeWhenClosed(open: boolean): void {
                 :href="safeHref(link.url)"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="rounded border border-line px-2 py-1 text-[12px] text-info hover:border-acc max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
+                class="rounded border border-line px-2 py-1 text-xs text-info hover:border-acc max-sm:inline-flex max-sm:min-h-10 max-sm:min-w-10 max-sm:items-center max-sm:justify-center"
               >
                 {{ t(`linkKind.${link.kind}`) }}
               </a>

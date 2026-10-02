@@ -15,7 +15,7 @@ function pick(event: Event): void {
 
 <template>
   <div class="flex items-center gap-2">
-    <label :for="fieldId" class="font-mono text-[10px] tracking-[0.18em] text-txt-low uppercase">
+    <label :for="fieldId" class="text-xs text-txt-low">
       {{ t('language.label') }}
     </label>
     <select

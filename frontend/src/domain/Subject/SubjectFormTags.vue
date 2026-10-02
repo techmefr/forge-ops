@@ -62,16 +62,16 @@ async function add(): Promise<void> {
 
 <template>
   <fieldset class="flex min-w-0 flex-col gap-2">
-    <legend class="text-[13px] text-txt-mid">
+    <legend class="text-sm text-txt-mid">
       {{ t('subjects.form.tags') }}
-      <span class="text-[11px] text-txt-low">{{ t('subjects.form.tagsHint') }}</span>
+      <span class="text-xs text-txt-low">{{ t('subjects.form.tagsHint') }}</span>
     </legend>
     <div class="flex flex-wrap gap-1.5" data-test-id="form-tags">
       <button
         v-for="tag in tags"
         :key="tag.id"
         type="button"
-        class="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] text-txt-hi"
+        class="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs text-txt-hi"
         :class="picked.has(tag.id) ? 'border-txt-mid bg-elev' : 'border-line hover:bg-elev/60'"
         :aria-pressed="picked.has(tag.id)"
         :data-test-id="`form-tag-${tag.id}`"
@@ -81,7 +81,7 @@ async function add(): Promise<void> {
         #{{ tag.label }}
         <span v-if="picked.has(tag.id)" aria-hidden="true">×</span>
       </button>
-      <p v-if="tags.length === 0" class="text-[11px] text-txt-low">{{ t('subjects.form.tagsNone') }}</p>
+      <p v-if="tags.length === 0" class="text-xs text-txt-low">{{ t('subjects.form.tagsNone') }}</p>
     </div>
     <div class="flex flex-wrap items-center gap-2">
       <input
@@ -108,14 +108,14 @@ async function add(): Promise<void> {
       <button
         type="button"
         :disabled="busy"
-        class="rounded-md border border-line px-3 py-1.5 text-[11px] font-semibold text-txt-mid uppercase hover:bg-elev disabled:opacity-40"
+        class="rounded-md border border-line px-3 py-1.5 text-xs font-semibold text-txt-mid hover:bg-elev disabled:opacity-40"
         data-test-id="form-tag-add"
         @click="add"
       >
         {{ t('subjects.form.tagAdd') }}
       </button>
     </div>
-    <p id="form-tag-problem" class="text-[11px] text-red" role="alert" data-test-id="form-tag-problem">
+    <p id="form-tag-problem" class="text-xs text-red" role="alert" data-test-id="form-tag-problem">
       <template v-if="problem !== null">{{ t(problem) }}</template>
       <template v-else-if="refusal !== null">{{ say(refusal) }}</template>
     </p>
