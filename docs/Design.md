@@ -165,3 +165,7 @@ At 375 the chrome above the content stays under about 200px. The main navigation
 ### Card drawer
 
 The header is two lines: where the card lives (project, subject, step) and who works on it (agent and session). Proofs are one collapsed section with a count, never bubbles in the conversation. The conversation shows an author label only when the author changes, and consecutive messages of one author share a single bubble.
+
+### My forge primary action
+
+The board has exactly one filled button, Add story. Launch, Retry, Stop and Validate on cards, the view switch, the project switch and the workflow settings stay ghost or text buttons.
