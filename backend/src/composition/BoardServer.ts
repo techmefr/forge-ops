@@ -42,6 +42,7 @@ import { createCheckoutResolver, createProofGates } from './ProjectCheckout.js'
 import { createGitWorktree } from '../technical/Git/GitWorktree.js'
 import { createForemergeRepository } from '../domain/Foremerge/ForemergeRepository.js'
 import { createForemergeApi } from '../domain/Foremerge/ForemergeApi.js'
+import { createDestinationPolicy, parseAllowedOrigins } from '../domain/Pilot/PilotDestination.js'
 import { createPilotRepository } from '../domain/Pilot/PilotRepository.js'
 import { createPilotApi } from '../domain/Pilot/PilotApi.js'
 import { suggestParcours } from '../domain/Pilot/Parcours.js'
@@ -605,7 +606,11 @@ export function startBoardServer({
   )
   const pilots = createPilotRepository(db, {
     stories,
-    openDriver: () => createPlaywrightPilot({ shotDir, headless: !headedPilot }),
+    openDriver: (guard) => createPlaywrightPilot({ shotDir, headless: !headedPilot, guard }),
+    destinations: createDestinationPolicy({
+      previewPortOf: (storyId) => worktrees.findForStory(storyId)?.port ?? null,
+      allowedOrigins: parseAllowedOrigins(process.env.FORGE_PILOT_ALLOWED_ORIGINS),
+    }),
   })
   pilots.abandonOrphans()
   guarded.route(
@@ -613,6 +618,9 @@ export function startBoardServer({
     createPilotApi({
       pilots,
       events,
+      mayRun: (storyId, context) =>
+        context.get('handOverride') === true ||
+        stories.assigneeOf(stories.findStory(storyId).epicId) === operatorOf(context),
       suggest: (storyId) =>
         suggestParcours({
           port: worktrees.findForStory(storyId)?.port ?? null,

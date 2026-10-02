@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { Hono, type Context } from 'hono'
 import { z } from 'zod'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import { StoryNotFoundError } from '../Story/StoryViolation.js'
@@ -31,9 +31,10 @@ export type PilotApiInput = {
   pilots: PilotRepository
   events: EventBus
   suggest: (storyId: number) => ParcoursSuggestion
+  mayRun?: (storyId: number, context: Context) => boolean
 }
 
-export function createPilotApi({ pilots, events, suggest }: PilotApiInput): Hono {
+export function createPilotApi({ pilots, events, suggest, mayRun }: PilotApiInput): Hono {
   const api = new Hono()
 
   api.onError((error, context) => {
@@ -78,6 +79,9 @@ export function createPilotApi({ pilots, events, suggest }: PilotApiInput): Hono
     const storyId = storyOf(context.req.param('id'))
     if (storyId === null) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    if (mayRun !== undefined && !mayRun(storyId, context)) {
+      return context.json({ error: 'PilotNeedsTheHolder' }, 403)
     }
     const order = orderSchema.safeParse(await context.req.json().catch(() => null))
     if (!order.success) {

@@ -1,7 +1,8 @@
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { chromium, type Browser, type ConsoleMessage, type Page } from 'playwright-core'
+import { chromium, type Browser, type ConsoleMessage, type Page, type Route } from 'playwright-core'
 import type {
+  DestinationGuard,
   PilotDriver,
   PilotObservation,
   PilotPace,
@@ -13,6 +14,8 @@ export const PACE_DELAY: Readonly<Record<PilotPace, number>> = {
   slow: 600,
   step: 1500,
 }
+
+const LOCAL_SCHEMES: readonly string[] = ['data:', 'blob:', 'about:']
 
 export const STEP_TIMEOUT = 15000
 
@@ -35,13 +38,56 @@ export class TextNotFoundError extends Error {
 export type PlaywrightPilotInput = {
   shotDir: string
   headless?: boolean
+  guard?: DestinationGuard
+}
+
+const MAX_REDIRECTS = 10
+
+async function screen(route: Route, guard: DestinationGuard): Promise<void> {
+  const request = route.request()
+  let target = request.url()
+  if (LOCAL_SCHEMES.some((scheme) => target.startsWith(scheme))) {
+    await route.continue()
+    return
+  }
+  try {
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+      if (!(await guard(target))) {
+        await route.abort('blockedbyclient')
+        return
+      }
+      const response = await route.fetch({ url: target, maxRedirects: 0 })
+      const location = response.headers().location
+      const redirecting = response.status() >= 300 && response.status() < 400 && location !== undefined
+      if (!redirecting) {
+        await route.fulfill({ response })
+        return
+      }
+      target = new URL(location, target).toString()
+      if (request.isNavigationRequest()) {
+        if (!(await guard(target))) {
+          await route.abort('blockedbyclient')
+          return
+        }
+        await route.fulfill({
+          status: 200,
+          contentType: 'text/html',
+          body: `<!doctype html><script>location.replace(${JSON.stringify(target)})</script>`,
+        })
+        return
+      }
+    }
+    await route.abort('failed')
+  } catch {
+    await route.abort('failed')
+  }
 }
 
 function isError(message: ConsoleMessage): boolean {
   return message.type() === 'error'
 }
 
-export function createPlaywrightPilot({ shotDir, headless = true }: PlaywrightPilotInput): PilotDriver {
+export function createPlaywrightPilot({ shotDir, headless = true, guard }: PlaywrightPilotInput): PilotDriver {
   let browser: Browser | null = null
   let page: Page | null = null
   let errors: string[] = []
@@ -71,7 +117,11 @@ export function createPlaywrightPilot({ shotDir, headless = true }: PlaywrightPi
   return {
     open: async (url, pace) => {
       browser = await chromium.launch({ headless, slowMo: PACE_DELAY[pace] })
-      page = await browser.newPage()
+      const context = await browser.newContext({ serviceWorkers: 'block' })
+      if (guard !== undefined) {
+        await context.route('**/*', (route) => screen(route, guard))
+      }
+      page = await context.newPage()
       errors = []
       page.on('console', (message) => {
         if (isError(message)) {

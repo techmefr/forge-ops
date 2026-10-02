@@ -16,6 +16,8 @@ import type {
   PilotStep,
 } from '../../../../contract/PilotContract.js'
 
+export type DestinationGuard = (url: string) => Promise<boolean>
+
 export type PilotDriver = {
   open: (url: string, pace: PilotPace) => Promise<void>
   perform: (step: PilotStep) => Promise<PilotObservation>
