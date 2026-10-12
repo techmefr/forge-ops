@@ -86,6 +86,9 @@ export function createForgeBoardApi({
     }
     const epic = stories.findEpic(draft.data.subjectId)
     assertHand(context, epic.id, epic.title)
+    if (draft.data.workflowId !== undefined) {
+      forgeCards.assertWorkflowOfProject(epic.projectId, draft.data.workflowId, epic.title)
+    }
     const story = stories.writeStory({ epicId: epic.id, title: draft.data.title, body: draft.data.title })
     stories.writeTwin({ storyId: story.id, title: `Tests: ${draft.data.title}`, body: draft.data.title })
     stories.sendToBacklog(story.id)

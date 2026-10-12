@@ -45,6 +45,7 @@ export type ForgeCardRepository = {
   openCardOfStory: (storyId: number) => ForgeCard | null
   findForgeCard: (forgeCardId: number) => ForgeCard
   attachCardToStory: (storyId: number, workflowId?: number) => ForgeCard
+  assertWorkflowOfProject: (projectId: number, workflowId: number, subject: string) => void
   recordDispatch: (forgeCardId: number, progress: ForgeCardDispatchProgress) => ForgeCard
 }
 
@@ -163,6 +164,12 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
         assignWorkflow(storyId, draft.workflowId)
       }
       return findCard(forgeCardId)
+    },
+
+    assertWorkflowOfProject: (projectId, workflowId, subject) => {
+      if (selectProjectOfWorkflow.get(workflowId)?.project_id !== projectId) {
+        throw new UnknownWorkflowForStoryError(workflowId, subject)
+      }
     },
 
     closeForgeCard: (forgeCardId) => {
