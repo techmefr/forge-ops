@@ -1,3 +1,4 @@
+import { isAbsolute } from 'node:path'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type Database from 'better-sqlite3'
 import { openDatabase } from '../../../src/technical/Database/Connection.js'
@@ -122,6 +123,15 @@ describe('open', () => {
     expect(worktrees.open({ storyId: first, baseRef: 'forge' }).path).toBe(
       '/tmp/forge-worktrees/story-forge-1-visualiser-les-mails',
     )
+  })
+
+  it('records an absolute path even when the root is relative', () => {
+    const relative = createWorktreeRepository(db, { stories, git: fakeGit(), root: '../forge-worktrees' })
+
+    const path = relative.open({ storyId: first, baseRef: 'forge' }).path
+
+    expect(isAbsolute(path)).toBe(true)
+    expect(path.endsWith('/forge-worktrees/story-forge-1-visualiser-les-mails')).toBe(true)
   })
 
   it('has no forge card by default', () => {
