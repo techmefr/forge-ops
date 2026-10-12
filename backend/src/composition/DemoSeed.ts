@@ -19,6 +19,7 @@ import { REVIEW_LENS_SEQUENCE } from '../domain/Checkpoint/Checkpoint.js'
 import type { CheckpointName } from '../domain/Checkpoint/Checkpoint.js'
 import type { StoryState } from '../domain/Story/Story.js'
 import type { AgentPhase } from '../domain/Agent/AgentSession.js'
+import { STORY_WORKFLOW_ID_SQL } from '../domain/Workflow/ProjectWorkflowRepository.js'
 import { createWorkflowColumnRepository } from '../domain/Workflow/WorkflowColumnRepository.js'
 import type { WorkflowColumnDraft } from '../../../contract/WorkflowColumnContract.js'
 import type { SessionExit } from '../domain/Agent/SessionOutcome.js'
@@ -1024,8 +1025,7 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
         SET state = ?,
             workflow_column_id = (
               SELECT workflow_column.id FROM workflow_column
-                JOIN epic ON epic.project_id = workflow_column.project_id
-               WHERE epic.id = story.epic_id AND workflow_column.key = ?
+                WHERE workflow_column.workflow_id = ${STORY_WORKFLOW_ID_SQL} AND workflow_column.key = ?
             )
       WHERE id = ?`,
   )
@@ -1034,8 +1034,7 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
     `UPDATE story
         SET workflow_column_id = (
               SELECT workflow_column.id FROM workflow_column
-                JOIN epic ON epic.project_id = workflow_column.project_id
-               WHERE epic.id = story.epic_id AND workflow_column.key = ?
+                WHERE workflow_column.workflow_id = ${STORY_WORKFLOW_ID_SQL} AND workflow_column.key = ?
             )
       WHERE id = ?`,
   )

@@ -6,6 +6,7 @@ import type { BoardUserSheet, ProjectSheet } from '@contract/ProjectContract'
 import type { EpicOverview, Project } from '@contract/StoryContract'
 import type { StoryThread } from '@contract/ConversationContract'
 import type { WorkflowAdmin, WorkflowColumn } from '@contract/WorkflowColumnContract'
+import type { Workflow } from '@contract/WorkflowContract'
 
 export type DemoReply = { status: number; body: unknown }
 
@@ -36,6 +37,7 @@ export type DemoState = {
   decisions: ProjectDecision[]
   notes: Map<number, FollowUpNote>
   links: Map<number, SubjectLink[]>
+  workflows: Workflow[]
   columns: WorkflowColumn[]
   cards: ForgeCardView[]
   threads: Map<number, StoryThread>

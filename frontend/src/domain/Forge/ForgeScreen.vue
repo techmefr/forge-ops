@@ -2,7 +2,6 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ForgeCardView } from '@contract/ForgeCardContract'
-import type { BoardPreferences } from '@contract/PreferenceContract'
 import type { Project } from '@/domain/Board/BoardModel'
 import { board } from '@/technical/Api/Board'
 import { useResource } from '@/technical/Api/UseResource'
@@ -14,22 +13,18 @@ import WorkflowEmptyState from '@/domain/Workflow/WorkflowEmptyState.vue'
 import { useProjectWorkflow } from '@/domain/Workflow/UseProjectWorkflow'
 import { starterSteps, templateLabelKey } from '@/domain/Workflow/WorkflowRule'
 import ForgeDrawer from './ForgeDrawer.vue'
-import ForgeKanban from './ForgeKanban.vue'
-import ForgePipeline from './ForgePipeline.vue'
+import ForgeFlow from './ForgeFlow.vue'
 import {
-  DEFAULT_FORGE_VIEW,
   FORGE_PROJECT_KEY,
-  FORGE_VIEW_KEY,
-  FORGE_VIEWS,
   activeProjectOf,
   boardSteps,
   filterBySubject,
   holdableSubjects,
   firstStepKey,
+  lanesOf,
   isLastStep,
   type BoardStep,
   type CardAction,
-  type ForgeView,
 } from './ForgeRule'
 import { useForgeBoard } from './UseForgeBoard'
 
@@ -38,13 +33,14 @@ const say = usePhrase()
 
 const projects = useResource<readonly Project[]>(() => board.read('/api/projects'))
 
-const view = ref<ForgeView>(readPreference(FORGE_VIEW_KEY, FORGE_VIEWS, DEFAULT_FORGE_VIEW))
 const projectId = ref<number | null>(null)
 const subjectId = ref<number | null>(null)
 const openedId = ref<number | null>(null)
+const openedStep = ref<string | null>(null)
 const announcement = ref('')
 const newTitle = ref('')
 const newSubject = ref<number | null>(null)
+const newWorkflow = ref<number | null>(null)
 const selfLogin = ref<string | null>(null)
 
 const forge = useForgeBoard(() => projectId.value)
@@ -52,50 +48,46 @@ const starter = useProjectWorkflow(() => projectId.value ?? 0)
 const workflowBarVersion = ref(0)
 
 const project = computed(() => (projects.data.value ?? []).find((candidate) => candidate.id === projectId.value) ?? null)
-const columns = computed(() => forge.workflow.value?.columns ?? [])
-const steps = computed<readonly BoardStep[]>(() =>
-  boardSteps(columns.value, { backlog: t('forge.backlog'), done: t('forge.done') }),
+const stepsByWorkflow = computed<ReadonlyMap<number, readonly BoardStep[]>>(
+  () =>
+    new Map(
+      forge.workflows.value.map((workflow) => [
+        workflow.id,
+        boardSteps(forge.columnsOf(workflow.id), { backlog: t('forge.backlog'), done: t('forge.done') }),
+      ]),
+    ),
 )
 const visible = computed(() => filterBySubject(forge.cards.value, subjectId.value))
 const addable = computed(() => holdableSubjects(forge.subjects.value, selfLogin.value))
 const opened = computed(() => forge.cards.value.find((card) => card.id === openedId.value) ?? null)
-const noWorkflow = computed(() => forge.workflow.value !== null && columns.value.length === 0)
+const lanes = computed(() => lanesOf(forge.workflows.value, visible.value))
+const noWorkflow = computed(
+  () => forge.workflow.value !== null && forge.workflows.value.every((workflow) => forge.columnsOf(workflow.id).length === 0),
+)
+const openedSteps = computed(() => (opened.value === null ? [] : stepsOf(opened.value)))
 const projectName = computed(() => project.value?.name ?? '')
-
-async function adoptStoredView(): Promise<void> {
-  try {
-    const stored = await board.read<BoardPreferences | undefined>('/api/board/preferences')
-    const choice = FORGE_VIEWS.find((candidate) => candidate === stored?.forgeView)
-    if (choice !== undefined) {
-      view.value = choice
-      writePreference(FORGE_VIEW_KEY, choice)
-    }
-  } catch {
-    return
-  }
-}
-
-async function rememberView(next: ForgeView): Promise<void> {
-  try {
-    await board.send('/api/board/preferences', 'PUT', { forgeView: next })
-  } catch {
-    return
-  }
-}
-
-function chooseView(next: ForgeView): void {
-  view.value = next
-  writePreference(FORGE_VIEW_KEY, next)
-  void rememberView(next)
-}
 
 function chooseProject(id: number): void {
   projectId.value = id
   writePreference(FORGE_PROJECT_KEY, String(id))
 }
 
-function stepLabel(key: string): string {
-  return steps.value.find((step) => step.key === key)?.label ?? key
+function stepsOf(card: ForgeCardView): readonly BoardStep[] {
+  return stepsByWorkflow.value.get(card.workflowId) ?? []
+}
+
+function stepLabel(card: ForgeCardView, key: string): string {
+  return stepsOf(card).find((step) => step.key === key)?.label ?? key
+}
+
+function open(card: ForgeCardView, stepKey: string): void {
+  openedId.value = card.id
+  openedStep.value = stepKey
+}
+
+function closeDrawer(): void {
+  openedId.value = null
+  openedStep.value = null
 }
 
 async function move(card: ForgeCardView, stepKey: string): Promise<void> {
@@ -103,7 +95,7 @@ async function move(card: ForgeCardView, stepKey: string): Promise<void> {
   if (moved !== null) {
     announcement.value = t(moved.started ? 'forge.movedAndStarted' : 'forge.movedTo', {
       title: card.title,
-      step: stepLabel(stepKey),
+      step: stepLabel(card, stepKey),
     })
   }
 }
@@ -114,19 +106,20 @@ async function act(card: ForgeCardView, action: CardAction): Promise<void> {
     return
   }
   if (action === 'validate') {
-    const index = steps.value.findIndex((step) => step.key === card.stepKey)
-    const next = steps.value[index + 1]
+    const steps = stepsOf(card)
+    const index = steps.findIndex((step) => step.key === card.stepKey)
+    const next = steps[index + 1]
     if (next !== undefined && next.kind === 'step') {
       await move(card, next.key)
       return
     }
-    if (isLastStep(steps.value, card) && (await forge.finish(card))) {
+    if (isLastStep(steps, card) && (await forge.finish(card))) {
       announcement.value = t('forge.finished', { title: card.title })
     }
     return
   }
   if (card.stepKey === 'backlog') {
-    const first = firstStepKey(steps.value)
+    const first = firstStepKey(stepsOf(card))
     if (first !== null) {
       await move(card, first)
     }
@@ -134,7 +127,7 @@ async function act(card: ForgeCardView, action: CardAction): Promise<void> {
   }
   const launched = await forge.launch(card)
   if (launched !== null) {
-    announcement.value = t('forge.movedAndStarted', { title: card.title, step: stepLabel(card.stepKey) })
+    announcement.value = t('forge.movedAndStarted', { title: card.title, step: stepLabel(card, card.stepKey) })
   }
 }
 
@@ -144,7 +137,8 @@ async function addStory(): Promise<void> {
   if (title === '' || subject === null) {
     return
   }
-  if (await forge.addStory(subject, title)) {
+  const workflow = forge.workflows.value.length > 1 ? (newWorkflow.value ?? undefined) : undefined
+  if (await forge.addStory(subject, title, workflow)) {
     newTitle.value = ''
   }
 }
@@ -176,14 +170,14 @@ async function readSelf(): Promise<void> {
 
 watch(projectId, () => {
   subjectId.value = null
-  openedId.value = null
+  closeDrawer()
   void forge.load().then(() => {
     newSubject.value = addable.value[0]?.id ?? null
+    newWorkflow.value = forge.workflows.value[0]?.id ?? null
   })
 })
 
 onMounted(async () => {
-  void adoptStoredView()
   void readSelf()
   await projects.reload()
   const list = projects.data.value ?? []
@@ -230,19 +224,6 @@ onMounted(async () => {
         </select>
         <div class="ml-auto flex items-center gap-3">
           <WorkflowBar :key="`${projectId}-${workflowBarVersion}`" :project-id="projectId" :project-name="projectName" @changed="forge.load()" />
-          <div class="flex rounded-md" role="group" :aria-label="t('forge.viewAria')">
-            <button
-              v-for="choice in FORGE_VIEWS"
-              :key="choice"
-              type="button"
-              class="border-0 px-3 py-1.5 text-xs first:rounded-l-md last:rounded-r-md"
-              :class="view === choice ? 'bg-elev text-txt-hi' : 'bg-transparent text-txt-mid hover:bg-elev'"
-              :aria-pressed="view === choice"
-              @click="chooseView(choice)"
-            >
-              {{ choice === 'kanban' ? t('forge.viewKanban') : t('forge.viewPipeline') }}
-            </button>
-          </div>
         </div>
       </div>
 
@@ -266,6 +247,17 @@ onMounted(async () => {
         >
           <option v-for="subject in addable" :key="subject.id" :value="subject.id">
             {{ subject.title }}
+          </option>
+        </select>
+        <select
+          v-if="forge.workflows.value.length > 1"
+          v-model="newWorkflow"
+          class="field max-w-full"
+          :aria-label="t('forge.addStoryWorkflow')"
+          data-test="forge-new-workflow"
+        >
+          <option v-for="workflow in forge.workflows.value" :key="workflow.id" :value="workflow.id">
+            {{ workflow.name }}
           </option>
         </select>
         <button
@@ -301,22 +293,11 @@ onMounted(async () => {
       <p v-if="forge.pending.value" class="m-0 px-4 text-xs text-txt-low">{{ t('forge.loading') }}</p>
 
       <div class="min-h-[26rem] min-w-0 flex-1 px-4 pb-4" data-tour="forge-steps">
-        <ForgeKanban
-          v-if="view === 'kanban'"
-          :steps="steps"
-          :cards="visible"
+        <ForgeFlow
+          :lanes="lanes"
+          :steps-by-workflow="stepsByWorkflow"
           :busy="forge.busy.value"
-          @open="(card) => (openedId = card.id)"
-          @move="move"
-          @act="act"
-        />
-        <ForgePipeline
-          v-else
-          :steps="steps"
-          :cards="visible"
-          :busy="forge.busy.value"
-          :project-name="projectName"
-          @open="(card) => (openedId = card.id)"
+          @open="open"
           @act="act"
         />
       </div>
@@ -326,10 +307,11 @@ onMounted(async () => {
       v-if="opened !== null"
       :key="opened.id"
       :card="opened"
-      :steps="steps"
+      :step-key="openedStep ?? opened.stepKey"
+      :steps="openedSteps"
       :project-name="projectName"
       :busy="forge.busy.value.has(opened.id)"
-      @close="openedId = null"
+      @close="closeDrawer"
       @act="(action) => act(opened!, action)"
       @move="(key) => move(opened!, key)"
       @settled="forge.refresh()"

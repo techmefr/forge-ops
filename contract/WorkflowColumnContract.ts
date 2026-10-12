@@ -77,6 +77,7 @@ export type WorkflowColumn = Omit<WorkflowColumnDraft, 'maxRetries'> & {
   maxRetries: number
   id: number
   projectId: number
+  workflowId: number
   key: string
   position: number
   behaviouralKind: BehaviouralKind

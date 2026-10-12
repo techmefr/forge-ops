@@ -6,14 +6,7 @@ import {
 } from '@contract/ForgeCardContract'
 import type { WorkflowColumn } from '@contract/WorkflowColumnContract'
 import type { EpicOverview } from '@contract/StoryContract'
-
-export const FORGE_VIEWS = ['kanban', 'pipeline'] as const
-
-export type ForgeView = (typeof FORGE_VIEWS)[number]
-
-export const DEFAULT_FORGE_VIEW: ForgeView = 'kanban'
-
-export const FORGE_VIEW_KEY = 'forge.forgeView'
+import type { Workflow } from '@contract/WorkflowContract'
 
 export const FORGE_PROJECT_KEY = 'forge.forgeProject'
 
@@ -63,10 +56,6 @@ export function boardSteps(columns: readonly WorkflowColumn[], labels: StepLabel
       column: null,
     },
   ]
-}
-
-export function cardsOfStep(cards: readonly ForgeCardView[], key: string): readonly ForgeCardView[] {
-  return cards.filter((card) => card.stepKey === key)
 }
 
 export function filterBySubject(cards: readonly ForgeCardView[], subjectId: number | null): readonly ForgeCardView[] {
@@ -256,4 +245,52 @@ export function referenceLabel(card: { storyReference: string; reference: string
 export function isLastStep(steps: readonly BoardStep[], card: ForgeCardView): boolean {
   const real = steps.filter((step) => step.kind === 'step')
   return real.length > 0 && real[real.length - 1]?.key === card.stepKey
+}
+
+export type WorkflowLane = {
+  workflow: Workflow
+  cards: readonly ForgeCardView[]
+}
+
+export function lanesOf(workflows: readonly Workflow[], cards: readonly ForgeCardView[]): readonly WorkflowLane[] {
+  return [...workflows]
+    .sort((left, right) => left.position - right.position)
+    .map((workflow) => ({
+      workflow,
+      cards: pipelineOrder(cards.filter((card) => card.workflowId === workflow.id)),
+    }))
+    .filter((lane) => lane.cards.length > 0)
+}
+
+export function canOpenDot(dot: Dot): boolean {
+  return dot.state !== 'to_come'
+}
+
+const PHASE_OF_STEP_KEY: Readonly<Record<string, string>> = {
+  backlog: 'spec',
+  spec: 'spec',
+  plan: 'architecture',
+  build: 'code',
+  review: 'review',
+  ship: 'ship',
+  architecture: 'architecture',
+  building: 'code',
+  gating: 'gate',
+  reviewing: 'review',
+  shipping: 'ship',
+}
+
+export function phaseOfStep(stepKey: string, orderedKeys: readonly string[]): string {
+  const known = PHASE_OF_STEP_KEY[stepKey]
+  if (known !== undefined) {
+    return known
+  }
+  const before = orderedKeys.slice(0, Math.max(orderedKeys.indexOf(stepKey), 0))
+  for (const key of [...before].reverse()) {
+    const inherited = PHASE_OF_STEP_KEY[key]
+    if (inherited !== undefined) {
+      return inherited
+    }
+  }
+  return 'spec'
 }

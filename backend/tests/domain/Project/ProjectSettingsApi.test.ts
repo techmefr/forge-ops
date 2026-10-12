@@ -204,7 +204,10 @@ describe('DELETE /api/projects/:id', () => {
   })
 
   it('deletes the workflow steps of the project with it', async () => {
-    db.prepare("INSERT INTO workflow_column (project_id, key, label, colour, position) VALUES (?, 'spec', 'Spec', 'acc', 1)").run(betaId)
+    const workflowId = Number(
+      db.prepare("INSERT INTO workflow (project_id, key, name, position) VALUES (?, 'default', 'Default', 1)").run(betaId).lastInsertRowid,
+    )
+    db.prepare("INSERT INTO workflow_column (project_id, workflow_id, key, label, colour, position) VALUES (?, ?, 'spec', 'Spec', 'acc', 1)").run(betaId, workflowId)
 
     expect((await call('DELETE', `/api/projects/${betaId}`)).status).toBe(200)
 

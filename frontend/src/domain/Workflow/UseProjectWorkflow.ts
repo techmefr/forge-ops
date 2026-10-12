@@ -17,14 +17,16 @@ export type ProjectWorkflowState = {
   reorder: (keysInOrder: readonly string[]) => Promise<boolean>
 }
 
-export function useProjectWorkflow(projectId: () => number): ProjectWorkflowState {
+export function useProjectWorkflow(projectId: () => number, workflowId: () => number | undefined = () => undefined): ProjectWorkflowState {
   const workflow = shallowRef<ProjectWorkflow | null>(null)
   const failure = ref<Phrase | null>(null)
   const pending = ref(false)
   const busy = ref(false)
 
   function path(suffix = ''): string {
-    return `/api/projects/${projectId()}/workflow-columns${suffix}`
+    const scope = workflowId()
+    const query = scope === undefined ? '' : `?workflow=${scope}`
+    return `/api/projects/${projectId()}/workflow-columns${suffix}${query}`
   }
 
   async function load(): Promise<void> {

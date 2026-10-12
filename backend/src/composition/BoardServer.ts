@@ -14,6 +14,8 @@ import { createBudgetRepository } from '../domain/Budget/BudgetRepository.js'
 import { createWorkflowRepository } from '../domain/Workflow/WorkflowRepository.js'
 import { createWorkflowColumnRepository } from '../domain/Workflow/WorkflowColumnRepository.js'
 import { createWorkflowColumnApi } from '../domain/Workflow/WorkflowColumnApi.js'
+import { createProjectWorkflowApi } from '../domain/Workflow/ProjectWorkflowApi.js'
+import { createProjectWorkflowRepository } from '../domain/Workflow/ProjectWorkflowRepository.js'
 import { DEFAULT_DISPATCH_RATE } from '../domain/Dispatch/DispatchRate.js'
 import { createEvidenceFileReader } from '../technical/Evidence/EvidenceFileReader.js'
 import { createBoardApi } from '../domain/Board/BoardApi.js'
@@ -228,6 +230,7 @@ export function startBoardServer({
   const budget = createBudgetRepository(db)
   const workflow = createWorkflowRepository(db)
   const workflowColumns = createWorkflowColumnRepository(db)
+  const projectWorkflows = createProjectWorkflowRepository(db)
   const messages = createMessageRepository(db)
   const autopilotSettings = createAutopilotRepository(db)
   let conductor: AutopilotConductor | null = null
@@ -472,6 +475,20 @@ export function startBoardServer({
       templates,
       maySettle: (context) =>
         mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
+    }),
+  )
+  guarded.route(
+    '/',
+    createProjectWorkflowApi({
+      workflows: projectWorkflows,
+      projectExists: (projectId) => stories.projects.find(projectId) !== null,
+      mayAdminister: (projectId, context) =>
+        mayAdministerProject({
+          login: operatorOf(context),
+          adminLogin: stories.projects.find(projectId)?.adminLogin ?? null,
+          isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
+          isDirector: (login) => identities.findUser(login)?.role === 'director',
+        }),
     }),
   )
   guarded.route(

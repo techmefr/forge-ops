@@ -1,3 +1,4 @@
+import { STORY_WORKFLOW_ID_SQL } from '../Workflow/ProjectWorkflowRepository.js'
 import type Database from 'better-sqlite3'
 import type { EpicCreate, EpicPatch, EpicQuery, ManualEpicState } from '../../../../contract/EpicContract.js'
 import { matchesQuery } from '../../../../contract/SubjectQuery.js'
@@ -288,8 +289,7 @@ export function createStoryRepository(
         SET state = ?,
             workflow_column_id = (
               SELECT workflow_column.id FROM workflow_column
-                JOIN epic ON epic.project_id = workflow_column.project_id
-               WHERE epic.id = story.epic_id AND workflow_column.key = ?
+                WHERE workflow_column.workflow_id = ${STORY_WORKFLOW_ID_SQL} AND workflow_column.key = ?
             ),
             updated_at = datetime('now')
       WHERE id = ?`,

@@ -5,9 +5,11 @@ import type { EpicOverview } from '@contract/StoryContract'
 import {
   activeProjectOf,
   adjacentStep,
+  canOpenDot,
+  lanesOf,
+  phaseOfStep,
   boardSteps,
   canDropInto,
-  cardsOfStep,
   dotsOf,
   filterBySubject,
   holdableSubjects,
@@ -24,6 +26,7 @@ function column(id: number, key: string, overrides: Partial<WorkflowColumn> = {}
   return {
     id,
     projectId: 1,
+    workflowId: 1,
     key,
     label: key.toUpperCase(),
     colour: 'acc',
@@ -49,6 +52,7 @@ function card(id: number, stepKey: string, status: ForgeCardStatus, overrides: P
     storyReference: `S-${id}`,
     title: `Story ${id}`,
     projectId: 1,
+    workflowId: 1,
     subjectId: 10,
     subjectTitle: 'Subject',
     stepKey,
@@ -92,8 +96,6 @@ describe('filtering', () => {
   const cards = [card(1, 'spec', 'idle'), card(2, 'spec', 'idle', { subjectId: 11 })]
 
   it('keeps the cards of a step', () => {
-    expect(cardsOfStep(cards, 'spec')).toHaveLength(2)
-    expect(cardsOfStep(cards, 'build')).toHaveLength(0)
   })
 
   it('keeps the cards of a subject, or all of them', () => {
@@ -252,5 +254,59 @@ describe('holdableSubjects', () => {
 
   it('keeps everything while nobody is known, the server decides', () => {
     expect(holdableSubjects(subjects, null)).toHaveLength(3)
+  })
+})
+
+describe('the lanes of a project', () => {
+  const FEATURE = { id: 1, projectId: 1, key: 'feature', name: 'Feature', position: 1 }
+  const FIX = { id: 2, projectId: 1, key: 'fix', name: 'Fix', position: 2 }
+
+  it('groups the cards by workflow, the first workflow first', () => {
+    const lanes = lanesOf(
+      [FIX, FEATURE],
+      [card(1, 'spec', 'idle'), card(2, 'diagnose', 'idle', { workflowId: 2 }), card(3, 'spec', 'running')],
+    )
+
+    expect(lanes.map((lane) => [lane.workflow.key, lane.cards.map((held) => held.id)])).toEqual([
+      ['feature', [3, 1]],
+      ['fix', [2]],
+    ])
+  })
+
+  it('leaves out a workflow that holds no card', () => {
+    expect(lanesOf([FEATURE, FIX], [card(1, 'spec', 'idle')]).map((lane) => lane.workflow.key)).toEqual(['feature'])
+  })
+
+  it('has no lane when there is no card', () => {
+    expect(lanesOf([FEATURE], [])).toEqual([])
+  })
+})
+
+describe('opening a step of the flow', () => {
+  const steps = boardSteps([column(1, 'spec'), column(2, 'build'), column(3, 'review')], { backlog: 'Backlog', done: 'Done' })
+
+  it('opens a step already passed or the current one, not a step still to come', () => {
+    const states = dotsOf(card(1, 'build', 'running'), steps).map((dot) => canOpenDot(dot))
+
+    expect(states).toEqual([true, true, false])
+  })
+
+  it('opens nothing of a card still in the backlog', () => {
+    expect(dotsOf(card(1, 'backlog', 'idle'), steps).map((dot) => canOpenDot(dot))).toEqual([false, false, false])
+  })
+})
+
+describe('the phase a step reads its history from', () => {
+  it('knows the starter steps', () => {
+    expect(phaseOfStep('plan', ['spec', 'plan'])).toBe('architecture')
+    expect(phaseOfStep('build', ['spec', 'plan', 'build'])).toBe('code')
+  })
+
+  it('lets a custom step inherit the phase of the step before it', () => {
+    expect(phaseOfStep('security', ['spec', 'build', 'security'])).toBe('code')
+  })
+
+  it('falls back to the first phase when nothing before it is known', () => {
+    expect(phaseOfStep('triage', ['triage', 'patch'])).toBe('spec')
   })
 })

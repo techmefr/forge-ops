@@ -19,6 +19,7 @@ const backlogSchema = z
   .object({
     subjectId: z.number().int().positive(),
     title: z.string().trim().min(1).max(200),
+    workflowId: z.number().int().positive().optional(),
   })
   .strict()
 
@@ -88,7 +89,7 @@ export function createForgeBoardApi({
     const story = stories.writeStory({ epicId: epic.id, title: draft.data.title, body: draft.data.title })
     stories.writeTwin({ storyId: story.id, title: `Tests: ${draft.data.title}`, body: draft.data.title })
     stories.sendToBacklog(story.id)
-    const card = forgeCards.attachCardToStory(story.id)
+    const card = forgeCards.attachCardToStory(story.id, draft.data.workflowId)
     return context.json(board.view(card.id), 201)
   })
 

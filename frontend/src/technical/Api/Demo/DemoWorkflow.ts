@@ -23,9 +23,9 @@ import {
   type DemoState,
 } from './DemoModel'
 
-export function columnsOf(state: DemoState, projectId: number): WorkflowColumn[] {
+export function columnsOf(state: DemoState, projectId: number, workflowId?: number): WorkflowColumn[] {
   return state.columns
-    .filter((column) => column.projectId === projectId)
+    .filter((column) => column.projectId === projectId && (workflowId === undefined || column.workflowId === workflowId))
     .sort((one, other) => one.position - other.position)
 }
 
@@ -103,13 +103,25 @@ function guarded(context: DemoContext, work: (projectId: number) => DemoReply): 
   return work(projectId)
 }
 
+function workflowOf(current: DemoState, projectId: number): number {
+  const held = current.workflows.filter((workflow) => workflow.projectId === projectId).sort((one, other) => one.position - other.position)[0]
+  if (held !== undefined) {
+    return held.id
+  }
+  const created = { id: nextIdentifier(current), projectId, key: 'default', name: 'Default', position: 1 }
+  current.workflows.push(created)
+  return created.id
+}
+
 function addColumn(current: DemoState, projectId: number, draft: WorkflowColumnDraft): WorkflowColumn {
-  const taken = columnsOf(current, projectId)
+  const workflowId = workflowOf(current, projectId)
+  const taken = columnsOf(current, projectId, workflowId)
   const column: WorkflowColumn = {
     ...draft,
     maxRetries: draft.maxRetries ?? DEFAULT_STEP_RETRIES,
     id: nextIdentifier(current),
     projectId,
+    workflowId,
     key: keyOf(
       draft.label,
       taken.map((held) => held.key),
@@ -122,10 +134,20 @@ function addColumn(current: DemoState, projectId: number, draft: WorkflowColumnD
 }
 
 export const WORKFLOW_ROUTES: readonly DemoRoute[] = [
-  route('GET', '/api/projects/(\\d+)/workflow-columns', (context) => {
+  route('GET', '/api/projects/(\\d+)/workflows', (context) => {
     const projectId = identifierAt(context)
     return reply({
-      columns: columnsOf(context.state, projectId),
+      workflows: context.state.workflows
+        .filter((workflow) => workflow.projectId === projectId)
+        .sort((one, other) => one.position - other.position),
+      maySettle: mayAdminister(context.state, projectId),
+    })
+  }),
+  route('GET', '/api/projects/(\\d+)/workflow-columns', (context) => {
+    const projectId = identifierAt(context)
+    const wanted = Number(context.query.get('workflow'))
+    return reply({
+      columns: columnsOf(context.state, projectId, Number.isInteger(wanted) && wanted > 0 ? wanted : undefined),
       maySettle: mayAdminister(context.state, projectId),
       admin: adminOf(context.state, projectId),
     })

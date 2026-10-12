@@ -15,6 +15,7 @@ import {
   StoryAlreadyOnOpenCardError,
   StoryNotInBacklogError,
   UnknownForgeCardProviderError,
+  UnknownWorkflowForStoryError,
 } from './ForgeCardViolation.js'
 
 type ForgeCardRow = {
@@ -43,7 +44,7 @@ export type ForgeCardRepository = {
   closeForgeCard: (forgeCardId: number) => void
   openCardOfStory: (storyId: number) => ForgeCard | null
   findForgeCard: (forgeCardId: number) => ForgeCard
-  attachCardToStory: (storyId: number) => ForgeCard
+  attachCardToStory: (storyId: number, workflowId?: number) => ForgeCard
   recordDispatch: (forgeCardId: number, progress: ForgeCardDispatchProgress) => ForgeCard
 }
 
@@ -60,6 +61,13 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
     'UPDATE forge_card SET claude_session_id = ?, current_phase = ? WHERE id = ?',
   )
   const selectStory = db.prepare<[number], StoryLookupRow>('SELECT id, reference, state FROM story WHERE id = ?')
+  const selectProjectOfStory = db.prepare<[number], { project_id: number }>(
+    'SELECT epic.project_id AS project_id FROM story JOIN epic ON epic.id = story.epic_id WHERE story.id = ?',
+  )
+  const selectProjectOfWorkflow = db.prepare<[number], { project_id: number }>(
+    'SELECT project_id FROM workflow WHERE id = ?',
+  )
+  const updateStoryWorkflow = db.prepare<[number, number]>('UPDATE story SET workflow_id = ? WHERE id = ?')
   const selectOpenCardIdForStory = db.prepare<[number], { forge_card_id: number }>(`
     SELECT fcs.forge_card_id AS forge_card_id
     FROM forge_card_story fcs
@@ -91,6 +99,22 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
       currentPhase: row.current_phase,
       createdAt: row.created_at,
       closedAt: row.closed_at,
+    }
+  }
+
+  function refuseUnknownWorkflow(storyId: number, reference: string, workflowId: number | undefined): void {
+    if (workflowId === undefined) {
+      return
+    }
+    const workflowProject = selectProjectOfWorkflow.get(workflowId)?.project_id
+    if (workflowProject === undefined || workflowProject !== selectProjectOfStory.get(storyId)?.project_id) {
+      throw new UnknownWorkflowForStoryError(workflowId, reference)
+    }
+  }
+
+  function assignWorkflow(storyId: number, workflowId: number | undefined): void {
+    if (workflowId !== undefined) {
+      updateStoryWorkflow.run(workflowId, storyId)
     }
   }
 
@@ -129,12 +153,14 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
           const openCard = findCard(openLink.forge_card_id)
           throw new StoryAlreadyOnOpenCardError(story.reference, openCard.reference)
         }
+        refuseUnknownWorkflow(storyId, story.reference, draft.workflowId)
       }
       const reference = `FORGE-${(countCards.get()?.total ?? 0) + 1}`
       const info = insertCard.run(reference, provider)
       const forgeCardId = Number(info.lastInsertRowid)
       for (const storyId of draft.storyIds) {
         linkStory.run(forgeCardId, storyId)
+        assignWorkflow(storyId, draft.workflowId)
       }
       return findCard(forgeCardId)
     },
@@ -143,19 +169,22 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
       closeCard.run(forgeCardId)
     },
 
-    attachCardToStory: (storyId) => {
+    attachCardToStory: (storyId, workflowId) => {
       const story = selectStory.get(storyId)
       if (story === undefined) {
         throw new ForgeStoryNotFoundError(storyId)
       }
+      refuseUnknownWorkflow(storyId, story.reference, workflowId)
       const existing = selectAnyCardIdForStory.get(storyId)
       if (existing !== undefined) {
+        assignWorkflow(storyId, workflowId)
         return findCard(existing.forge_card_id)
       }
       const reference = `FORGE-${(countCards.get()?.total ?? 0) + 1}`
       const info = insertCard.run(reference, DEFAULT_FORGE_CARD_PROVIDER)
       const forgeCardId = Number(info.lastInsertRowid)
       linkStory.run(forgeCardId, storyId)
+      assignWorkflow(storyId, workflowId)
       if (story.state === 'done') {
         closeCard.run(forgeCardId)
       }

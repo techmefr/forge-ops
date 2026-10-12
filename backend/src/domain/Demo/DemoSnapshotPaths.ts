@@ -45,6 +45,7 @@ export const PROJECT_PATHS: readonly string[] = [
   '/api/projects/:id/links',
   '/api/projects/:id/template',
   '/api/projects/:id/workflow-columns',
+  '/api/projects/:id/workflows',
   '/api/projects/:id/tree',
   '/api/projects/:id/zones',
 ]

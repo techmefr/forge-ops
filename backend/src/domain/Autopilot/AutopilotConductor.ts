@@ -173,7 +173,7 @@ export function createAutopilotConductor({
   }
 
   function proveOwnCheckpoint(view: ForgeCardView, step: WorkflowColumn, storyReference: string): StepOutcome {
-    const keys = columns.list(view.projectId).map((candidate) => candidate.key)
+    const keys = columns.list(view.projectId, view.workflowId).map((candidate) => candidate.key)
     const proves = contractOfPhase(phaseOfStep(step.key, keys)).proves
     if (proves === null) {
       return { kind: 'pass' }
@@ -208,7 +208,7 @@ export function createAutopilotConductor({
     verdict: StepVerdict,
     activeProver: StepProver,
   ): StepOutcome {
-    const keys = columns.list(view.projectId).map((candidate) => candidate.key)
+    const keys = columns.list(view.projectId, view.workflowId).map((candidate) => candidate.key)
     const baseSha = baseShaOf?.(view.storyId) ?? null
     if (baseSha === null) {
       return { kind: 'fail', reason: 'The story has no live worktree to inspect, so nothing can be proven' }
@@ -269,10 +269,10 @@ export function createAutopilotConductor({
     return budget.decideConduct().conduct === 'stop'
   }
 
-  function backlogEntryOf(projectId: number): WorkflowColumn | null {
+  function backlogEntryOf(projectId: number, workflowId?: number): WorkflowColumn | null {
     const project = stories.listProjects().find((candidate) => candidate.id === projectId)
     const settings = autopilot.settingsOf(projectId)
-    const first = columns.list(projectId)[0]
+    const first = columns.list(projectId, workflowId)[0]
     const hasCheckout = project?.checkoutPath !== null && project?.checkoutPath !== undefined && project.checkoutPath !== ''
     if (!settings.enabled || !settings.autoLaunch || !hasCheckout) {
       return null
@@ -308,7 +308,7 @@ export function createAutopilotConductor({
       })
       return
     }
-    const steps = columns.list(view.projectId)
+    const steps = columns.list(view.projectId, view.workflowId)
     const next = steps[steps.findIndex((step) => step.key === view.stepKey) + 1]
     if (next === undefined) {
       const closed: ForgeCardClosed = closer.close(forgeCardId)
@@ -364,7 +364,7 @@ export function createAutopilotConductor({
     if (view.stepKey === BACKLOG_STEP_KEY || view.stepKey === DONE_STEP_KEY) {
       return
     }
-    const step = columns.list(view.projectId).find((candidate) => candidate.key === view.stepKey)
+    const step = columns.list(view.projectId, view.workflowId).find((candidate) => candidate.key === view.stepKey)
     if (step === undefined || step.provider === 'human') {
       return
     }
@@ -406,15 +406,15 @@ export function createAutopilotConductor({
 
   async function launchBacklog(): Promise<void> {
     for (const project of stories.listProjects()) {
-      const first = backlogEntryOf(project.id)
-      if (first === null) {
+      if (backlogEntryOf(project.id) === null && !board.list(project.id).some((card) => backlogEntryOf(project.id, card.workflowId) !== null)) {
         continue
       }
       const waiting = board
         .list(project.id)
         .filter((card) => card.stepKey === BACKLOG_STEP_KEY && autopilot.cardOf(card.id).state === null)
       for (const card of waiting) {
-        if (lacksCriteria(card.storyId)) {
+        const first = backlogEntryOf(project.id, card.workflowId)
+        if (first === null || lacksCriteria(card.storyId)) {
           continue
         }
         try {
@@ -441,9 +441,8 @@ export function createAutopilotConductor({
       if (!settings.enabled || !settings.autoLaunch) {
         continue
       }
-      const steps = columns.list(project.id)
       const idle = board.list(project.id).filter((card) => {
-        const step = steps.find((candidate) => candidate.key === card.stepKey)
+        const step = columns.list(project.id, card.workflowId).find((candidate) => candidate.key === card.stepKey)
         const resumable =
           card.status === 'budget_exhausted' ? !budgetBlocks() : card.status === 'idle' && step?.autoStart === true
         return (
@@ -530,7 +529,7 @@ export function createAutopilotConductor({
         if (view.stepKey === BACKLOG_STEP_KEY && lacksCriteria(view.storyId)) {
           return { state: 'paused', reason: NEEDS_CRITERIA_REASON }
         }
-        if (view.stepKey === BACKLOG_STEP_KEY && backlogEntryOf(view.projectId) !== null && budgetBlocks()) {
+        if (view.stepKey === BACKLOG_STEP_KEY && backlogEntryOf(view.projectId, view.workflowId) !== null && budgetBlocks()) {
           return { state: 'paused', reason: WAITING_BUDGET_REASON }
         }
         return null

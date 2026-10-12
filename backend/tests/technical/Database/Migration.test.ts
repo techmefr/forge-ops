@@ -659,8 +659,9 @@ describe("opening a base whose stories were placed by their state alone", () => 
     db.prepare(
       "INSERT INTO project (slug, name, repository_url, integration_branch, colour) VALUES ('p', 'P', 'url', 'main', '#112233')",
     ).run()
+    db.prepare("INSERT INTO workflow (project_id, key, name, position) VALUES (1, 'default', 'Default', 1)").run()
     db.prepare(
-      "INSERT INTO workflow_column (project_id, key, label, colour, position, behavioural_kind) VALUES (1, 'building', 'Building', 'acc', 1, 'ordinary')",
+      "INSERT INTO workflow_column (project_id, workflow_id, key, label, colour, position, behavioural_kind) VALUES (1, 1, 'building', 'Building', 'acc', 1, 'ordinary')",
     ).run()
     db.prepare("INSERT INTO epic (project_id, title, business_intent) VALUES (1, 'E', 'i')").run()
     const insert = db.prepare(
@@ -721,11 +722,14 @@ describe('opening a base whose starter workflows only started the first step', (
         .prepare('INSERT INTO project (slug, name, repository_url, integration_branch, colour) VALUES (?, ?, ?, ?, ?)')
         .run(slug, slug, 'url', 'main', '#112233').lastInsertRowid,
     )
+    const workflowId = Number(
+      db.prepare("INSERT INTO workflow (project_id, key, name, position) VALUES (?, 'default', 'Default', 1)").run(projectId).lastInsertRowid,
+    )
     steps.forEach(([preprompt, autoStart, provider], index) => {
       db.prepare(
-        `INSERT INTO workflow_column (project_id, key, label, colour, position, provider, preprompt, auto_start, behavioural_kind)
-         VALUES (?, ?, ?, '#112233', ?, ?, ?, ?, 'ordinary')`,
-      ).run(projectId, `step${index}`, `Step ${index}`, index + 1, provider, preprompt, autoStart)
+        `INSERT INTO workflow_column (project_id, workflow_id, key, label, colour, position, provider, preprompt, auto_start, behavioural_kind)
+         VALUES (?, ?, ?, ?, '#112233', ?, ?, ?, ?, 'ordinary')`,
+      ).run(projectId, workflowId, `step${index}`, `Step ${index}`, index + 1, provider, preprompt, autoStart)
     })
     return projectId
   }
@@ -787,10 +791,11 @@ describe('opening a base whose starter workflows only started the first step', (
 
 describe('opening a base whose steps still carry a legacy starter prompt', () => {
   function writeStep(db: Database.Database, projectId: number, position: number, preprompt: string): void {
+    db.prepare("INSERT OR IGNORE INTO workflow (project_id, key, name, position) VALUES (?, 'default', 'Default', 1)").run(projectId)
     db.prepare(
-      `INSERT INTO workflow_column (project_id, key, label, colour, position, provider, preprompt, auto_start, behavioural_kind)
-       VALUES (?, ?, ?, '#112233', ?, 'claude', ?, 1, 'ordinary')`,
-    ).run(projectId, `step${position}`, `Step ${position}`, position, preprompt)
+      `INSERT INTO workflow_column (project_id, workflow_id, key, label, colour, position, provider, preprompt, auto_start, behavioural_kind)
+       VALUES (?, (SELECT id FROM workflow WHERE project_id = ?), ?, ?, '#112233', ?, 'claude', ?, 1, 'ordinary')`,
+    ).run(projectId, projectId, `step${position}`, `Step ${position}`, position, preprompt)
   }
 
   it('replaces an untouched legacy prompt by the current one and leaves edited prompts alone', () => {
@@ -812,6 +817,80 @@ describe('opening a base whose steps still carry a legacy starter prompt', () =>
       .all()
       .map((row) => row.preprompt)
     expect(prompts).toEqual([PROMPT_TEMPLATES.ship, `${LEGACY_STARTER_PROMPTS[0] ?? ''} Also check the mails.`])
+    db.close()
+  })
+})
+
+const OLD_PROJECT_WORKFLOW_COLUMN = `CREATE TABLE workflow_column (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL,
+  key TEXT NOT NULL,
+  label TEXT NOT NULL,
+  colour TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  provider TEXT NOT NULL DEFAULT 'claude',
+  behavioural_kind TEXT NOT NULL DEFAULT 'ordinary',
+  UNIQUE (project_id, key),
+  UNIQUE (project_id, position)
+)`
+
+describe('opening a base whose steps belonged to the project itself', () => {
+  function seedOldBase(): void {
+    const old = new Database(path)
+    old.exec(OLD_PROJECT_WORKFLOW_COLUMN)
+    const insert = old.prepare(
+      "INSERT INTO workflow_column (project_id, key, label, colour, position) VALUES (?, ?, ?, 'acc', ?)",
+    )
+    insert.run(1, 'spec', 'Spec', 1)
+    insert.run(1, 'build', 'Build', 2)
+    insert.run(2, 'spec', 'Spec', 1)
+    old.close()
+  }
+
+  it('gathers the steps of each project into a Default workflow', () => {
+    seedOldBase()
+
+    const db = openDatabase(path)
+
+    const workflows = db
+      .prepare<[], { project_id: number; key: string; name: string }>('SELECT project_id, key, name FROM workflow ORDER BY project_id')
+      .all()
+    expect(workflows).toEqual([
+      { project_id: 1, key: 'default', name: 'Default' },
+      { project_id: 2, key: 'default', name: 'Default' },
+    ])
+    const placed = db
+      .prepare<[], { workflow_id: number; key: string }>('SELECT workflow_id, key FROM workflow_column ORDER BY id')
+      .all()
+    expect(placed.map((row) => [row.workflow_id, row.key])).toEqual([
+      [1, 'spec'],
+      [1, 'build'],
+      [2, 'spec'],
+    ])
+    db.close()
+  })
+
+  it('lets a second workflow of the same project reuse the positions and keys', () => {
+    seedOldBase()
+    const db = openDatabase(path)
+    db.pragma('foreign_keys = OFF')
+    db.prepare("INSERT INTO workflow (project_id, key, name, position) VALUES (1, 'fix', 'Fix', 2)").run()
+
+    db.prepare(
+      "INSERT INTO workflow_column (project_id, workflow_id, key, label, colour, position) VALUES (1, 3, 'spec', 'Spec', 'acc', 1)",
+    ).run()
+
+    expect(db.prepare('SELECT COUNT(*) AS total FROM workflow_column WHERE project_id = 1').get()).toEqual({ total: 3 })
+    db.close()
+  })
+
+  it('does not gather twice when opened again', () => {
+    seedOldBase()
+    openDatabase(path).close()
+
+    const db = openDatabase(path)
+
+    expect(db.prepare('SELECT COUNT(*) AS total FROM workflow').get()).toEqual({ total: 2 })
     db.close()
   })
 })

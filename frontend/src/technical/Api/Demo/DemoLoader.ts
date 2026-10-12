@@ -5,7 +5,8 @@ import type { ProjectFollowUp } from '@contract/FollowUpContract'
 import type { StoryThread } from '@contract/ConversationContract'
 import type { BoardUserSheet, ProjectSheet } from '@contract/ProjectContract'
 import type { EpicOverview, Project } from '@contract/StoryContract'
-import type { ProjectWorkflow } from '@contract/WorkflowColumnContract'
+import type { ProjectWorkflow, WorkflowColumn } from '@contract/WorkflowColumnContract'
+import type { ProjectWorkflows, Workflow } from '@contract/WorkflowContract'
 import type { DemoState, FollowUpNote } from './DemoModel'
 
 const RESERVED_IDENTIFIER_SPACE = 1000
@@ -35,7 +36,8 @@ export function createDemoState(source: Record<string, unknown>): DemoState {
   ]
   const events: ProjectEvent[] = []
   const links = new Map<number, SubjectLink[]>()
-  const columns = []
+  const workflows: Workflow[] = []
+  const columns: WorkflowColumn[] = []
   const cards: ForgeCardView[] = []
   const risks = []
   const decisions = []
@@ -44,8 +46,18 @@ export function createDemoState(source: Record<string, unknown>): DemoState {
   for (const project of projects) {
     events.push(...held<ProjectEvent[]>(snapshot, `/api/projects/${project.id}/events`, []))
     links.set(project.id, held<SubjectLink[]>(snapshot, `/api/projects/${project.id}/links`, []))
-    columns.push(...held<ProjectWorkflow>(snapshot, `/api/projects/${project.id}/workflow-columns`, { columns: [] } as unknown as ProjectWorkflow).columns)
-    cards.push(...held<ForgeCardView[]>(snapshot, `/api/forge-cards?project=${project.id}`, []))
+    const projectColumns = held<ProjectWorkflow>(snapshot, `/api/projects/${project.id}/workflow-columns`, { columns: [] } as unknown as ProjectWorkflow).columns
+    const listed = held<ProjectWorkflows>(snapshot, `/api/projects/${project.id}/workflows`, { workflows: [] } as unknown as ProjectWorkflows).workflows
+    const own: Workflow =
+      listed[0] ?? { id: project.id, projectId: project.id, key: 'default', name: 'Default', position: 1 }
+    workflows.push(...(listed.length > 0 ? listed : [own]))
+    columns.push(...projectColumns.map((column) => ({ ...column, workflowId: column.workflowId ?? own.id })))
+    cards.push(
+      ...held<ForgeCardView[]>(snapshot, `/api/forge-cards?project=${project.id}`, []).map((card) => ({
+        ...card,
+        workflowId: card.workflowId ?? own.id,
+      })),
+    )
     const followUp = snapshot[`/api/projects/${project.id}/follow-up`] as ProjectFollowUp | undefined
     if (followUp !== undefined) {
       risks.push(...followUp.risks)
@@ -85,6 +97,7 @@ export function createDemoState(source: Record<string, unknown>): DemoState {
     decisions,
     notes,
     links,
+    workflows,
     columns,
     cards,
     threads,

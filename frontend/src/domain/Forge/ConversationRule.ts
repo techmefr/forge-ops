@@ -126,6 +126,16 @@ export function foldEvent(
   return items
 }
 
+export function itemsOfPhase(items: readonly ThreadItem[], phase: string): readonly ThreadItem[] {
+  let inside = false
+  return items.filter((item) => {
+    if (item.kind === 'marker') {
+      inside = item.phase === phase
+    }
+    return inside
+  })
+}
+
 export type ReplyRoute = 'note' | 'talk'
 
 export function replyRouteOf(stepKind: 'backlog' | 'step' | 'done', humanStep: boolean): ReplyRoute {

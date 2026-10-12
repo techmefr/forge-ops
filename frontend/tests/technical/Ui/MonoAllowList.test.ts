@@ -11,7 +11,6 @@ const ALLOWED_MONO_USES: Readonly<Record<string, number>> = {
   'domain/Deployment/DeploymentScreen.vue': 3,
   'domain/File/FileBrowser.vue': 7,
   'domain/File/FileScreen.vue': 9,
-  'domain/Forge/ForgeCardTile.vue': 1,
   'domain/Forge/ForgeDrawer.vue': 3,
   'domain/Incident/IncidentScreen.vue': 2,
   'domain/Pilot/PilotPanel.vue': 1,

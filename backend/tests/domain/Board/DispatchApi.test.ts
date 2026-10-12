@@ -122,12 +122,15 @@ describe('POST /api/stories/:id/dispatch', () => {
 
   it('answers 409 and starts nothing when the named step is a human step', async () => {
     const projectId = stories.projectOfStory(storyId)
+    const workflowId = Number(
+      db.prepare("INSERT INTO workflow (project_id, key, name, position) VALUES (?, 'default', 'Default', 1)").run(projectId).lastInsertRowid,
+    )
     const step = Number(
       db
         .prepare(
-          "INSERT INTO workflow_column (project_id, key, label, colour, position, provider, behavioural_kind) VALUES (?, 'validation', 'Validation', 'warn', 1, 'human', 'human_wait')",
+          "INSERT INTO workflow_column (project_id, workflow_id, key, label, colour, position, provider, behavioural_kind) VALUES (?, ?, 'validation', 'Validation', 'warn', 1, 'human', 'human_wait')",
         )
-        .run(projectId).lastInsertRowid,
+        .run(projectId, workflowId).lastInsertRowid,
     )
 
     const response = await dispatch(storyId, { phase: 'spec', columnId: step })
