@@ -192,3 +192,46 @@ describe('the items of one phase', () => {
     expect(itemsOfPhase(items, 'ship')).toEqual([])
   })
 })
+
+describe('itemsOfPhase on one session that ran every step', () => {
+  const message = (id: string, proof = false, body = id, at: string | null = null): ThreadItem => ({
+    kind: 'message',
+    id,
+    voice: 'agent',
+    author: 'agent',
+    body,
+    at,
+    proof,
+    evidencePath: null,
+  })
+  const items: readonly ThreadItem[] = [
+    { kind: 'marker', id: 'm', phase: 'ship', agent: null },
+    message('s1'),
+    message('p1', true, 'spec_done', '10:00:01'),
+    message('c1', false, 'c1', '10:00:01'),
+    message('a1', false, 'a1', '10:00:09'),
+    message('p2', true, 'arch_done'),
+    message('b1'),
+    message('p3', true, 'tests_written'),
+    message('p4', true, 'build_done'),
+    message('r1'),
+    message('p5', true, 'verified'),
+    message('p6', true, 'reviewed'),
+    message('h1'),
+  ]
+
+  it('cuts the thread after the proof that closes each step', () => {
+    expect(itemsOfPhase(items, 'spec').map((item) => item.id)).toEqual(['s1', 'p1', 'c1'])
+    expect(itemsOfPhase(items, 'architecture').map((item) => item.id)).toEqual(['a1', 'p2'])
+    expect(itemsOfPhase(items, 'code').map((item) => item.id)).toEqual(['b1', 'p3', 'p4'])
+    expect(itemsOfPhase(items, 'review', ['spec', 'architecture', 'code', 'review', 'ship']).map((item) => item.id)).toEqual(['r1', 'p5', 'p6'])
+  })
+
+  it('keeps what follows the last proof for the last step', () => {
+    expect(itemsOfPhase(items, 'ship').map((item) => item.id)).toEqual(['h1'])
+  })
+
+  it('keeps nothing for a step the session never reached', () => {
+    expect(itemsOfPhase(items.slice(0, 3), 'code')).toEqual([])
+  })
+})

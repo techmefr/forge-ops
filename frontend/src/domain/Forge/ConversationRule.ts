@@ -126,7 +126,18 @@ export function foldEvent(
   return items
 }
 
-export function itemsOfPhase(items: readonly ThreadItem[], phase: string): readonly ThreadItem[] {
+const PHASE_ORDER: readonly string[] = ['spec', 'architecture', 'code', 'gate', 'review', 'ship']
+
+const PHASE_OF_PROOF: Readonly<Record<string, string>> = {
+  spec_done: 'spec',
+  arch_done: 'architecture',
+  tests_written: 'code',
+  build_done: 'code',
+  verified: 'gate',
+  reviewed: 'review',
+}
+
+function itemsBetweenMarkers(items: readonly ThreadItem[], phase: string): readonly ThreadItem[] {
   let inside = false
   return items.filter((item) => {
     if (item.kind === 'marker') {
@@ -134,6 +145,48 @@ export function itemsOfPhase(items: readonly ThreadItem[], phase: string): reado
     }
     return inside
   })
+}
+
+function closingIndexOf(items: readonly ThreadItem[], phase: string): number {
+  let last = -1
+  items.forEach((item, index) => {
+    if (item.kind === 'message' && item.proof && PHASE_OF_PROOF[item.body.trim()] === phase) {
+      last = index
+    }
+  })
+  const proof = items[last]
+  if (proof === undefined || proof.kind !== 'message' || proof.at === null) {
+    return last
+  }
+  let closing = last
+  for (let next = items[closing + 1]; next?.kind === 'message' && !next.proof && next.at === proof.at; next = items[closing + 1]) {
+    closing += 1
+  }
+  return closing
+}
+
+function itemsBetweenProofs(items: readonly ThreadItem[], phase: string, present: readonly string[]): readonly ThreadItem[] {
+  const position = PHASE_ORDER.indexOf(phase)
+  if (position === -1) {
+    return []
+  }
+  const start = Math.max(-1, ...PHASE_ORDER.slice(0, position).filter((earlier) => present.includes(earlier)).map((earlier) => closingIndexOf(items, earlier))) + 1
+  const end = closingIndexOf(items, phase)
+  const ranAfter = PHASE_ORDER.slice(position + 1).some((later) => closingIndexOf(items, later) !== -1)
+  if (end === -1 && ranAfter) {
+    return []
+  }
+  return items.slice(start, end === -1 ? items.length : end + 1).filter((item) => item.kind !== 'marker')
+}
+
+export function itemsOfPhase(
+  items: readonly ThreadItem[],
+  phase: string,
+  present: readonly string[] = PHASE_ORDER,
+): readonly ThreadItem[] {
+  const markers = items.filter((item) => item.kind === 'marker').length
+  const proofs = items.some((item) => item.kind === 'message' && item.proof)
+  return markers > 1 || !proofs ? itemsBetweenMarkers(items, phase) : itemsBetweenProofs(items, phase, present)
 }
 
 export type ReplyRoute = 'note' | 'talk'
