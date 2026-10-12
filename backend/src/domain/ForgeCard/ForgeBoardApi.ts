@@ -15,6 +15,8 @@ const identifierSchema = z.coerce.number().int().positive()
 
 const moveSchema = z.object({ stepKey: z.string().trim().min(1).max(80) }).strict()
 
+const launchSchema = z.object({ feedback: z.string().trim().min(1).max(4000).optional() }).strict()
+
 const backlogSchema = z
   .object({
     subjectId: z.number().int().positive(),
@@ -139,14 +141,19 @@ export function createForgeBoardApi({
     if (!forgeCardId.success) {
       return context.json({ error: 'InvalidForgeCardIdentifier' }, 422)
     }
+    const order = launchSchema.safeParse(await context.req.json().catch(() => ({})))
+    if (!order.success) {
+      return context.json({ error: 'InvalidLaunchOrder', issues: order.error.issues }, 422)
+    }
     const current = board.view(forgeCardId.data)
     assertHand(context, current.subjectId, current.reference)
-    if ((await autopilot?.resume(forgeCardId.data)) === true) {
+    const feedback = order.data.feedback
+    if (feedback === undefined && (await autopilot?.resume(forgeCardId.data)) === true) {
       return context.json({ card: board.view(forgeCardId.data), started: false, claudeSessionId: null }, 201)
     }
     const restore = autopilot?.suspend(forgeCardId.data)
     try {
-      const moved = await mover.launch(forgeCardId.data)
+      const moved = await mover.launch(forgeCardId.data, feedback === undefined ? {} : { feedback })
       announce(moved)
       return context.json(moved, 201)
     } catch (error) {

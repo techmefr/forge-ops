@@ -422,6 +422,27 @@ describe('POST /api/forge-cards/:id/launch', () => {
   })
 })
 
+describe('POST /api/forge-cards/:id/launch with a human message', () => {
+  it('hands the message to the agent as feedback', async () => {
+    columns.create(projectId, MANUAL_STEP)
+    const card = cardOf(storyId)
+    await mover.move(card.id, 'security_audit')
+
+    const answer = await ask(`/api/forge-cards/${card.id}/launch`, 'POST', { feedback: 'ignore the missing spec proof' })
+
+    expect(answer.status).toBe(201)
+    expect(launched[0]?.prompt).toContain('ignore the missing spec proof')
+  })
+
+  it('refuses an empty message', async () => {
+    columns.create(projectId, MANUAL_STEP)
+    const card = cardOf(storyId)
+    await mover.move(card.id, 'security_audit')
+
+    expect((await ask(`/api/forge-cards/${card.id}/launch`, 'POST', { feedback: '  ' })).status).toBe(422)
+  })
+})
+
 describe('the pipeline actions', () => {
   it('launches, retries after a failure and validates into the next step', async () => {
     columns.create(projectId, AGENT_STEP)

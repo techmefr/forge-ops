@@ -38,7 +38,7 @@ const say = usePhrase()
 const router = useRouter()
 
 const conversation = useCardConversation(
-  { id: props.card.storyId, reference: props.card.storyReference },
+  { id: props.card.storyId, reference: props.card.storyReference, forgeCardId: props.card.id },
   { onSettled: () => emit('settled') },
 )
 

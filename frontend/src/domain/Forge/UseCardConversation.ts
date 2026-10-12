@@ -1,6 +1,7 @@
 import { computed, onScopeDispose, ref, shallowRef } from 'vue'
 import type { StoryThread } from '@contract/ConversationContract'
 import { board } from '@/technical/Api/Board'
+import { BoardRequestError } from '@/technical/Api/BoardClient'
 import { openBoardStream, type StreamedEvent } from '@/technical/Api/BoardStream'
 import { phrase, type Phrase } from '@/technical/Language/Phrase'
 import {
@@ -16,7 +17,7 @@ const liveByStory = new Map<string, readonly ThreadItem[]>()
 
 const SETTLING_EVENTS: readonly string[] = ['session.result', 'session.failed', 'session.dispatched']
 
-export type ConversationStory = { id: number; reference: string }
+export type ConversationStory = { id: number; reference: string; forgeCardId?: number }
 
 export type CardConversationOptions = {
   onSettled: () => void
@@ -67,6 +68,20 @@ export function useCardConversation(story: ConversationStory, { onSettled }: Car
   const handle = openBoardStream({ onEvent: take })
   onScopeDispose(() => handle.close())
 
+  async function talkOrResume(body: string): Promise<void> {
+    try {
+      await board.send(`/api/stories/${story.id}/talk`, 'POST', { message: body })
+    } catch (error) {
+      if (story.forgeCardId === undefined || !(error instanceof BoardRequestError) || error.code !== 'ConversationClosed') {
+        throw error
+      }
+      await board.send(`/api/stories/${story.id}/discussion`, 'POST', { body })
+      await board.send(`/api/forge-cards/${story.forgeCardId}/launch`, 'POST', { feedback: body })
+      await load()
+      onSettled()
+    }
+  }
+
   async function send(text: string, route: ReplyRoute): Promise<boolean> {
     const body = text.trim()
     if (body === '' || sending.value) {
@@ -79,7 +94,7 @@ export function useCardConversation(story: ConversationStory, { onSettled }: Car
         await board.send(`/api/stories/${story.id}/discussion`, 'POST', { body })
         await load()
       } else {
-        await board.send(`/api/stories/${story.id}/talk`, 'POST', { message: body })
+        await talkOrResume(body)
       }
       return true
     } catch {
