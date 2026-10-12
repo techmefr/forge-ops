@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3'
-import { join } from 'node:path'
+import { resolve } from 'node:path'
 import { allocatePort, DEFAULT_BASE_PORT, DEFAULT_PORT_RANGE } from '../../technical/Network/PortAllocator.js'
 import { GitCommandFailedError } from '../../technical/Git/GitWorktree.js'
 import { isPortBindable } from '../../technical/Network/PortProbe.js'
@@ -135,7 +135,7 @@ export function createWorktreeRepository(
         }
         const branch = branchNameFor(story.reference, story.title)
         const folder = worktreeFolderFor(branch)
-        const path = join(root, folder)
+        const path = resolve(root, folder)
         const repositoryRoot = checkoutOf?.(order.storyId)
         const baseSha = git.headSha(order.baseRef, repositoryRoot)
 
