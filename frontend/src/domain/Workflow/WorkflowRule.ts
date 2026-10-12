@@ -141,6 +141,8 @@ const FAILURE_KEYS: Readonly<Record<string, string>> = {
   WorkflowNeedsTheProjectAdmin: 'workflowSettings.failure.WorkflowNeedsTheProjectAdmin',
   WorkflowColumnInUseError: 'workflowSettings.failure.WorkflowColumnInUseError',
   WorkflowColumnNotFoundError: 'workflowSettings.failure.WorkflowColumnNotFoundError',
+  WorkflowNotFoundError: 'workflowSettings.failure.WorkflowNotFoundError',
+  WorkflowInUseError: 'workflowSettings.failure.WorkflowInUseError',
 }
 
 const REFUSAL_KEYS: Readonly<Record<string, string>> = {
@@ -151,6 +153,9 @@ const REFUSAL_KEYS: Readonly<Record<string, string>> = {
   EffortNotOfProvider: 'workflowSettings.refusal.EffortNotOfProvider',
   HumanStepCannotAutoStart: 'workflowSettings.refusal.HumanStepCannotAutoStart',
   OrderMismatch: 'workflowSettings.refusal.OrderMismatch',
+  EmptyName: 'workflowSettings.refusal.EmptyName',
+  DuplicateName: 'workflowSettings.refusal.DuplicateName',
+  LastWorkflow: 'workflowSettings.refusal.LastWorkflow',
 }
 
 export function providerLabelKey(provider: WorkflowProvider): string {
@@ -167,7 +172,7 @@ export function failureOf(error: unknown): Phrase {
     if (failure !== undefined) {
       return phrase(failure)
     }
-    const refusal = error.code === 'WorkflowColumnRefused' ? REFUSAL_KEYS[error.message] : undefined
+    const refusal = error.code === 'WorkflowColumnRefused' || error.code === 'WorkflowRefused' ? REFUSAL_KEYS[error.message] : undefined
     if (refusal !== undefined) {
       return phrase(refusal)
     }

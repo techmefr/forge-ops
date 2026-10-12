@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, onUpdated, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ForgeCardView } from '@contract/ForgeCardContract'
 import Glyph from '@/technical/Ui/Glyph.vue'
@@ -26,6 +27,8 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+const root = ref<HTMLElement | null>(null)
 
 function stepsOf(card: ForgeCardView): readonly BoardStep[] {
   return props.stepsByWorkflow.get(card.workflowId) ?? []
@@ -58,10 +61,22 @@ function effort(card: ForgeCardView): string {
 function isCurrent(card: ForgeCardView, stepKey: string): boolean {
   return card.stepKey === stepKey
 }
+
+function centreCurrentSteps(): void {
+  for (const current of root.value?.querySelectorAll<HTMLElement>('[aria-current="step"]') ?? []) {
+    const strip = current.closest('ol')
+    if (strip !== null) {
+      strip.scrollLeft = current.offsetLeft - strip.clientWidth / 2 + current.clientWidth / 2
+    }
+  }
+}
+
+onMounted(centreCurrentSteps)
+onUpdated(centreCurrentSteps)
 </script>
 
 <template>
-  <div class="flex min-w-0 flex-col gap-5" data-test="forge-flow">
+  <div ref="root" class="flex min-w-0 flex-col gap-5" data-test="forge-flow">
     <p v-if="lanes.length === 0" class="m-0 py-2 text-xs text-txt-low">{{ t('forge.pipeline.empty') }}</p>
     <section
       v-for="lane in lanes"

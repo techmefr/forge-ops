@@ -42,6 +42,7 @@ function column(id: number, key: string, label: string, overrides: Partial<Workf
 const ADMIN = { login: 'ana', name: 'Ana' }
 
 let workflow: ProjectWorkflow
+let workflows: { id: number; projectId: number; key: string; name: string; position: number }[]
 let wrapper: VueWrapper | null = null
 
 async function open(): Promise<void> {
@@ -66,7 +67,10 @@ beforeEach(() => {
   send.mockReset()
   send.mockResolvedValue({})
   workflow = { columns: [], maySettle: true, admin: ADMIN }
-  read.mockImplementation(() => Promise.resolve(workflow))
+  workflows = [{ id: 1, projectId: 3, key: 'default', name: 'Default', position: 1 }]
+  read.mockImplementation((path: string) =>
+    Promise.resolve(path.endsWith('/workflows') ? { workflows } : workflow),
+  )
 })
 
 afterEach(() => {
@@ -83,7 +87,7 @@ describe('a project without a workflow', () => {
     buttonNamed('Create the workflow')?.click()
     await flushPromises()
 
-    const created = send.mock.calls.filter(([path, method]) => path === '/api/projects/3/workflow-columns' && method === 'POST')
+    const created = send.mock.calls.filter(([path, method]) => path === '/api/projects/3/workflow-columns?workflow=1' && method === 'POST')
     expect(created.map(([, , body]) => (body as { label: string }).label)).toEqual(['Spec', 'Plan', 'Build', 'Review', 'Ship'])
     expect((created[0]?.[2] as { preprompt: string }).preprompt).toBe(PROMPT_TEMPLATES.spec)
   })
@@ -162,7 +166,7 @@ describe('the steps', () => {
     await flushPromises()
 
     expect(send).toHaveBeenCalledWith(
-      '/api/projects/3/workflow-columns/1',
+      '/api/projects/3/workflow-columns/1?workflow=1',
       'PUT',
       expect.objectContaining({ label: 'Spec', provider: 'claude', effort: 'max', autoStart: true }),
     )
@@ -186,7 +190,7 @@ describe('the steps', () => {
     ;(document.body.querySelector('button[aria-label="Move the step Spec down"]') as HTMLButtonElement).click()
     await flushPromises()
 
-    expect(send).toHaveBeenCalledWith('/api/projects/3/workflow-columns/order', 'PUT', { keysInOrder: ['build', 'spec'] })
+    expect(send).toHaveBeenCalledWith('/api/projects/3/workflow-columns/order?workflow=1', 'PUT', { keysInOrder: ['build', 'spec'] })
   })
 
   it('cannot move the first step up nor the last one down', async () => {
@@ -208,7 +212,7 @@ describe('the steps', () => {
 
   it('adds a step by name', async () => {
     await open()
-    const field = document.body.querySelector('form input') as HTMLInputElement
+    const field = [...document.body.querySelectorAll('form')].pop()!.querySelector('input') as HTMLInputElement
 
     field.value = 'Triage'
     field.dispatchEvent(new Event('input'))
@@ -217,7 +221,7 @@ describe('the steps', () => {
     await flushPromises()
 
     expect(send).toHaveBeenCalledWith(
-      '/api/projects/3/workflow-columns',
+      '/api/projects/3/workflow-columns?workflow=1',
       'POST',
       expect.objectContaining({ label: 'Triage', provider: 'claude' }),
     )
@@ -237,5 +241,43 @@ describe('the steps', () => {
 
     expect(inBody('[role="dialog"]')?.getAttribute('aria-labelledby')).not.toBeNull()
     expect(inBody('ol')?.getAttribute('aria-label')).toBe('Steps of the workflow of Hopla')
+  })
+})
+
+describe('several workflows', () => {
+  it('lists the workflows and scopes the steps to the selected one', async () => {
+    workflows = [
+      { id: 1, projectId: 3, key: 'default', name: 'Feature', position: 1 },
+      { id: 2, projectId: 3, key: 'hotfix', name: 'Hotfix', position: 2 },
+    ]
+    await open()
+
+    const pills = [...document.body.querySelectorAll('[data-test="workflow-pill"]')]
+    expect(pills.map((pill) => pill.textContent?.trim())).toEqual(['Feature', 'Hotfix'])
+    ;(pills[1] as HTMLElement).click()
+    await flushPromises()
+
+    expect(read).toHaveBeenCalledWith('/api/projects/3/workflow-columns?workflow=2')
+  })
+
+  it('creates a workflow and selects it', async () => {
+    send.mockResolvedValue({ workflow: { id: 2, projectId: 3, key: 'fix', name: 'Fix', position: 2 } })
+    await open()
+
+    const input = inBody('[data-test="workflow-new"]') as HTMLInputElement
+    input.value = 'Fix'
+    input.dispatchEvent(new Event('input'))
+    await flushPromises()
+    ;(inBody('[data-test="workflow-add"]') as HTMLButtonElement).click()
+    await flushPromises()
+
+    expect(send).toHaveBeenCalledWith('/api/projects/3/workflows', 'POST', { name: 'Fix' })
+    expect(read).toHaveBeenCalledWith('/api/projects/3/workflow-columns?workflow=2')
+  })
+
+  it('refuses to delete the last workflow', async () => {
+    await open()
+
+    expect((inBody('[data-test="workflow-delete"]') as HTMLButtonElement).disabled).toBe(true)
   })
 })
