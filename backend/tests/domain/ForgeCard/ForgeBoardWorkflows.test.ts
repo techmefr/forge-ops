@@ -83,7 +83,9 @@ beforeEach(() => {
     stories,
     columns,
     enterStep: async () => null,
-    launchStep: async () => null,
+    launchStep: async () => {
+      throw new Error('unused')
+    },
   })
   api = createForgeBoardApi({
     board,
