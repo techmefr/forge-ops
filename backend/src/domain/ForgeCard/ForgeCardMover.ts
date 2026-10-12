@@ -58,7 +58,7 @@ export function createForgeCardMover({
   }
 
   function stepOf(view: ForgeCardView, stepKey: string): WorkflowColumn {
-    const step = columns.list(view.projectId).find((candidate) => candidate.key === stepKey)
+    const step = columns.list(view.projectId, view.workflowId).find((candidate) => candidate.key === stepKey)
     if (step === undefined) {
       throw new UnknownStepKeyError(stepKey)
     }
@@ -71,7 +71,7 @@ export function createForgeCardMover({
       columnId: step.id,
       phase: phaseOfStep(
         step.key,
-        columns.list(view.projectId).map((candidate) => candidate.key),
+        columns.list(view.projectId, view.workflowId).map((candidate) => candidate.key),
       ),
     }
   }

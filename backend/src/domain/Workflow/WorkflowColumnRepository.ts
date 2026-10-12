@@ -8,24 +8,27 @@ import type {
 } from '../../../../contract/WorkflowColumnContract.js'
 import { DEFAULT_STEP_RETRIES } from '../../../../contract/AutopilotContract.js'
 import { behaviouralKindOf, keyOfLabel, refusalOfDraft } from './WorkflowColumn.js'
+import { createProjectWorkflowRepository } from './ProjectWorkflowRepository.js'
 import {
   WorkflowColumnInUseError,
   WorkflowColumnNotFoundError,
   WorkflowColumnRefusedError,
 } from './WorkflowColumnViolation.js'
+import { WorkflowNotFoundError } from './ProjectWorkflowViolation.js'
 
 export type WorkflowColumnRepository = {
-  list: (projectId: number) => readonly WorkflowColumn[]
+  list: (projectId: number, workflowId?: number) => readonly WorkflowColumn[]
   find: (columnId: number) => WorkflowColumn | null
-  create: (projectId: number, draft: WorkflowColumnDraft) => WorkflowColumn
+  create: (projectId: number, draft: WorkflowColumnDraft, workflowId?: number) => WorkflowColumn
   update: (projectId: number, columnId: number, draft: WorkflowColumnDraft) => WorkflowColumn
   remove: (projectId: number, columnId: number) => void
-  reorder: (projectId: number, keysInOrder: readonly string[]) => readonly WorkflowColumn[]
+  reorder: (projectId: number, keysInOrder: readonly string[], workflowId?: number) => readonly WorkflowColumn[]
 }
 
 type ColumnRow = {
   id: number
   project_id: number
+  workflow_id: number
   key: string
   label: string
   colour: string
@@ -45,6 +48,7 @@ function fromRow(row: ColumnRow): WorkflowColumn {
   return {
     id: row.id,
     projectId: row.project_id,
+    workflowId: row.workflow_id,
     key: row.key,
     label: row.label,
     colour: row.colour,
@@ -62,19 +66,20 @@ function fromRow(row: ColumnRow): WorkflowColumn {
 }
 
 export function createWorkflowColumnRepository(db: Database.Database): WorkflowColumnRepository {
-  const selectOfProject = db.prepare<[number], ColumnRow>(
-    'SELECT * FROM workflow_column WHERE project_id = ? ORDER BY position ASC',
+  const workflows = createProjectWorkflowRepository(db)
+  const selectOfWorkflow = db.prepare<[number], ColumnRow>(
+    'SELECT * FROM workflow_column WHERE workflow_id = ? ORDER BY position ASC',
   )
   const selectById = db.prepare<[number], ColumnRow>('SELECT * FROM workflow_column WHERE id = ?')
   const selectMaxPosition = db.prepare<[number], { max_position: number | null }>(
-    'SELECT MAX(position) AS max_position FROM workflow_column WHERE project_id = ?',
+    'SELECT MAX(position) AS max_position FROM workflow_column WHERE workflow_id = ?',
   )
   const insertColumn = db.prepare<
-    [number, string, string, string, number, string, string, string, string, string, string, number, number, string]
+    [number, number, string, string, string, number, string, string, string, string, string, string, number, number, string]
   >(
     `INSERT INTO workflow_column
-       (project_id, key, label, colour, position, provider, model, effort, agent_name, command, preprompt, auto_start, max_retries, behavioural_kind)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (project_id, workflow_id, key, label, colour, position, provider, model, effort, agent_name, command, preprompt, auto_start, max_retries, behavioural_kind)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
   const updateColumn = db.prepare<[string, string, string, string, string, string, string, string, number, number | null, string, number]>(
     `UPDATE workflow_column
@@ -84,15 +89,27 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
   )
   const deleteColumn = db.prepare<[number]>('DELETE FROM workflow_column WHERE id = ?')
   const shiftPositionsDown = db.prepare<[number, number]>(
-    'UPDATE workflow_column SET position = position - 1 WHERE project_id = ? AND position > ?',
+    'UPDATE workflow_column SET position = position - 1 WHERE workflow_id = ? AND position > ?',
   )
   const updatePosition = db.prepare<[number, number]>('UPDATE workflow_column SET position = ? WHERE id = ?')
   const countStoriesInStep = db.prepare<[number], { total: number }>(
     'SELECT COUNT(*) AS total FROM story WHERE workflow_column_id = ?',
   )
 
-  function list(projectId: number): readonly WorkflowColumn[] {
-    return selectOfProject.all(projectId).map(fromRow)
+  function scopeOf(projectId: number, workflowId: number | undefined): number | null {
+    if (workflowId === undefined || workflowId === 0) {
+      return workflows.list(projectId)[0]?.id ?? null
+    }
+    const workflow = workflows.find(workflowId)
+    if (workflow === null || workflow.projectId !== projectId) {
+      throw new WorkflowNotFoundError(workflowId)
+    }
+    return workflow.id
+  }
+
+  function list(projectId: number, workflowId?: number): readonly WorkflowColumn[] {
+    const scope = scopeOf(projectId, workflowId)
+    return scope === null ? [] : selectOfWorkflow.all(scope).map(fromRow)
   }
 
   function ownedBy(projectId: number, columnId: number): ColumnRow {
@@ -118,13 +135,15 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
       return row === undefined ? null : fromRow(row)
     },
 
-    create: (projectId, draft) => {
-      const existing = list(projectId)
+    create: (projectId, draft, workflowId) => {
+      const scope = workflowId === undefined ? workflows.defaultOf(projectId).id : scopeOf(projectId, workflowId)!
+      const existing = selectOfWorkflow.all(scope).map(fromRow)
       refuseIfInvalid(draft, existing.map((column) => column.label))
       const key = keyOfLabel(draft.label, existing.map((column) => column.key))
-      const nextPosition = (selectMaxPosition.get(projectId)?.max_position ?? 0) + 1
+      const nextPosition = (selectMaxPosition.get(scope)?.max_position ?? 0) + 1
       const { lastInsertRowid } = insertColumn.run(
         projectId,
+        scope,
         key,
         draft.label.trim(),
         draft.colour,
@@ -143,10 +162,11 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
     },
 
     update: (projectId, columnId, draft) => {
-      ownedBy(projectId, columnId)
+      const owned = ownedBy(projectId, columnId)
       refuseIfInvalid(
         draft,
-        list(projectId)
+        selectOfWorkflow
+          .all(owned.workflow_id)
           .filter((column) => column.id !== columnId)
           .map((column) => column.label),
       )
@@ -175,12 +195,12 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
       }
       db.transaction(() => {
         deleteColumn.run(columnId)
-        shiftPositionsDown.run(projectId, existing.position)
+        shiftPositionsDown.run(existing.workflow_id, existing.position)
       })()
     },
 
-    reorder: (projectId, keysInOrder) => {
-      const current = list(projectId)
+    reorder: (projectId, keysInOrder, workflowId) => {
+      const current = list(projectId, workflowId)
       const sameSet =
         keysInOrder.length === current.length &&
         new Set(keysInOrder).size === current.length &&
@@ -196,7 +216,7 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
           updatePosition.run(index + 1, current.find((column) => column.key === key)!.id)
         })
       })()
-      return list(projectId)
+      return list(projectId, workflowId)
     },
   }
 }

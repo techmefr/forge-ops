@@ -82,3 +82,9 @@ export class LaunchNeedsAStepError extends ForgeCardViolationError {
     super(`${reference} is not in a step: move it into one first`, 'LaunchNeedsAStepError')
   }
 }
+
+export class UnknownWorkflowForStoryError extends ForgeCardViolationError {
+  constructor(workflowId: number, reference: string) {
+    super(`The workflow ${workflowId} does not belong to the project of ${reference}`, 'UnknownWorkflowForStoryError')
+  }
+}

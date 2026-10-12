@@ -9,6 +9,7 @@ import {
 } from '../../../../contract/WorkflowColumnContract.js'
 import { mapApiError } from '../Board/ApiErrorMap.js'
 import type { WorkflowColumnRepository } from './WorkflowColumnRepository.js'
+import { WorkflowNotFoundError } from './ProjectWorkflowViolation.js'
 import {
   WorkflowColumnInUseError,
   WorkflowColumnNotFoundError,
@@ -16,6 +17,8 @@ import {
 } from './WorkflowColumnViolation.js'
 
 const identifierSchema = z.coerce.number().int().positive()
+
+const optionalIdentifierSchema = identifierSchema.optional()
 
 export type WorkflowColumnApiInput = {
   columns: WorkflowColumnRepository
@@ -39,7 +42,7 @@ export function createWorkflowColumnApi({
         422,
       )
     }
-    if (error instanceof WorkflowColumnNotFoundError) {
+    if (error instanceof WorkflowColumnNotFoundError || error instanceof WorkflowNotFoundError) {
       return context.json({ error: error.name, message: error.message }, 404)
     }
     if (error instanceof WorkflowColumnInUseError) {
@@ -47,6 +50,14 @@ export function createWorkflowColumnApi({
     }
     return mapApiError(error, context)
   })
+
+  function workflowOf(context: Context): number | undefined | Response {
+    const parsed = optionalIdentifierSchema.safeParse(context.req.query('workflow'))
+    if (!parsed.success) {
+      return context.json({ error: 'InvalidWorkflowIdentifier' }, 422)
+    }
+    return parsed.data
+  }
 
   function guard(context: Context): { projectId: number } | Response {
     const projectId = identifierSchema.safeParse(context.req.param('id'))
@@ -75,8 +86,12 @@ export function createWorkflowColumnApi({
     if (guarded instanceof Response) {
       return guarded
     }
+    const workflowId = workflowOf(context)
+    if (workflowId instanceof Response) {
+      return workflowId
+    }
     const workflow: ProjectWorkflow = {
-      columns: columns.list(guarded.projectId),
+      columns: columns.list(guarded.projectId, workflowId),
       maySettle: mayAdminister(guarded.projectId, context),
       admin: adminOf(guarded.projectId),
     }
@@ -88,11 +103,15 @@ export function createWorkflowColumnApi({
     if (guarded instanceof Response) {
       return guarded
     }
+    const workflowId = workflowOf(context)
+    if (workflowId instanceof Response) {
+      return workflowId
+    }
     const draft = workflowColumnDraftSchema.safeParse(await context.req.json().catch(() => null))
     if (!draft.success) {
       return context.json({ error: 'InvalidWorkflowColumn', issues: draft.error.issues }, 422)
     }
-    return context.json({ column: columns.create(guarded.projectId, draft.data) }, 201)
+    return context.json({ column: columns.create(guarded.projectId, draft.data, workflowId) }, 201)
   })
 
   api.put('/api/projects/:id/workflow-columns/order', async (context) => {
@@ -100,11 +119,15 @@ export function createWorkflowColumnApi({
     if (guarded instanceof Response) {
       return guarded
     }
+    const workflowId = workflowOf(context)
+    if (workflowId instanceof Response) {
+      return workflowId
+    }
     const body = workflowColumnOrderSchema.safeParse(await context.req.json().catch(() => null))
     if (!body.success) {
       return context.json({ error: 'InvalidWorkflowColumnOrder', issues: body.error.issues }, 422)
     }
-    return context.json({ columns: columns.reorder(guarded.projectId, body.data.keysInOrder) })
+    return context.json({ columns: columns.reorder(guarded.projectId, body.data.keysInOrder, workflowId) })
   })
 
   api.put('/api/projects/:id/workflow-columns/:columnId', async (context) => {

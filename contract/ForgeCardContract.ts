@@ -21,6 +21,7 @@ export type ForgeCard = {
 export type ForgeCardDraft = {
   storyIds: readonly number[]
   provider?: ForgeCardProvider
+  workflowId?: number
 }
 
 export const BACKLOG_STEP_KEY = 'backlog'
@@ -47,6 +48,7 @@ export type ForgeCardView = {
   storyReference: string
   title: string
   projectId: number
+  workflowId: number
   subjectId: number
   subjectTitle: string
   stepKey: string

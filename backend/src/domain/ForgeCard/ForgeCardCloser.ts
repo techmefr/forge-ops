@@ -52,7 +52,7 @@ export function createForgeCardCloser({
       if (view.status === 'running') {
         throw new StepBusyError(view.reference)
       }
-      const steps = columns.list(view.projectId)
+      const steps = columns.list(view.projectId, view.workflowId)
       if (steps[steps.length - 1]?.key !== view.stepKey) {
         throw new NotAtLastStepError(view.reference)
       }

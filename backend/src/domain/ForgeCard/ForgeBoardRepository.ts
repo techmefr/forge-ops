@@ -11,6 +11,7 @@ import type { AgentPhase } from '../Agent/AgentSession.js'
 import type { StoryPlacement } from '../Story/StoryRepository.js'
 import type { StoryState } from '../Story/Story.js'
 import type { WorkflowColumnRepository } from '../Workflow/WorkflowColumnRepository.js'
+import { STORY_WORKFLOW_ID_SQL } from '../Workflow/ProjectWorkflowRepository.js'
 import type { ForgeCardRepository } from './ForgeCardRepository.js'
 import { ForgeCardNotFoundError } from './ForgeCardViolation.js'
 import { phaseOfStep, statusOf, type LatestSession } from './ForgeCardStatus.js'
@@ -25,6 +26,7 @@ type CardRow = {
   title: string
   state: StoryState
   workflow_column_id: number | null
+  workflow_id: number | null
   epic_id: number
   epic_title: string
   project_id: number
@@ -59,6 +61,7 @@ const CARD_SELECT = `
          fc.claude_session_id AS claude_session_id,
          story.id AS story_id, story.reference AS story_reference, story.title AS title,
          story.state AS state, story.workflow_column_id AS workflow_column_id,
+         ${STORY_WORKFLOW_ID_SQL} AS workflow_id,
          epic.id AS epic_id, epic.title AS epic_title, epic.project_id AS project_id
     FROM forge_card fc
     JOIN forge_card_story fcs ON fcs.forge_card_id = fc.id
@@ -133,6 +136,7 @@ export function createForgeBoardRepository(
       storyReference: row.story_reference,
       title: row.title,
       projectId: row.project_id,
+      workflowId: row.workflow_id ?? 0,
       subjectId: row.epic_id,
       subjectTitle: row.epic_title,
       stepKey,
@@ -163,8 +167,17 @@ export function createForgeBoardRepository(
     backfillCards,
 
     list: (projectId) => {
-      const steps = columns.list(projectId)
-      return selectOfProject.all(projectId).map((row) => viewOf(row, steps))
+      const cache = new Map<number | null, readonly WorkflowColumn[]>()
+      const stepsOf = (row: CardRow): readonly WorkflowColumn[] => {
+        const known = cache.get(row.workflow_id)
+        if (known !== undefined) {
+          return known
+        }
+        const loaded = row.workflow_id === null ? [] : columns.list(row.project_id, row.workflow_id)
+        cache.set(row.workflow_id, loaded)
+        return loaded
+      }
+      return selectOfProject.all(projectId).map((row) => viewOf(row, stepsOf(row)))
     },
 
     view: (forgeCardId) => {
@@ -172,7 +185,7 @@ export function createForgeBoardRepository(
       if (row === undefined) {
         throw new ForgeCardNotFoundError(forgeCardId)
       }
-      return viewOf(row, columns.list(row.project_id))
+      return viewOf(row, row.workflow_id === null ? [] : columns.list(row.project_id, row.workflow_id))
     },
 
     placementOf: (storyId) => {

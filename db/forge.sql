@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS story (
   merge_conflict INTEGER NOT NULL DEFAULT 0 CHECK (merge_conflict IN (0, 1)),
   escalation_reason TEXT,
   blocked_reason TEXT,
+  workflow_id INTEGER REFERENCES workflow(id),
   workflow_column_id INTEGER REFERENCES workflow_column(id),
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -328,9 +329,21 @@ CREATE TABLE IF NOT EXISTS board_setting (
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS workflow (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL REFERENCES project(id),
+  key TEXT NOT NULL,
+  name TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (project_id, key),
+  UNIQUE (project_id, position)
+);
+
 CREATE TABLE IF NOT EXISTS workflow_column (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   project_id INTEGER NOT NULL REFERENCES project(id),
+  workflow_id INTEGER NOT NULL REFERENCES workflow(id),
   key TEXT NOT NULL,
   label TEXT NOT NULL,
   colour TEXT NOT NULL,
@@ -345,8 +358,8 @@ CREATE TABLE IF NOT EXISTS workflow_column (
   max_retries INTEGER NOT NULL DEFAULT 2,
   behavioural_kind TEXT NOT NULL DEFAULT 'ordinary',
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE (project_id, key),
-  UNIQUE (project_id, position)
+  UNIQUE (workflow_id, key),
+  UNIQUE (workflow_id, position)
 );
 
 CREATE TABLE IF NOT EXISTS scope_reservation (

@@ -58,6 +58,8 @@ const ADDED_COLUMNS: readonly AddedColumn[] = [
   { table: 'workflow_column', column: 'max_retries', declaration: 'INTEGER NOT NULL DEFAULT 2' },
   { table: 'story', column: 'blocked_reason', declaration: 'TEXT' },
   { table: 'story', column: 'workflow_column_id', declaration: 'INTEGER REFERENCES workflow_column(id)' },
+  { table: 'story', column: 'workflow_id', declaration: 'INTEGER REFERENCES workflow(id)' },
+  { table: 'workflow_column', column: 'workflow_id', declaration: 'INTEGER REFERENCES workflow(id)' },
   { table: 'worktree', column: 'forge_card_id', declaration: 'INTEGER' },
   { table: 'forge_card', column: 'provider', declaration: "TEXT NOT NULL DEFAULT 'claude'" },
 ]
@@ -218,7 +220,7 @@ function scopeWorkflowColumnsToProjects(schema: string): (db: Database.Database)
       return
     }
     db.exec('ALTER TABLE workflow_column RENAME TO workflow_column_global')
-    db.exec(statement)
+    db.exec(statement.replace('workflow_id INTEGER NOT NULL', 'workflow_id INTEGER'))
     if (tableExists(db, 'project')) {
       const projects = db.prepare<[], { id: number }>('SELECT id FROM project ORDER BY id').all()
       const steps = db
@@ -275,6 +277,40 @@ function placeStoriesOnTheirStep(db: Database.Database): void {
   )
 }
 
+const DEFAULT_WORKFLOW_KEY = 'default'
+
+const DEFAULT_WORKFLOW_NAME = 'Default'
+
+function groupColumnsIntoWorkflows(schema: string): (db: Database.Database) => void {
+  return (db) => {
+    if (!tableExists(db, 'workflow_column') || !columnExists(db, 'workflow_column', 'workflow_id')) {
+      return
+    }
+    const workflowStatement = createStatementOf(schema, 'workflow')
+    const columnStatement = createStatementOf(schema, 'workflow_column')
+    if (workflowStatement === null || columnStatement === null) {
+      return
+    }
+    db.exec(workflowStatement)
+    const projects = db
+      .prepare<[], { project_id: number }>(
+        'SELECT DISTINCT project_id FROM workflow_column WHERE workflow_id IS NULL ORDER BY project_id',
+      )
+      .all()
+    const insertWorkflow = db.prepare<[number, string, string]>(
+      'INSERT INTO workflow (project_id, key, name, position) VALUES (?, ?, ?, 1)',
+    )
+    const placeColumns = db.prepare<[number, number]>(
+      'UPDATE workflow_column SET workflow_id = ? WHERE project_id = ? AND workflow_id IS NULL',
+    )
+    for (const { project_id: projectId } of projects) {
+      const { lastInsertRowid } = insertWorkflow.run(projectId, DEFAULT_WORKFLOW_KEY, DEFAULT_WORKFLOW_NAME)
+      placeColumns.run(Number(lastInsertRowid), projectId)
+    }
+    rebuildFromSchema(db, 'workflow_column', columnStatement)
+  }
+}
+
 function dropUnconditionalEmailIndex(db: Database.Database): void {
   db.exec('DROP INDEX IF EXISTS idx_board_user_email')
 }
@@ -326,6 +362,7 @@ export function migrationSteps(schema: string): readonly MigrationStep[] {
     { name: 'project/position-by-name', apply: numberProjectsByName },
     { name: 'workflow-column/per-project', apply: scopeWorkflowColumnsToProjects(schema) },
     { name: 'story/workflow-column', apply: placeStoriesOnTheirStep },
+    { name: 'workflow/group-columns', apply: groupColumnsIntoWorkflows(schema) },
     { name: 'board-user/email-unique-when-verified', apply: dropUnconditionalEmailIndex },
     { name: 'workflow-column/starter-auto-start', apply: switchStarterWorkflowsToAutoStart },
     { name: 'workflow-column/verdict-step-prompts', apply: renewLegacyStarterPrompts },
