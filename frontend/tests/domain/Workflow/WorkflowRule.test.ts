@@ -23,6 +23,7 @@ import { BoardRequestError } from '@/technical/Api/BoardClient'
 const COLUMN: WorkflowColumn = {
   id: 4,
   projectId: 1,
+  workflowId: 1,
   key: 'build',
   position: 2,
   behaviouralKind: 'ordinary',

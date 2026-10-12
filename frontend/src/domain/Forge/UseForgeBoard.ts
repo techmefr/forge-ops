@@ -1,7 +1,8 @@
 import { ref, shallowRef, type Ref } from 'vue'
 import type { ForgeCardMoved, ForgeCardView } from '@contract/ForgeCardContract'
 import type { EpicOverview } from '@contract/StoryContract'
-import type { ProjectWorkflow } from '@contract/WorkflowColumnContract'
+import type { ProjectWorkflow, WorkflowColumn } from '@contract/WorkflowColumnContract'
+import type { ProjectWorkflows, Workflow } from '@contract/WorkflowContract'
 import { board } from '@/technical/Api/Board'
 import { BoardRequestError } from '@/technical/Api/BoardClient'
 import { reasonOf } from '@/technical/Api/UseResource'
@@ -18,6 +19,8 @@ export function forgeFailureOf(error: unknown): Phrase {
 export type ForgeBoardState = {
   cards: Ref<readonly ForgeCardView[]>
   workflow: Ref<ProjectWorkflow | null>
+  workflows: Ref<readonly Workflow[]>
+  columnsOf: (workflowId: number) => readonly WorkflowColumn[]
   subjects: Ref<readonly EpicOverview[]>
   failure: Ref<Phrase | null>
   gaps: Ref<readonly Phrase[]>
@@ -29,12 +32,14 @@ export type ForgeBoardState = {
   launch: (card: ForgeCardView) => Promise<ForgeCardMoved | null>
   finish: (card: ForgeCardView) => Promise<boolean>
   stop: (card: ForgeCardView) => Promise<void>
-  addStory: (subjectId: number, title: string) => Promise<boolean>
+  addStory: (subjectId: number, title: string, workflowId?: number) => Promise<boolean>
 }
 
 export function useForgeBoard(projectId: () => number | null): ForgeBoardState {
   const cards = shallowRef<readonly ForgeCardView[]>([])
   const workflow = shallowRef<ProjectWorkflow | null>(null)
+  const workflows = shallowRef<readonly Workflow[]>([])
+  const columnsByWorkflow = shallowRef<ReadonlyMap<number, readonly WorkflowColumn[]>>(new Map())
   const subjects = shallowRef<readonly EpicOverview[]>([])
   const failure = ref<Phrase | null>(null)
   const gaps = shallowRef<readonly Phrase[]>([])
@@ -55,17 +60,26 @@ export function useForgeBoard(projectId: () => number | null): ForgeBoardState {
     if (project === null) {
       cards.value = []
       workflow.value = null
+      workflows.value = []
+      columnsByWorkflow.value = new Map()
       subjects.value = []
       return
     }
     pending.value = true
     failure.value = null
     try {
-      const [loadedWorkflow, loadedSubjects] = await Promise.all([
-        board.read<ProjectWorkflow>(`/api/projects/${project}/workflow-columns`),
+      const [listed, loadedSubjects] = await Promise.all([
+        board.read<ProjectWorkflows>(`/api/projects/${project}/workflows`),
         board.read<readonly EpicOverview[]>(`/api/projects/${project}/epics`),
       ])
-      workflow.value = loadedWorkflow
+      const loaded = await Promise.all(
+        listed.workflows.map((held) =>
+          board.read<ProjectWorkflow>(`/api/projects/${project}/workflow-columns?workflow=${held.id}`),
+        ),
+      )
+      workflow.value = loaded[0] ?? (await board.read<ProjectWorkflow>(`/api/projects/${project}/workflow-columns`))
+      workflows.value = listed.workflows
+      columnsByWorkflow.value = new Map(listed.workflows.map((held, index) => [held.id, loaded[index]?.columns ?? []]))
       subjects.value = loadedSubjects
       await refresh()
     } catch (error) {
@@ -113,6 +127,8 @@ export function useForgeBoard(projectId: () => number | null): ForgeBoardState {
   return {
     cards,
     workflow,
+    workflows,
+    columnsOf: (workflowId) => columnsByWorkflow.value.get(workflowId) ?? [],
     subjects,
     failure,
     gaps,
@@ -141,10 +157,10 @@ export function useForgeBoard(projectId: () => number | null): ForgeBoardState {
       }
       markBusy(card.id, false)
     },
-    addStory: async (subjectId, title) => {
+    addStory: async (subjectId, title, workflowId) => {
       failure.value = null
       try {
-        await board.send('/api/forge-cards/backlog', 'POST', { subjectId, title })
+        await board.send('/api/forge-cards/backlog', 'POST', { subjectId, title, ...(workflowId === undefined ? {} : { workflowId }) })
         await refresh()
         return true
       } catch (error) {

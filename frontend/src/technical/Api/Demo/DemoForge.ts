@@ -60,7 +60,7 @@ function chapterOf(context: DemoContext, card: ForgeCardView): ThreadChapter {
   const opened: ThreadChapter = {
     phase: card.stepKey,
     claudeSessionId: card.claudeSessionId,
-    agentName: columnsOf(context.state, card.projectId).find((column) => column.key === card.stepKey)?.agentName || 'agent',
+    agentName: columnsOf(context.state, card.projectId, card.workflowId).find((column) => column.key === card.stepKey)?.agentName || 'agent',
     openedAt: context.env.now().toISOString(),
     collapsed: false,
     entries: [],
@@ -124,7 +124,7 @@ function startRun(context: DemoContext, card: ForgeCardView): string {
 }
 
 function statusAfterEntering(context: DemoContext, card: ForgeCardView): boolean {
-  const column = columnsOf(context.state, card.projectId).find((held) => held.key === card.stepKey)
+  const column = columnsOf(context.state, card.projectId, card.workflowId).find((held) => held.key === card.stepKey)
   if (card.stepKey === BACKLOG_STEP_KEY || column === undefined) {
     card.status = 'idle'
     return false
@@ -151,7 +151,7 @@ function move(context: DemoContext): DemoReply {
   if (card === undefined || stepKey === null) {
     return refusal(card === undefined ? 404 : 422, 'InvalidMoveOrder', 'This move cannot be made')
   }
-  const columns = columnsOf(context.state, card.projectId)
+  const columns = columnsOf(context.state, card.projectId, card.workflowId)
   if (card.stepKey === DONE_STEP_KEY) {
     return refusal(409, 'DoneIsFinal', 'A delivered card stays delivered')
   }
@@ -178,7 +178,7 @@ function launch(context: DemoContext): DemoReply {
   if (card === undefined) {
     return refusal(404, 'ForgeCardNotFound', 'This card does not exist')
   }
-  const column = columnsOf(context.state, card.projectId).find((held) => held.key === card.stepKey)
+  const column = columnsOf(context.state, card.projectId, card.workflowId).find((held) => held.key === card.stepKey)
   if (column === undefined || column.provider === 'human') {
     return refusal(409, 'LaunchNeedsAStep', 'Put the card in an agent step first')
   }
@@ -187,6 +187,12 @@ function launch(context: DemoContext): DemoReply {
   }
   startRun(context, card)
   return moved(card, true, 201)
+}
+
+function workflowIdFor(context: DemoContext, projectId: number): number {
+  const wanted = bodyNumber(context.body, 'workflowId')
+  const own = context.state.workflows.filter((workflow) => workflow.projectId === projectId)
+  return own.find((workflow) => workflow.id === wanted)?.id ?? own[0]?.id ?? projectId
 }
 
 function addBacklogCard(context: DemoContext): DemoReply {
@@ -205,6 +211,7 @@ function addBacklogCard(context: DemoContext): DemoReply {
     storyReference: `FORGE-${number + 100}`,
     title,
     projectId: subject.projectId,
+    workflowId: workflowIdFor(context, subject.projectId),
     subjectId: subject.id,
     subjectTitle: subject.title,
     stepKey: BACKLOG_STEP_KEY,

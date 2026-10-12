@@ -7,6 +7,7 @@ import WorkflowStepCard from '@/domain/Workflow/WorkflowStepCard.vue'
 const COLUMN: WorkflowColumn = {
   id: 1,
   projectId: 3,
+  workflowId: 1,
   key: 'spec',
   label: 'Spec',
   colour: '#7C3AED',

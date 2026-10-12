@@ -5,12 +5,22 @@ import { useRouter } from 'vue-router'
 import { DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
 import type { ForgeCardView } from '@contract/ForgeCardContract'
 import { usePhrase } from '@/technical/Language/UsePhrase'
-import { groupThread, replyRouteOf, submitsOn } from './ConversationRule'
-import { adjacentStep, minutesOf, primaryActionOf, referenceLabel, secondaryActionOf, type BoardStep, type CardAction } from './ForgeRule'
+import { groupThread, itemsOfPhase, replyRouteOf, submitsOn } from './ConversationRule'
+import {
+  adjacentStep,
+  minutesOf,
+  phaseOfStep,
+  primaryActionOf,
+  referenceLabel,
+  secondaryActionOf,
+  type BoardStep,
+  type CardAction,
+} from './ForgeRule'
 import { useCardConversation } from './UseCardConversation'
 
 const props = defineProps<{
   card: ForgeCardView
+  stepKey: string
   steps: readonly BoardStep[]
   projectName: string
   busy: boolean
@@ -40,7 +50,14 @@ const draft = ref('')
 const thread = ref<HTMLElement | null>(null)
 const field = ref<HTMLTextAreaElement | null>(null)
 
-const step = computed(() => props.steps.find((candidate) => candidate.key === props.card.stepKey) ?? null)
+const step = computed(() => props.steps.find((candidate) => candidate.key === props.stepKey) ?? null)
+const looking = computed(() => props.stepKey !== props.card.stepKey)
+const phase = computed(() =>
+  phaseOfStep(
+    props.stepKey,
+    props.steps.filter((candidate) => candidate.kind === 'step').map((candidate) => candidate.key),
+  ),
+)
 const route = computed(() => replyRouteOf(step.value?.kind ?? 'backlog', step.value?.human ?? false))
 const action = computed(() => primaryActionOf(props.card, props.steps))
 const secondaryAction = computed(() => secondaryActionOf(props.card))
@@ -53,7 +70,9 @@ const autoNote = computed(() => {
   }
   return t(auto.state === 'red' ? 'autopilot.red' : 'autopilot.paused', { reason: auto.reason ?? '' })
 })
-const grouped = computed(() => groupThread(conversation.items.value))
+const grouped = computed(() =>
+  groupThread(looking.value ? itemsOfPhase(conversation.items.value, phase.value) : conversation.items.value),
+)
 const working = computed(() => props.card.status === 'running')
 
 const agentLine = computed(() => {
@@ -74,6 +93,9 @@ const agentLine = computed(() => {
 })
 
 const sessionLine = computed(() => {
+  if (looking.value) {
+    return ''
+  }
   if (props.card.claudeSessionId === null && props.card.durationSeconds === 0) {
     return t('forge.drawer.noSession')
   }
@@ -186,7 +208,11 @@ onMounted(() => void conversation.load())
           {{ autoNote }}
         </p>
 
-        <div class="flex flex-none flex-wrap items-center gap-2 border-b border-hair px-5 py-2">
+        <p v-if="looking" class="m-0 flex-none border-b border-hair px-5 py-2 text-xs text-txt-mid" data-test="forge-drawer-history">
+          {{ t('forge.flow.history', { step: step?.label ?? stepKey }) }}
+        </p>
+
+        <div v-if="!looking" class="flex flex-none flex-wrap items-center gap-2 border-b border-hair px-5 py-2">
           <button
             v-if="action !== null"
             type="button"
@@ -311,7 +337,7 @@ onMounted(() => void conversation.load())
           {{ conversation.announcement.value === '' ? '' : t('forge.drawer.announceAgent', { text: conversation.announcement.value }) }}
         </p>
 
-        <form class="flex flex-none flex-col gap-1.5 border-t border-hair px-5 py-3" @submit.prevent="submit">
+        <form v-if="!looking" class="flex flex-none flex-col gap-1.5 border-t border-hair px-5 py-3" @submit.prevent="submit">
           <p v-if="conversation.failure.value !== null" class="m-0 text-xs text-red" role="alert">
             {{ say(conversation.failure.value) }}
           </p>

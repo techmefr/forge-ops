@@ -9,6 +9,7 @@ import {
   submitsOn,
   withoutPersisted,
   type ThreadItem,
+  itemsOfPhase,
 } from '@/domain/Forge/ConversationRule'
 
 const THREAD: StoryThread = {
@@ -171,5 +172,23 @@ describe('groupThread', () => {
       said('b', 'agent', 'two'),
     ])
     expect(blocks.map((block) => block.kind)).toEqual(['group', 'tool', 'group'])
+  })
+})
+
+describe('the items of one phase', () => {
+  const items: readonly ThreadItem[] = [
+    { kind: 'marker', id: 'm0', phase: 'spec', agent: null },
+    { kind: 'message', id: 'a', voice: 'agent', author: 'agent', body: 'spec talk', at: null, proof: false, evidencePath: null },
+    { kind: 'marker', id: 'm1', phase: 'code', agent: null },
+    { kind: 'message', id: 'b', voice: 'agent', author: 'agent', body: 'code talk', at: null, proof: false, evidencePath: null },
+  ]
+
+  it('keeps the marker of the phase and what follows it, up to the next marker', () => {
+    expect(itemsOfPhase(items, 'spec').map((item) => item.id)).toEqual(['m0', 'a'])
+    expect(itemsOfPhase(items, 'code').map((item) => item.id)).toEqual(['m1', 'b'])
+  })
+
+  it('keeps nothing for a phase that never ran', () => {
+    expect(itemsOfPhase(items, 'ship')).toEqual([])
   })
 })

@@ -21,6 +21,7 @@ function column(id: number, key: string, label: string, overrides: Partial<Workf
   return {
     id,
     projectId: 3,
+    workflowId: 1,
     key,
     label,
     colour: '#7C3AED',
