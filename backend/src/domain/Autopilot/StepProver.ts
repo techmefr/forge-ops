@@ -9,6 +9,7 @@ import {
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
 import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
 import { checkedProofPathOf, criterionProofPathOf, proofDocument, quoted } from './ProofDocument.js'
+import { EVIDENCE_SHAPE } from '../Evidence/EvidenceShape.js'
 import { AGENT_PROVEN_CHECKPOINTS, proofPathOf } from './StepBrief.js'
 import { isProductionCode, isTestPath, type ChangedFile, type StoryInspection } from './StoryInspection.js'
 
@@ -20,6 +21,7 @@ export type ProofOrder = {
   stepKey: string
   proves: CheckpointName | null
   verdict: StepVerdict
+  workflowPhases?: readonly string[]
 }
 
 export type ProofOutcome = { kind: 'ok'; proven: readonly Checkpoint[] } | { kind: 'fail'; reason: string }
@@ -44,6 +46,20 @@ export type StepProverInput = {
 }
 
 const SHORT_SHA = 7
+
+const PHASES_COVERING: Readonly<Record<CheckpointName, readonly string[]>> = {
+  spec_done: ['spec', 'architecture'],
+  arch_done: ['architecture'],
+  tests_written: ['code'],
+  build_done: ['code'],
+  verified: ['gate', 'review'],
+  reviewed: ['review'],
+}
+
+function isWaived(order: ProofOrder, name: CheckpointName): boolean {
+  const phases = order.workflowPhases
+  return phases !== undefined && !PHASES_COVERING[name].some((phase) => phases.includes(phase))
+}
 
 type Facts = {
   changed: readonly ChangedFile[]
@@ -278,7 +294,24 @@ export function createStepProver({
     return checkpoints.proveCheckpoint({ storyId: order.storyId, name: 'reviewed', evidencePath: path })
   }
 
+  function proveWaiver(order: ProofOrder, name: CheckpointName): Checkpoint {
+    const sections = Object.fromEntries(
+      EVIDENCE_SHAPE[name].map((section) => [
+        section,
+        [
+          `Waived: the workflow of this card has no step that produces the ${name} checkpoint, so there is nothing to prove for ${section}.`,
+          'The owner of the workflow chose to run it without that step, and the orchestrator records the waiver instead of asking for a file nobody was meant to write.',
+        ],
+      ]),
+    )
+    const path = record(order, name, `Waiver of ${name} for ${order.storyReference}`, sections)
+    return checkpoints.proveCheckpoint({ storyId: order.storyId, name, evidencePath: path }, { waived: true })
+  }
+
   function proveOne(order: ProofOrder, name: CheckpointName): Checkpoint | string {
+    if (isWaived(order, name)) {
+      return proveWaiver(order, name)
+    }
     if (AGENT_PROVEN_CHECKPOINTS.includes(name)) {
       return proveAgentProof(order, name)
     }

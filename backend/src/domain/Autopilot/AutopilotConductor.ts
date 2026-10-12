@@ -221,6 +221,7 @@ export function createAutopilotConductor({
       stepKey: step.key,
       proves: contractOfPhase(phaseOfStep(step.key, keys)).proves,
       verdict,
+      workflowPhases: keys.map((key) => phaseOfStep(key, keys)),
     })
     if (outcome.kind === 'fail') {
       return outcome

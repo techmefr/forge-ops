@@ -74,6 +74,7 @@ type ProofRow = {
 export type ProofOptions = {
   redObservedByOrchestrator?: boolean
   touchedPaths?: readonly string[]
+  waived?: boolean
 }
 
 export type CheckpointRepository = {
@@ -246,7 +247,7 @@ export function createCheckpointRepository(
         throw new CheckpointOutOfOrderError(draft.name, missing)
       }
 
-      if (draft.name === 'spec_done' && story.kind === 'functional') {
+      if (draft.name === 'spec_done' && story.kind === 'functional' && options.waived !== true) {
         if (selectTwin.get(story.id) === undefined) {
           throw new TwinRequiredError(story.reference)
         }
