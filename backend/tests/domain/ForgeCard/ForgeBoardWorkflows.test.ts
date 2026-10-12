@@ -149,6 +149,9 @@ describe('cards in several workflows of one project', () => {
     }).id
     const foreign = workflows.defaultOf(other).id
 
+    const countStories = (): number => (db.prepare('SELECT COUNT(*) AS total FROM story').get() as { total: number }).total
+    const before = countStories()
+
     const response = (await api.request('/api/forge-cards/backlog', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -156,5 +159,6 @@ describe('cards in several workflows of one project', () => {
     })) as Response
 
     expect(response.status).toBe(409)
+    expect(countStories()).toBe(before)
   })
 })
