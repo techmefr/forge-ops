@@ -5,6 +5,9 @@ import {
   foldEvent,
   groupThread,
   itemsOfThread,
+  logLinesOf,
+  quoteOf,
+  withQuote,
   replyRouteOf,
   submitsOn,
   withoutPersisted,
@@ -233,5 +236,29 @@ describe('itemsOfPhase on one session that ran every step', () => {
 
   it('keeps nothing for a step the session never reached', () => {
     expect(itemsOfPhase(items.slice(0, 3), 'code')).toEqual([])
+  })
+})
+
+describe('the logs and the quote', () => {
+  it('turns every kind of item into one log line', () => {
+    const items: ThreadItem[] = [
+      { kind: 'marker', id: 'm', phase: 'dev', agent: 'neo' },
+      { kind: 'message', id: 'a', voice: 'agent', author: 'neo', body: 'Done', at: '10:00', proof: false, evidencePath: null },
+      { kind: 'tool', id: 't', name: 'Read', outcome: 'failed' },
+      { kind: 'notice', id: 'n', text: 'Stopped' },
+    ]
+    const lines = logLinesOf(items, (phase) => phase.toUpperCase())
+    expect(lines.map((line) => line.text)).toEqual(['DEV · neo', '10:00 neo: Done', '✗ Read', 'Stopped'])
+    expect(lines.map((line) => line.tone)).toEqual(['phase', 'agent', 'failed', 'notice'])
+  })
+
+  it('quotes a selection line by line', () => {
+    expect(quoteOf('one\n\ntwo')).toBe('> one\n>\n> two')
+  })
+
+  it('appends the quote to the draft and ignores an empty selection', () => {
+    expect(withQuote('', 'log line')).toBe('> log line\n\n')
+    expect(withQuote('Why?', 'log line')).toBe('Why?\n\n> log line\n\n')
+    expect(withQuote('Why?', '  ')).toBe('Why?')
   })
 })

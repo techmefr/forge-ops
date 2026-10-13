@@ -231,3 +231,43 @@ export function groupThread(items: readonly ThreadItem[]): GroupedThread {
   }
   return { blocks, proofs }
 }
+
+export type LogTone = 'phase' | 'agent' | 'human' | 'tool' | 'failed' | 'notice'
+
+export type LogLine = { id: string; tone: LogTone; text: string }
+
+const TOOL_GLYPH: Readonly<Record<ToolOutcome, string>> = { started: '…', ok: '✓', failed: '✗' }
+
+export function logLinesOf(items: readonly ThreadItem[], phaseLabel: (phase: string) => string): readonly LogLine[] {
+  return items.map((item): LogLine => {
+    if (item.kind === 'marker') {
+      const parts = [phaseLabel(item.phase), item.agent].filter((part) => part !== null && part !== '')
+      return { id: item.id, tone: 'phase', text: parts.join(' · ') }
+    }
+    if (item.kind === 'message') {
+      const stamp = item.at === null ? '' : `${item.at} `
+      return { id: item.id, tone: item.voice === 'human' ? 'human' : 'agent', text: `${stamp}${item.author}: ${item.body}` }
+    }
+    if (item.kind === 'tool') {
+      const name = item.name === '' ? '·' : item.name
+      return { id: item.id, tone: item.outcome === 'failed' ? 'failed' : 'tool', text: `${TOOL_GLYPH[item.outcome]} ${name}` }
+    }
+    return { id: item.id, tone: 'notice', text: item.text }
+  })
+}
+
+export function quoteOf(selected: string): string {
+  return selected
+    .trim()
+    .split(/\r?\n/)
+    .map((line) => `> ${line.trimEnd()}`.trimEnd())
+    .join('\n')
+}
+
+export function withQuote(draft: string, selected: string): string {
+  const quote = quoteOf(selected)
+  if (selected.trim() === '') {
+    return draft
+  }
+  return draft.trim() === '' ? `${quote}\n\n` : `${draft.trimEnd()}\n\n${quote}\n\n`
+}
