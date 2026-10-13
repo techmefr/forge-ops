@@ -93,7 +93,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: 'rules',
     path: '/settings',
-    anchor: 'setting-organisation',
+    anchor: 'setting-tabs',
     gesture: 'open',
     titleKey: 'tour.rules.title',
     sayKey: 'tour.rules.say',

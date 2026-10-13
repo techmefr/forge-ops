@@ -878,6 +878,7 @@ export const ENGLISH = {
     restart: 'Needs a restart',
   },
   settingHalf: {
+    aria: 'Settings sections',
     mine: 'Mine',
     mineSub: 'How this board looks and who you are on it. Yours alone.',
     team: 'Team',

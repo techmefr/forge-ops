@@ -880,6 +880,7 @@ export const CHINESE: Message = {
     restart: '需要重启',
   },
   settingHalf: {
+    aria: '设置分区',
     mine: '我的',
     mineSub: '这个看板的外观，以及你在其中的身份。仅你自己可见。',
     team: '团队',
