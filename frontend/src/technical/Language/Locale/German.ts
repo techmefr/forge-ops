@@ -1096,7 +1096,7 @@ export const GERMAN: Message = {
     retriesHint: 'Der Schritt läuft mit dem Fehlergrund erneut, danach stoppt die Karte rot.',
   },
   workflowSettings: {
-    openWithCount: 'Workflow-Einstellungen · {count} Schritt | Workflow-Einstellungen · {count} Schritte',
+    openWithCount: 'Workflow-Einstellungen · {count} Workflow | Workflow-Einstellungen · {count} Workflows',
     setBy: 'Workflow festgelegt von {name}',
     noAdmin: 'Für dieses Projekt ist kein Admin gesetzt: Niemand kann seinen Workflow bisher festlegen.',
     title: 'Workflow {name}',

@@ -1095,7 +1095,7 @@ export const ITALIAN: Message = {
     retriesHint: 'Il passo riparte con il motivo dell’errore, poi la card si ferma in rosso.',
   },
   workflowSettings: {
-    openWithCount: 'Impostazioni del workflow · {count} fase | Impostazioni del workflow · {count} fasi',
+    openWithCount: 'Impostazioni dei workflow · {count} workflow | Impostazioni dei workflow · {count} workflow',
     setBy: 'Workflow definito da {name}',
     noAdmin: 'Questo progetto non ha un admin: nessuno può ancora definirne il workflow.',
     title: 'Workflow {name}',

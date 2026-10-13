@@ -1095,7 +1095,7 @@ export const SPANISH: Message = {
     retriesHint: 'El paso se ejecuta de nuevo con el motivo del fallo, y luego la tarjeta se detiene en rojo.',
   },
   workflowSettings: {
-    openWithCount: 'Ajustes del workflow · {count} paso | Ajustes del workflow · {count} pasos',
+    openWithCount: 'Ajustes de workflows · {count} workflow | Ajustes de workflows · {count} workflows',
     setBy: 'Workflow fijado por {name}',
     noAdmin: 'Este proyecto no tiene admin: nadie puede todavía definir su workflow.',
     title: 'Workflow {name}',

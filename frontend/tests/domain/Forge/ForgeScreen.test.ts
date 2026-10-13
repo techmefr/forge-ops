@@ -459,7 +459,7 @@ describe('the project pills and the filters', () => {
       .find((button) => button.text() === 'Skera')
       ?.trigger('click')
     await flushPromises()
-    expect(screen.text()).toContain('0 steps')
+    expect(screen.text()).toContain('0 workflows')
 
     await screen
       .findAll('button')
@@ -467,7 +467,7 @@ describe('the project pills and the filters', () => {
       ?.trigger('click')
     await flushPromises()
 
-    expect(screen.text()).toContain('3 steps')
+    expect(screen.text()).toContain('1 workflow')
   })
 
   it('adds a story to the backlog from the board', async () => {
