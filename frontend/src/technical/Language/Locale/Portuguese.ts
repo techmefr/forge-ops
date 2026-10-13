@@ -111,6 +111,7 @@ export const PORTUGUESE: Message = {
     row: {
       open: 'Abrir {title}',
       blockedFor: 'Bloqueado há {days} d',
+      waitingOn: 'A aguardar: {titles}',
       nobody: 'Ninguém',
       stories: '{delivered}/{total} histórias',
       deletedOn: 'Eliminado em {date}',

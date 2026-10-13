@@ -109,6 +109,7 @@ export const ENGLISH = {
     row: {
       open: 'Open {title}',
       blockedFor: 'Blocked for {days} d',
+      waitingOn: 'Waiting on: {titles}',
       nobody: 'Nobody',
       stories: '{delivered}/{total} stories',
       deletedOn: 'Deleted on {date}',
