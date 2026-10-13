@@ -79,19 +79,20 @@ followUps.reload()
           class="card card-hover flex h-full w-full flex-col gap-3 p-4 text-left"
           @click="openFollowUp(entry)"
         >
-          <span class="flex items-center gap-2">
+          <span class="flex items-start gap-2">
             <span
-              class="size-3 flex-none rounded-full"
+              class="mt-1.5 size-3 flex-none rounded-full"
               :style="{ background: tintOf(entry.project.colour) }"
               aria-hidden="true"
             />
-            <strong class="title-face min-w-0 flex-1 truncate text-base text-txt-hi">{{ entry.project.name }}</strong>
+            <strong class="title-face min-w-0 flex-1 break-words text-base text-txt-hi">{{ entry.project.name }}</strong>
             <span
-              class="flex flex-none items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+              class="flex w-24 flex-none flex-col items-center gap-1 rounded-xl px-2 py-2"
               :class="WEATHER_TONES[entry.followUp.weather].chip"
+              data-test-id="weather-badge"
             >
-              <Glyph :name="WEATHER_TONES[entry.followUp.weather].icon" :size="14" />
-              <span data-test-id="weather-word">{{ weatherWord(entry) }}</span>
+              <Glyph :name="WEATHER_TONES[entry.followUp.weather].icon" :size="36" />
+              <span class="whitespace-nowrap text-xs font-semibold leading-tight" data-test-id="weather-word">{{ weatherWord(entry) }}</span>
             </span>
           </span>
           <span v-if="entry.followUp.statusSentence !== null" class="text-sm text-txt-mid">
