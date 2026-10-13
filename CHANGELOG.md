@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- Several workflows per project (`GET`/`POST /api/projects/:id/workflows`, rename, duplicate, delete) instead of one list of columns. Each card shows a compact stepper of its workflow, a passed step is read-only history, and the current step is the conversation with the agent. A reply to a closed session resumes it, and a launch accepts a `feedback`.
+- A workflow without a Spec or Plan step no longer blocks on the checkpoints of the missing phases: the board writes a waiver proof for them.
+- A card of a workflow with only Human steps can be closed from its last step, without proofs or publication.
+- The demonstration board has a second workflow (Hotfix) on the Forge project.
+
 - Autopilot: cards advance like a CI pipeline. The board reads a per-step verdict file and proves the checkpoint itself, retries a failed step (default 2, 0 to 5 per step), starts backlog stories when there is room, and pauses at a Human step, on a blocked agent, on budget exhaustion or on a stop. A card that cannot continue stops red with its reason.
 - Automatic Done: when the last step passes, the card closes, the branch is pushed and a pull request or merge request is opened. Auto-merge is a separate switch, off by default. Settings are per project (`GET`/`PUT /api/projects/:id/autopilot`, project admin) and the Forge screen has an `auto` badge, with `Paused` and `Red` reasons on the card.
 - Guardrail registration on an external project checkout: `npm run guardrails:install -- <checkout>` and `POST /api/projects/:id/guardrails`. The step prompts carry the doctrine from the project, else from the forge-ops install.
@@ -25,6 +30,9 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- Worktrees are created at an absolute path, so launching a card no longer fails with a missing working directory.
+- Adding a backlog story to a workflow that belongs to another project is refused.
+- The Claude Agent SDK is bumped to 0.3.296: the previous pin refused the models of the starter workflow.
 - A card reaches Done on the default template without a click: the autopilot proves `tests_written`, `build_done`, `verified`, the review cascade, the criteria and `reviewed` from its own checks (commits, the project test command, red then green on a scratch copy without the production code, the reviewer lens verdict) instead of stopping red on `DoneNotEarned`. The Done gate itself is unchanged.
 - Publication: a missing or signed-out `gh`/`glab` pushes the branch and asks for a manual request instead of failing, and closing a story removes its worktree even though `.claude` is untracked.
 - Resuming a card session no longer fails with a unique session id error.

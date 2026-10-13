@@ -75,6 +75,13 @@ for (const identifier of identifiers) {
   }
 }
 
+for (const identifier of identifiers) {
+  const listed = snapshot[`/api/projects/${identifier}/workflows`] as { workflows?: { id: number }[] } | undefined
+  for (const workflow of listed?.workflows ?? []) {
+    await capture(`/api/projects/${identifier}/workflow-columns?workflow=${workflow.id}`)
+  }
+}
+
 for (const identifier of identifiersIn(found)) {
   for (const template of STORY_PATHS) {
     await capture(template.replace(':id', String(identifier)))

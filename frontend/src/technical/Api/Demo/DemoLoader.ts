@@ -51,7 +51,12 @@ export function createDemoState(source: Record<string, unknown>): DemoState {
     const own: Workflow =
       listed[0] ?? { id: project.id, projectId: project.id, key: 'default', name: 'Default', position: 1 }
     workflows.push(...(listed.length > 0 ? listed : [own]))
-    columns.push(...projectColumns.map((column) => ({ ...column, workflowId: column.workflowId ?? own.id })))
+    for (const workflow of listed.length > 0 ? listed : [own]) {
+      const ofWorkflow =
+        held<ProjectWorkflow | null>(snapshot, `/api/projects/${project.id}/workflow-columns?workflow=${workflow.id}`, null)?.columns ??
+        (workflow.id === own.id ? projectColumns : [])
+      columns.push(...ofWorkflow.map((column) => ({ ...column, workflowId: workflow.id })))
+    }
     cards.push(
       ...held<ForgeCardView[]>(snapshot, `/api/forge-cards?project=${project.id}`, []).map((card) => ({
         ...card,
