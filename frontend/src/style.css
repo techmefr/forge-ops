@@ -155,9 +155,11 @@
 @layer components {
   .card {
     background: var(--forge-card);
-    border: 1px solid var(--forge-line);
+    border: 1px solid color-mix(in srgb, var(--forge-line) 55%, var(--forge-edge));
     border-radius: 1rem;
-    box-shadow: var(--shadow-sm);
+    box-shadow:
+      0 1px 2px var(--forge-shadow-sm),
+      0 6px 16px -6px var(--forge-shadow-sm);
     color: var(--forge-txthi);
   }
 
