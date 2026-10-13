@@ -131,7 +131,7 @@ watch(
       <nav
         ref="strip"
         data-tour="shell-pipeline"
-        class="scrollbar-none order-last -mx-4 flex basis-full gap-0.5 overflow-x-auto px-4 sm:mx-0 sm:px-0 lg:order-none lg:min-w-0 lg:basis-auto lg:items-stretch"
+        class="order-last -mx-4 flex basis-full flex-wrap gap-0.5 px-4 sm:mx-0 sm:px-0 lg:order-none lg:min-w-0 lg:basis-auto lg:items-stretch"
         :aria-label="t('shell.pipeline')"
         @keydown="ride"
       >

@@ -460,7 +460,7 @@ onMounted(() => {
           <p v-if="visible.length === 0" class="px-4 py-8 text-center text-sm text-txt-mid" data-test-id="list-empty">
             {{ t('subjects.emptyList') }}
           </p>
-          <ul v-else data-test-id="subjects-list">
+          <ul v-else class="grid grid-cols-1 gap-4 p-4 min-[900px]:grid-cols-2 min-[1400px]:grid-cols-3" data-test-id="subjects-list">
             <SubjectRow
               v-for="subject in visible"
               :key="subject.id"

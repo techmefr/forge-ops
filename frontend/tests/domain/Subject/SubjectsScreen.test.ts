@@ -253,6 +253,23 @@ describe('SubjectsScreen counts and lists', () => {
     expect(send).toHaveBeenCalledWith('/api/epics/6/restore', 'POST')
   })
 
+  it('shows the description and the reason of a blocked subject on its card', async () => {
+    serve({
+      live: [
+        epic({
+          assignee: 'anna',
+          state: 'blocked',
+          businessIntent: 'Let a client pay by card',
+          statusNote: 'The bank sandbox is down',
+          blockedSince: '2026-09-25T08:00:00.000Z',
+        }),
+      ],
+    })
+    const screen = await mounted()
+    expect(screen.find('[data-test-id="subject-description"]').text()).toBe('Let a client pay by card')
+    expect(screen.find('[data-test-id="subject-blocked-reason"]').text()).toBe('The bank sandbox is down')
+  })
+
   it('says how long a subject has been blocked', async () => {
     serve({
       live: [
@@ -265,7 +282,8 @@ describe('SubjectsScreen counts and lists', () => {
       ],
     })
     const screen = await mounted()
-    expect(screen.find('[data-test-id="subject-blocked"]').text()).toBe('Blocked for 4 d')
+    expect(screen.find('[data-test-id="subject-blocked"]').text()).toContain('Blocked for 4 d')
+    expect(screen.find('[data-test-id="subject-waiting-on"]').text()).toBe('Waiting on: Billing')
     expect(screen.find('[data-test-id="subject-waiting"]').exists()).toBe(false)
   })
 
