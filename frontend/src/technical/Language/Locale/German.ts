@@ -111,6 +111,7 @@ export const GERMAN: Message = {
     row: {
       open: '{title} öffnen',
       blockedFor: 'Seit {days} T blockiert',
+      waitingOn: 'Wartet auf: {titles}',
       nobody: 'Niemand',
       stories: '{delivered}/{total} Stories',
       deletedOn: 'Gelöscht am {date}',

@@ -111,6 +111,7 @@ export const CHINESE: Message = {
     row: {
       open: '打开 {title}',
       blockedFor: '已阻塞 {days} 天',
+      waitingOn: '等待:{titles}',
       nobody: '无人',
       stories: '{delivered}/{total} 个用户故事',
       deletedOn: '删除于 {date}',
