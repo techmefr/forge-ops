@@ -250,7 +250,7 @@ onMounted(() => {
         data-test-id="roadmap-upcoming"
       >
         <div class="flex items-center gap-3">
-          <h3 class="text-xs text-txt-low">
+          <h3 class="section-title">
             {{ t('roadmap.upcoming') }}
           </h3>
           <button
@@ -480,7 +480,7 @@ onMounted(() => {
         class="flex-none card p-4"
         :data-test-id="`roadmap-undated-${block.entry.project.id}`"
       >
-        <h3 class="text-sm font-bold text-txt-hi">
+        <h3 class="title-face m-0 text-base font-bold text-txt-hi">
           {{ block.entry.project.name }} · {{ t('roadmap.undated') }}
         </h3>
         <ul class="mt-2 flex flex-wrap gap-2">

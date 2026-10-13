@@ -57,29 +57,29 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
 <template>
   <div class="flex h-full min-h-0 flex-col p-8">
     <div class="grid flex-none gap-x-8 gap-y-4 [grid-template-columns:repeat(auto-fit,minmax(160px,1fr))]">
-      <article class="card p-4">
-        <p class="text-xs text-txt-low">
+      <article class="card p-5">
+        <p class="m-0 text-xs font-semibold text-txt-mid">
           {{ t('resource.liveSessions') }}
         </p>
-        <p class="title-face mt-1 text-xl">{{ alive.length }}</p>
+        <p class="title-face mt-1 text-3xl font-bold">{{ alive.length }}</p>
       </article>
-      <article class="card p-4">
-        <p class="text-xs text-txt-low">
+      <article class="card p-5">
+        <p class="m-0 text-xs font-semibold text-txt-mid">
           {{ t('resource.supervisors') }}
         </p>
-        <p class="title-face mt-1 text-xl">{{ fleet.data.value?.roster?.workerCount ?? 0 }}</p>
+        <p class="title-face mt-1 text-3xl font-bold">{{ fleet.data.value?.roster?.workerCount ?? 0 }}</p>
       </article>
-      <article class="card p-4">
-        <p class="text-xs text-txt-low">
+      <article class="card p-5">
+        <p class="m-0 text-xs font-semibold text-txt-mid">
           {{ t('resource.tokensInFlight') }}
         </p>
-        <p class="title-face mt-1 text-xl">{{ tokens }}</p>
+        <p class="title-face mt-1 text-3xl font-bold">{{ tokens }}</p>
       </article>
-      <article class="card p-4">
-        <p class="text-xs text-txt-low">
+      <article class="card p-5">
+        <p class="m-0 text-xs font-semibold text-txt-mid">
           {{ t('resource.spentToday') }}
         </p>
-        <p class="title-face mt-1 text-xl">
+        <p class="title-face mt-1 text-3xl font-bold">
           {{ t('common.money', { amount: (budget.data.value?.spentUsd ?? 0).toFixed(2) }) }}
         </p>
         <p class="mt-1 tabular-nums text-xs text-txt-low">
@@ -90,7 +90,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
 
     <div class="mt-2 min-h-0 flex-1 overflow-auto pr-1">
     <section class="card mt-6 p-6">
-      <p class="text-xs text-txt-low">
+      <p class="m-0 text-xs font-semibold text-txt-mid">
         {{ t('resource.machineReading') }}
       </p>
       <p
@@ -104,31 +104,31 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
         class="mt-3 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(160px,1fr))]"
       >
         <div>
-          <p class="text-xs text-txt-low">{{ t('resource.processor') }}</p>
+          <p class="m-0 text-xs font-semibold text-txt-mid">{{ t('resource.processor') }}</p>
           <p class="title-face text-xl">
             {{ t('common.percent', { value: machine.data.value.snapshot.cpuPercent ?? '--' }) }}
           </p>
         </div>
         <div>
-          <p class="text-xs text-txt-low">{{ t('resource.memoryUsed') }}</p>
+          <p class="m-0 text-xs font-semibold text-txt-mid">{{ t('resource.memoryUsed') }}</p>
           <p class="title-face text-xl">
             {{ t('resource.megabytes', { value: machine.data.value.snapshot.memoryUsedMb ?? '--' }) }}
           </p>
         </div>
         <div>
-          <p class="text-xs text-txt-low">{{ t('resource.memoryFree') }}</p>
+          <p class="m-0 text-xs font-semibold text-txt-mid">{{ t('resource.memoryFree') }}</p>
           <p class="title-face text-xl">
             {{ t('resource.megabytes', { value: machine.data.value.snapshot.memoryFreeMb ?? '--' }) }}
           </p>
         </div>
         <div>
-          <p class="text-xs text-txt-low">{{ t('resource.disk') }}</p>
+          <p class="m-0 text-xs font-semibold text-txt-mid">{{ t('resource.disk') }}</p>
           <p class="title-face text-xl">
             {{ t('common.percent', { value: machine.data.value.snapshot.diskPercent ?? '--' }) }}
           </p>
         </div>
         <div>
-          <p class="text-xs text-txt-low">{{ t('resource.load1') }}</p>
+          <p class="m-0 text-xs font-semibold text-txt-mid">{{ t('resource.load1') }}</p>
           <p class="title-face text-xl">
             {{ machine.data.value.snapshot.loadAverage ?? '--' }}
           </p>
@@ -140,7 +140,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
       class="card mt-6 p-6"
       :class="estimate.affordable ? '' : 'border-red'"
     >
-      <p class="text-xs text-txt-low">
+      <p class="m-0 text-xs font-semibold text-txt-mid">
         {{ t('resource.estimateTitle') }}
       </p>
       <div class="mt-3 flex flex-wrap items-end gap-4">
@@ -155,13 +155,13 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
           />
         </label>
         <div>
-          <p class="text-xs text-txt-low">{{ t('resource.estimatedCost') }}</p>
+          <p class="m-0 text-xs font-semibold text-txt-mid">{{ t('resource.estimatedCost') }}</p>
           <p class="title-face text-xl">
             {{ t('common.money', { amount: estimate.costUsd.toFixed(2) }) }}
           </p>
         </div>
         <div>
-          <p class="text-xs text-txt-low">
+          <p class="m-0 text-xs font-semibold text-txt-mid">
             {{ t('resource.remainingUnderCap') }}
           </p>
           <p class="title-face text-xl">
@@ -169,7 +169,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
           </p>
         </div>
         <div>
-          <p class="text-xs text-txt-low">
+          <p class="m-0 text-xs font-semibold text-txt-mid">
             {{ t('resource.estimatedMemory') }}
           </p>
           <p class="title-face text-xl">
@@ -196,7 +196,7 @@ onMounted(() => Promise.all([fleet.reload(), budget.reload(), backlog.reload(), 
     </section>
 
     <div class="mt-6">
-      <p class="text-xs text-txt-low">
+      <p class="m-0 text-xs font-semibold text-txt-mid">
         {{ t('resource.sessionsOnMachine') }}
       </p>
       <ScreenState

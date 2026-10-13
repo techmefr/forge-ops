@@ -297,7 +297,7 @@ onMounted(async () => {
                 :style="{ background: overview.zone.colour }"
                 aria-hidden="true"
               />
-              <h2 class="title-face text-sm">{{ overview.zone.name }}</h2>
+              <h2 class="title-face m-0 text-base font-bold text-txt-hi">{{ overview.zone.name }}</h2>
               <span class="ml-auto font-mono text-xs text-txt-low">{{
                 t('project.zoneStoryCount', { count: overview.storyCount }, overview.storyCount)
               }}</span>
