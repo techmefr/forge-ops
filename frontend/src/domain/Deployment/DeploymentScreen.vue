@@ -110,7 +110,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
   <div class="flex h-full min-h-0 flex-col gap-6 p-4 sm:p-8">
     <div class="card flex flex-none flex-wrap items-end gap-4 p-4">
       <label class="flex flex-col gap-1">
-        <span class="text-xs text-txt-low">{{
+        <span class="text-xs font-semibold text-txt-mid">{{
           t('deployment.integrationBranch')
         }}</span>
         <input
@@ -169,9 +169,9 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
             <header class="flex flex-col gap-2 border-b border-line pb-4">
               <div class="flex items-center gap-3">
                 <span class="chip bg-acc/10 font-mono font-semibold text-acc">{{ story.reference }}</span>
-                <span class="chip ml-auto bg-elev text-txt-mid">{{ t(`state.${story.state}`) }}</span>
+                <span class="pill pill-idle ml-auto">{{ t(`state.${story.state}`) }}</span>
               </div>
-              <h2 class="title-face text-lg leading-snug text-txt-hi">{{ story.title }}</h2>
+              <h2 class="title-face m-0 text-lg font-bold leading-snug text-txt-hi">{{ story.title }}</h2>
             </header>
 
             <div v-if="worktreeOf(story.id) !== null" class="rounded-lg bg-elev p-3">
@@ -215,7 +215,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
             </button>
 
             <div class="flex flex-col rounded-lg border border-line p-3">
-              <p class="text-xs font-medium text-txt-mid">
+              <p class="m-0 text-xs font-semibold text-txt-hi">
                 {{ t('deployment.featureFlag', { percent: story.rolloutPercent ?? 0 }) }}
               </p>
               <div class="mt-2 h-1.5 rounded bg-elev">
