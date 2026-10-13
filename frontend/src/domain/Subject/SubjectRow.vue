@@ -133,7 +133,7 @@ function changeState(event: Event): void {
       </select>
       <span
         v-else
-        class="chip w-fit flex-none bg-current/10 font-semibold"
+        class="pill flex-none"
         :class="STATE_TONES[subject.state]"
         :title="deleted ? undefined : t('subjects.row.derived')"
         data-test-id="subject-state-label"

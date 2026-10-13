@@ -93,7 +93,7 @@ onUpdated(centreCurrentSteps)
         <li
           v-for="card in lane.cards"
           :key="card.id"
-          class="min-w-0 rounded-lg bg-panel px-3 py-2"
+          class="card min-w-0 px-4 py-3"
           :aria-busy="busy.has(card.id)"
           data-test="forge-row"
           data-tour="forge-card"
@@ -102,7 +102,7 @@ onUpdated(centreCurrentSteps)
             <div class="min-w-0 flex-1 basis-48">
               <button
                 type="button"
-                class="m-0 block max-w-full cursor-pointer truncate border-0 bg-transparent p-0 text-left text-sm text-txt-hi hover:underline"
+                class="m-0 block max-w-full cursor-pointer truncate border-0 bg-transparent p-0 text-left text-base font-semibold text-txt-hi hover:underline"
                 :aria-label="t('forge.cardOpen', { title: card.title })"
                 @click="emit('open', card, card.stepKey)"
               >
@@ -112,12 +112,13 @@ onUpdated(centreCurrentSteps)
             </div>
             <div class="text-xs">
               <span
+                class="pill"
                 :class="{
+                  'pill-idle': card.status === 'idle',
                   'text-acc': card.status === 'running',
                   'text-red': card.status === 'failed' || card.status === 'budget_exhausted',
                   'text-orange': card.status === 'to_validate' || card.status === 'human_review' || card.status === 'stopped',
                   'text-green': card.status === 'done',
-                  'text-txt-mid': card.status === 'idle',
                 }"
                 >{{ labelOf(card) }}</span
               >
@@ -133,14 +134,14 @@ onUpdated(centreCurrentSteps)
             <button
               v-if="primaryActionOf(card, stepsOf(card)) !== null"
               type="button"
-              class="btn btn-ghost btn-sm whitespace-nowrap"
+              class="btn btn-secondary btn-sm whitespace-nowrap"
               :disabled="busy.has(card.id)"
               @click="emit('act', card, primaryActionOf(card, stepsOf(card))!)"
             >
               {{ actionLabel(card, primaryActionOf(card, stepsOf(card))!) }}
             </button>
           </div>
-          <ol class="m-0 mt-2 flex list-none items-center overflow-x-auto p-0 pb-1" :aria-label="t('forge.flow.stepsAria', { title: card.title })">
+          <ol class="m-0 mt-3 flex list-none items-stretch overflow-x-auto p-0 pb-1" :aria-label="t('forge.flow.stepsAria', { title: card.title })">
             <li
               v-for="(dot, index) in dotsOf(card, stepsOf(card))"
               :key="dot.key"
@@ -148,30 +149,34 @@ onUpdated(centreCurrentSteps)
               data-test="forge-dot"
               :data-state="dot.state"
             >
-              <span v-if="index > 0" class="h-px w-4 flex-none bg-hair min-[560px]:w-8" aria-hidden="true" />
+              <span v-if="index > 0" class="h-px w-4 flex-none self-center bg-line min-[560px]:w-8" aria-hidden="true" />
               <button
                 type="button"
-                class="flex items-center gap-1 rounded-md border-0 px-2 py-1 text-xs"
+                class="flex w-40 flex-none flex-col items-start gap-2 rounded-lg border p-3 text-left text-xs"
                 :class="[
-                  isCurrent(card, dot.key) ? 'bg-elev' : 'bg-transparent',
-                  canOpenDot(dot) ? 'cursor-pointer hover:bg-elev' : 'cursor-default',
-                  {
-                    'text-acc': dot.state === 'running',
-                    'text-red': dot.state === 'failed' || dot.state === 'budget_exhausted',
-                    'text-orange': dot.state === 'to_validate' || dot.state === 'human_review' || dot.state === 'stopped',
-                    'text-green': dot.state === 'passed',
-                    'text-txt-low': dot.state === 'to_come' || dot.state === 'waiting',
-                  },
+                  isCurrent(card, dot.key) ? 'border-acc bg-elev' : 'border-line bg-panel',
+                  canOpenDot(dot) ? 'cursor-pointer hover:border-edge' : 'cursor-default',
                 ]"
                 :disabled="!canOpenDot(dot)"
                 :aria-current="isCurrent(card, dot.key) ? 'step' : undefined"
                 :title="`${dot.label} · ${t(`forge.dot.${dot.state}`)}`"
                 @click="emit('open', card, dot.key)"
               >
-                <Glyph v-if="DOT_ICON[dot.state] !== ''" :name="DOT_ICON[dot.state]" :size="14" />
-                <span v-else class="size-3.5" aria-hidden="true" />
-                <span class="whitespace-nowrap">{{ dot.label }}</span>
-                <span class="sr-only">{{ t(`forge.dot.${dot.state}`) }}</span>
+                <strong class="w-full truncate text-sm text-txt-hi">{{ dot.label }}</strong>
+                <span
+                  class="pill"
+                  :class="{
+                    'text-acc': dot.state === 'running',
+                    'text-red': dot.state === 'failed' || dot.state === 'budget_exhausted',
+                    'text-orange': dot.state === 'to_validate' || dot.state === 'human_review' || dot.state === 'stopped',
+                    'text-green': dot.state === 'passed',
+                    'pill-idle': dot.state === 'to_come' || dot.state === 'waiting',
+                  }"
+                >
+                  <Glyph v-if="DOT_ICON[dot.state] !== ''" :name="DOT_ICON[dot.state]" :size="12" />
+                  <span v-else class="size-3" aria-hidden="true" />
+                  {{ t(`forge.dot.${dot.state}`) }}
+                </span>
               </button>
             </li>
           </ol>

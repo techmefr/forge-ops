@@ -335,6 +335,35 @@
     accent-color: var(--forge-acc);
   }
 
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, currentColor 12%, transparent);
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+
+  .pill-idle {
+    background: transparent;
+    border-color: var(--forge-line);
+    color: var(--forge-txtmid);
+  }
+
+  .kicker {
+    margin: 0;
+    color: var(--forge-acc);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
   .chip {
     display: inline-flex;
     align-items: center;
