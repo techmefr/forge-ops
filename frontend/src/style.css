@@ -200,7 +200,12 @@
     transition:
       background-color 150ms ease,
       border-color 150ms ease,
-      color 150ms ease;
+      color 150ms ease,
+      transform 120ms ease;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: scale(0.98);
   }
 
   .btn-sm {
@@ -440,7 +445,18 @@ body {
   font-family: var(--font-body);
   font-size: 0.875rem;
   line-height: 1.5714;
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 .title-face {
