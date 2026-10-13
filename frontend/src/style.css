@@ -156,7 +156,7 @@
   .card {
     background: var(--forge-card);
     border: 1px solid var(--forge-line);
-    border-radius: var(--radius-md);
+    border-radius: 1rem;
     box-shadow: var(--shadow-sm);
     color: var(--forge-txthi);
   }
@@ -358,10 +358,9 @@
   .section-title {
     margin: 0;
     color: var(--forge-txthi);
-    font-size: 0.8rem;
+    font-size: 0.95rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: 0;
   }
 
   .stat-icon {
@@ -378,10 +377,9 @@
   .kicker {
     margin: 0;
     color: var(--forge-acc);
-    font-size: 0.7rem;
+    font-size: 0.78rem;
     font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   .chip {
