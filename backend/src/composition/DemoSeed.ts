@@ -19,7 +19,7 @@ import { REVIEW_LENS_SEQUENCE } from '../domain/Checkpoint/Checkpoint.js'
 import type { CheckpointName } from '../domain/Checkpoint/Checkpoint.js'
 import type { StoryState } from '../domain/Story/Story.js'
 import type { AgentPhase } from '../domain/Agent/AgentSession.js'
-import { STORY_WORKFLOW_ID_SQL } from '../domain/Workflow/ProjectWorkflowRepository.js'
+import { createProjectWorkflowRepository, STORY_WORKFLOW_ID_SQL } from '../domain/Workflow/ProjectWorkflowRepository.js'
 import { createWorkflowColumnRepository } from '../domain/Workflow/WorkflowColumnRepository.js'
 import type { WorkflowColumnDraft } from '../../../contract/WorkflowColumnContract.js'
 import type { SessionExit } from '../domain/Agent/SessionOutcome.js'
@@ -436,6 +436,12 @@ const LUMEN_STEPS: readonly WorkflowColumnDraft[] = [
   agentStep('Gating', 'orange', false),
   agentStep('Reviewing', 'green', false),
   agentStep('Shipping', 'red', false),
+]
+
+const HOTFIX_STEPS: readonly WorkflowColumnDraft[] = [
+  agentStep('Build', 'info', true),
+  agentStep('Review', 'green', false),
+  agentStep('Ship', 'red', false),
 ]
 
 const PLAN: readonly ProjectPlan[] = [
@@ -1493,6 +1499,34 @@ export function seedDemoBoard(db: Database.Database): DemoBoard {
       if (plan.column !== undefined) {
         placeInColumn.run(plan.column, storyId)
       }
+    }
+  }
+
+  const forgeProjectId = projectIds.get('forge')
+  if (forgeProjectId !== undefined) {
+    const hotfix = createProjectWorkflowRepository(db).create(forgeProjectId, 'Hotfix')
+    for (const step of HOTFIX_STEPS) {
+      workflowColumns.create(forgeProjectId, step, hotfix.id)
+    }
+    const epicId = db.prepare<[number], { id: number }>('SELECT id FROM epic WHERE project_id = ? ORDER BY id LIMIT 1').get(forgeProjectId)?.id
+    if (epicId !== undefined) {
+      const fix = stories.writeStory({
+        epicId,
+        title: 'fix the scope release after a rename',
+        body: 'As an architect I want a renamed path to free its reservation so the next story is not blocked by a ghost.',
+      })
+      stories.writeTwin({
+        storyId: fix.id,
+        title: 'prove the scope release after a rename',
+        body: `Acceptance cases of ${fix.reference}, written before the code.`,
+      })
+      stories.sendToBacklog(fix.id)
+      db.prepare<[number, number, number]>(
+        `UPDATE story
+            SET workflow_id = ?, state = 'building',
+                workflow_column_id = (SELECT id FROM workflow_column WHERE workflow_id = ? AND key = 'build')
+          WHERE id = ?`,
+      ).run(hotfix.id, hotfix.id, fix.id)
     }
   }
 

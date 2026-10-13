@@ -6,7 +6,7 @@ forge-ops is a board that runs Claude Code sessions on user stories, each paired
 
 **Install the desktop app:** Windows, macOS and Linux installers are on the [releases page](https://github.com/techmefr/forge-ops/releases/latest). The app updates itself, signs in with Google or Microsoft, and keeps a list of servers you can switch between. See [the desktop app](#the-desktop-app).
 
-![The board: stories in their columns, coloured by project, with blocked and waiting-for-you cards marked](frontend/public/screenshots/board.png)
+![The forge: every story of a project on the stepper of its workflow, with the running, paused and waiting-for-you cards marked](frontend/public/screenshots/board.png)
 
 It speaks French, English, German, Spanish, Italian, Portuguese and Chinese, in six colour themes (light and dark) and four text sizes, down to a phone screen.
 
@@ -17,7 +17,7 @@ It speaks French, English, German, Spanish, Italian, Portuguese and Chinese, in 
 | | |
 |---|---|
 | ![Subjects: every project with its weather, late and unassigned subjects, the team's load](frontend/public/screenshots/subjects.png) **Subjects** — every project at a glance, who took what. | ![Roadmap: subjects as bars on a timeline](frontend/public/screenshots/roadmap.png) **Roadmap** — what a project manager shows at the daily. |
-| ![My forge: personal indicators and the kanban of my stories](frontend/public/screenshots/my-forge.png) **My forge** — your epics, your files, what your machine can still take. | ![Writing stories with Claude: pick an epic, Claude drafts the cards](frontend/public/screenshots/stories.png) **Stories** — pick an epic, write with Claude, then the twin test story. |
+| ![My forge: personal indicators and the stories of a project, a stepper per workflow](frontend/public/screenshots/my-forge.png) **My forge** — your epics, your files, what your machine can still take, and each project with its workflows. | ![Writing stories with Claude: pick an epic, Claude drafts the cards](frontend/public/screenshots/stories.png) **Stories** — pick an epic, write with Claude, then the twin test story. |
 | ![Statistics: sessions, cost, machine time, most used agents](frontend/public/screenshots/statistics.png) **Statistics** — what it costs and where it goes. | ![Settings: palette, mode, font, text size](frontend/public/screenshots/settings.png) **Settings** — six palettes, light and dark, four fonts, four sizes. |
 
 | Volt | Dracula | Nord |
@@ -97,7 +97,9 @@ The doctrine lives in [.claude/commands/](.claude/commands) and [.claude/skills/
 
 ### How a story flows
 
-A card sits in a project workflow: Backlog, the project's steps in order, then Done. The default steps map to the phases of the sequence above, and a project administrator can add, reorder or remove steps (each one is an agent step or a Human step).
+A project has one or several **workflows** (Default, Hotfix, Checklist, whatever fits the work). Each workflow is its own list of steps, so a hotfix can skip Spec and Plan while a feature walks the whole sequence. A card belongs to one workflow, chosen when the story is added to the backlog, and sits in it: Backlog, the workflow's steps in order, then Done. The default steps map to the phases of the sequence above, and a project administrator can add, duplicate, rename or delete workflows and add, reorder or remove their steps (each one is an agent step or a Human step).
+
+On the Forge screen each card shows a compact stepper of its own workflow, lighter than a kanban of columns and readable on a phone. Opening a card shows the conversation: a step already passed is read-only history, the current step is the one you talk to the agent in. Replying to an agent whose session has ended resumes the same Claude session with your message. A workflow that only has Human steps never needs an agent: its cards close from the last step without proofs or publication, while any workflow with an agent step keeps the full definition of done. A workflow that leaves out a phase (no Spec, no Plan) is not blocked: the board waives the checkpoints of the phases the workflow does not have and records the waiver as a proof file.
 
 ```
 Backlog
@@ -241,13 +243,15 @@ The board exposes an HTTP API (Hono). `POST /api/hooks` is also the target of th
 | `GET /api/projects/:id/events` | The events of a project in a `from`/`to` window |
 | `POST /api/events` | Creates an event (type, date, title, project) |
 | `PATCH`/`DELETE /api/events/:id` | Edits an event and its minutes, or deletes it |
-| `GET`/`POST /api/projects/:id/workflow-columns` | Reads the workflow of a project, or adds a step; adding needs the project admin |
+| `GET`/`POST /api/projects/:id/workflows` | Lists the workflows of a project, or creates one; creating needs the project admin |
+| `PUT`/`DELETE /api/projects/:id/workflows/:workflowId`, `POST …/duplicate` | Renames, deletes or duplicates a workflow with its steps; needs the project admin |
+| `GET`/`POST /api/projects/:id/workflow-columns` | Reads the steps of a workflow (`?workflow=ID`, the first workflow by default), or adds one; adding needs the project admin |
 | `PUT /api/projects/:id/workflow-columns/order` | Reorders the steps; needs the project admin |
 | `PUT`/`DELETE /api/projects/:id/workflow-columns/:columnId` | Edits or removes a step; needs the project admin |
 | `GET /api/forge-cards` | Lists the forge cards of a project (`project` query) |
-| `POST /api/forge-cards/backlog` | Adds a story to the backlog of a subject you hold |
+| `POST /api/forge-cards/backlog` | Adds a story to the backlog of a subject you hold, in a workflow of its project (`workflowId`, the first one by default) |
 | `POST /api/forge-cards/:id/move` | Moves a card to a workflow step |
-| `POST /api/forge-cards/:id/launch` | Launches the agent of the card, resuming its session; on a red card with a pending transition, runs the transition again |
+| `POST /api/forge-cards/:id/launch` | Launches the agent of the card, resuming its session (an optional `feedback` is sent as the next message); on a red card with a pending transition, runs the transition again |
 | `POST /api/forge-cards/:id/done` | Closes the card (last step only), publishes the branch when the project allows it, unblocks what waited on it |
 | `POST /api/forge-cards/:id/worktree` | Opens a worktree for the card |
 | `GET`/`PUT /api/projects/:id/autopilot` | Reads or writes the automation settings of a project (`enabled`, `autoLaunch`, `autoPublish`, `autoMerge`); writing needs the project admin |
@@ -528,6 +532,7 @@ Low-level orchestration is not rewritten: it leans on the first party — the `c
 | Deterministic port and subdomain | Done |
 | `/SPEC … /SHIP` doctrine aligned with the API | Done |
 | Kanban states, points, rollout, merge conflict | Done |
+| Several workflows per project, stepper per card, history of passed steps, Human-only workflows | Done |
 | Review cascade by lens, ordered and blocking | Done |
 | File zones with automatic summary and path attachment | Done |
 | Readable design tokens (6 themes, light and dark) | Done |
