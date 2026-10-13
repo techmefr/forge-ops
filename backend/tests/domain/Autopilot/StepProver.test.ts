@@ -242,6 +242,38 @@ describe('the build step', () => {
   })
 })
 
+describe('a workflow without the early steps', () => {
+  const HOTFIX_PHASES = ['code', 'review', 'ship']
+
+  it('waives the spec and the plan instead of asking for evidence nobody was meant to write', () => {
+    finishBuild()
+
+    const outcome = prover.prove({ ...orderFor('build_done'), workflowPhases: HOTFIX_PHASES })
+
+    expect(outcome).toMatchObject({ kind: 'ok' })
+    expect(provenNames()).toEqual(['spec_done', 'arch_done', 'tests_written', 'build_done'])
+    const waiver = readFileSync(join(worktree, '.claude', 'evidence', reference, 'spec_done.checked.md'), 'utf-8')
+    expect(waiver).toContain('Waived')
+  })
+
+  it('still asks for the spec and the plan when the workflow has a step for them', () => {
+    finishBuild()
+
+    const outcome = prover.prove({ ...orderFor('build_done'), workflowPhases: ['spec', 'architecture', 'code'] })
+
+    expect(outcome.kind).toBe('fail')
+    expect(provenNames()).toEqual([])
+  })
+
+  it('treats a plan step as covering the spec', () => {
+    agentProof('spec_done')
+    agentProof('arch_done')
+    finishBuild()
+
+    expect(prover.prove({ ...orderFor('build_done'), workflowPhases: ['architecture', 'code'] })).toMatchObject({ kind: 'ok' })
+  })
+})
+
 describe('the review step', () => {
   beforeEach(() => {
     proveUpToBuild()
