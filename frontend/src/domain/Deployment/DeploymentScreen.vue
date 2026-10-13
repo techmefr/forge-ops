@@ -160,7 +160,7 @@ onMounted(() => Promise.all([stories.reload(), worktrees.reload(), adoptIntegrat
         empty-key="deployment.empty"
         @retry="stories.reload()"
       >
-        <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(360px,1fr))]">
+        <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(360px,1fr))]" data-tour="deployment-board">
           <article
             v-for="story in shipping"
             :key="story.id"

@@ -1309,35 +1309,47 @@ export const SPANISH: Message = {
     spot: 'Paso de la visita',
     pipeline: {
       title: 'Cuatro pantallas, un pipeline',
-      say: 'Las pestañas siguen el trabajo: el tablero, mi forja, las cuentas, las reglas.',
+      say: 'Proyectos, Mi forja, Ajustes y Estadísticas: las pestañas siguen el trabajo desde el plan hasta la factura.',
     },
-    column: {
-      title: 'Una columna es un estado',
-      say: 'Una historia solo avanza si el tablero lo permite.',
+    subjects: {
+      title: 'Cada proyecto de un vistazo',
+      say: 'Cada tarjeta da el tiempo de un proyecto, lo que va tarde o bloqueado, el avance y lo que viene. Haz clic para abrir su seguimiento.',
     },
-    story: {
-      title: 'La tarjeta es la conversación',
-      say: 'Ábrela: el hilo guarda lo que se dijo y lo que se probó.',
+    workflows: {
+      title: 'Un workflow por tipo de trabajo',
+      say: 'Un proyecto puede tener varios workflows, por ejemplo Default y Hotfix, cada uno con sus pasos. Se elige al añadir una historia.',
+    },
+    steps: {
+      title: 'Una historia recorre su workflow',
+      say: 'El stepper muestra dónde está cada historia: paso hecho, actual o pendiente. El tablero solo la avanza cuando la prueba existe.',
+    },
+    card: {
+      title: 'Una tarjeta es la conversación',
+      say: 'Ábrela: un paso ya superado es un historial de solo lectura, el paso actual es donde hablas con el agente.',
     },
     mine: {
       title: 'Mi forja',
-      say: 'Aquello en lo que estoy trabajando ahora, y nada más.',
+      say: 'En qué trabajo ahora mismo, y nada más.',
+    },
+    deployment: {
+      title: 'De la rama a producción',
+      say: 'Cada historia tiene su rama, un feature flag para desplegar poco a poco y un botón para decir que está en producción y desbloquear las siguientes.',
     },
     evidence: {
       title: 'Una prueba es un archivo',
       say: 'La leyenda dice cómo se marcó cada archivo.',
     },
     guardrail: {
-      title: 'El terreno reservado',
-      say: 'Una historia anuncia las rutas que toca, el resto se rechaza.',
+      title: 'Terreno reservado',
+      say: 'Una historia anuncia las rutas que toca; lo demás se rechaza.',
     },
     ledger: {
-      title: 'Lo que costó',
+      title: 'Lo que cuesta',
       say: 'Tiempo, tokens y dinero, por agente y por historia.',
     },
     rules: {
       title: 'Las reglas de la casa',
-      say: 'Accesos, plantillas, presupuesto, entrega: decididos una vez, aplicados en todas partes.',
+      say: 'Accesos, plantillas, presupuesto, entrega: se decide una vez y se aplica en todas partes.',
     },
   },
 }

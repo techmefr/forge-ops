@@ -1298,7 +1298,7 @@ export const ITALIAN: Message = {
     source: 'Il repository',
   },
   tour: {
-    label: 'Visita guidata della board di dimostrazione',
+    label: 'Tour guidato della board di dimostrazione',
     progress: 'Passo {current} su {total}',
     next: 'Avanti',
     previous: 'Indietro',
@@ -1309,30 +1309,42 @@ export const ITALIAN: Message = {
     spot: 'Passo della visita',
     pipeline: {
       title: 'Quattro schermate, una pipeline',
-      say: 'Le schede seguono il lavoro: la board, la mia forgia, i conti, le regole.',
+      say: 'Progetti, La mia forgia, Impostazioni e Statistiche: le schede seguono il lavoro dal piano alla fattura.',
     },
-    column: {
-      title: 'Una colonna è uno stato',
-      say: 'Una storia avanza solo se la board lo consente.',
+    subjects: {
+      title: 'Ogni progetto a colpo d\'occhio',
+      say: 'Ogni scheda mostra il meteo di un progetto, cosa è in ritardo o bloccato, l\'avanzamento e il prossimo passo. Un clic apre il suo monitoraggio.',
     },
-    story: {
-      title: 'La scheda è la conversazione',
-      say: 'Aprila: il filo conserva ciò che è stato detto e ciò che è stato provato.',
+    workflows: {
+      title: 'Un workflow per tipo di lavoro',
+      say: 'Un progetto può avere più workflow, ad esempio Default e Hotfix, ciascuno con i propri passi. Lo si sceglie aggiungendo una storia.',
+    },
+    steps: {
+      title: 'Una storia percorre il suo workflow',
+      say: 'Lo stepper mostra a che punto è ogni storia: passo fatto, attuale o futuro. La board la fa avanzare solo se la prova c\'è.',
+    },
+    card: {
+      title: 'Una scheda è la conversazione',
+      say: 'Aprila: un passo già superato è una cronologia in sola lettura, il passo attuale è dove parli con l\'agente.',
     },
     mine: {
       title: 'La mia forgia',
-      say: 'Quello su cui sto lavorando adesso, e nient’altro.',
+      say: 'Su cosa lavoro adesso, e nient\'altro.',
+    },
+    deployment: {
+      title: 'Dal ramo alla produzione',
+      say: 'Ogni storia ha il suo ramo, un feature flag per il rilascio graduale e un pulsante per dire che è in produzione e sbloccare le successive.',
     },
     evidence: {
       title: 'Una prova è un file',
-      say: 'La legenda dice come ogni file è stato marcato.',
+      say: 'La legenda dice come è stato marcato ogni file.',
     },
     guardrail: {
-      title: 'Il terreno riservato',
-      say: 'Una storia annuncia i percorsi che tocca, il resto è rifiutato.',
+      title: 'Terreno riservato',
+      say: 'Una storia annuncia i percorsi che tocca; il resto è rifiutato.',
     },
     ledger: {
-      title: 'Quanto è costato',
+      title: 'Quanto costa',
       say: 'Tempo, token e denaro, per agente e per storia.',
     },
     rules: {

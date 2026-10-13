@@ -72,6 +72,7 @@ followUps.reload()
       class="grid flex-none grid-cols-1 gap-4 min-[640px]:grid-cols-2 min-[1024px]:grid-cols-3 min-[1440px]:grid-cols-4"
       :aria-label="t('followUp.cardsAria')"
       data-test-id="weather-cards"
+      data-tour="subject-weather"
     >
       <li v-for="entry in shown" :key="entry.project.id" :data-test-id="`weather-card-${entry.project.id}`">
         <button

@@ -1307,35 +1307,47 @@ export const FRENCH: Message = {
     spot: 'Étape de la visite',
     pipeline: {
       title: 'Quatre écrans, un pipeline',
-      say: 'Les onglets suivent le travail : le board, ma forge, les comptes, les règles.',
+      say: 'Projets, Ma forge, Réglages et Statistiques : les onglets suivent le travail, du plan jusqu\'à la facture.',
     },
-    column: {
-      title: 'Une colonne est un état',
-      say: 'Une story n’avance que si le board l’autorise.',
+    subjects: {
+      title: 'Chaque projet en un coup d\'œil',
+      say: 'Chaque carte donne la météo d\'un projet, ce qui est en retard ou bloqué, l\'avancement et la suite. Cliquez pour ouvrir son suivi.',
     },
-    story: {
-      title: 'La carte est la conversation',
-      say: 'Ouvre-la : le fil garde ce qui a été dit et ce qui a été prouvé.',
+    workflows: {
+      title: 'Un workflow par type de travail',
+      say: 'Un projet peut avoir plusieurs workflows, par exemple Default et Hotfix, chacun avec ses étapes. On choisit le workflow en ajoutant une story.',
+    },
+    steps: {
+      title: 'Une story parcourt son workflow',
+      say: 'Le stepper montre où en est chaque story : étape faite, en cours ou à venir. Le board ne la fait avancer que si la preuve est là.',
+    },
+    card: {
+      title: 'Une carte est la conversation',
+      say: 'Ouvrez-la : une étape passée est un historique en lecture seule, l\'étape en cours est celle où l\'on parle à l\'agent.',
     },
     mine: {
       title: 'Ma forge',
-      say: 'Ce sur quoi je travaille en ce moment, et rien d’autre.',
+      say: 'Ce sur quoi je travaille maintenant, et rien d\'autre.',
+    },
+    deployment: {
+      title: 'De la branche à la production',
+      say: 'Chaque story a sa branche, un feature flag pour déployer progressivement, et un bouton pour dire qu\'elle est en production et débloquer la suite.',
     },
     evidence: {
       title: 'Une preuve est un fichier',
       say: 'La légende dit comment chaque fichier a été marqué.',
     },
     guardrail: {
-      title: 'Le terrain réservé',
-      say: 'Une story annonce les chemins qu’elle touche, le reste est refusé.',
+      title: 'Terrain réservé',
+      say: 'Une story annonce les chemins qu\'elle touche ; le reste est refusé.',
     },
     ledger: {
-      title: 'Ce que ça a coûté',
-      say: 'Le temps, les jetons et l’argent, par agent et par story.',
+      title: 'Ce que ça coûte',
+      say: 'Le temps, les jetons et l\'argent, par agent et par story.',
     },
     rules: {
       title: 'Les règles de la maison',
-      say: 'Portes d’entrée, gabarits, budget, livraison : décidés une fois, appliqués partout.',
+      say: 'Accès, modèles, budget, livraison : décidés une fois, appliqués partout.',
     },
   },
 }
