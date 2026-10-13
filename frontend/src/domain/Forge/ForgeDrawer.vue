@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
 import type { ForgeCardView } from '@contract/ForgeCardContract'
 import { usePhrase } from '@/technical/Language/UsePhrase'
-import { groupThread, itemsOfPhase, replyRouteOf, submitsOn } from './ConversationRule'
+import { groupThread, itemsOfPhase, logLinesOf, replyRouteOf, submitsOn, withQuote } from './ConversationRule'
 import {
   adjacentStep,
   minutesOf,
@@ -78,6 +78,34 @@ const grouped = computed(() =>
   groupThread(looking.value ? itemsOfPhase(conversation.items.value, phase.value, phasesOfWorkflow.value) : conversation.items.value),
 )
 const working = computed(() => props.card.status === 'running')
+
+type DrawerTab = 'conversation' | 'logs'
+const tab = ref<DrawerTab>('conversation')
+const tabs = computed(() => [
+  { key: 'conversation' as const, label: t('forge.drawer.tab.conversation') },
+  { key: 'logs' as const, label: t('forge.drawer.tab.logs') },
+])
+const logsPane = ref<HTMLElement | null>(null)
+const selected = ref('')
+const logLines = computed(() => logLinesOf(conversation.items.value, (key) => t(`phase.${key}`)))
+
+function readSelection(): void {
+  const selection = window.getSelection()
+  const inside =
+    selection !== null && logsPane.value !== null && selection.anchorNode !== null && logsPane.value.contains(selection.anchorNode)
+  if (inside) {
+    selected.value = selection.toString()
+  }
+}
+
+async function pasteSelection(): Promise<void> {
+  draft.value = withQuote(draft.value, selected.value)
+  selected.value = ''
+  window.getSelection()?.removeAllRanges()
+  tab.value = 'conversation'
+  await nextTick()
+  field.value?.focus()
+}
 
 const agentLine = computed(() => {
   const current = step.value
@@ -165,7 +193,11 @@ watch(
   },
 )
 
-onMounted(() => void conversation.load())
+onMounted(() => {
+  void conversation.load()
+  document.addEventListener('selectionchange', readSelection)
+})
+onBeforeUnmount(() => document.removeEventListener('selectionchange', readSelection))
 </script>
 
 <template>
@@ -276,7 +308,65 @@ onMounted(() => void conversation.load())
           </ul>
         </details>
 
+        <div class="flex flex-none gap-1 border-b border-line px-5 pt-2" role="tablist" :aria-label="t('forge.drawer.tabsAria')">
+          <button
+            v-for="entry in tabs"
+            :key="entry.key"
+            type="button"
+            role="tab"
+            class="-mb-px min-h-9 border-b-2 px-3 text-sm font-semibold transition-colors"
+            :class="tab === entry.key ? 'border-acc text-txt-hi' : 'border-transparent text-txt-mid hover:text-txt-hi'"
+            :aria-selected="tab === entry.key"
+            :data-test="`forge-tab-${entry.key}`"
+            @click="tab = entry.key"
+          >
+            {{ entry.label }}
+          </button>
+        </div>
+
         <div
+          v-if="tab === 'logs'"
+          ref="logsPane"
+          class="min-h-0 flex-1 overflow-y-auto px-5 py-3"
+          role="tabpanel"
+          tabindex="0"
+          data-test="forge-logs"
+        >
+          <p v-if="logLines.length === 0" class="m-0 text-xs text-txt-low">{{ t('forge.drawer.logsEmpty') }}</p>
+          <ol class="m-0 flex list-none flex-col gap-1 p-0 font-mono text-xs select-text">
+            <li
+              v-for="line in logLines"
+              :key="line.id"
+              class="whitespace-pre-wrap"
+              :class="{
+                'mt-2 border-t border-hair pt-2 font-bold text-acc': line.tone === 'phase',
+                'text-txt-hi': line.tone === 'agent',
+                'text-info': line.tone === 'human',
+                'text-txt-low': line.tone === 'tool' || line.tone === 'notice',
+                'text-red': line.tone === 'failed',
+              }"
+            >{{ line.text }}</li>
+          </ol>
+        </div>
+
+        <div v-if="tab === 'logs' && !looking" class="flex flex-none items-center gap-3 border-t border-hair px-5 py-3">
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            :disabled="selected.trim() === ''"
+            data-test="forge-paste-selection"
+            @mousedown.prevent
+            @click="pasteSelection"
+          >
+            {{ t('forge.drawer.pasteSelection') }}
+          </button>
+          <span class="text-xs text-txt-low">{{
+            selected.trim() === '' ? t('forge.drawer.pasteHint') : t('forge.drawer.pasteReady', { count: selected.trim().length })
+          }}</span>
+        </div>
+
+        <div
+          v-show="tab === 'conversation'"
           ref="thread"
           class="min-h-0 flex-1 overflow-y-auto px-5 py-3"
           role="log"
@@ -341,7 +431,7 @@ onMounted(() => void conversation.load())
           {{ conversation.announcement.value === '' ? '' : t('forge.drawer.announceAgent', { text: conversation.announcement.value }) }}
         </p>
 
-        <form v-if="!looking" class="flex flex-none flex-col gap-1.5 border-t border-hair px-5 py-3" @submit.prevent="submit">
+        <form v-if="!looking" v-show="tab === 'conversation'" class="flex flex-none flex-col gap-1.5 border-t border-hair px-5 py-3" @submit.prevent="submit">
           <p v-if="conversation.failure.value !== null" class="m-0 text-xs text-red" role="alert">
             {{ say(conversation.failure.value) }}
           </p>
