@@ -98,7 +98,7 @@ function changeState(event: Event): void {
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
           <button
             type="button"
-            class="rounded-md text-left text-base font-semibold text-txt-hi hover:underline"
+            class="rounded-md text-left text-lg font-bold leading-snug text-txt-hi hover:underline"
             :aria-label="t('subjects.row.open', { title: subject.title })"
             data-test-id="subject-open"
             @click="emit('open', subject.id)"
@@ -107,7 +107,7 @@ function changeState(event: Event): void {
           </button>
           <span
             v-if="subject.priority !== 'normal'"
-            class="text-xs font-semibold"
+            class="pill"
             :class="subject.priority === 'max' ? 'text-red' : 'text-orange'"
           >
             {{ t(`epicPriority.${subject.priority}`) }}
