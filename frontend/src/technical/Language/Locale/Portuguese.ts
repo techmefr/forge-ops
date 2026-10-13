@@ -888,6 +888,7 @@ export const PORTUGUESE: Message = {
     restart: 'No reinício',
   },
   settingHalf: {
+    aria: 'Secções das definições',
     mine: 'Meu espaço',
     mineSub: 'O aspeto deste quadro e quem é nele. Só seu.',
     team: 'Equipa',

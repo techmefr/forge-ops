@@ -886,6 +886,7 @@ export const FRENCH: Message = {
     restart: 'Au redémarrage',
   },
   settingHalf: {
+    aria: 'Sections des réglages',
     mine: 'Chez moi',
     mineSub: 'L’allure de ce board et qui vous y êtes. À vous seul.',
     team: 'Équipe',

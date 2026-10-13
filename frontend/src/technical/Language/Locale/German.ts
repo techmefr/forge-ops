@@ -890,6 +890,7 @@ export const GERMAN: Message = {
     restart: 'Nach Neustart',
   },
   settingHalf: {
+    aria: 'Bereiche der Einstellungen',
     mine: 'Bei mir',
     mineSub: 'Wie dieses Board aussieht und wer Sie darauf sind. Nur für Sie.',
     team: 'Team',

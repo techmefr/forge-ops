@@ -889,6 +889,7 @@ export const ITALIAN: Message = {
     restart: 'Al riavvio',
   },
   settingHalf: {
+    aria: 'Sezioni delle impostazioni',
     mine: 'Da me',
     mineSub: 'L’aspetto di questa lavagna e chi sei su di essa. Solo tuo.',
     team: 'Squadra',

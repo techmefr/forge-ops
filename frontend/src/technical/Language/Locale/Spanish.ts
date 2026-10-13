@@ -889,6 +889,7 @@ export const SPANISH: Message = {
     restart: 'Al reiniciar',
   },
   settingHalf: {
+    aria: 'Secciones de los ajustes',
     mine: 'Lo mío',
     mineSub: 'El aspecto de este tablero y quién eres en él. Solo tuyo.',
     team: 'Equipo',
