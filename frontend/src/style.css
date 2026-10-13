@@ -355,6 +355,26 @@
     color: var(--forge-txtmid);
   }
 
+  .section-title {
+    margin: 0;
+    color: var(--forge-txthi);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .stat-icon {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, currentColor 14%, transparent);
+  }
+
   .kicker {
     margin: 0;
     color: var(--forge-acc);

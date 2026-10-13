@@ -25,17 +25,26 @@ onMounted(() => Promise.all([self.reload(), cards.reload()]))
 
 <template>
   <section
-    class="scrollbar-none flex flex-none items-baseline gap-x-5 gap-y-1 overflow-x-auto bg-panel px-4 py-1.5 sm:flex-wrap sm:gap-x-8 sm:overflow-x-visible sm:px-8 sm:py-2.5"
+    class="grid flex-none grid-cols-2 gap-3 bg-panel px-4 py-3 sm:px-8 min-[900px]:grid-cols-4"
     :aria-label="t('personal.aria')"
   >
-    <p v-for="figure in figures" :key="figure.key" class="flex flex-none items-baseline gap-1.5 sm:gap-2">
-      <span class="tabular-nums text-base tabular-nums" :class="figure.warn ? 'text-orange' : 'text-txt-hi'">{{
-        figure.value
-      }}</span>
-      <span class="text-xs whitespace-nowrap text-txt-low sm:text-sm">{{ t(`personal.${figure.key}`) }}</span>
-      <span v-if="figure.key === 'soon'" class="text-xs text-txt-low max-sm:hidden">{{
-        t('personal.soonHint', { count: SOON_IN_DAYS }, SOON_IN_DAYS)
-      }}</span>
+    <p
+      v-for="figure in figures"
+      :key="figure.key"
+      class="m-0 flex items-center gap-3 rounded-lg border border-line bg-card px-4 py-2.5"
+      :class="figure.warn ? 'border-orange/60' : ''"
+    >
+      <span
+        class="title-face min-w-8 text-2xl tabular-nums"
+        :class="figure.warn ? 'text-orange' : 'text-txt-hi'"
+        >{{ figure.value }}</span
+      >
+      <span class="flex flex-col leading-tight">
+        <span class="text-sm font-medium text-txt-hi">{{ t(`personal.${figure.key}`) }}</span>
+        <span v-if="figure.key === 'soon'" class="text-xs text-txt-low">{{
+          t('personal.soonHint', { count: SOON_IN_DAYS }, SOON_IN_DAYS)
+        }}</span>
+      </span>
     </p>
   </section>
 </template>
