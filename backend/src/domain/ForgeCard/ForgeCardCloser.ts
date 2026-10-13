@@ -57,15 +57,18 @@ export function createForgeCardCloser({
         throw new NotAtLastStepError(view.reference)
       }
       const story = stories.findStory(view.storyId)
-      assertDoneEarned(story.reference, {
-        state: STATE_BEFORE_DONE,
-        definitionOfDone: checkpoints.definitionOfDone(story.id),
-        cascade: checkpoints.reviewCascade(story.id),
-        unresolvedFindings: checkpoints.listUnresolvedFindings(story.id),
-        businessIntent: stories.findEpic(story.epicId).businessIntent,
-        criteria: criteria.listCriteria(story.id),
-      })
-      const publication = publishStory?.(story.id) ?? null
+      const humanOnly = steps.every((step) => step.provider === 'human')
+      if (!humanOnly) {
+        assertDoneEarned(story.reference, {
+          state: STATE_BEFORE_DONE,
+          definitionOfDone: checkpoints.definitionOfDone(story.id),
+          cascade: checkpoints.reviewCascade(story.id),
+          unresolvedFindings: checkpoints.listUnresolvedFindings(story.id),
+          businessIntent: stories.findEpic(story.epicId).businessIntent,
+          criteria: criteria.listCriteria(story.id),
+        })
+      }
+      const publication = humanOnly ? null : (publishStory?.(story.id) ?? null)
       const unblocked = stories.markDoneAndUnblock(story.id)
       const cleanUp = cleanUpAfterMerge(story.id)
       forgeCards.closeForgeCard(forgeCardId)
