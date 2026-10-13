@@ -27,7 +27,7 @@ const scales = computed(() => listOf(FONT_SCALES, 'fontScale'))
 <template>
   <section class="flex flex-col gap-6 border-t border-hair pt-6">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('setting.appearance') }}</h2>
+      <h2 class="title-face m-0 text-lg font-bold text-txt-hi">{{ t('setting.appearance') }}</h2>
       <EffectBadge section="appearance" />
     </div>
 

@@ -67,7 +67,7 @@ void tags.reload()
 <template>
   <section class="flex flex-col gap-4 border-t border-hair pt-6" data-tour="setting-tags">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('team.tags') }}</h2>
+      <h2 class="title-face m-0 text-lg font-bold text-txt-hi">{{ t('team.tags') }}</h2>
       <EffectBadge section="tags" />
     </div>
     <p class="m-0 text-sm text-txt-mid">{{ t('team.tagsSub') }}</p>

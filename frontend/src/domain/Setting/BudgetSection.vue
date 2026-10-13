@@ -67,7 +67,7 @@ onMounted(() => settings.reload())
 <template>
   <section class="flex flex-col gap-6 border-t border-hair pt-6">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('setting.budget') }}</h2>
+      <h2 class="title-face m-0 text-lg font-bold text-txt-hi">{{ t('setting.budget') }}</h2>
       <EffectBadge section="budget" />
     </div>
     <div class="rounded-md bg-panel p-4">

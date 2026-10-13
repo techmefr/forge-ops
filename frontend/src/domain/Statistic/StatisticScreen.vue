@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Glyph from '@/technical/Ui/Glyph.vue'
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
@@ -46,34 +47,43 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
       class="grid flex-none gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]"
       data-tour="statistic-tally"
     >
-      <article class="card p-4">
-        <p class="text-xs text-txt-low">
-          {{ t('statistic.sessions') }}
-        </p>
-        <p class="title-face mt-1 text-xl">{{ summary.data.value?.sessions ?? 0 }}</p>
+      <article class="card flex items-center gap-4 p-4">
+        <span class="stat-icon text-acc"><Glyph name="play" :size="20" /></span>
+        <div class="min-w-0">
+          <p class="text-xs font-medium text-txt-mid">
+            {{ t('statistic.sessions') }}
+          </p>
+          <p class="title-face mt-0.5 text-2xl">{{ summary.data.value?.sessions ?? 0 }}</p>
+        </div>
       </article>
-      <article class="card p-4">
-        <p class="text-xs text-txt-low">
-          {{ t('statistic.totalCost') }}
-        </p>
-        <p class="title-face mt-1 text-xl">
-          {{ t('common.money', { amount: (summary.data.value?.totalCostUsd ?? 0).toFixed(2) }) }}
-        </p>
+      <article class="card flex items-center gap-4 p-4">
+        <span class="stat-icon text-green"><Glyph name="statistics" :size="20" /></span>
+        <div class="min-w-0">
+          <p class="text-xs font-medium text-txt-mid">
+            {{ t('statistic.totalCost') }}
+          </p>
+          <p class="title-face mt-0.5 text-2xl">
+            {{ t('common.money', { amount: (summary.data.value?.totalCostUsd ?? 0).toFixed(2) }) }}
+          </p>
+        </div>
       </article>
-      <article class="card p-4">
-        <p class="text-xs text-txt-low">
-          {{ t('statistic.machineTime') }}
-        </p>
-        <p class="title-face mt-1 text-xl">
-          {{ say(humanDuration(summary.data.value?.totalSeconds ?? 0)) }}
-        </p>
+      <article class="card flex items-center gap-4 p-4">
+        <span class="stat-icon text-info"><Glyph name="cpu" :size="20" /></span>
+        <div class="min-w-0">
+          <p class="text-xs font-medium text-txt-mid">
+            {{ t('statistic.machineTime') }}
+          </p>
+          <p class="title-face mt-0.5 text-2xl">
+            {{ say(humanDuration(summary.data.value?.totalSeconds ?? 0)) }}
+          </p>
+        </div>
       </article>
     </div>
 
     <div class="mt-2 min-h-0 flex-1 overflow-auto pr-1">
     <div class="mt-4 grid gap-4 lg:grid-cols-2">
       <section class="card p-6">
-        <p class="text-xs text-txt-low">
+        <p class="section-title">
           {{ t('statistic.busiestAgents') }}
         </p>
         <p v-if="busiest.length === 0" class="mt-2 text-sm text-txt-low">
@@ -82,7 +92,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
         <ul class="mt-3 flex flex-col gap-3">
           <li v-for="agent in busiest" :key="agent.agentName" class="text-sm">
             <div class="flex items-center gap-1.5">
-              <span class="tabular-nums text-xs text-txt-hi">{{ agent.agentName }}</span>
+              <span class="text-sm font-medium text-txt-hi">{{ agent.agentName }}</span>
               <span class="ml-auto tabular-nums text-xs text-txt-low"
                 >{{ t('statistic.sessionCount', { count: agent.sessions }, agent.sessions) }} ·
                 {{ t('common.money', { amount: agent.totalCostUsd.toFixed(2) }) }}</span
@@ -101,7 +111,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
       </section>
 
       <section class="card p-6">
-        <p class="text-xs text-txt-low">
+        <p class="section-title">
           {{ t('statistic.timePerPhase') }}
         </p>
         <ul class="mt-3 flex flex-col gap-3">
@@ -110,7 +120,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
             :key="phase.phase"
             class="flex items-center gap-1.5 text-sm"
           >
-            <span class="tabular-nums text-xs text-txt-hi">{{ t(`phase.${phase.phase}`) }}</span>
+            <span class="text-sm font-medium text-txt-hi">{{ t(`phase.${phase.phase}`) }}</span>
             <span class="ml-auto tabular-nums text-xs text-txt-low"
               >{{ t('statistic.sessionCount', { count: phase.sessions }, phase.sessions) }} ·
               {{ say(humanDuration(phase.totalSeconds)) }}</span
@@ -118,7 +128,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
           </li>
         </ul>
 
-        <p class="mt-5 text-xs text-txt-low">
+        <p class="mt-5 section-title">
           {{ t('statistic.howSessionsEnd') }}
         </p>
         <ul class="mt-3 flex flex-col gap-1.5">
@@ -127,7 +137,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
             :key="outcome.outcome"
             class="flex items-center gap-1.5 text-sm"
           >
-            <span class="tabular-nums text-xs" :class="colourOf(outcome.outcome)">{{
+            <span class="text-sm font-medium" :class="colourOf(outcome.outcome)">{{
               t(sessionEndKey(outcome.outcome, 'finished'))
             }}</span>
             <span class="ml-auto tabular-nums text-xs text-txt-low">{{ outcome.sessions }}</span>
@@ -137,7 +147,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
     </div>
 
     <section class="card mt-6 p-6">
-      <p class="text-xs text-txt-low">
+      <p class="section-title">
         {{ t('statistic.timePerStory') }}
       </p>
       <p v-if="stories.length === 0" class="mt-2 text-sm text-txt-low">
@@ -170,7 +180,7 @@ onMounted(() => Promise.all([summary.reload(), history.reload()]))
     </section>
 
     <section class="card mt-6 p-6">
-      <p class="text-xs text-txt-low">
+      <p class="section-title">
         {{ t('statistic.sessionHistory') }}
       </p>
       <div class="mt-3">

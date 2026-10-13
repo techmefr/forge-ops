@@ -23,7 +23,7 @@ const { t } = useI18n()
       class="flex min-h-10 flex-none items-center gap-1.5 border-b-2 px-3 py-2.5 whitespace-nowrap transition-colors"
       :class="current === tab ? `border-acc text-txt-hi` : `border-transparent text-txt-mid hover:text-txt-hi`"
     >
-      <span class="text-sm font-medium">{{
+      <span class="text-sm font-semibold">{{
         t(`${group}.${tab}`)
       }}</span>
     </RouterLink>

@@ -93,7 +93,7 @@ void users.reload()
 <template>
   <section class="flex flex-col gap-4 border-t border-hair pt-6" data-tour="setting-users">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="m-0 text-sm font-medium text-txt-hi">{{ t('team.users') }}</h2>
+      <h2 class="title-face m-0 text-lg font-bold text-txt-hi">{{ t('team.users') }}</h2>
       <EffectBadge section="users" />
     </div>
     <p class="m-0 text-sm text-txt-mid">{{ t('team.usersSub') }}</p>
