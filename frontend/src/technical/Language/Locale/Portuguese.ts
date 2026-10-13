@@ -1094,7 +1094,7 @@ export const PORTUGUESE: Message = {
     retriesHint: 'O passo é executado de novo com o motivo da falha, depois o cartão para em vermelho.',
   },
   workflowSettings: {
-    openWithCount: 'Definições do workflow · {count} etapa | Definições do workflow · {count} etapas',
+    openWithCount: 'Definições dos workflows · {count} workflow | Definições dos workflows · {count} workflows',
     setBy: 'Workflow definido por {name}',
     noAdmin: 'Este projeto não tem admin: ninguém pode ainda definir o seu workflow.',
     title: 'Workflow {name}',

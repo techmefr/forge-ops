@@ -1092,7 +1092,7 @@ export const FRENCH: Message = {
     retriesHint: 'L’étape est relancée avec la raison de l’échec, puis la carte s’arrête en rouge.',
   },
   workflowSettings: {
-    openWithCount: 'Réglages du workflow · {count} étape | Réglages du workflow · {count} étapes',
+    openWithCount: 'Réglages des workflows · {count} workflow | Réglages des workflows · {count} workflows',
     setBy: 'Workflow fixé par {name}',
     noAdmin: 'Ce projet n’a pas d’admin : personne ne peut encore définir son workflow.',
     title: 'Workflow {name}',

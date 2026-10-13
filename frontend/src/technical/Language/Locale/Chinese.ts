@@ -1086,7 +1086,7 @@ export const CHINESE: Message = {
     retriesHint: '该步骤会带着失败原因重新运行，之后卡片会以红色停止。',
   },
   workflowSettings: {
-    openWithCount: '工作流设置 · {count} 个步骤',
+    openWithCount: '工作流设置 · {count} 个工作流',
     setBy: '工作流由 {name} 设置',
     noAdmin: '该项目尚未设置管理员：目前没有人可以定义它的工作流。',
     title: '工作流 {name}',

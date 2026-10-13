@@ -67,6 +67,8 @@ const WORKFLOW_OF_BETA = { columns: [], maySettle: false, admin: null }
 const ROUTES: Record<string, unknown> = {
   '/api/projects/1/workflow-columns': WORKFLOW_OF_ALPHA,
   '/api/projects/2/workflow-columns': WORKFLOW_OF_BETA,
+  '/api/projects/1/workflows': { workflows: [{ id: 1 }, { id: 2 }] },
+  '/api/projects/2/workflows': { workflows: [{ id: 3 }] },
   '/api/projects/sheets': SHEETS,
   '/api/board-users': USERS,
   '/api/tags': TAGS,
@@ -140,8 +142,8 @@ describe('ProjectsSection', () => {
 
     const gears = section.findAll('button').filter((button) => button.text().includes('Workflow settings'))
     expect(gears).toHaveLength(1)
-    expect(gears[0]?.text()).toContain('1 step')
-    expect(gears[0]?.attributes('aria-label')).toBe('Workflow settings · 1 step, Alpha')
+    expect(gears[0]?.text()).toContain('2 workflows')
+    expect(gears[0]?.attributes('aria-label')).toBe('Workflow settings · 2 workflows, Alpha')
     expect(gears[0]?.attributes('aria-label')).toContain(gears[0]?.text().replace('⚙', '').trim())
   })
 

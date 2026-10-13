@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProjectWorkflow } from './UseProjectWorkflow'
+import { useProjectWorkflows } from './UseProjectWorkflows'
 import WorkflowDrawer from './WorkflowDrawer.vue'
 
 const props = defineProps<{ projectId: number; projectName: string }>()
@@ -11,24 +12,25 @@ const emit = defineEmits<{ changed: [] }>()
 const { t } = useI18n()
 
 const state = useProjectWorkflow(() => props.projectId)
+const all = useProjectWorkflows(() => props.projectId)
 const opened = ref(false)
 
 const maySettle = computed(() => state.workflow.value?.maySettle ?? false)
 const admin = computed(() => state.workflow.value?.admin ?? null)
-const count = computed(() => state.workflow.value?.columns.length ?? 0)
+const count = computed(() => all.workflows.value.length)
 
 async function closed(): Promise<void> {
   opened.value = false
-  await state.load()
+  await Promise.all([state.load(), all.load()])
   emit('changed')
 }
 
 watch(
   () => props.projectId,
-  () => void state.load(),
+  () => void Promise.all([state.load(), all.load()]),
 )
 
-onMounted(() => void state.load())
+onMounted(() => void Promise.all([state.load(), all.load()]))
 </script>
 
 <template>

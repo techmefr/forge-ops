@@ -1084,7 +1084,7 @@ export const ENGLISH = {
     retriesHint: 'The step runs again with the failure reason, then the card stops red.',
   },
   workflowSettings: {
-    openWithCount: 'Workflow settings · {count} step | Workflow settings · {count} steps',
+    openWithCount: 'Workflow settings · {count} workflow | Workflow settings · {count} workflows',
     setBy: 'Workflow set by {name}',
     noAdmin: 'No admin is set for this project: nobody can define its workflow yet.',
     title: 'Workflow {name}',
