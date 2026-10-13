@@ -58,6 +58,10 @@ const phase = computed(() =>
     props.steps.filter((candidate) => candidate.kind === 'step').map((candidate) => candidate.key),
   ),
 )
+const phasesOfWorkflow = computed(() => {
+  const keys = props.steps.filter((candidate) => candidate.kind === 'step').map((candidate) => candidate.key)
+  return keys.map((key) => phaseOfStep(key, keys))
+})
 const route = computed(() => replyRouteOf(step.value?.kind ?? 'backlog', step.value?.human ?? false))
 const action = computed(() => primaryActionOf(props.card, props.steps))
 const secondaryAction = computed(() => secondaryActionOf(props.card))
@@ -71,7 +75,7 @@ const autoNote = computed(() => {
   return t(auto.state === 'red' ? 'autopilot.red' : 'autopilot.paused', { reason: auto.reason ?? '' })
 })
 const grouped = computed(() =>
-  groupThread(looking.value ? itemsOfPhase(conversation.items.value, phase.value) : conversation.items.value),
+  groupThread(looking.value ? itemsOfPhase(conversation.items.value, phase.value, phasesOfWorkflow.value) : conversation.items.value),
 )
 const working = computed(() => props.card.status === 'running')
 
