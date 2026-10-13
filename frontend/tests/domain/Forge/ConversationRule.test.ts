@@ -16,6 +16,7 @@ import {
 } from '@/domain/Forge/ConversationRule'
 
 const THREAD: StoryThread = {
+  toolLogs: [],
   reference: 'S-1',
   state: 'building',
   opening: null,
@@ -88,10 +89,10 @@ describe('foldEvent', () => {
     )
     const ended = foldEvent(
       started,
-      { name: 'session.user', payload: { reference: ref, tools: [{ id: 't1', name: '', outcome: 'failed' }] } },
+      { name: 'session.user', payload: { reference: ref, tools: [{ id: 't1', name: '', outcome: 'failed', input: '', output: '' }] } },
       'S-1',
     )
-    expect(ended).toEqual([{ kind: 'tool', id: 't1', name: 'Read', outcome: 'failed' }])
+    expect(ended).toEqual([{ kind: 'tool', id: 't1', name: 'Read', outcome: 'failed', input: '', output: '' }])
   })
 
   it('ignores the events of another story and the ones it does not show', () => {
@@ -131,7 +132,7 @@ describe('withoutPersisted', () => {
   const saved: ThreadItem = { kind: 'message', id: 'a', voice: 'agent', author: 'architect', body: 'Done reading', at: '2026-09-29 10:00:00', proof: false, evidencePath: null }
   const echoed: ThreadItem = { ...saved, id: 'live-1', at: null, body: ' Done reading ' }
   const fresh: ThreadItem = { ...saved, id: 'live-2', at: null, body: 'Next question' }
-  const tool: ThreadItem = { kind: 'tool', id: 't1', name: 'Read', outcome: 'ok' }
+  const tool: ThreadItem = { kind: 'tool', id: 't1', name: 'Read', outcome: 'ok', input: '', output: '' }
 
   it('drops the live lines the board already saved and keeps the rest', () => {
     expect(withoutPersisted([echoed, fresh, tool], [saved])).toEqual([fresh, tool])
@@ -171,7 +172,7 @@ describe('groupThread', () => {
   it('starts a new group after a marker or a tool line', () => {
     const { blocks } = groupThread([
       said('a', 'agent', 'one'),
-      { kind: 'tool', id: 't', name: 'Read', outcome: 'ok' },
+      { kind: 'tool', id: 't', name: 'Read', outcome: 'ok', input: '', output: '' },
       said('b', 'agent', 'two'),
     ])
     expect(blocks.map((block) => block.kind)).toEqual(['group', 'tool', 'group'])
@@ -244,7 +245,7 @@ describe('the logs and the quote', () => {
     const items: ThreadItem[] = [
       { kind: 'marker', id: 'm', phase: 'dev', agent: 'neo' },
       { kind: 'message', id: 'a', voice: 'agent', author: 'neo', body: 'Done', at: '10:00', proof: false, evidencePath: null },
-      { kind: 'tool', id: 't', name: 'Read', outcome: 'failed' },
+      { kind: 'tool', id: 't', name: 'Read', outcome: 'failed', input: '', output: '' },
       { kind: 'notice', id: 'n', text: 'Stopped' },
     ]
     const lines = logLinesOf(items, (phase) => phase.toUpperCase())
@@ -260,5 +261,42 @@ describe('the logs and the quote', () => {
     expect(withQuote('', 'log line')).toBe('> log line\n\n')
     expect(withQuote('Why?', 'log line')).toBe('Why?\n\n> log line\n\n')
     expect(withQuote('Why?', '  ')).toBe('Why?')
+  })
+})
+
+describe('the raw output of the tools', () => {
+  it('slots each tool log into the chapter of its session, in time order', () => {
+    const thread: StoryThread = {
+      reference: 'S-9',
+      state: 'building',
+      opening: null,
+      awaitsValidation: false,
+      chapters: [
+        {
+          phase: 'dev',
+          claudeSessionId: 'c-1',
+          agentName: 'neo',
+          openedAt: '2026-10-13 10:00:00',
+          collapsed: false,
+          entries: [
+            { kind: 'message', at: '2026-10-13 10:00:05', author: 'neo', voice: 'agent', body: 'Reading', evidencePath: null },
+            { kind: 'message', at: '2026-10-13 10:00:30', author: 'neo', voice: 'agent', body: 'Done', evidencePath: null },
+          ],
+        },
+      ],
+      toolLogs: [
+        { id: 't1', claudeSessionId: 'c-1', at: '2026-10-13 10:00:10', name: 'Read', input: '{}', output: 'file body', failed: false },
+        { id: 't2', claudeSessionId: 'other', at: '2026-10-13 10:00:12', name: 'Bash', input: '', output: '', failed: true },
+      ],
+    }
+    const items = itemsOfThread(thread)
+    expect(items.map((item) => item.kind)).toEqual(['marker', 'message', 'tool', 'message'])
+    expect(items[2]).toMatchObject({ id: 't1', name: 'Read', output: 'file body' })
+  })
+
+  it('shows the input and the output under the tool line, and drops a live duplicate', () => {
+    const tool: ThreadItem = { kind: 'tool', id: 't1', name: 'Bash', outcome: 'ok', input: 'ls', output: 'a.ts' }
+    expect(logLinesOf([tool], (phase) => phase)[0]?.detail).toBe('ls\n\na.ts')
+    expect(withoutPersisted([tool], [tool])).toEqual([])
   })
 })

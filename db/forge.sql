@@ -428,6 +428,21 @@ CREATE TABLE IF NOT EXISTS story_message (
 
 CREATE INDEX IF NOT EXISTS idx_story_message_story ON story_message(story_id, id);
 
+CREATE TABLE IF NOT EXISTS tool_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  story_id INTEGER NOT NULL REFERENCES story(id),
+  claude_session_id TEXT NOT NULL,
+  tool_use_id TEXT NOT NULL,
+  name TEXT NOT NULL DEFAULT '',
+  input TEXT NOT NULL DEFAULT '',
+  output TEXT NOT NULL DEFAULT '',
+  failed INTEGER NOT NULL DEFAULT 0,
+  written_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (claude_session_id, tool_use_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tool_log_story ON tool_log(story_id, id);
+
 CREATE TABLE IF NOT EXISTS story_hold (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   story_id INTEGER NOT NULL REFERENCES story(id),

@@ -46,6 +46,7 @@ function threadOf(context: DemoContext, card: ForgeCardView): StoryThread {
     opening: null,
     awaitsValidation: false,
     chapters: [],
+    toolLogs: [],
   }
   context.state.threads.set(card.storyId, created)
   return created

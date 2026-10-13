@@ -3,6 +3,7 @@ import type {
   ThreadChapter,
   ThreadEntry,
   ThreadOpening,
+  ThreadToolLog,
   ThreadVoice,
   ValidationRefusal,
 } from '../../../../contract/ConversationContract.js'
@@ -43,6 +44,7 @@ export type ThreadBody = {
   remarks: readonly StoryRemark[]
   proofs: readonly ThreadProof[]
   messages?: readonly ThreadMessage[]
+  toolLogs?: readonly ThreadToolLog[]
 }
 
 const WRITING_PHASE = 'spec'
@@ -161,5 +163,6 @@ export function threadOf(
     opening,
     awaitsValidation: story.state === 'drafting',
     chapters: chaptersOf(body),
+    toolLogs: body.toolLogs ?? [],
   }
 }

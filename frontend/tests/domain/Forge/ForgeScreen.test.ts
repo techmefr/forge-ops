@@ -83,6 +83,7 @@ const WORKFLOW: ProjectWorkflow = {
 const DEFAULT_WORKFLOW = { id: 1, projectId: 1, key: 'default', name: 'Default', position: 1 }
 
 const THREAD: StoryThread = {
+  toolLogs: [],
   reference: 'S-2',
   state: 'building',
   opening: null,
