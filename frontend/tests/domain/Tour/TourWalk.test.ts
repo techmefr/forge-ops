@@ -33,9 +33,12 @@ describe('la visite est une liste ordonnee, pas de la prose dans les composants'
   it('passe par les quatre ecrans de la refonte', () => {
     expect(TOUR_STEPS.map((step) => step.id)).toEqual([
       'pipeline',
-      'column',
-      'story',
+      'subjects',
+      'workflows',
+      'steps',
+      'card',
       'mine',
+      'deployment',
       'evidence',
       'guardrail',
       'ledger',
@@ -73,7 +76,7 @@ describe('le parcours ne sort jamais des bornes', () => {
   })
 
   it('rend l etape demandee', () => {
-    expect(stepAt(1)?.id).toBe('column')
+    expect(stepAt(1)?.id).toBe('subjects')
     expect(stepAt(500)?.id).toBe('rules')
   })
 })

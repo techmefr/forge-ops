@@ -1310,35 +1310,47 @@ export const GERMAN: Message = {
     spot: 'Schritt der Tour',
     pipeline: {
       title: 'Vier Bildschirme, eine Pipeline',
-      say: 'Die Reiter folgen der Arbeit: Board, meine Forge, die Rechnung, die Regeln.',
+      say: 'Projekte, Meine Forge, Einstellungen und Statistik: Die Tabs folgen der Arbeit vom Plan bis zur Rechnung.',
     },
-    column: {
-      title: 'Eine Spalte ist ein Zustand',
-      say: 'Eine Story rückt nur vor, wenn das Board es zulässt.',
+    subjects: {
+      title: 'Jedes Projekt auf einen Blick',
+      say: 'Jede Karte zeigt das Wetter eines Projekts, was verspätet oder blockiert ist, den Fortschritt und was als Nächstes kommt. Ein Klick öffnet die Nachverfolgung.',
     },
-    story: {
-      title: 'Die Karte ist das Gespräch',
-      say: 'Öffne sie: der Faden hält fest, was gesagt und was bewiesen wurde.',
+    workflows: {
+      title: 'Ein Workflow pro Art von Arbeit',
+      say: 'Ein Projekt kann mehrere Workflows haben, etwa Default und Hotfix, jeder mit eigenen Schritten. Man wählt ihn beim Hinzufügen einer Story.',
+    },
+    steps: {
+      title: 'Eine Story durchläuft ihren Workflow',
+      say: 'Der Stepper zeigt, wo jede Story steht: Schritt erledigt, aktuell oder noch offen. Das Board lässt sie nur weiter, wenn der Nachweis da ist.',
+    },
+    card: {
+      title: 'Eine Karte ist das Gespräch',
+      say: 'Öffnen Sie sie: Ein vergangener Schritt ist ein schreibgeschützter Verlauf, im aktuellen Schritt sprechen Sie mit dem Agenten.',
     },
     mine: {
       title: 'Meine Forge',
       say: 'Woran ich gerade arbeite, und sonst nichts.',
     },
+    deployment: {
+      title: 'Vom Branch in die Produktion',
+      say: 'Jede Story hat ihren Branch, ein Feature-Flag für den schrittweisen Rollout und einen Knopf, der sie als in Produktion meldet und die nächsten freigibt.',
+    },
     evidence: {
-      title: 'Ein Beweis ist eine Datei',
+      title: 'Ein Nachweis ist eine Datei',
       say: 'Die Legende sagt, wie jede Datei markiert wurde.',
     },
     guardrail: {
-      title: 'Reservierter Boden',
-      say: 'Eine Story nennt die Pfade, die sie anfasst, der Rest wird abgelehnt.',
+      title: 'Reserviertes Gelände',
+      say: 'Eine Story kündigt die Pfade an, die sie berührt; der Rest wird abgelehnt.',
     },
     ledger: {
-      title: 'Was es gekostet hat',
-      say: 'Zeit, Token und Geld, je Agent und je Story.',
+      title: 'Was es kostet',
+      say: 'Zeit, Tokens und Geld, pro Agent und pro Story.',
     },
     rules: {
-      title: 'Die Regeln des Hauses',
-      say: 'Zugänge, Vorlagen, Budget, Lieferung: einmal entschieden, überall angewandt.',
+      title: 'Die Hausregeln',
+      say: 'Zugänge, Vorlagen, Budget, Auslieferung: einmal entschieden, überall angewendet.',
     },
   },
 }

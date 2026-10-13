@@ -1297,19 +1297,31 @@ export const ENGLISH = {
     spot: 'Tour step',
     pipeline: {
       title: 'Four screens, one pipeline',
-      say: 'The tabs follow the work: the board, my forge, the ledger, the rules.',
+      say: 'Projects, My forge, Settings and Statistics: the tabs follow the work from the plan to the bill.',
     },
-    column: {
-      title: 'A column is a state',
-      say: 'A story moves only when the board lets it.',
+    subjects: {
+      title: 'Every project at a glance',
+      say: 'Each card gives the weather of a project, what is late or blocked, how far it got and what comes next. Click one to open its follow-up.',
     },
-    story: {
+    workflows: {
+      title: 'One workflow per kind of work',
+      say: 'A project can have several workflows, for instance Default and Hotfix, each with its own steps. Pick one when you add a story.',
+    },
+    steps: {
+      title: 'A story walks its workflow',
+      say: 'The stepper shows where each story is. A step is done, current or still ahead, and the board moves a story on only when the proof is there.',
+    },
+    card: {
       title: 'A card is the conversation',
-      say: 'Open it: the thread holds what was said and what was proven.',
+      say: 'Open it: a step already passed is read-only history, the current step is where you talk to the agent.',
     },
     mine: {
       title: 'My forge',
       say: 'What I am working on right now, and nothing else.',
+    },
+    deployment: {
+      title: 'From branch to production',
+      say: 'Each story gets its branch, a feature flag to roll out little by little, and a button to say it is in production and unblock the next ones.',
     },
     evidence: {
       title: 'A proof is a file',

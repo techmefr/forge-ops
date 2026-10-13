@@ -185,9 +185,23 @@ onBeforeUnmount(() => {
     :class="CORNER_CLASSES[corner]"
     class="fixed z-50 flex w-[min(380px,calc(100vw-1.5rem))] flex-col gap-3 rounded-lg bg-panel p-6 shadow-2xl"
   >
-    <p class="text-xs text-txt-low" role="status">
-      {{ t('tour.progress', { current: tour.index.value + 1, total: tour.total }) }}
-    </p>
+    <div class="flex items-center gap-3">
+      <span
+        class="h-1 flex-1 overflow-hidden rounded-full bg-elev"
+        role="progressbar"
+        :aria-valuenow="tour.index.value + 1"
+        aria-valuemin="1"
+        :aria-valuemax="tour.total"
+      >
+        <span
+          class="block h-full rounded-full bg-acc transition-[width]"
+          :style="{ width: `${((tour.index.value + 1) / tour.total) * 100}%` }"
+        />
+      </span>
+      <p class="flex-none text-xs text-txt-low" role="status">
+        {{ t('tour.progress', { current: tour.index.value + 1, total: tour.total }) }}
+      </p>
+    </div>
 
     <h2 ref="heading" tabindex="-1" class="title-face m-0 text-lg text-txt-hi outline-none">
       {{ title }}

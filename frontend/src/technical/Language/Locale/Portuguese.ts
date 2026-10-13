@@ -1297,7 +1297,7 @@ export const PORTUGUESE: Message = {
     source: 'O repositório',
   },
   tour: {
-    label: 'Visita guiada ao quadro de demonstração',
+    label: 'Visita guiada do quadro de demonstração',
     progress: 'Passo {current} de {total}',
     next: 'Seguinte',
     previous: 'Anterior',
@@ -1308,35 +1308,47 @@ export const PORTUGUESE: Message = {
     spot: 'Passo da visita',
     pipeline: {
       title: 'Quatro ecrãs, um pipeline',
-      say: 'Os separadores seguem o trabalho: o quadro, a minha forja, as contas, as regras.',
+      say: 'Projetos, A minha forja, Definições e Estatísticas: os separadores seguem o trabalho do plano até à fatura.',
     },
-    column: {
-      title: 'Uma coluna é um estado',
-      say: 'Uma história só avança se o quadro o permitir.',
+    subjects: {
+      title: 'Cada projeto num relance',
+      say: 'Cada cartão dá o estado do tempo de um projeto, o que está atrasado ou bloqueado, o avanço e o que se segue. Clique para abrir o seu acompanhamento.',
     },
-    story: {
-      title: 'O cartão é a conversa',
-      say: 'Abre-o: o fio guarda o que foi dito e o que foi provado.',
+    workflows: {
+      title: 'Um workflow por tipo de trabalho',
+      say: 'Um projeto pode ter vários workflows, por exemplo Default e Hotfix, cada um com os seus passos. Escolhe-se ao adicionar uma história.',
+    },
+    steps: {
+      title: 'Uma história percorre o seu workflow',
+      say: 'O stepper mostra onde está cada história: passo feito, atual ou por fazer. O quadro só a faz avançar quando a prova existe.',
+    },
+    card: {
+      title: 'Um cartão é a conversa',
+      say: 'Abra-o: um passo já concluído é um histórico só de leitura, o passo atual é onde fala com o agente.',
     },
     mine: {
       title: 'A minha forja',
-      say: 'Aquilo em que estou a trabalhar agora, e mais nada.',
+      say: 'Em que estou a trabalhar agora, e mais nada.',
+    },
+    deployment: {
+      title: 'Do ramo à produção',
+      say: 'Cada história tem o seu ramo, uma feature flag para lançar aos poucos e um botão para dizer que está em produção e desbloquear as seguintes.',
     },
     evidence: {
       title: 'Uma prova é um ficheiro',
       say: 'A legenda diz como cada ficheiro foi marcado.',
     },
     guardrail: {
-      title: 'O terreno reservado',
-      say: 'Uma história anuncia os caminhos que toca, o resto é recusado.',
+      title: 'Terreno reservado',
+      say: 'Uma história anuncia os caminhos que toca; o resto é recusado.',
     },
     ledger: {
-      title: 'Quanto custou',
+      title: 'Quanto custa',
       say: 'Tempo, tokens e dinheiro, por agente e por história.',
     },
     rules: {
       title: 'As regras da casa',
-      say: 'Entradas, modelos, orçamento, entrega: decididos uma vez, aplicados em todo o lado.',
+      say: 'Acessos, modelos, orçamento, entrega: decididos uma vez, aplicados em todo o lado.',
     },
   },
 }

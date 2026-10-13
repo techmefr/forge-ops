@@ -34,7 +34,7 @@ onMounted(() => void Promise.all([state.load(), all.load()]))
 </script>
 
 <template>
-  <div v-if="state.workflow.value !== null" class="flex items-center gap-2">
+  <div v-if="state.workflow.value !== null" class="flex items-center gap-2" data-tour="forge-workflows">
     <button
       v-if="maySettle"
       type="button"
