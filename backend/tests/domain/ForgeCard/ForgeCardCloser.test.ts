@@ -88,3 +88,42 @@ describe('publishing the story when its card is closed', () => {
     expect(earnedCloser(undefined, order).close(1).publication).toBeNull()
   })
 })
+
+describe('closing a card of a human-only workflow', () => {
+  function humanCloser(provider: string) {
+    const order: string[] = []
+    const publishStory = vi.fn()
+    const closer = createForgeCardCloser({
+      board: { view: () => ({ id: 1, projectId: 1, storyId: 2, reference: 'S-2', stepKey: 'ship', status: 'to_validate' }) },
+      forgeCards: { closeForgeCard: () => order.push('closed') },
+      stories: {
+        findStory: () => ({ id: 2, reference: 'S-2', epicId: 3 }),
+        findEpic: () => ({ businessIntent: 'manage' }),
+        markDoneAndUnblock: () => {
+          order.push('done')
+          return []
+        },
+      },
+      columns: { list: () => [{ key: 'spec', provider }, { key: 'ship', provider }] },
+      checkpoints: { definitionOfDone: () => [], reviewCascade: () => [], listUnresolvedFindings: () => [] },
+      criteria: { listCriteria: () => [] },
+      cleanUpAfterMerge: () => {
+        order.push('cleaned')
+        return { scopesReleased: 0, worktreeClosed: true, worktreeRefusal: null }
+      },
+      publishStory,
+    } as unknown as ForgeCardCloserInput)
+    return { closer, order, publishStory }
+  }
+
+  it('closes without proofs and without publishing', () => {
+    const { closer, order, publishStory } = humanCloser('human')
+    expect(closer.close(1).publication).toBeNull()
+    expect(order).toEqual(['done', 'cleaned', 'closed'])
+    expect(publishStory).not.toHaveBeenCalled()
+  })
+
+  it('still demands proofs when a step is run by an agent', () => {
+    expect(() => humanCloser('claude').closer.close(1)).toThrow()
+  })
+})

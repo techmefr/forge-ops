@@ -226,7 +226,7 @@ describe('editing the workflow', () => {
 })
 
 describe('the pipeline', () => {
-  it('moves a card into a human step without starting an agent, and refuses to close it early', async () => {
+  it('moves a card into a human step without starting an agent, and closes it without agent proofs', async () => {
     const story = await call('POST', '/api/forge-cards/backlog', LOCAL, { subjectId, title: 'A thin story' })
     expect(story.status).toBe(201)
     const cards = await call('GET', `/api/forge-cards?project=${projectId}`, LOCAL)
@@ -238,7 +238,6 @@ describe('the pipeline', () => {
     expect(moved.body.session ?? null).toBeNull()
 
     const closed = await call('POST', `/api/forge-cards/${card?.id}/done`, LOCAL, {})
-    expect(closed.status).toBe(409)
-    expect(closed.body.error).toBeDefined()
+    expect(closed.status, JSON.stringify(closed.body)).toBe(200)
   })
 })
