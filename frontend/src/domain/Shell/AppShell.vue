@@ -159,8 +159,9 @@ watch(
       class="sticky top-0 z-40 flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line bg-panel px-4 py-2 shadow-sm sm:gap-4 sm:px-8 sm:py-4"
     >
       <div class="min-w-0 flex-[1_1_auto] sm:flex-[1_1_240px]" data-tour="shell-heading">
+        <p class="kicker mb-0.5" aria-hidden="true">Forge.ops</p>
         <div class="flex items-baseline gap-2.5">
-          <h1 id="page-heading" class="title-face m-0 text-xl font-bold sm:text-2xl">{{ heading.label }}</h1>
+          <h1 id="page-heading" class="title-face m-0 text-xl font-extrabold tracking-tight uppercase sm:text-3xl">{{ heading.label }}</h1>
         </div>
         <p class="mt-0.5 text-sm text-txt-mid max-sm:hidden">{{ heading.sub }}</p>
       </div>
