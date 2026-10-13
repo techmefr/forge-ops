@@ -15,25 +15,47 @@ export type ThreadItem =
       proof: boolean
       evidencePath: string | null
     }
-  | { kind: 'tool'; id: string; name: string; outcome: ToolOutcome }
+  | { kind: 'tool'; id: string; name: string; outcome: ToolOutcome; input: string; output: string }
   | { kind: 'notice'; id: string; text: string }
 
 export function itemsOfThread(thread: StoryThread): readonly ThreadItem[] {
-  return thread.chapters.flatMap((chapter, chapterIndex): readonly ThreadItem[] => [
-    { kind: 'marker', id: `marker-${chapterIndex}`, phase: chapter.phase, agent: chapter.agentName },
-    ...chapter.entries.map(
-      (entry, position): ThreadItem => ({
-        kind: 'message',
-        id: `entry-${chapterIndex}-${position}`,
-        voice: entry.voice,
-        author: entry.author,
-        body: entry.body,
+  return thread.chapters.flatMap((chapter, chapterIndex): readonly ThreadItem[] => {
+    const messages = chapter.entries.map(
+      (entry, position): { at: string; item: ThreadItem } => ({
         at: entry.at,
-        proof: entry.kind === 'proof',
-        evidencePath: entry.evidencePath,
+        item: {
+          kind: 'message',
+          id: `entry-${chapterIndex}-${position}`,
+          voice: entry.voice,
+          author: entry.author,
+          body: entry.body,
+          at: entry.at,
+          proof: entry.kind === 'proof',
+          evidencePath: entry.evidencePath,
+        },
       }),
-    ),
-  ])
+    )
+    const tools = (thread.toolLogs ?? [])
+      .filter((log) => chapter.claudeSessionId !== null && log.claudeSessionId === chapter.claudeSessionId)
+      .map(
+        (log): { at: string; item: ThreadItem } => ({
+          at: log.at,
+          item: {
+            kind: 'tool',
+            id: log.id,
+            name: log.name,
+            outcome: log.failed ? 'failed' : 'ok',
+            input: log.input,
+            output: log.output,
+          },
+        }),
+      )
+    const merged = [...messages, ...tools].sort((left, right) => left.at.localeCompare(right.at))
+    return [
+      { kind: 'marker', id: `marker-${chapterIndex}`, phase: chapter.phase, agent: chapter.agentName },
+      ...merged.map((entry) => entry.item),
+    ]
+  })
 }
 
 export function withoutPersisted(
@@ -43,7 +65,13 @@ export function withoutPersisted(
   const saved = new Set(
     history.flatMap((item) => (item.kind === 'message' ? [`${item.voice}|${item.body.trim()}`] : [])),
   )
-  return live.filter((item) => item.kind !== 'message' || !saved.has(`${item.voice}|${item.body.trim()}`))
+  const savedTools = new Set(history.flatMap((item) => (item.kind === 'tool' ? [item.id] : [])))
+  return live.filter((item) => {
+    if (item.kind === 'tool') {
+      return !savedTools.has(item.id)
+    }
+    return item.kind !== 'message' || !saved.has(`${item.voice}|${item.body.trim()}`)
+  })
 }
 
 export function concernsStory(eventReference: unknown, storyReference: string): boolean {
@@ -53,7 +81,7 @@ export function concernsStory(eventReference: unknown, storyReference: string): 
   return eventReference.split(/[\s(),]+/).includes(storyReference)
 }
 
-type ToolPayload = { id: string; name: string; outcome: ToolOutcome }
+type ToolPayload = { id: string; name: string; outcome: ToolOutcome; input: string; output: string }
 
 function toolsIn(payload: Record<string, unknown>): readonly ToolPayload[] {
   const raw = payload.tools
@@ -69,18 +97,32 @@ function toolsIn(payload: Record<string, unknown>): readonly ToolPayload[] {
     if (typeof candidate.id !== 'string' || (outcome !== 'started' && outcome !== 'ok' && outcome !== 'failed')) {
       return []
     }
-    return [{ id: candidate.id, name: typeof candidate.name === 'string' ? candidate.name : '', outcome }]
+    return [
+      {
+        id: candidate.id,
+        name: typeof candidate.name === 'string' ? candidate.name : '',
+        outcome,
+        input: typeof candidate.input === 'string' ? candidate.input : '',
+        output: typeof candidate.output === 'string' ? candidate.output : '',
+      },
+    ]
   })
 }
 
 function withTool(items: readonly ThreadItem[], tool: ToolPayload): readonly ThreadItem[] {
   const known = items.find((item) => item.kind === 'tool' && item.id === tool.id)
   if (known === undefined) {
-    return [...items, { kind: 'tool', id: tool.id, name: tool.name, outcome: tool.outcome }]
+    return [...items, { kind: 'tool', id: tool.id, name: tool.name, outcome: tool.outcome, input: tool.input, output: tool.output }]
   }
   return items.map((item) =>
     item.kind === 'tool' && item.id === tool.id
-      ? { ...item, name: item.name === '' ? tool.name : item.name, outcome: tool.outcome }
+      ? {
+          ...item,
+          name: item.name === '' ? tool.name : item.name,
+          outcome: tool.outcome,
+          input: item.input === '' ? tool.input : item.input,
+          output: tool.output === '' ? item.output : tool.output,
+        }
       : item,
   )
 }
@@ -234,7 +276,7 @@ export function groupThread(items: readonly ThreadItem[]): GroupedThread {
 
 export type LogTone = 'phase' | 'agent' | 'human' | 'tool' | 'failed' | 'notice'
 
-export type LogLine = { id: string; tone: LogTone; text: string }
+export type LogLine = { id: string; tone: LogTone; text: string; detail: string }
 
 const TOOL_GLYPH: Readonly<Record<ToolOutcome, string>> = { started: '…', ok: '✓', failed: '✗' }
 
@@ -242,17 +284,18 @@ export function logLinesOf(items: readonly ThreadItem[], phaseLabel: (phase: str
   return items.map((item): LogLine => {
     if (item.kind === 'marker') {
       const parts = [phaseLabel(item.phase), item.agent].filter((part) => part !== null && part !== '')
-      return { id: item.id, tone: 'phase', text: parts.join(' · ') }
+      return { id: item.id, tone: 'phase', text: parts.join(' · '), detail: '' }
     }
     if (item.kind === 'message') {
       const stamp = item.at === null ? '' : `${item.at} `
-      return { id: item.id, tone: item.voice === 'human' ? 'human' : 'agent', text: `${stamp}${item.author}: ${item.body}` }
+      return { id: item.id, tone: item.voice === 'human' ? 'human' : 'agent', text: `${stamp}${item.author}: ${item.body}`, detail: '' }
     }
     if (item.kind === 'tool') {
       const name = item.name === '' ? '·' : item.name
-      return { id: item.id, tone: item.outcome === 'failed' ? 'failed' : 'tool', text: `${TOOL_GLYPH[item.outcome]} ${name}` }
+      const detail = [item.input, item.output].filter((part) => part !== '').join('\n\n')
+      return { id: item.id, tone: item.outcome === 'failed' ? 'failed' : 'tool', text: `${TOOL_GLYPH[item.outcome]} ${name}`, detail }
     }
-    return { id: item.id, tone: 'notice', text: item.text }
+    return { id: item.id, tone: 'notice', text: item.text, detail: '' }
   })
 }
 

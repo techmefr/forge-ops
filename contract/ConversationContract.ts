@@ -29,12 +29,23 @@ export type ThreadOpening = {
   prompt: string
 }
 
+export type ThreadToolLog = {
+  id: string
+  claudeSessionId: string
+  at: string
+  name: string
+  input: string
+  output: string
+  failed: boolean
+}
+
 export type StoryThread = {
   reference: string
   state: string
   opening: ThreadOpening | null
   awaitsValidation: boolean
   chapters: readonly ThreadChapter[]
+  toolLogs: readonly ThreadToolLog[]
 }
 
 export const VALIDATION_REFUSALS = ['AgentCannotValidate', 'StoryAlreadyValidated'] as const

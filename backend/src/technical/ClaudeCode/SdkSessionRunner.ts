@@ -169,6 +169,38 @@ export type ToolStep = {
   id: string
   name: string
   outcome: 'started' | 'ok' | 'failed'
+  input?: string
+  output?: string
+}
+
+export const TOOL_DETAIL_LIMIT = 8000
+
+function clipped(text: string): string {
+  return text.length > TOOL_DETAIL_LIMIT ? `${text.slice(0, TOOL_DETAIL_LIMIT)}\n… (${text.length - TOOL_DETAIL_LIMIT} characters cut)` : text
+}
+
+function inputText(input: unknown): string {
+  if (input === undefined || input === null) {
+    return ''
+  }
+  return clipped(typeof input === 'string' ? input : JSON.stringify(input, null, 2))
+}
+
+function outputText(content: unknown): string {
+  if (typeof content === 'string') {
+    return clipped(content)
+  }
+  if (!Array.isArray(content)) {
+    return ''
+  }
+  const parts = content.map((part) => {
+    if (typeof part === 'object' && part !== null) {
+      const text = (part as Record<string, unknown>).text
+      return typeof text === 'string' ? text : `[${String((part as Record<string, unknown>).type ?? 'content')}]`
+    }
+    return ''
+  })
+  return clipped(parts.filter((part) => part !== '').join('\n'))
 }
 
 function contentBlocksOf(message: unknown): readonly Record<string, unknown>[] {
@@ -189,10 +221,20 @@ export function toolsOf(message: unknown): readonly ToolStep[] {
   const steps: ToolStep[] = []
   for (const block of contentBlocksOf(message)) {
     if (block.type === 'tool_use' && typeof block.id === 'string') {
-      steps.push({ id: block.id, name: typeof block.name === 'string' ? block.name : '', outcome: 'started' })
+      steps.push({
+        id: block.id,
+        name: typeof block.name === 'string' ? block.name : '',
+        outcome: 'started',
+        input: inputText(block.input),
+      })
     }
     if (block.type === 'tool_result' && typeof block.tool_use_id === 'string') {
-      steps.push({ id: block.tool_use_id, name: '', outcome: block.is_error === true ? 'failed' : 'ok' })
+      steps.push({
+        id: block.tool_use_id,
+        name: '',
+        outcome: block.is_error === true ? 'failed' : 'ok',
+        output: outputText(block.content),
+      })
     }
   }
   return steps

@@ -9,11 +9,11 @@ describe('toolsOf', () => {
         message: {
           content: [
             { type: 'text', text: 'reading' },
-            { type: 'tool_use', id: 't1', name: 'Read', input: {} },
+            { type: 'tool_use', id: 't1', name: 'Read', input: { file_path: 'a.ts' } },
           ],
         },
       }),
-    ).toEqual([{ id: 't1', name: 'Read', outcome: 'started' }])
+    ).toEqual([{ id: 't1', name: 'Read', outcome: 'started', input: '{\n  "file_path": "a.ts"\n}' }])
   })
 
   it('reports how a tool ended, by its id', () => {
@@ -28,9 +28,24 @@ describe('toolsOf', () => {
         },
       }),
     ).toEqual([
-      { id: 't1', name: '', outcome: 'ok' },
-      { id: 't2', name: '', outcome: 'failed' },
+      { id: 't1', name: '', outcome: 'ok', output: 'ok' },
+      { id: 't2', name: '', outcome: 'failed', output: 'boom' },
     ])
+  })
+
+  it('reads a result made of several text parts and cuts a huge one', () => {
+    const [joined, huge] = toolsOf({
+      type: 'user',
+      message: {
+        content: [
+          { type: 'tool_result', tool_use_id: 't1', content: [{ type: 'text', text: 'a' }, { type: 'text', text: 'b' }] },
+          { type: 'tool_result', tool_use_id: 't2', content: 'x'.repeat(9000) },
+        ],
+      },
+    })
+    expect(joined?.output).toBe('a\nb')
+    expect(huge?.output?.length).toBeLessThan(8100)
+    expect(huge?.output).toContain('characters cut')
   })
 
   it('finds nothing in a plain message', () => {

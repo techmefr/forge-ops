@@ -7,6 +7,7 @@ import { StoryNotFoundError, StoryViolationError } from '../Story/StoryViolation
 import { assertHandOf } from '../Story/StoryHand.js'
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import { framedTurn, type SessionTalker } from './Conversation.js'
+import type { ToolLogRepository } from './ToolLogRepository.js'
 import { openingOf, threadOf, validationRefusalOf, voiceOf } from './Thread.js'
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
 import type { DiscussionRepository } from '../Discussion/DiscussionRepository.js'
@@ -28,6 +29,7 @@ export type ConversationApiInput = {
   checkpoints: CheckpointRepository
   templates: TemplateRepository
   messages: MessageRepository
+  toolLogs?: Pick<ToolLogRepository, 'listOfStory'>
 }
 
 export function createConversationApi({
@@ -39,6 +41,7 @@ export function createConversationApi({
   checkpoints,
   templates,
   messages,
+  toolLogs,
 }: ConversationApiInput): Hono {
   const api = new Hono()
 
@@ -132,6 +135,7 @@ export function createConversationApi({
           remarks: discussion.listRemarks(story.id),
           proofs: checkpoints.listProofs(story.id),
           messages: messages.listOfStory(story.id),
+          toolLogs: toolLogs?.listOfStory(story.id) ?? [],
         },
         openingOf(templates.templateOfProject(stories.projectOfStory(story.id)).columns, story),
       ),

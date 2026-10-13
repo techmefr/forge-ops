@@ -345,7 +345,11 @@ onBeforeUnmount(() => document.removeEventListener('selectionchange', readSelect
                 'text-txt-low': line.tone === 'tool' || line.tone === 'notice',
                 'text-red': line.tone === 'failed',
               }"
-            >{{ line.text }}</li>
+            >{{ line.text }}<pre
+                v-if="line.detail !== ''"
+                class="m-0 mt-1 max-h-64 overflow-auto rounded-md bg-elev p-2 font-mono text-xs whitespace-pre-wrap text-txt-mid"
+                data-test="forge-log-detail"
+              >{{ line.detail }}</pre></li>
           </ol>
         </div>
 

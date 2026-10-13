@@ -54,6 +54,7 @@ export const INSTANCE_HELD: readonly string[] = [
   'test_census',
   'story_remark',
   'story_message',
+  'tool_log',
   'story_hold',
   'pilot_run',
   'pilot_act',
