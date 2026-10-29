@@ -302,6 +302,7 @@ onMounted(async () => {
           v-model="turn"
           rows="2"
           :placeholder="t('story.turnPlaceholder')"
+          :aria-label="t('story.turnPlaceholder')"
           class="field min-w-0 flex-1"
         ></textarea>
         <button
@@ -397,12 +398,14 @@ onMounted(async () => {
             v-model="twinTitle"
             type="text"
             :placeholder="t('story.twinTitlePlaceholder')"
+            :aria-label="t('story.twinTitlePlaceholder')"
             class="field"
           />
           <textarea
             v-model="twinBody"
             rows="3"
             :placeholder="t('story.twinBodyPlaceholder')"
+            :aria-label="t('story.twinBodyPlaceholder')"
             class="field"
           ></textarea>
           <button

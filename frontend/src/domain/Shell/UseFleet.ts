@@ -16,13 +16,23 @@ export function useFleet(everyMs = 5000) {
   const fleet = ref<Fleet | null>(null)
   const machine = ref<MachineReading | null>(null)
 
+  let refreshing = false
+
   async function refresh(): Promise<void> {
-    const [jobs, reading] = await Promise.allSettled([
-      board.read<Fleet>('/api/fleet'),
-      board.read<MachineReading>('/api/machine'),
-    ])
-    fleet.value = jobs.status === 'fulfilled' ? jobs.value : null
-    machine.value = reading.status === 'fulfilled' ? reading.value : null
+    if (refreshing) {
+      return
+    }
+    refreshing = true
+    try {
+      const [jobs, reading] = await Promise.allSettled([
+        board.read<Fleet>('/api/fleet'),
+        board.read<MachineReading>('/api/machine'),
+      ])
+      fleet.value = jobs.status === 'fulfilled' ? jobs.value : null
+      machine.value = reading.status === 'fulfilled' ? reading.value : null
+    } finally {
+      refreshing = false
+    }
   }
 
   const timer = window.setInterval(() => void refresh(), everyMs)
