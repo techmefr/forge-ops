@@ -90,6 +90,9 @@ import { columnAgentOfPhase, createDrivenRunner } from '../domain/Driver/Driver.
 import { DEFAULT_FORGE_CARD_PROVIDER } from '../../../contract/ForgeCardContract.js'
 import { createCodexSessionRunner } from '../technical/Codex/CodexSessionRunner.js'
 import { codexDriver } from './CodexDriver.js'
+import { cliDriver } from './CliDriver.js'
+import { AGENT_MANIFESTS } from '../technical/Cli/AgentManifests.js'
+import { createCliSessionRunner } from '../technical/Cli/CliSessionRunner.js'
 import { createDriverApi } from '../domain/Driver/DriverApi.js'
 import { claudeCodeDriver } from './ClaudeCodeDriver.js'
 import type { SdkUserTurn } from '../technical/ClaudeCode/TurnDelivery.js'
@@ -308,6 +311,16 @@ export function startBoardServer({
     ),
     codexDriver(
       createCodexSessionRunner({ cwdFor: (order) => cwdForStory(order.storyId), onEvent: onSessionEvent }),
+    ),
+    ...AGENT_MANIFESTS.map((manifest) =>
+      cliDriver(
+        manifest,
+        createCliSessionRunner({
+          manifest,
+          cwdFor: (order) => cwdForStory(order.storyId),
+          onEvent: onSessionEvent,
+        }),
+      ),
     ),
   ]
   const dispatcher = createDispatcher({
