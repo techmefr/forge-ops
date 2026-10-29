@@ -111,6 +111,12 @@ export function createCodexSessionRunner({
           const line = buffered.slice(0, breakAt)
           buffered = buffered.slice(breakAt + 1)
           if (line.trim() !== '') {
+            if (output === '') {
+              onEvent({
+                name: 'session.working',
+                payload: { reference: order.reference, phase: order.phase, claudeSessionId },
+              })
+            }
             output += `${line}\n`
             onEvent({
               name: 'session.codex_line',

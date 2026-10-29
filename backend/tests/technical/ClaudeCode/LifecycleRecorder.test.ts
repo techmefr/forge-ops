@@ -36,6 +36,20 @@ describe('recordLifecycleFromEvent', () => {
     })
   })
 
+  it('puts a starting session to work when a cli agent reports it working', () => {
+    expect(record('session.working', { claudeSessionId: 'sess-1' })).toEqual({
+      changed: true,
+      moves: [{ lifecycle: 'working' }],
+    })
+  })
+
+  it('does not move a session that already awaits the human on a working report', () => {
+    expect(record('session.working', { claudeSessionId: 'sess-1' }, 'awaiting_human')).toEqual({
+      changed: false,
+      moves: [],
+    })
+  })
+
   it('leaves a session that is already working alone', () => {
     expect(record('session.assistant', { claudeSessionId: 'sess-1' }, 'working')).toEqual({
       changed: false,
