@@ -103,6 +103,7 @@ onMounted(() => stories.reload())
               v-model="evidencePath"
               type="text"
               :placeholder="t('view.evidencePlaceholder')"
+              :aria-label="t('view.evidencePlaceholder')"
               class="field min-w-[280px] flex-1 font-mono"
             />
             <button
