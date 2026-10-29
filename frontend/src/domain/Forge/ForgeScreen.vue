@@ -171,7 +171,11 @@ async function readSelf(): Promise<void> {
 watch(projectId, () => {
   subjectId.value = null
   closeDrawer()
+  const loadedFor = projectId.value
   void forge.load().then(() => {
+    if (projectId.value !== loadedFor) {
+      return
+    }
     newSubject.value = addable.value[0]?.id ?? null
     newWorkflow.value = forge.workflows.value[0]?.id ?? null
   })
