@@ -23,7 +23,7 @@ export function recordLifecycleFromEvent(sessions: SessionLedger, event: BoardEv
     return true
   }
 
-  if (event.name === 'session.assistant' && session.lifecycle === 'starting') {
+  if ((event.name === 'session.assistant' || event.name === 'session.working') && session.lifecycle === 'starting') {
     sessions.updateLifecycle(claudeSessionId, 'working')
     return true
   }

@@ -78,8 +78,22 @@ describe('createCodexSessionRunner', () => {
 
     await runner.launch(ORDER)
 
-    expect(events.map((event) => event.name)).toEqual(['session.codex_line', 'session.codex_line'])
-    expect(events[0]?.payload.line).toBe('ligne 1')
+    const lines = events.filter((event) => event.name === 'session.codex_line')
+    expect(lines.map((event) => event.name)).toEqual(['session.codex_line', 'session.codex_line'])
+    expect(lines[0]?.payload.line).toBe('ligne 1')
+  })
+
+  it('signale une seule fois que la session travaille, avant la premiere ligne', async () => {
+    const names: string[] = []
+    const runner = createCodexSessionRunner({
+      cwdFor: () => '/tmp',
+      onEvent: (event) => names.push(event.name),
+      spawnCodex: () => fakeChild(['a', 'b']),
+    })
+
+    await runner.launch(ORDER)
+
+    expect(names).toEqual(['session.working', 'session.codex_line', 'session.codex_line'])
   })
 
   it('refuse quand le processus codex sort en erreur', async () => {

@@ -108,8 +108,37 @@ describe('createCliSessionRunner', () => {
 
     await runner.launch(ORDER)
 
-    expect(events.map((event) => event.name)).toEqual(['session.opencode_line', 'session.opencode_line'])
-    expect(events[1]?.payload.line).toBe('two')
+    const lines = events.filter((event) => event.name.endsWith('_line'))
+    expect(lines.map((event) => event.name)).toEqual(['session.opencode_line', 'session.opencode_line'])
+    expect(lines[1]?.payload.line).toBe('two')
+  })
+
+  it('reports the session as working once, before the first line', async () => {
+    const names: string[] = []
+    const runner = createCliSessionRunner({
+      manifest: KIMI_MANIFEST,
+      cwdFor: () => '/tmp',
+      onEvent: (event) => names.push(event.name),
+      spawnProcess: () => fakeChild(['a', 'b']),
+    })
+
+    await runner.launch(ORDER)
+
+    expect(names).toEqual(['session.working', 'session.kimi_line', 'session.kimi_line'])
+  })
+
+  it('says nothing about work when the agent prints nothing', async () => {
+    const names: string[] = []
+    const runner = createCliSessionRunner({
+      manifest: KIMI_MANIFEST,
+      cwdFor: () => '/tmp',
+      onEvent: (event) => names.push(event.name),
+      spawnProcess: () => fakeChild([]),
+    })
+
+    await runner.launch(ORDER)
+
+    expect(names).toEqual([])
   })
 
   it('refuses when the process exits with an error', async () => {
