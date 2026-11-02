@@ -34,11 +34,6 @@
       "count": 1
     }
   },
-  "backend/src/domain/Dispatch/Dispatcher.ts": {
-    "max-lines-per-function": {
-      "count": 2
-    }
-  },
   "backend/src/domain/Event/EventRepository.ts": {
     "max-lines-per-function": {
       "count": 1
@@ -100,11 +95,6 @@
     }
   },
   "backend/src/domain/Story/EpicCatalog.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Story/StoryRepository.ts": {
     "max-lines-per-function": {
       "count": 1
     }
