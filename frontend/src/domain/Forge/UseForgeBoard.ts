@@ -52,17 +52,24 @@ export function useForgeBoard(projectId: () => number | null): ForgeBoardState {
       cards.value = []
       return
     }
-    cards.value = await board.read<readonly ForgeCardView[]>(`/api/forge-cards?project=${project}`)
+    const read = await board.read<readonly ForgeCardView[]>(`/api/forge-cards?project=${project}`)
+    if (projectId() === project) {
+      cards.value = read
+    }
   }
+
+  let loading = 0
 
   async function load(): Promise<void> {
     const project = projectId()
+    const mine = ++loading
     if (project === null) {
       cards.value = []
       workflow.value = null
       workflows.value = []
       columnsByWorkflow.value = new Map()
       subjects.value = []
+      pending.value = false
       return
     }
     pending.value = true
@@ -77,15 +84,23 @@ export function useForgeBoard(projectId: () => number | null): ForgeBoardState {
           board.read<ProjectWorkflow>(`/api/projects/${project}/workflow-columns?workflow=${held.id}`),
         ),
       )
-      workflow.value = loaded[0] ?? (await board.read<ProjectWorkflow>(`/api/projects/${project}/workflow-columns`))
+      const first = loaded[0] ?? (await board.read<ProjectWorkflow>(`/api/projects/${project}/workflow-columns`))
+      if (mine !== loading) {
+        return
+      }
+      workflow.value = first
       workflows.value = listed.workflows
       columnsByWorkflow.value = new Map(listed.workflows.map((held, index) => [held.id, loaded[index]?.columns ?? []]))
       subjects.value = loadedSubjects
       await refresh()
     } catch (error) {
-      failure.value = forgeFailureOf(error)
+      if (mine === loading) {
+        failure.value = forgeFailureOf(error)
+      }
     } finally {
-      pending.value = false
+      if (mine === loading) {
+        pending.value = false
+      }
     }
   }
 

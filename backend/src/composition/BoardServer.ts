@@ -89,6 +89,7 @@ import { createBatchApi } from '../domain/Delivery/BatchApi.js'
 import { columnAgentOfPhase, createDrivenRunner } from '../domain/Driver/Driver.js'
 import { DEFAULT_FORGE_CARD_PROVIDER } from '../../../contract/ForgeCardContract.js'
 import { createCodexSessionRunner } from '../technical/Codex/CodexSessionRunner.js'
+import { createCodexTranscriptStore } from '../technical/Codex/CodexTranscriptStore.js'
 import { codexDriver } from './CodexDriver.js'
 import { cliDriver } from './CliDriver.js'
 import { AGENT_MANIFESTS } from '../technical/Cli/AgentManifests.js'
@@ -291,6 +292,7 @@ export function startBoardServer({
   const templates = createTemplateRepository(db)
   const outbox = createOutboxRepository(db)
   const organisations = createOrganisationRepository(db)
+  const transcripts = createCodexTranscriptStore()
   const drivers = [
     claudeCodeDriver(
       createSdkSessionRunner({
@@ -310,7 +312,7 @@ export function startBoardServer({
       }),
     ),
     codexDriver(
-      createCodexSessionRunner({ cwdFor: (order) => cwdForStory(order.storyId), onEvent: onSessionEvent }),
+      createCodexSessionRunner({ cwdFor: (order) => cwdForStory(order.storyId), onEvent: onSessionEvent, transcripts }),
     ),
     ...AGENT_MANIFESTS.map((manifest) =>
       cliDriver(
@@ -319,6 +321,7 @@ export function startBoardServer({
           manifest,
           cwdFor: (order) => cwdForStory(order.storyId),
           onEvent: onSessionEvent,
+          transcripts,
         }),
       ),
     ),
