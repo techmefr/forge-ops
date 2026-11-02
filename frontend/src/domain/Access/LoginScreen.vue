@@ -11,9 +11,9 @@ import {
   openInSystemBrowser,
   startUrlOf,
 } from '@/technical/Api/DesktopSignIn'
-import { reasonOf, useResource } from '@/technical/Api/UseResource'
+import { useResource } from '@/technical/Api/UseResource'
+import { useGuardedAction } from '@/technical/Api/UseGuardedAction'
 import { usePhrase } from '@/technical/Language/UsePhrase'
-import type { Phrase } from '@/technical/Language/Phrase'
 import { ACCOUNT_ROLE_SEQUENCE, type AccountRole } from '@/domain/Board/BoardModel'
 import { resolveLandingPath } from '@/technical/Router/Landing'
 import RequiredStar from '@/technical/Ui/RequiredStar.vue'
@@ -85,21 +85,9 @@ const login = ref('')
 const password = ref('')
 const displayName = ref('')
 const role = ref<AccountRole>('architect')
-const refusal = ref<Phrase | null>(null)
-const busy = ref(false)
 const autologinFailed = ref(false)
 
-async function guard(action: () => Promise<void>): Promise<void> {
-  busy.value = true
-  refusal.value = null
-  try {
-    await action()
-  } catch (error) {
-    refusal.value = reasonOf(error)
-  } finally {
-    busy.value = false
-  }
-}
+const { busy, refusal, guard } = useGuardedAction()
 
 async function pushToLanding(): Promise<void> {
   await router.push(await resolveLandingPath(() => board.read('/api/projects')))

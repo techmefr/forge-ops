@@ -12,12 +12,11 @@ import {
 import ProjectPicker from '@/domain/Project/ProjectPicker.vue'
 import { board } from '@/technical/Api/Board'
 import { keepDialogWhileListboxOpen } from '@/technical/Ui/ListboxEscape'
-import { reasonOf } from '@/technical/Api/UseResource'
+import { useGuardedAction } from '@/technical/Api/UseGuardedAction'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import RequiredStar from '@/technical/Ui/RequiredStar.vue'
 import RequiredNote from '@/technical/Ui/RequiredNote.vue'
 import { useAlertFocus } from '@/technical/Ui/FieldState'
-import type { Phrase } from '@/technical/Language/Phrase'
 import {
   EVENT_MINUTES_LIMIT,
   EVENT_NOTE_LIMIT,
@@ -47,9 +46,8 @@ const chosenProject = ref(0)
 const chosenEpic = ref<number | null>(null)
 const note = ref('')
 const minutes = ref('')
-const refusal = ref<Phrase | null>(null)
-const busy = ref(false)
 const formEl = ref<HTMLElement | null>(null)
+const { busy, refusal, guard } = useGuardedAction(() => emit('saved'))
 useAlertFocus(refusal, formEl)
 const confirmingRemoval = ref(false)
 
@@ -91,19 +89,6 @@ function changes(): Record<string, unknown> {
     epicId: chosenEpic.value,
     note: note.value.trim() === '' ? null : note.value,
     minutes: minutes.value,
-  }
-}
-
-async function guard(action: () => Promise<unknown>): Promise<void> {
-  busy.value = true
-  refusal.value = null
-  try {
-    await action()
-    emit('saved')
-  } catch (error) {
-    refusal.value = reasonOf(error)
-  } finally {
-    busy.value = false
   }
 }
 

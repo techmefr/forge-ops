@@ -12,8 +12,7 @@ import {
 import type { ProjectEvent } from '@contract/EventContract'
 import type { EpicOverview, Project } from '@/domain/Board/BoardModel'
 import { board } from '@/technical/Api/Board'
-import { reasonOf } from '@/technical/Api/UseResource'
-import type { Phrase } from '@/technical/Language/Phrase'
+import { useGuardedAction } from '@/technical/Api/UseGuardedAction'
 import { usePhrase } from '@/technical/Language/UsePhrase'
 import { tintOf } from '@/technical/Ui/Tint'
 import { STATE_TONES, dayLabel } from './SubjectFormat'
@@ -40,13 +39,12 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const say = usePhrase()
 
+const { busy, refusal, attempt: guard } = useGuardedAction()
 const history = ref<readonly EpicStateChange[]>([])
 const events = ref<readonly ProjectEvent[]>([])
 const projectLinks = ref<readonly SubjectLink[]>([])
 const note = ref('')
-const refusal = ref<Phrase | null>(null)
 const confirmingDeletion = ref(false)
-const busy = ref(false)
 
 const deleted = computed(() => props.subject.deletedAt !== null)
 const blocked = computed(() => blockedDays(props.subject.blockedSince, props.today))
@@ -67,6 +65,9 @@ async function refresh(): Promise<void> {
     board.read<readonly ProjectEvent[]>(`/api/projects/${props.subject.projectId}/events`).catch(() => []),
     board.read<readonly SubjectLink[]>(`/api/projects/${props.subject.projectId}/links`).catch(() => []),
   ])
+  if (props.subject.id !== id) {
+    return
+  }
   history.value = changes
   events.value = projectEvents.filter((event) => event.epicId === id)
   projectLinks.value = links
@@ -91,19 +92,6 @@ watch(
   },
 )
 
-async function guard(action: () => Promise<unknown>): Promise<boolean> {
-  busy.value = true
-  refusal.value = null
-  try {
-    await action()
-    return true
-  } catch (error) {
-    refusal.value = reasonOf(error)
-    return false
-  } finally {
-    busy.value = false
-  }
-}
 
 async function saveNote(): Promise<void> {
   const wanted = note.value.trim() === '' ? null : note.value.trim()

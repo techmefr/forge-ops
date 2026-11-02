@@ -2,9 +2,9 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
-import { reasonOf, useResource } from '@/technical/Api/UseResource'
+import { useResource } from '@/technical/Api/UseResource'
+import { useGuardedAction } from '@/technical/Api/UseGuardedAction'
 import { usePhrase } from '@/technical/Language/UsePhrase'
-import type { Phrase } from '@/technical/Language/Phrase'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import type { EpicOverview, Project } from '@/domain/Board/BoardModel'
 import { OWNERSHIPS, keepEpics, oneProjectOnly, type Ownership } from './EpicFilter'
@@ -20,8 +20,6 @@ const epics = ref<readonly EpicOverview[]>([])
 const chosenProject = ref<number | null>(null)
 const ownership = ref<Ownership>('all')
 const picked = ref<readonly number[]>([])
-const refusal = ref<Phrase | null>(null)
-const busy = ref(false)
 
 const shown = computed(() =>
   keepEpics(epics.value, {
@@ -47,17 +45,7 @@ async function loadEpics(): Promise<void> {
   epics.value = found.flat()
 }
 
-async function guard(action: () => Promise<void>): Promise<void> {
-  busy.value = true
-  refusal.value = null
-  try {
-    await action()
-  } catch (error) {
-    refusal.value = reasonOf(error)
-  } finally {
-    busy.value = false
-  }
-}
+const { busy, refusal, guard } = useGuardedAction()
 
 function toggle(epicId: number): void {
   picked.value = picked.value.includes(epicId)
@@ -183,7 +171,12 @@ onMounted(async () => {
             </label>
           </div>
 
-          <button type="button" class="mt-2 text-left" @click="toggle(epic.id)">
+          <button
+            type="button"
+            class="mt-2 text-left"
+            :aria-pressed="picked.includes(epic.id)"
+            @click="toggle(epic.id)"
+          >
             <h2 class="title-face text-lg">{{ epic.title }}</h2>
             <p class="mt-2 line-clamp-3 text-sm text-txt-mid">{{ epic.businessIntent }}</p>
           </button>
