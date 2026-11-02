@@ -95,7 +95,20 @@ describe('AGENT_MANIFESTS', () => {
   })
 
   it('builds the copilot call', () => {
-    expect(argumentsOf(COPILOT_MANIFEST, { prompt: 'p', cwd: '/w' })).toEqual(['--prompt', 'p', '--allow-all'])
+    expect(argumentsOf(COPILOT_MANIFEST, { prompt: 'p', cwd: '/w' })).toEqual([
+      '--output-format',
+      'json',
+      '--allow-all',
+      '--prompt',
+      'p',
+    ])
+  })
+
+  it('asks copilot for json lines and passes the model when there is one', () => {
+    const args = argumentsOf(COPILOT_MANIFEST, { prompt: 'p', cwd: '/w', model: 'auto' })
+
+    expect(args).toEqual(expect.arrayContaining(['--output-format', 'json', '--model', 'auto']))
+    expect(args[args.length - 1]).toBe('p')
   })
 })
 

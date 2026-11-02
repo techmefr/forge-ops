@@ -47,7 +47,7 @@ export const COPILOT_MANIFEST: AgentManifest = {
   name: 'copilot',
   command: 'copilot',
   environmentPrefixes: ['COPILOT_', 'GH_', 'GITHUB_TOKEN'],
-  args: ['--prompt', '{prompt}', '--allow-all'],
+  args: ['--output-format', 'json', { whenSet: 'model', args: ['--model', '{model}'] }, '--allow-all', '--prompt', '{prompt}'],
   abilities: ['stream'],
 }
 
