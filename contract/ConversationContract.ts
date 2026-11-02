@@ -51,3 +51,15 @@ export type StoryThread = {
 export const VALIDATION_REFUSALS = ['AgentCannotValidate', 'StoryAlreadyValidated'] as const
 
 export type ValidationRefusal = (typeof VALIDATION_REFUSALS)[number]
+
+export type SpokenTurn = {
+  claudeSessionId: string
+  reference: string
+  message: string
+}
+
+export type SessionTalker = {
+  say: (turn: SpokenTurn) => Promise<void>
+  hangUp: (claudeSessionId: string) => void
+  isLive: (claudeSessionId: string) => boolean
+}

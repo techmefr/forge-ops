@@ -7,7 +7,7 @@ import type {
   PilotObservation,
   PilotPace,
   PilotStep,
-} from '../../domain/Pilot/Pilot.js'
+} from '../../../../contract/PilotContract.js'
 
 export const PACE_DELAY: Readonly<Record<PilotPace, number>> = {
   live: 0,

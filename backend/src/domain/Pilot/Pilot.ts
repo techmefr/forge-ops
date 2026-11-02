@@ -1,29 +1,21 @@
 export type {
+  DestinationGuard,
   PilotAct,
   PilotObservation,
   PilotOutcome,
   PilotPace,
   PilotRun,
+  PilotDriver,
   PilotRunState,
   PilotStep,
   PilotStepKind,
 } from '../../../../contract/PilotContract.js'
 
 import type {
-  PilotObservation,
   PilotPace,
   PilotRunState,
   PilotStep,
 } from '../../../../contract/PilotContract.js'
-
-export type DestinationGuard = (url: string) => Promise<boolean>
-
-export type PilotDriver = {
-  open: (url: string, pace: PilotPace) => Promise<void>
-  perform: (step: PilotStep) => Promise<PilotObservation>
-  inspect: () => Promise<PilotObservation>
-  close: () => Promise<void>
-}
 
 export type PilotOrder = {
   storyId: number
