@@ -4,11 +4,6 @@
       "count": 1
     }
   },
-  "backend/src/domain/Agent/AgentSessionRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/domain/Autopilot/StepVerifier.ts": {
     "max-lines-per-function": {
       "count": 1
@@ -39,11 +34,6 @@
       "count": 1
     }
   },
-  "backend/src/domain/File/FileApi.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/domain/FollowUp/FollowUpRepository.ts": {
     "max-lines-per-function": {
       "count": 1
@@ -65,11 +55,6 @@
     }
   },
   "backend/src/domain/ForgeCard/ForgeCardRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Identity/IdentityApi.ts": {
     "max-lines-per-function": {
       "count": 1
     }

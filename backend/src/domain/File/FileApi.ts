@@ -1,21 +1,13 @@
-import { realpathSync } from 'node:fs'
-import { stat } from 'node:fs/promises'
-import { isAbsolute, relative, resolve } from 'node:path'
 import { Hono } from 'hono'
 import type { Context } from 'hono'
-import { z } from 'zod'
 import type { StoryRepository } from '../Story/StoryRepository.js'
-import { listDirectory, readTextFile, statTextFile, walkPaths } from '../../technical/Repository/LocalTree.js'
-import { PathOutsideCheckoutError, SensitivePathError } from '../../technical/Repository/LocalTreeViolation.js'
-import { assertCheckoutPath, CheckoutPathRefusedError } from '../Story/CheckoutPath.js'
-import { isSensitivePath } from '../../technical/Repository/SensitivePath.js'
 import { createCodeRenderer, type CodeRenderer } from '../../technical/File/CodeRender.js'
 import { createHighlightCache, type HighlightCache } from '../../technical/File/HighlightCache.js'
-import { describeFile } from './FileDigest.js'
-import { markOfFile, type FileTouch } from './FileMark.js'
-import { clashesOf } from './NameClash.js'
+import { mountFileAdminRoutes } from './FileAdminRoutes.js'
+import { createHolderResolver } from './FileHolder.js'
+import { mountFileReadRoute } from './FileReadRoutes.js'
 import type { FileRepository } from './FileRepository.js'
-import { parseBody } from '../../technical/Http/ParseBody.js'
+import { mountFileTreeRoutes } from './FileTreeRoutes.js'
 
 export type FileApiInput = {
   stories: StoryRepository
@@ -30,43 +22,8 @@ export type FileApiInput = {
   highlightCache?: HighlightCache<{ html: string; known: boolean }>
 }
 
-const identifierSchema = z.coerce.number().int().positive()
-
-const checkoutSchema = z.object({ checkoutPath: z.string().min(1) })
-
-async function isDirectory(path: string): Promise<boolean> {
-  return stat(path)
-    .then((found) => found.isDirectory())
-    .catch(() => false)
-}
-
 const DEFAULT_MAX_FILE_BYTES = 200_000
 const DEFAULT_MAX_WALKED_FILES = 4000
-
-type Holder = {
-  checkoutPath: string
-  touches: Map<string, readonly FileTouch[]>
-}
-
-function realOf(path: string): string {
-  try {
-    return realpathSync(resolve(path))
-  } catch {
-    return resolve(path)
-  }
-}
-
-function holdsServerData(checkoutPath: string, serverPaths: readonly string[]): boolean {
-  const checkout = realOf(checkoutPath)
-  return serverPaths.some((served) => {
-    const inside = relative(checkout, realOf(served))
-    return inside === '' || (!inside.startsWith('..') && !isAbsolute(inside))
-  })
-}
-
-function saidBy(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
-}
 
 export function createFileApi({
   stories,
@@ -81,216 +38,9 @@ export function createFileApi({
   highlightCache = createHighlightCache(),
 }: FileApiInput): Hono {
   const api = new Hono()
-
-  function outsideRoots(holder: Holder | { refused: string }): holder is { refused: string } {
-    return 'refused' in holder
-  }
-
-  function holderOf(rawId: string): Holder | 'unknown-project' | 'unknown-checkout' | { refused: string } {
-    const projectId = identifierSchema.safeParse(rawId)
-    if (!projectId.success) {
-      return 'unknown-project'
-    }
-    const project = stories.listProjects().find((known) => known.id === projectId.data)
-    if (project === undefined) {
-      return 'unknown-project'
-    }
-    if (project.checkoutPath === null || project.checkoutPath === '') {
-      return 'unknown-checkout'
-    }
-    try {
-      assertCheckoutPath(project.checkoutPath, checkoutRoots)
-    } catch (error) {
-      return { refused: error instanceof CheckoutPathRefusedError ? error.message : saidBy(error) }
-    }
-    if (holdsServerData(project.checkoutPath, serverPaths)) {
-      return { refused: 'the checkout contains the server data' }
-    }
-    return { checkoutPath: project.checkoutPath, touches: files.touchesOfProject(projectId.data) }
-  }
-
-  api.get('/api/projects/:id/tree', async (context) => {
-    const holder = holderOf(context.req.param('id'))
-    if (holder === 'unknown-project') {
-      return context.json({ error: 'ProjectNotFound' }, 404)
-    }
-    if (holder === 'unknown-checkout') {
-      return context.json({ available: false, reason: 'CheckoutUnknown', entries: [] })
-    }
-    if (outsideRoots(holder)) {
-      return context.json({ error: 'CheckoutPathRefused', reason: holder.refused }, 422)
-    }
-
-    const asked = context.req.query('path') ?? ''
-    try {
-      const entries = await listDirectory(holder.checkoutPath, asked)
-      const seen = new Set(entries.map((entry) => entry.path))
-      const inside = (path: string): boolean =>
-        asked === ''
-          ? !path.includes('/')
-          : path.startsWith(`${asked}/`) && !path.slice(asked.length + 1).includes('/')
-      const missing = [...holder.touches.keys()].filter(
-        (path) => !seen.has(path) && inside(path) && !isSensitivePath(path),
-      )
-
-      const said = [
-        ...entries.map((entry) => {
-          const verdict = markOfFile({
-            onDisk: true,
-            touches: holder.touches.get(entry.path) ?? [],
-          })
-          return { ...entry, description: describeFile(entry.path), ...verdict }
-        }),
-        ...missing.map((path) => ({
-          path,
-          name: path.split('/').pop() ?? path,
-          kind: 'file' as const,
-          bytes: null,
-          description: describeFile(path),
-          ...markOfFile({ onDisk: false, touches: holder.touches.get(path) ?? [] }),
-        })),
-      ].sort((left, right) =>
-        left.kind === right.kind ? left.name.localeCompare(right.name) : left.kind === 'directory' ? -1 : 1,
-      )
-
-      return context.json({ available: true, reason: null, entries: said })
-    } catch (error) {
-      if (error instanceof PathOutsideCheckoutError) {
-        return context.json({ error: 'PathOutsideCheckout' }, 422)
-      }
-      if (error instanceof SensitivePathError) {
-        return context.json({ error: 'PathNotServed' }, 403)
-      }
-      return context.json({ available: false, reason: saidBy(error), entries: [] })
-    }
-  })
-
-  api.get('/api/projects/:id/file', async (context) => {
-    const holder = holderOf(context.req.param('id'))
-    if (holder === 'unknown-project') {
-      return context.json({ error: 'ProjectNotFound' }, 404)
-    }
-    if (holder === 'unknown-checkout') {
-      return context.json({ error: 'CheckoutUnknown' }, 404)
-    }
-    if (outsideRoots(holder)) {
-      return context.json({ error: 'CheckoutPathRefused', reason: holder.refused }, 422)
-    }
-
-    const asked = context.req.query('path') ?? ''
-    try {
-      const reading = await readTextFile(holder.checkoutPath, asked, maxFileBytes)
-      const stamp = await statTextFile(holder.checkoutPath, asked)
-      const cacheKey = { path: reading.path, mtimeMs: stamp.mtimeMs }
-      let highlight = highlightCache.get(cacheKey)
-      if (highlight === null) {
-        const rendered = await codeRenderer.renderedOf(reading.text, reading.path)
-        highlight = { html: rendered.html, known: rendered.known }
-        if (!rendered.timedOut) {
-          highlightCache.set(cacheKey, highlight)
-        }
-      }
-      return context.json({
-        ...reading,
-        description: describeFile(reading.path),
-        ...markOfFile({ onDisk: true, touches: holder.touches.get(reading.path) ?? [] }),
-        highlightedHtml: highlight.html,
-        highlightAvailable: highlight.known,
-      })
-    } catch (error) {
-      if (error instanceof PathOutsideCheckoutError) {
-        return context.json({ error: 'PathOutsideCheckout' }, 422)
-      }
-      if (error instanceof SensitivePathError) {
-        return context.json({ error: 'PathNotServed' }, 403)
-      }
-      return context.json({ error: 'FileUnreadable', reason: saidBy(error) }, 404)
-    }
-  })
-
-  api.post('/api/projects/:id/guardrails', (context) => {
-    const projectId = identifierSchema.safeParse(context.req.param('id'))
-    if (!projectId.success) {
-      return context.json({ error: 'InvalidProjectIdentifier' }, 422)
-    }
-    if (stories.listProjects().find((known) => known.id === projectId.data) === undefined) {
-      return context.json({ error: 'ProjectNotFound' }, 404)
-    }
-    if (!mayAdminister(projectId.data, context)) {
-      return context.json({ error: 'GuardrailsNeedAnAdmin' }, 403)
-    }
-    const holder = holderOf(context.req.param('id'))
-    if (holder === 'unknown-project' || holder === 'unknown-checkout') {
-      return context.json({ error: 'CheckoutUnknown' }, 409)
-    }
-    if (outsideRoots(holder)) {
-      return context.json({ error: 'CheckoutPathRefused', reason: holder.refused }, 422)
-    }
-    if (installGuardrails === undefined) {
-      return context.json({ error: 'GuardrailInstallUnavailable' }, 501)
-    }
-    try {
-      return context.json(installGuardrails(holder.checkoutPath))
-    } catch (error) {
-      return context.json({ error: 'GuardrailInstallRefused', reason: saidBy(error) }, 422)
-    }
-  })
-
-  api.put('/api/projects/:id/checkout', async (context) => {
-    const projectId = identifierSchema.safeParse(context.req.param('id'))
-    if (!projectId.success) {
-      return context.json({ error: 'InvalidProjectIdentifier' }, 422)
-    }
-    if (stories.listProjects().find((known) => known.id === projectId.data) === undefined) {
-      return context.json({ error: 'ProjectNotFound' }, 404)
-    }
-    if (!mayAdminister(projectId.data, context)) {
-      return context.json({ error: 'CheckoutNeedsAnAdmin' }, 403)
-    }
-    const body = await parseBody(context, checkoutSchema)
-    if (!body.success) {
-      return context.json({ error: 'InvalidCheckoutPath', issues: body.error.issues }, 422)
-    }
-    if (!(await isDirectory(body.data.checkoutPath))) {
-      return context.json({ error: 'CheckoutNotADirectory' }, 422)
-    }
-    if (holdsServerData(body.data.checkoutPath, serverPaths)) {
-      return context.json({ error: 'CheckoutPathRefused', reason: 'the checkout contains the server data' }, 422)
-    }
-    try {
-      return context.json(stories.setCheckoutPath(projectId.data, body.data.checkoutPath))
-    } catch (error) {
-      if (error instanceof CheckoutPathRefusedError) {
-        return context.json({ error: 'CheckoutPathRefused', reason: error.message }, 422)
-      }
-      throw error
-    }
-  })
-
-  api.get('/api/projects/:id/clashes', async (context) => {
-    const holder = holderOf(context.req.param('id'))
-    if (holder === 'unknown-project') {
-      return context.json({ error: 'ProjectNotFound' }, 404)
-    }
-    if (holder === 'unknown-checkout') {
-      return context.json({ available: false, reason: 'CheckoutUnknown', clashes: [] })
-    }
-    if (outsideRoots(holder)) {
-      return context.json({ error: 'CheckoutPathRefused', reason: holder.refused }, 422)
-    }
-
-    try {
-      const walked = await walkPaths(holder.checkoutPath, maxWalkedFiles)
-      const planned = [...holder.touches.keys()]
-      return context.json({
-        available: true,
-        reason: null,
-        clashes: clashesOf([...new Set([...walked, ...planned])]),
-      })
-    } catch (error) {
-      return context.json({ available: false, reason: saidBy(error), clashes: [] })
-    }
-  })
-
+  const resolver = createHolderResolver({ stories, files, checkoutRoots, serverPaths })
+  mountFileTreeRoutes(api, resolver, maxWalkedFiles)
+  mountFileReadRoute(api, resolver, { maxFileBytes, codeRenderer, highlightCache })
+  mountFileAdminRoutes(api, resolver, { stories, mayAdminister, installGuardrails, serverPaths })
   return api
 }
