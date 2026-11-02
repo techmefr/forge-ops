@@ -1,23 +1,12 @@
-import {
-  BACKLOG_STEP_KEY,
-  DONE_STEP_KEY,
-  type ForgeCardMoved,
-  type ForgeCardView,
-} from '../../../../contract/ForgeCardContract.js'
-import type { WorkflowColumn } from '../../../../contract/WorkflowColumnContract.js'
+import { BACKLOG_STEP_KEY, DONE_STEP_KEY, type ForgeCardMoved } from '../../../../contract/ForgeCardContract.js'
 import type { Dispatched, StepEntry } from '../Dispatch/Dispatch.js'
-import type { StoryPlacement, StoryRepository } from '../Story/StoryRepository.js'
+import type { StoryRepository } from '../Story/StoryRepository.js'
 import type { WorkflowColumnRepository } from '../Workflow/WorkflowColumnRepository.js'
 import type { ForgeBoardRepository } from './ForgeBoardRepository.js'
+import { createForgeCardMoveSupport } from './ForgeCardMoveSupport.js'
 import type { ForgeCardRepository } from './ForgeCardRepository.js'
-import { phaseOfStep, stateOfStep } from './ForgeCardStatus.js'
-import {
-  DoneIsEarnedError,
-  DoneIsFinalError,
-  LaunchNeedsAStepError,
-  StepBusyError,
-  UnknownStepKeyError,
-} from './ForgeCardViolation.js'
+import { stateOfStep } from './ForgeCardStatus.js'
+import { DoneIsEarnedError, DoneIsFinalError, LaunchNeedsAStepError, StepBusyError } from './ForgeCardViolation.js'
 
 export type ForgeCardMoverInput = {
   board: ForgeBoardRepository
@@ -42,39 +31,11 @@ export function createForgeCardMover({
   launchStep,
 }: ForgeCardMoverInput): ForgeCardMover {
   const inFlight = new Set<number>()
-
-  function placementOfCard(storyIds: readonly number[]): ReadonlyMap<number, StoryPlacement> {
-    return new Map(storyIds.map((storyId) => [storyId, board.placementOf(storyId)]))
-  }
-
-  function restore(placements: ReadonlyMap<number, StoryPlacement>): void {
-    for (const [storyId, placement] of placements) {
-      stories.setPlacement(storyId, placement)
-    }
-  }
-
-  function feedbackOf(feedback: string | undefined): { feedback?: string } {
-    return feedback === undefined ? {} : { feedback }
-  }
-
-  function stepOf(view: ForgeCardView, stepKey: string): WorkflowColumn {
-    const step = columns.list(view.projectId, view.workflowId).find((candidate) => candidate.key === stepKey)
-    if (step === undefined) {
-      throw new UnknownStepKeyError(stepKey)
-    }
-    return step
-  }
-
-  function entryOf(view: ForgeCardView, step: WorkflowColumn): StepEntry {
-    return {
-      storyId: view.storyId,
-      columnId: step.id,
-      phase: phaseOfStep(
-        step.key,
-        columns.list(view.projectId, view.workflowId).map((candidate) => candidate.key),
-      ),
-    }
-  }
+  const { placementOfCard, restore, feedbackOf, stepOf, entryOf, moved } = createForgeCardMoveSupport(
+    board,
+    stories,
+    columns,
+  )
 
   async function guarded<T>(forgeCardId: number, work: () => Promise<T>): Promise<T> {
     inFlight.add(forgeCardId)
@@ -82,14 +43,6 @@ export function createForgeCardMover({
       return await work()
     } finally {
       inFlight.delete(forgeCardId)
-    }
-  }
-
-  function moved(forgeCardId: number, dispatched: Dispatched | null): ForgeCardMoved {
-    return {
-      card: board.view(forgeCardId),
-      started: dispatched !== null,
-      claudeSessionId: dispatched?.claudeSessionId ?? null,
     }
   }
 
