@@ -5,6 +5,7 @@ import type { EventBus } from '../../technical/Http/EventBus.js'
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import { mayAdministerProject } from './ProjectAuthority.js'
 import type { ProjectRepository } from './ProjectRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -22,7 +23,7 @@ export function createProjectApi({ projects, events, isSuperAdmin, isDirector }:
 
   api.put('/api/projects/:id', async (context) => {
     const projectId = identifierSchema.safeParse(context.req.param('id'))
-    const patch = projectUpdateSchema.safeParse(await context.req.json().catch(() => null))
+    const patch = await parseBody(context, projectUpdateSchema)
     if (!projectId.success) {
       return context.json({ error: 'InvalidProjectIdentifier' }, 422)
     }

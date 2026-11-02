@@ -7,6 +7,7 @@ import {
   BatchRefusedError,
   type BatchRepository,
 } from './BatchRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -40,7 +41,7 @@ export function createBatchApi({ batches, maySettle }: BatchApiInput): Hono {
     if (!maySettle(context)) {
       return context.json({ error: 'GroupingNeedsAnAdmin' }, 403)
     }
-    const body = groupingSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, groupingSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidGrouping' }, 422)
     }
@@ -48,7 +49,7 @@ export function createBatchApi({ batches, maySettle }: BatchApiInput): Hono {
   })
 
   api.post('/api/batches', async (context) => {
-    const body = storySchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, storySchema)
     if (!body.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
@@ -65,7 +66,7 @@ export function createBatchApi({ batches, maySettle }: BatchApiInput): Hono {
 
   api.post('/api/batches/:id/stories', async (context) => {
     const batchId = identifierSchema.safeParse(context.req.param('id'))
-    const body = storySchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, storySchema)
     if (!batchId.success || !body.success) {
       return context.json({ error: 'InvalidBatchJoin' }, 422)
     }
@@ -74,7 +75,7 @@ export function createBatchApi({ batches, maySettle }: BatchApiInput): Hono {
 
   api.post('/api/batches/:id/extract', async (context) => {
     const batchId = identifierSchema.safeParse(context.req.param('id'))
-    const body = storySchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, storySchema)
     if (!batchId.success || !body.success) {
       return context.json({ error: 'InvalidExtraction' }, 422)
     }

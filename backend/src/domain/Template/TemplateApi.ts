@@ -5,6 +5,7 @@ import { mapApiError } from '../Board/ApiErrorMap.js'
 import { fromJsonl, toJsonl } from './Template.js'
 import type { TemplateRepository } from './TemplateRepository.js'
 import { TemplateRefusedError } from './TemplateRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const columnSchema = z.object({
   state: z.string().min(1),
@@ -66,7 +67,7 @@ export function createTemplateApi({ templates, maySettle }: TemplateApiInput): H
     if (!maySettle(context)) {
       return context.json({ error: 'TemplateNeedsAnAdmin' }, 403)
     }
-    const draft = draftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, draftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidTemplate', issues: draft.error.issues }, 422)
     }

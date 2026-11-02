@@ -15,6 +15,7 @@ import {
   WorkflowColumnNotFoundError,
   WorkflowColumnRefusedError,
 } from './WorkflowColumnViolation.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -107,7 +108,7 @@ export function createWorkflowColumnApi({
     if (workflowId instanceof Response) {
       return workflowId
     }
-    const draft = workflowColumnDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, workflowColumnDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidWorkflowColumn', issues: draft.error.issues }, 422)
     }
@@ -123,7 +124,7 @@ export function createWorkflowColumnApi({
     if (workflowId instanceof Response) {
       return workflowId
     }
-    const body = workflowColumnOrderSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, workflowColumnOrderSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidWorkflowColumnOrder', issues: body.error.issues }, 422)
     }
@@ -139,7 +140,7 @@ export function createWorkflowColumnApi({
     if (!columnId.success) {
       return context.json({ error: 'InvalidWorkflowColumnIdentifier' }, 422)
     }
-    const draft = workflowColumnDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, workflowColumnDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidWorkflowColumn', issues: draft.error.issues }, 422)
     }

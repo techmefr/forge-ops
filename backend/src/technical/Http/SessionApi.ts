@@ -4,6 +4,7 @@ import { z } from 'zod'
 import type { BrowserSessions } from '../Auth/BrowserSession.js'
 import { cookieSecure } from '../Auth/SecureCookie.js'
 import { BOARD_COOKIE, LOCAL_SESSION_PATH, sameSecret, SESSION_EXCHANGE_PATH } from '../Auth/TokenGuard.js'
+import { parseBody } from './ParseBody.js'
 
 const exchangeSchema = z.object({
   token: z.string().min(1).max(256),
@@ -29,7 +30,7 @@ export function createSessionApi({ token, sessions }: SessionApiInput): Hono {
   }
 
   api.post(SESSION_EXCHANGE_PATH, async (context) => {
-    const offered = exchangeSchema.safeParse(await context.req.json().catch(() => null))
+    const offered = await parseBody(context, exchangeSchema)
     if (!offered.success) {
       return context.json({ error: 'InvalidSessionRequest' }, 422)
     }

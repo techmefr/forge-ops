@@ -10,6 +10,7 @@ import type { ForgeBoardRepository } from './ForgeBoardRepository.js'
 import type { ForgeCardCloser } from './ForgeCardCloser.js'
 import type { ForgeCardMover } from './ForgeCardMover.js'
 import type { ForgeCardRepository } from './ForgeCardRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -82,7 +83,7 @@ export function createForgeBoardApi({
   })
 
   api.post('/api/forge-cards/backlog', async (context) => {
-    const draft = backlogSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, backlogSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidBacklogStory', issues: draft.error.issues }, 422)
     }
@@ -103,7 +104,7 @@ export function createForgeBoardApi({
     if (!forgeCardId.success) {
       return context.json({ error: 'InvalidForgeCardIdentifier' }, 422)
     }
-    const order = moveSchema.safeParse(await context.req.json().catch(() => null))
+    const order = await parseBody(context, moveSchema)
     if (!order.success) {
       return context.json({ error: 'InvalidMoveOrder', issues: order.error.issues }, 422)
     }

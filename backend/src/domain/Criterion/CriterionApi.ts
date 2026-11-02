@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import { mapApiError } from '../Board/ApiErrorMap.js'
 import type { CriterionRepository } from './CriterionRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -28,7 +29,7 @@ export function createCriterionApi({ criteria }: CriterionApiInput): Hono {
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const draft = criterionDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, criterionDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidCriterionDraft', issues: draft.error.issues }, 422)
     }
@@ -40,7 +41,7 @@ export function createCriterionApi({ criteria }: CriterionApiInput): Hono {
     if (!criterionId.success) {
       return context.json({ error: 'InvalidCriterionIdentifier' }, 422)
     }
-    const body = criterionProofSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, criterionProofSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidCriterionProof', issues: body.error.issues }, 422)
     }

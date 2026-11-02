@@ -7,6 +7,7 @@ import {
 } from '../../../../contract/PreferenceContract.js'
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import type { PreferenceRepository } from './PreferenceRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const FORGE_VIEW_KEY = 'forgeView'
 
@@ -31,7 +32,7 @@ export function createPreferenceApi({ preferences, userIdOf }: PreferenceApiInpu
   })
 
   api.put('/api/board/preferences', async (context) => {
-    const change = preferencesChangeSchema.safeParse(await context.req.json().catch(() => null))
+    const change = await parseBody(context, preferencesChangeSchema)
     if (!change.success) {
       return context.json({ error: 'InvalidPreferences', issues: change.error.issues }, 422)
     }

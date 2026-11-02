@@ -5,6 +5,7 @@ import { workflowDraftSchema, type ProjectWorkflows } from '../../../../contract
 import { mapApiError } from '../Board/ApiErrorMap.js'
 import type { ProjectWorkflowRepository } from './ProjectWorkflowRepository.js'
 import { WorkflowInUseError, WorkflowNotFoundError, WorkflowRefusedError } from './ProjectWorkflowViolation.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -49,7 +50,7 @@ export function createProjectWorkflowApi({
   }
 
   async function draftOf(context: Context): Promise<{ name: string } | Response> {
-    const draft = workflowDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, workflowDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidWorkflow', issues: draft.error.issues }, 422)
     }

@@ -25,6 +25,7 @@ import {
 } from '../../technical/Auth/PasswordHash.js'
 import { clientAddressOf, trustProxyFromEnv } from '../../technical/Auth/ClientAddress.js'
 import { createLoginRateLimit, type LoginRateLimit } from '../../technical/Auth/LoginRateLimit.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 export { IDENTITY_COOKIE }
 
@@ -119,7 +120,7 @@ export function createIdentityApi({
   })
 
   api.post('/api/auth/login', async (context) => {
-    const credentials = credentialsSchema.safeParse(await context.req.json().catch(() => null))
+    const credentials = await parseBody(context, credentialsSchema)
     if (!credentials.success) {
       return context.json({ error: 'InvalidCredentials' }, 422)
     }
@@ -168,7 +169,7 @@ export function createIdentityApi({
     if (setupToken !== null && !matchesToken(setupToken, context.req.header(SETUP_TOKEN_HEADER))) {
       return context.json({ error: 'SetupTokenRequired' }, 403)
     }
-    const draft = enrolmentSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, enrolmentSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidEnrolment', issues: draft.error.issues }, 422)
     }
@@ -193,7 +194,7 @@ export function createIdentityApi({
     if (!user.superAdmin && user.role !== 'director') {
       return context.json({ error: 'DirectorRequired' }, 403)
     }
-    const draft = boardUserDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, boardUserDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidBoardUser', issues: draft.error.issues }, 422)
     }
@@ -206,7 +207,7 @@ export function createIdentityApi({
       return context.json({ error: 'UnauthenticatedAccount' }, 401)
     }
     const login = context.req.param('login')
-    const draft = boardUserChangeSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, boardUserChangeSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidBoardUserChange', issues: draft.error.issues }, 422)
     }
@@ -267,7 +268,7 @@ export function createIdentityApi({
     if (user === null) {
       return context.json({ error: 'UnauthenticatedAccount' }, 401)
     }
-    const draft = profileSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, profileSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidProfile', issues: draft.error.issues }, 422)
     }
@@ -285,7 +286,7 @@ export function createIdentityApi({
     if (user === null) {
       return context.json({ error: 'UnauthenticatedAccount' }, 401)
     }
-    const draft = passwordChangeSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, passwordChangeSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidPasswordChange' }, 422)
     }
