@@ -1,6 +1,6 @@
 import { query } from '@anthropic-ai/claude-agent-sdk'
-import type { LaunchOrder, SessionRunner } from '../../domain/Dispatch/Dispatch.js'
-import type { SessionTalker, SpokenTurn } from '../../domain/Conversation/Conversation.js'
+import type { LaunchOrder, SessionRunner } from '../../../../contract/DispatchContract.js'
+import type { SessionTalker, SpokenTurn } from '../../../../contract/ConversationContract.js'
 import type { LiveSessions } from './LiveSessions.js'
 import { deliverTurn, userTurn, type SdkUserTurn } from './TurnDelivery.js'
 import { WORKFLOW_EFFORTS, type WorkflowEffort } from '../../../../contract/WorkflowColumnContract.js'

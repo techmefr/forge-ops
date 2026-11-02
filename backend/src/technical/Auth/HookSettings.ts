@@ -1,4 +1,4 @@
-import { WRITE_TOOL_MATCHER } from '../../domain/Agent/ToolName.js'
+import { WRITE_TOOL_MATCHER } from '../../../../contract/ToolContract.js'
 
 const HOOK_TIMEOUT_SECONDS = 2
 
