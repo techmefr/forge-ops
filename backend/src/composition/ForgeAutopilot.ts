@@ -22,7 +22,7 @@ import type { WorktreeRepository } from '../domain/Worktree/WorktreeRepository.j
 import { clearVerdictFile } from '../technical/Evidence/VerdictFile.js'
 import { writeEvidenceFile } from '../technical/Evidence/EvidenceFileWriter.js'
 import { projectTestCommand } from '../technical/Gate/ProjectTestCommand.js'
-import { createStoryPublisher } from '../technical/Git/StoryPublication.js'
+import { createStoryPublishing, integrityOfStory, lastAgentMessageOf } from './ForgeStoryPublishing.js'
 import { createStoryInspection } from '../technical/Git/StoryInspection.js'
 import type { GuardrailSeal } from '../technical/Guardrail/GuardrailSeal.js'
 import type { EventBus } from '../technical/Http/EventBus.js'
@@ -79,7 +79,6 @@ export function createForgeAutopilot({
     autoOf: (view) => running?.autoViewOf(view) ?? null,
   })
   board.backfillCards()
-  const storyPublisher = createStoryPublisher()
   const closer = createForgeCardCloser({
     board,
     forgeCards,
@@ -93,25 +92,7 @@ export function createForgeAutopilot({
         releaseScope: foremerge.release,
         closeWorktree: (target) => worktrees.close(target, { deleteBranch: true }),
       }),
-    publishStory: (storyId) => {
-      const projectId = stories.projectOfStory(storyId)
-      const settings = autopilotSettings.settingsOf(projectId)
-      const worktree = worktrees.findForStory(storyId)
-      if (!settings.enabled || !settings.autoPublish || worktree === null) {
-        return null
-      }
-      const story = stories.findStory(storyId)
-      const report = storyPublisher.publish({
-        worktreePath: worktree.path,
-        branch: worktree.branch,
-        baseBranch: stories.listProjects().find((project) => project.id === projectId)?.integrationBranch ?? 'main',
-        title: story.title,
-        body: `${story.reference}\n\n${story.body}`,
-        autoMerge: settings.autoMerge,
-      })
-      events.publish({ name: 'story.published', payload: { storyId, ...report } })
-      return report
-    },
+    publishStory: createStoryPublishing({ stories, autopilotSettings, worktrees, events }),
   })
   const mover = createForgeCardMover({
     board,
@@ -144,19 +125,8 @@ export function createForgeAutopilot({
       latestSessionOf: (storyId) => sessions.latestSessionOf(storyId),
     }),
     baseShaOf: (storyId) => worktrees.findForStory(storyId)?.baseSha ?? null,
-    integrityOf: (storyId) => {
-      const cwd = cwdForStory(storyId)
-      const changes = guardrailSeal.changesSince(cwd)
-      if (changes.length > 0) {
-        guardrailSeal.markTampered(cwd, changes)
-      }
-      return guardrailSeal.tamperedReason(cwd)
-    },
-    lastAgentMessage: (storyId) =>
-      messages
-        .listOfStory(storyId)
-        .filter((message) => message.voice === 'agent')
-        .at(-1)?.body ?? null,
+    integrityOf: integrityOfStory(guardrailSeal, cwdForStory),
+    lastAgentMessage: lastAgentMessageOf(messages),
     publish: (name, payload) => events.publish({ name, payload }),
   })
   running = conductor
