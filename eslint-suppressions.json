@@ -39,21 +39,6 @@
       "count": 1
     }
   },
-  "backend/src/domain/ForgeCard/ForgeBoardRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/ForgeCard/ForgeCardMover.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/ForgeCard/ForgeCardRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/domain/Identity/OidcApi.ts": {
     "max-lines-per-function": {
       "count": 1

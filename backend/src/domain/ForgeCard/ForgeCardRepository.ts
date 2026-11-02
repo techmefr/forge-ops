@@ -1,38 +1,9 @@
 import type Database from 'better-sqlite3'
 import type { AgentPhase } from '../../../../contract/AgentContract.js'
-import {
-  DEFAULT_FORGE_CARD_PROVIDER,
-  type ForgeCard,
-  type ForgeCardDraft,
-  type ForgeCardProvider,
-} from '../../../../contract/ForgeCardContract.js'
-import { refusalOfProvider, refusalOfSelection } from './ForgeCard.js'
-import {
-  DuplicateStoryIdError,
-  EmptySelectionError,
-  ForgeCardNotFoundError,
-  ForgeStoryNotFoundError,
-  StoryAlreadyOnOpenCardError,
-  StoryNotInBacklogError,
-  UnknownForgeCardProviderError,
-  UnknownWorkflowForStoryError,
-} from './ForgeCardViolation.js'
-
-type ForgeCardRow = {
-  id: number
-  reference: string
-  provider: ForgeCardProvider
-  claude_session_id: string | null
-  current_phase: AgentPhase | null
-  created_at: string
-  closed_at: string | null
-}
-
-type StoryLookupRow = {
-  id: number
-  reference: string
-  state: string
-}
+import { DEFAULT_FORGE_CARD_PROVIDER, type ForgeCard, type ForgeCardDraft } from '../../../../contract/ForgeCardContract.js'
+import { createForgeCardAdmission } from './ForgeCardAdmission.js'
+import { prepareForgeCardStatements } from './ForgeCardStatements.js'
+import { ForgeCardNotFoundError, ForgeStoryNotFoundError, UnknownWorkflowForStoryError } from './ForgeCardViolation.js'
 
 export type ForgeCardDispatchProgress = {
   claudeSessionId: string
@@ -50,114 +21,29 @@ export type ForgeCardRepository = {
 }
 
 export function createForgeCardRepository(db: Database.Database): ForgeCardRepository {
-  const countCards = db.prepare<[], { total: number }>('SELECT COUNT(*) AS total FROM forge_card')
-  const insertCard = db.prepare<[string, ForgeCardProvider]>(
-    'INSERT INTO forge_card (reference, provider) VALUES (?, ?)',
-  )
-  const linkStory = db.prepare<[number, number]>(
-    'INSERT INTO forge_card_story (forge_card_id, story_id) VALUES (?, ?)',
-  )
-  const closeCard = db.prepare<[number]>('UPDATE forge_card SET closed_at = CURRENT_TIMESTAMP WHERE id = ?')
-  const updateDispatchProgress = db.prepare<[string, AgentPhase, number]>(
-    'UPDATE forge_card SET claude_session_id = ?, current_phase = ? WHERE id = ?',
-  )
-  const selectStory = db.prepare<[number], StoryLookupRow>('SELECT id, reference, state FROM story WHERE id = ?')
-  const selectProjectOfStory = db.prepare<[number], { project_id: number }>(
-    'SELECT epic.project_id AS project_id FROM story JOIN epic ON epic.id = story.epic_id WHERE story.id = ?',
-  )
-  const selectProjectOfWorkflow = db.prepare<[number], { project_id: number }>(
-    'SELECT project_id FROM workflow WHERE id = ?',
-  )
-  const updateStoryWorkflow = db.prepare<[number, number]>('UPDATE story SET workflow_id = ? WHERE id = ?')
-  const selectOpenCardIdForStory = db.prepare<[number], { forge_card_id: number }>(`
-    SELECT fcs.forge_card_id AS forge_card_id
-    FROM forge_card_story fcs
-    JOIN forge_card fc ON fc.id = fcs.forge_card_id
-    WHERE fcs.story_id = ? AND fc.closed_at IS NULL
-  `)
-  const selectAnyCardIdForStory = db.prepare<[number], { forge_card_id: number }>(`
-    SELECT fcs.forge_card_id AS forge_card_id
-    FROM forge_card_story fcs
-    JOIN forge_card fc ON fc.id = fcs.forge_card_id
-    WHERE fcs.story_id = ?
-    ORDER BY (fc.closed_at IS NULL) DESC, fc.id DESC
-    LIMIT 1
-  `)
-  const selectCard = db.prepare<[number], ForgeCardRow>(
-    'SELECT id, reference, provider, claude_session_id, current_phase, created_at, closed_at FROM forge_card WHERE id = ?',
-  )
-  const selectStoryIdsOfCard = db.prepare<[number], { story_id: number }>(
-    'SELECT story_id FROM forge_card_story WHERE forge_card_id = ? ORDER BY story_id',
-  )
+  const statements = prepareForgeCardStatements(db)
+  const {
+    countCards,
+    insertCard,
+    linkStory,
+    closeCard,
+    updateDispatchProgress,
+    selectStory,
+    selectProjectOfWorkflow,
+    selectOpenCardIdForStory,
+    selectAnyCardIdForStory,
+    selectCard,
+  } = statements
+  const { hydrate, findCard, refuseUnknownWorkflow, assignWorkflow, admit } = createForgeCardAdmission(statements)
 
-  function hydrate(row: ForgeCardRow): ForgeCard {
-    return {
-      id: row.id,
-      reference: row.reference,
-      storyIds: selectStoryIdsOfCard.all(row.id).map((link) => link.story_id),
-      provider: row.provider,
-      claudeSessionId: row.claude_session_id,
-      currentPhase: row.current_phase,
-      createdAt: row.created_at,
-      closedAt: row.closed_at,
-    }
-  }
-
-  function refuseUnknownWorkflow(storyId: number, reference: string, workflowId: number | undefined): void {
-    if (workflowId === undefined) {
-      return
-    }
-    const workflowProject = selectProjectOfWorkflow.get(workflowId)?.project_id
-    if (workflowProject === undefined || workflowProject !== selectProjectOfStory.get(storyId)?.project_id) {
-      throw new UnknownWorkflowForStoryError(workflowId, reference)
-    }
-  }
-
-  function assignWorkflow(storyId: number, workflowId: number | undefined): void {
-    if (workflowId !== undefined) {
-      updateStoryWorkflow.run(workflowId, storyId)
-    }
-  }
-
-  function findCard(forgeCardId: number): ForgeCard {
-    const row = selectCard.get(forgeCardId)
-    if (row === undefined) {
-      throw new RangeError(`forge card ${forgeCardId} introuvable`)
-    }
-    return hydrate(row)
+  function nextReference(): string {
+    return `FORGE-${(countCards.get()?.total ?? 0) + 1}`
   }
 
   return {
     createForgeCard: (draft) => {
-      const refusal = refusalOfSelection(draft.storyIds)
-      if (refusal !== null) {
-        if (refusal.reason === 'EmptySelection') {
-          throw new EmptySelectionError()
-        }
-        throw new DuplicateStoryIdError(refusal.storyId)
-      }
-      const provider = draft.provider ?? DEFAULT_FORGE_CARD_PROVIDER
-      const providerRefusal = refusalOfProvider(provider)
-      if (providerRefusal !== null) {
-        throw new UnknownForgeCardProviderError(providerRefusal.provider)
-      }
-      for (const storyId of draft.storyIds) {
-        const story = selectStory.get(storyId)
-        if (story === undefined) {
-          throw new ForgeStoryNotFoundError(storyId)
-        }
-        if (story.state !== 'backlog') {
-          throw new StoryNotInBacklogError(story.reference, story.state)
-        }
-        const openLink = selectOpenCardIdForStory.get(storyId)
-        if (openLink !== undefined) {
-          const openCard = findCard(openLink.forge_card_id)
-          throw new StoryAlreadyOnOpenCardError(story.reference, openCard.reference)
-        }
-        refuseUnknownWorkflow(storyId, story.reference, draft.workflowId)
-      }
-      const reference = `FORGE-${(countCards.get()?.total ?? 0) + 1}`
-      const info = insertCard.run(reference, provider)
+      const provider = admit(draft)
+      const info = insertCard.run(nextReference(), provider)
       const forgeCardId = Number(info.lastInsertRowid)
       for (const storyId of draft.storyIds) {
         linkStory.run(forgeCardId, storyId)
@@ -187,8 +73,7 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
         assignWorkflow(storyId, workflowId)
         return findCard(existing.forge_card_id)
       }
-      const reference = `FORGE-${(countCards.get()?.total ?? 0) + 1}`
-      const info = insertCard.run(reference, DEFAULT_FORGE_CARD_PROVIDER)
+      const info = insertCard.run(nextReference(), DEFAULT_FORGE_CARD_PROVIDER)
       const forgeCardId = Number(info.lastInsertRowid)
       linkStory.run(forgeCardId, storyId)
       assignWorkflow(storyId, workflowId)
@@ -212,8 +97,7 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
     },
 
     recordDispatch: (forgeCardId, progress) => {
-      const existing = selectCard.get(forgeCardId)
-      if (existing === undefined) {
+      if (selectCard.get(forgeCardId) === undefined) {
         throw new ForgeCardNotFoundError(forgeCardId)
       }
       updateDispatchProgress.run(progress.claudeSessionId, progress.phase, forgeCardId)
