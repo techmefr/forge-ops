@@ -1,25 +1,18 @@
 import { Hono } from 'hono'
 import type { Context } from 'hono'
-import { z } from 'zod'
 import {
   workflowColumnDraftSchema,
   workflowColumnOrderSchema,
   type ProjectWorkflow,
   type WorkflowAdmin,
 } from '../../../../contract/WorkflowColumnContract.js'
-import { mapApiError } from '../Board/ApiErrorMap.js'
 import type { WorkflowColumnRepository } from './WorkflowColumnRepository.js'
-import { WorkflowNotFoundError } from './ProjectWorkflowViolation.js'
 import {
-  WorkflowColumnInUseError,
-  WorkflowColumnNotFoundError,
-  WorkflowColumnRefusedError,
-} from './WorkflowColumnViolation.js'
+  createWorkflowColumnGuards,
+  identifierSchema,
+  mapWorkflowColumnError,
+} from './WorkflowColumnApiSupport.js'
 import { parseBody } from '../../technical/Http/ParseBody.js'
-
-const identifierSchema = z.coerce.number().int().positive()
-
-const optionalIdentifierSchema = identifierSchema.optional()
 
 export type WorkflowColumnApiInput = {
   columns: WorkflowColumnRepository
@@ -36,51 +29,9 @@ export function createWorkflowColumnApi({
 }: WorkflowColumnApiInput): Hono {
   const api = new Hono()
 
-  api.onError((error, context) => {
-    if (error instanceof WorkflowColumnRefusedError) {
-      return context.json(
-        { error: 'WorkflowColumnRefused', message: error.refusal.reason, refusal: error.refusal },
-        422,
-      )
-    }
-    if (error instanceof WorkflowColumnNotFoundError || error instanceof WorkflowNotFoundError) {
-      return context.json({ error: error.name, message: error.message }, 404)
-    }
-    if (error instanceof WorkflowColumnInUseError) {
-      return context.json({ error: error.name, message: error.message, stories: error.stories }, 409)
-    }
-    return mapApiError(error, context)
-  })
+  api.onError(mapWorkflowColumnError)
 
-  function workflowOf(context: Context): number | undefined | Response {
-    const parsed = optionalIdentifierSchema.safeParse(context.req.query('workflow'))
-    if (!parsed.success) {
-      return context.json({ error: 'InvalidWorkflowIdentifier' }, 422)
-    }
-    return parsed.data
-  }
-
-  function guard(context: Context): { projectId: number } | Response {
-    const projectId = identifierSchema.safeParse(context.req.param('id'))
-    if (!projectId.success) {
-      return context.json({ error: 'InvalidProjectIdentifier' }, 422)
-    }
-    if (!projectExists(projectId.data)) {
-      return context.json({ error: 'ProjectNotFoundError' }, 404)
-    }
-    return { projectId: projectId.data }
-  }
-
-  function guardAdmin(context: Context): { projectId: number } | Response {
-    const guarded = guard(context)
-    if (guarded instanceof Response) {
-      return guarded
-    }
-    if (!mayAdminister(guarded.projectId, context)) {
-      return context.json({ error: 'WorkflowNeedsTheProjectAdmin' }, 403)
-    }
-    return guarded
-  }
+  const { workflowOf, guard, guardAdmin } = createWorkflowColumnGuards(projectExists, mayAdminister)
 
   api.get('/api/projects/:id/workflow-columns', (context) => {
     const guarded = guard(context)
