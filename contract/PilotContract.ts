@@ -70,3 +70,12 @@ export type ParcoursSuggestion = {
   reason: ParcoursReason
   references: readonly string[]
 }
+
+export type DestinationGuard = (url: string) => Promise<boolean>
+
+export type PilotDriver = {
+  open: (url: string, pace: PilotPace) => Promise<void>
+  perform: (step: PilotStep) => Promise<PilotObservation>
+  inspect: () => Promise<PilotObservation>
+  close: () => Promise<void>
+}

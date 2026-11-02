@@ -1,3 +1,4 @@
+export type { LaunchOrder, SessionRunner } from '../../../../contract/DispatchContract.js'
 import type { AgentPhase } from '../Agent/AgentSession.js'
 import type { CheckpointName, ReviewLens } from '../Checkpoint/Checkpoint.js'
 
@@ -89,23 +90,4 @@ export type Dispatched = {
   baseUrl?: string
   provider?: string
   effort?: string
-}
-
-export type SessionRunner = {
-  launch: (order: LaunchOrder) => Promise<{ claudeSessionId: string }>
-  abandon?: (claudeSessionId: string) => void
-}
-
-export type LaunchOrder = {
-  storyId: number
-  reference: string
-  phase: AgentPhase
-  agentName: string
-  prompt: string
-  model?: string
-  baseUrl?: string
-  provider?: string
-  effort?: string
-  forgeCardId?: number
-  resumeSessionId?: string
 }

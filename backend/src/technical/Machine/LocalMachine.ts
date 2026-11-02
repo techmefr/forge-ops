@@ -1,6 +1,6 @@
 import { freemem, loadavg, totalmem, cpus } from 'node:os'
 import { statfs } from 'node:fs/promises'
-import type { MachineSnapshot } from '../../domain/Resource/MachineSnapshot.js'
+import type { MachineSnapshot } from '../../../../contract/OperationContract.js'
 
 export type CpuSample = { idle: number; total: number }
 

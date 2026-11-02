@@ -1,7 +1,7 @@
 import { relative, isAbsolute, resolve } from 'node:path'
 import type { ScopeReservation } from '../../domain/Foremerge/ForemergeRepository.js'
 import { decideOnWrite, type WriteDecision } from '../../domain/Foremerge/ScopeGuard.js'
-import { isWriteTool, WRITE_TOOLS } from '../../domain/Agent/ToolName.js'
+import { isWriteTool, WRITE_TOOLS } from '../../../../contract/ToolContract.js'
 import { decideOnPhasePayload } from './PhaseDecision.js'
 import { isProtectedPath } from './ProtectedPaths.js'
 
