@@ -14,22 +14,7 @@
       "count": 1
     }
   },
-  "backend/src/domain/Delivery/BatchRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Event/EventRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/domain/Organisation/OrganisationRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Project/ProjectRepository.ts": {
     "max-lines-per-function": {
       "count": 1
     }
