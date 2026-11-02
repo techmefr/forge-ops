@@ -31,9 +31,17 @@ const dispatchSchema = z.object({
   columnId: z.number().int().positive().optional(),
 })
 
-export function mountStoryClosureRoutes(
+type ClosureDeps = Omit<StoryApiInput, 'agentSessions'>
+
+export function mountStoryClosureRoutes(api: Hono, deps: ClosureDeps): void {
+  mountDoneRoute(api, deps)
+  mountStepBackRoute(api, deps)
+  mountDispatchRoute(api, deps)
+}
+
+function mountDoneRoute(
   api: Hono,
-  { repository, checkpoints, criteria, events, dispatcher, cleanUpAfterMerge }: Omit<StoryApiInput, 'agentSessions'>,
+  { repository, checkpoints, criteria, events, cleanUpAfterMerge }: ClosureDeps,
 ): void {
   api.post('/api/stories/:id/done', async (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
@@ -63,7 +71,9 @@ export function mountStoryClosureRoutes(
     events.publish({ name: 'story.merged', payload: { storyId: storyId.data, ...cleanUp } })
     return context.json({ story: repository.findStory(storyId.data), unblocked, cleanUp })
   })
+}
 
+function mountStepBackRoute(api: Hono, { repository, checkpoints, events }: ClosureDeps): void {
   api.post('/api/stories/:id/step-back', async (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
     if (!storyId.success) {
@@ -98,7 +108,9 @@ export function mountStoryClosureRoutes(
     })
     return context.json({ story: repository.findStory(story.id), stepBack })
   })
+}
 
+function mountDispatchRoute(api: Hono, { events, dispatcher }: ClosureDeps): void {
   api.post('/api/stories/:id/dispatch', async (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
     if (!storyId.success) {

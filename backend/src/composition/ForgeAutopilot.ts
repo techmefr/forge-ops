@@ -52,6 +52,20 @@ export type ForgeAutopilotInput = {
 
 export type ForgeAutopilot = ReturnType<typeof createForgeAutopilot>
 
+function proverOf({
+  checkpoints,
+  criteria,
+  sessions,
+}: Pick<ForgeAutopilotInput, 'checkpoints' | 'criteria' | 'sessions'>) {
+  return createStepProver({
+    checkpoints,
+    criteria,
+    inspection: createStoryInspection({ testCommandOf: (root) => projectTestCommand(root) }),
+    writeEvidence: writeEvidenceFile,
+    latestSessionOf: (storyId) => sessions.latestSessionOf(storyId),
+  })
+}
+
 export function createForgeAutopilot({
   db,
   ticking,
@@ -117,13 +131,7 @@ export function createForgeAutopilot({
     clearVerdict: clearVerdictFile,
     mover,
     closer,
-    prover: createStepProver({
-      checkpoints,
-      criteria,
-      inspection: createStoryInspection({ testCommandOf: (root) => projectTestCommand(root) }),
-      writeEvidence: writeEvidenceFile,
-      latestSessionOf: (storyId) => sessions.latestSessionOf(storyId),
-    }),
+    prover: proverOf({ checkpoints, criteria, sessions }),
     baseShaOf: (storyId) => worktrees.findForStory(storyId)?.baseSha ?? null,
     integrityOf: integrityOfStory(guardrailSeal, cwdForStory),
     lastAgentMessage: lastAgentMessageOf(messages),

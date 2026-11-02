@@ -25,6 +25,17 @@ export type ProjectWorkflowRepository = {
   remove: (projectId: number, workflowId: number) => void
 }
 
+function refuseIfInvalid(name: string, otherNames: readonly string[]): string {
+  const trimmed = name.trim()
+  if (trimmed === '') {
+    throw new WorkflowRefusedError({ reason: 'EmptyName' })
+  }
+  if (otherNames.some((other) => other.trim().toLowerCase() === trimmed.toLowerCase())) {
+    throw new WorkflowRefusedError({ reason: 'DuplicateName', name: trimmed })
+  }
+  return trimmed
+}
+
 export function createProjectWorkflowRepository(db: Database.Database): ProjectWorkflowRepository {
   const statements = prepareProjectWorkflowStatements(db)
   const {
@@ -49,17 +60,6 @@ export function createProjectWorkflowRepository(db: Database.Database): ProjectW
       throw new WorkflowNotFoundError(workflowId)
     }
     return row
-  }
-
-  function refuseIfInvalid(name: string, otherNames: readonly string[]): string {
-    const trimmed = name.trim()
-    if (trimmed === '') {
-      throw new WorkflowRefusedError({ reason: 'EmptyName' })
-    }
-    if (otherNames.some((other) => other.trim().toLowerCase() === trimmed.toLowerCase())) {
-      throw new WorkflowRefusedError({ reason: 'DuplicateName', name: trimmed })
-    }
-    return trimmed
   }
 
   function insert(projectId: number, name: string): Workflow {
