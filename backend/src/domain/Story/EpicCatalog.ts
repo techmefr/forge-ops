@@ -3,9 +3,10 @@ import type { EpicCreate, EpicPatch, EpicQuery, ManualEpicState } from '../../..
 import { matchesQuery } from '../../../../contract/SubjectQuery.js'
 import type { Epic, EpicDraft, EpicOverview } from './Story.js'
 import type { EpicRepository, OverviewOptions } from '../Epic/EpicRepository.js'
-import { InactiveAssigneeError } from '../Epic/EpicViolation.js'
 import type { ProjectCatalog } from './ProjectCatalog.js'
-import { EpicNotFoundError, EpicTakenError, ProjectNotFoundError } from './StoryViolation.js'
+import { createEpicAssignment } from './EpicAssignment.js'
+import { prepareEpicCatalogStatements } from './EpicCatalogStatements.js'
+import { EpicNotFoundError, ProjectNotFoundError } from './StoryViolation.js'
 
 export type EpicCatalog = {
   createEpic: (draft: EpicDraft) => Epic
@@ -23,40 +24,13 @@ export function createEpicCatalog(
   db: Database.Database,
   { epics, projects }: { epics: EpicRepository; projects: ProjectCatalog },
 ): EpicCatalog {
-  const insertEpic = db.prepare<[number, string, string]>(
-    'INSERT INTO epic (project_id, title, business_intent) VALUES (?, ?, ?)',
+  const statements = prepareEpicCatalogStatements(db)
+  const { insertEpic, selectEpics, updateEpicAssignee, selectProjectById, selectFullEpic } = statements
+  const { assertAssignable, assignEpic, claimEpic, releaseEpic, assigneeOf } = createEpicAssignment(
+    db,
+    statements,
+    epics,
   )
-  const selectEpics = db.prepare<
-    [number, number],
-    {
-      id: number
-      project_id: number
-      title: string
-      business_intent: string
-      assignee: string | null
-      story_count: number
-    }
-  >(
-    `SELECT epic.id, epic.project_id, epic.title, epic.business_intent, epic.assignee,
-            COUNT(story.id) AS story_count
-       FROM epic
-       LEFT JOIN story ON story.epic_id = epic.id AND story.kind = 'functional'
-      WHERE epic.project_id = ? AND (epic.deleted_at IS NOT NULL) = ?
-      GROUP BY epic.id
-      ORDER BY epic.id`,
-  )
-  const selectEpicById = db.prepare<[number], { id: number; project_id: number; assignee: string | null }>(
-    'SELECT id, project_id, assignee FROM epic WHERE id = ?',
-  )
-  const updateEpicAssignee = db.prepare<[string | null, number]>('UPDATE epic SET assignee = ? WHERE id = ?')
-  const selectDisabledAt = db.prepare<[string], { disabled_at: string | null }>(
-    'SELECT disabled_at FROM board_user WHERE login = ?',
-  )
-  const selectProjectById = db.prepare<[number], { id: number }>('SELECT id FROM project WHERE id = ?')
-  const selectFullEpic = db.prepare<
-    [number],
-    { id: number; project_id: number; title: string; business_intent: string }
-  >('SELECT id, project_id, title, business_intent FROM epic WHERE id = ?')
 
   function epicsOfProject(projectId: number, options: OverviewOptions = {}): readonly EpicOverview[] {
     const planning = epics.planningOf(projectId, options)
@@ -76,23 +50,6 @@ export function createEpicCatalog(
             },
           ]
     })
-  }
-
-  function assertAssignable(login: string): void {
-    if ((selectDisabledAt.get(login)?.disabled_at ?? null) !== null) {
-      throw new InactiveAssigneeError(login)
-    }
-  }
-
-  function assertHeldBy(epicId: number, login: string): { assignee: string | null } {
-    const epic = selectEpicById.get(epicId)
-    if (epic === undefined) {
-      throw new EpicNotFoundError(epicId)
-    }
-    if (epic.assignee !== null && epic.assignee !== login) {
-      throw new EpicTakenError(epicId, epic.assignee)
-    }
-    return epic
   }
 
   const createSubjectAtomically = db.transaction(
@@ -138,33 +95,10 @@ export function createEpicCatalog(
       )
     },
 
-    assignEpic: (epicId, login) => {
-      if (selectEpicById.get(epicId) === undefined) {
-        throw new EpicNotFoundError(epicId)
-      }
-      if (login !== null) {
-        assertAssignable(login)
-      }
-      updateEpicAssignee.run(login, epicId)
-    },
-
-    claimEpic: db.transaction((epicId: number, login: string, state?: ManualEpicState) => {
-      assertHeldBy(epicId, login)
-      assertAssignable(login)
-      updateEpicAssignee.run(login, epicId)
-      if (state !== undefined) {
-        epics.plan(epicId, { state }, login)
-      }
-    }),
-
-    releaseEpic: db.transaction((epicId: number, login: string, state?: ManualEpicState) => {
-      assertHeldBy(epicId, login)
-      updateEpicAssignee.run(null, epicId)
-      if (state !== undefined) {
-        epics.plan(epicId, { state }, login)
-      }
-    }),
-
+    assignEpic,
+    claimEpic,
+    releaseEpic,
+    assigneeOf,
     listEpics: epicsOfProject,
 
     listEveryEpic: (query, today) =>
@@ -172,14 +106,6 @@ export function createEpicCatalog(
         .listProjects()
         .flatMap((project) => epicsOfProject(project.id, { today, deleted: query.state === 'trash' }))
         .filter((epic) => matchesQuery(epic, query)),
-
-    assigneeOf: (epicId) => {
-      const epic = selectEpicById.get(epicId)
-      if (epic === undefined) {
-        throw new EpicNotFoundError(epicId)
-      }
-      return epic.assignee
-    },
 
     findEpic: (epicId) => {
       const row = selectFullEpic.get(epicId)

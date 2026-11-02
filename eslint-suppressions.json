@@ -9,11 +9,6 @@
       "count": 1
     }
   },
-  "backend/src/domain/Checkpoint/CheckpointRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/domain/Checkpoint/ReviewRepository.ts": {
     "max-lines-per-function": {
       "count": 1
@@ -69,17 +64,7 @@
       "count": 1
     }
   },
-  "backend/src/domain/Pilot/PilotRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/domain/Project/ProjectRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Story/EpicCatalog.ts": {
     "max-lines-per-function": {
       "count": 1
     }
