@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
@@ -16,6 +16,8 @@ import {
   type BoardStep,
   type CardAction,
 } from './ForgeRule'
+import ForgeLogs from './ForgeLogs.vue'
+import ForgeThread from './ForgeThread.vue'
 import { useCardConversation } from './UseCardConversation'
 
 const props = defineProps<{
@@ -47,7 +49,6 @@ function openStory(): void {
 }
 
 const draft = ref('')
-const thread = ref<HTMLElement | null>(null)
 const field = ref<HTMLTextAreaElement | null>(null)
 
 const step = computed(() => props.steps.find((candidate) => candidate.key === props.stepKey) ?? null)
@@ -85,23 +86,10 @@ const tabs = computed(() => [
   { key: 'conversation' as const, label: t('forge.drawer.tab.conversation') },
   { key: 'logs' as const, label: t('forge.drawer.tab.logs') },
 ])
-const logsPane = ref<HTMLElement | null>(null)
-const selected = ref('')
 const logLines = computed(() => logLinesOf(conversation.items.value, (key) => t(`phase.${key}`)))
 
-function readSelection(): void {
-  const selection = window.getSelection()
-  const inside =
-    selection !== null && logsPane.value !== null && selection.anchorNode !== null && logsPane.value.contains(selection.anchorNode)
-  if (inside) {
-    selected.value = selection.toString()
-  }
-}
-
-async function pasteSelection(): Promise<void> {
-  draft.value = withQuote(draft.value, selected.value)
-  selected.value = ''
-  window.getSelection()?.removeAllRanges()
+async function quote(text: string): Promise<void> {
+  draft.value = withQuote(draft.value, text)
   tab.value = 'conversation'
   await nextTick()
   field.value?.focus()
@@ -148,19 +136,6 @@ const actionLabel = computed(() => {
     : t(`forge.action.${action.value}`)
 })
 
-function outcomeLabel(outcome: 'started' | 'ok' | 'failed'): string {
-  if (outcome === 'ok') {
-    return t('forge.drawer.toolOk')
-  }
-  return outcome === 'failed' ? t('forge.drawer.toolFailed') : t('forge.drawer.toolStarted')
-}
-
-const OUTCOME_GLYPH: Readonly<Record<'started' | 'ok' | 'failed', string>> = {
-  started: '…',
-  ok: '✓',
-  failed: '✗',
-}
-
 async function submit(): Promise<void> {
   const sent = await conversation.send(draft.value, route.value)
   if (sent) {
@@ -183,21 +158,7 @@ function closeWhenClosed(open: boolean): void {
   }
 }
 
-watch(
-  () => conversation.items.value.length,
-  async () => {
-    await nextTick()
-    if (thread.value !== null) {
-      thread.value.scrollTop = thread.value.scrollHeight
-    }
-  },
-)
-
-onMounted(() => {
-  void conversation.load()
-  document.addEventListener('selectionchange', readSelection)
-})
-onBeforeUnmount(() => document.removeEventListener('selectionchange', readSelection))
+onMounted(() => void conversation.load())
 </script>
 
 <template>
@@ -324,112 +285,15 @@ onBeforeUnmount(() => document.removeEventListener('selectionchange', readSelect
           </button>
         </div>
 
-        <div
-          v-if="tab === 'logs'"
-          ref="logsPane"
-          class="min-h-0 flex-1 overflow-y-auto px-5 py-3"
-          role="tabpanel"
-          tabindex="0"
-          data-test="forge-logs"
-        >
-          <p v-if="logLines.length === 0" class="m-0 text-xs text-txt-low">{{ t('forge.drawer.logsEmpty') }}</p>
-          <ol class="m-0 flex list-none flex-col gap-1 p-0 font-mono text-xs select-text">
-            <li
-              v-for="line in logLines"
-              :key="line.id"
-              class="whitespace-pre-wrap"
-              :class="{
-                'mt-2 border-t border-hair pt-2 font-bold text-acc': line.tone === 'phase',
-                'text-txt-hi': line.tone === 'agent',
-                'text-info': line.tone === 'human',
-                'text-txt-low': line.tone === 'tool' || line.tone === 'notice',
-                'text-red': line.tone === 'failed',
-              }"
-            >{{ line.text }}<pre
-                v-if="line.detail !== ''"
-                class="m-0 mt-1 max-h-64 overflow-auto rounded-md bg-elev p-2 font-mono text-xs whitespace-pre-wrap text-txt-mid"
-                data-test="forge-log-detail"
-              >{{ line.detail }}</pre></li>
-          </ol>
-        </div>
+        <ForgeLogs v-if="tab === 'logs'" :lines="logLines" :can-quote="!looking" @quote="quote" />
 
-        <div v-if="tab === 'logs' && !looking" class="flex flex-none items-center gap-3 border-t border-hair px-5 py-3">
-          <button
-            type="button"
-            class="btn btn-primary btn-sm"
-            :disabled="selected.trim() === ''"
-            data-test="forge-paste-selection"
-            @mousedown.prevent
-            @click="pasteSelection"
-          >
-            {{ t('forge.drawer.pasteSelection') }}
-          </button>
-          <span class="text-xs text-txt-low">{{
-            selected.trim() === '' ? t('forge.drawer.pasteHint') : t('forge.drawer.pasteReady', { count: selected.trim().length })
-          }}</span>
-        </div>
-
-        <div
+        <ForgeThread
           v-show="tab === 'conversation'"
-          ref="thread"
-          class="min-h-0 flex-1 overflow-y-auto px-5 py-3"
-          role="log"
-          aria-live="off"
-          :aria-label="t('forge.drawer.threadAria')"
-          tabindex="0"
-        >
-          <p
-            v-if="grouped.blocks.length === 0 && !conversation.pending.value"
-            class="m-0 text-xs text-txt-low"
-          >
-            {{ t('forge.drawer.empty') }}
-          </p>
-          <ol class="m-0 flex list-none flex-col gap-3 p-0">
-            <li v-for="item in grouped.blocks" :key="item.id">
-              <p
-                v-if="item.kind === 'marker'"
-                class="m-0 flex items-center gap-2 border-t border-hair pt-2 tabular-nums text-xs text-txt-low"
-              >
-                <span>{{ t(`phase.${item.phase}`) }}</span>
-                <span v-if="item.agent !== null">{{ item.agent }}</span>
-              </p>
-              <div
-                v-else-if="item.kind === 'group'"
-                class="flex flex-col gap-0.5"
-                :class="item.voice === 'human' ? 'items-end' : 'items-start'"
-              >
-                <p class="m-0 text-xs text-txt-low">
-                  {{ item.voice === 'human' && item.author === 'you' ? t('forge.drawer.you') : item.author }}
-                </p>
-                <div
-                  class="flex max-w-[92%] flex-col gap-1.5 rounded-lg px-3 py-2 text-sm whitespace-pre-wrap text-txt-hi"
-                  :class="item.voice === 'human' ? 'bg-elev' : 'bg-card'"
-                >
-                  <p v-for="message in item.messages" :key="message.id" class="m-0">{{ message.body }}</p>
-                </div>
-              </div>
-              <p
-                v-else-if="item.kind === 'tool'"
-                class="m-0 flex items-center gap-2 font-mono text-xs"
-                :class="item.outcome === 'failed' ? 'text-red' : 'text-txt-mid'"
-                data-test="forge-tool"
-              >
-                <span aria-hidden="true">{{ OUTCOME_GLYPH[item.outcome] }}</span>
-                <span>{{ t('forge.drawer.tool', { name: item.name === '' ? '·' : item.name }) }}</span>
-                <span class="text-txt-low">{{ outcomeLabel(item.outcome) }}</span>
-              </p>
-              <p v-else class="m-0 text-xs text-red" role="alert">{{ item.text }}</p>
-            </li>
-          </ol>
-          <p
-            v-if="working"
-            class="m-0 mt-2 flex items-center gap-2 text-xs text-acc"
-            data-test="forge-working"
-          >
-            <span class="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-acc motion-reduce:animate-none" aria-hidden="true" />
-            {{ t('forge.drawer.working') }}
-          </p>
-        </div>
+          :blocks="grouped.blocks"
+          :pending="conversation.pending.value"
+          :working="working"
+          :scroll-key="conversation.items.value.length"
+        />
 
         <p class="sr-only" role="status" aria-live="polite">
           {{ conversation.announcement.value === '' ? '' : t('forge.drawer.announceAgent', { text: conversation.announcement.value }) }}

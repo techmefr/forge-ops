@@ -23,17 +23,14 @@ import { subjectOf, type RoadmapProject } from '@/domain/Roadmap/UseRoadmap'
 import type { SubjectLink } from '@contract/EpicContract'
 import { minutesToWrite, type ProjectEvent } from '@contract/EventContract'
 import {
-  DECISION_TEXT_LIMIT,
-  PERSON_LIMIT,
-  RISK_LEVELS,
-  RISK_TEXT_LIMIT,
   STATUS_SENTENCE_LIMIT,
   WEATHERS,
   computedWeather,
   type ProjectRisk,
-  type RiskLevel,
 } from '@contract/FollowUpContract'
 import { dayLabel } from './DayLabel'
+import FollowUpDecisions, { type DecisionDraft } from './FollowUpDecisions.vue'
+import FollowUpRisks, { type RiskDraft } from './FollowUpRisks.vue'
 import type { ProjectWeather } from './UseFollowUps'
 
 const props = defineProps<{ entry: ProjectWeather }>()
@@ -52,12 +49,6 @@ subjects.reload()
 links.reload()
 
 const sentence = ref('')
-const riskText = ref('')
-const riskLevel = ref<RiskLevel>('medium')
-const riskOwner = ref('')
-const riskEpic = ref<number | null>(null)
-const decisionText = ref('')
-const decisionBy = ref('')
 const dialog = ref<{ event: ProjectEvent | null } | null>(null)
 
 watch(
@@ -68,7 +59,6 @@ watch(
   { immediate: true },
 )
 
-const openRisks = computed(() => followUp.value.risks.filter((risk) => risk.closedOn === null))
 const sortedEvents = computed(() =>
   [...followUp.value.events].sort((one, other) => other.date.localeCompare(one.date)),
 )
@@ -90,15 +80,6 @@ function subjectTitle(epicId: number | null): string | null {
   return knownSubjects.value.find((subject) => subject.id === epicId)?.title ?? null
 }
 
-function riskMeta(risk: ProjectRisk): string {
-  const date = dayLabel(risk.openedOn, locale.value, true)
-  const base =
-    risk.owner === null
-      ? t('followUp.drawer.riskMetaNobody', { date })
-      : t('followUp.drawer.riskMeta', { owner: risk.owner, date })
-  const subject = subjectTitle(risk.epicId)
-  return subject === null ? base : `${base} · ${subject}`
-}
 
 function typeLabel(event: ProjectEvent): string {
   return t(`milestone.${event.type}`)
@@ -125,37 +106,16 @@ function saveSentence(): Promise<boolean> {
   )
 }
 
-async function addRisk(): Promise<void> {
-  const done = await guard(() =>
-    board.send(`/api/projects/${projectId.value}/risks`, 'POST', {
-      text: riskText.value,
-      level: riskLevel.value,
-      owner: riskOwner.value.trim() === '' ? null : riskOwner.value,
-      epicId: riskEpic.value,
-    }),
-  )
-  if (done) {
-    riskText.value = ''
-    riskOwner.value = ''
-    riskEpic.value = null
-  }
+function addRisk(draft: RiskDraft): Promise<boolean> {
+  return guard(() => board.send(`/api/projects/${projectId.value}/risks`, 'POST', draft))
 }
 
 function toggleRisk(risk: ProjectRisk): Promise<boolean> {
   return guard(() => board.send(`/api/risks/${risk.id}`, 'PATCH', { closed: risk.closedOn === null }))
 }
 
-async function addDecision(): Promise<void> {
-  const done = await guard(() =>
-    board.send(`/api/projects/${projectId.value}/decisions`, 'POST', {
-      text: decisionText.value,
-      ...(decisionBy.value.trim() === '' ? {} : { decidedBy: decisionBy.value }),
-    }),
-  )
-  if (done) {
-    decisionText.value = ''
-    decisionBy.value = ''
-  }
+function addDecision(draft: DecisionDraft): Promise<boolean> {
+  return guard(() => board.send(`/api/projects/${projectId.value}/decisions`, 'POST', draft))
 }
 
 function eventSaved(): void {
@@ -251,134 +211,21 @@ function closeWhenClosed(open: boolean): void {
           </button>
         </section>
 
-        <section class="flex flex-col gap-2" :aria-labelledby="`fu-risks-${projectId}`">
-          <h3 :id="`fu-risks-${projectId}`" class="text-xs text-txt-low">
-            {{ t('followUp.drawer.risksSection', { count: openRisks.length }) }}
-          </h3>
-          <p v-if="followUp.risks.length === 0" class="text-sm text-txt-low">{{ t('followUp.drawer.noRisks') }}</p>
-          <ul v-else class="flex flex-col gap-2">
-            <li
-              v-for="risk in followUp.risks"
-              :key="risk.id"
-              class="flex items-start gap-2 rounded-lg bg-card p-2.5"
-              :class="{ 'opacity-70': risk.closedOn !== null }"
-              :data-test-id="`risk-${risk.id}`"
-            >
-              <span class="flex-none rounded px-1.5 py-0.5 text-xs font-bold text-txt-hi">
-                {{ t(`riskLevel.${risk.level}`) }}
-              </span>
-              <div class="min-w-0 flex-1">
-                <b class="text-sm text-txt-hi">{{ risk.text }}</b>
-                <small class="block text-xs text-txt-mid">
-                  {{ riskMeta(risk) }}
-                  <template v-if="risk.closedOn !== null">
-                    · {{ t('followUp.drawer.closedOn', { date: dayLabel(risk.closedOn, locale, true) }) }}
-                  </template>
-                </small>
-              </div>
-              <button
-                type="button"
-                :disabled="busy"
-                class="btn btn-secondary btn-sm flex-none"
-                :aria-label="t(risk.closedOn === null ? 'followUp.drawer.closeRiskLabel' : 'followUp.drawer.reopenRiskLabel', { text: risk.text })"
-                @click="toggleRisk(risk)"
-              >
-                {{ t(risk.closedOn === null ? 'followUp.drawer.closeRisk' : 'followUp.drawer.reopenRisk') }}
-              </button>
-            </li>
-          </ul>
-          <form class="grid grid-cols-1 gap-2 sm:grid-cols-2" @submit.prevent="addRisk">
-            <label class="flex flex-col gap-1 text-sm text-txt-mid sm:col-span-2">
-              {{ t('followUp.drawer.riskText') }}
-              <input
-                v-model="riskText"
-                type="text"
-                required
-                :maxlength="RISK_TEXT_LIMIT"
-                class="field"
-              />
-            </label>
-            <label class="flex flex-col gap-1 text-sm text-txt-mid">
-              {{ t('followUp.drawer.riskLevel') }}
-              <select v-model="riskLevel" class="field">
-                <option v-for="level in RISK_LEVELS" :key="level" :value="level">{{ t(`riskLevel.${level}`) }}</option>
-              </select>
-            </label>
-            <label class="flex flex-col gap-1 text-sm text-txt-mid">
-              {{ t('followUp.drawer.riskOwner') }}
-              <input
-                v-model="riskOwner"
-                type="text"
-                :maxlength="PERSON_LIMIT"
-                class="field"
-              />
-            </label>
-            <label class="flex flex-col gap-1 text-sm text-txt-mid sm:col-span-2">
-              {{ t('followUp.drawer.riskSubject') }}
-              <select v-model="riskEpic" class="field">
-                <option :value="null">{{ t('followUp.drawer.wholeProject') }}</option>
-                <option v-for="subject in knownSubjects" :key="subject.id" :value="subject.id">{{ subject.title }}</option>
-              </select>
-            </label>
-            <button
-              type="submit"
-              :disabled="busy || riskText.trim() === ''"
-              class="btn btn-primary btn-sm w-fit"
-            >
-              {{ t('followUp.drawer.addRisk') }}
-            </button>
-          </form>
-        </section>
+        <FollowUpRisks
+          :project-id="projectId"
+          :risks="followUp.risks"
+          :subjects="knownSubjects"
+          :busy="busy"
+          :add="addRisk"
+          :toggle="toggleRisk"
+        />
 
-        <section class="flex flex-col gap-2" :aria-labelledby="`fu-decisions-${projectId}`">
-          <h3 :id="`fu-decisions-${projectId}`" class="text-xs text-txt-low">
-            {{ t('followUp.drawer.decisionsSection') }}
-          </h3>
-          <p v-if="followUp.decisions.length === 0" class="text-sm text-txt-low">{{ t('followUp.drawer.noDecisions') }}</p>
-          <ul v-else class="flex flex-col gap-2">
-            <li
-              v-for="decision in followUp.decisions"
-              :key="decision.id"
-              class="flex items-start gap-2 rounded-lg bg-card p-2.5"
-            >
-              <span class="flex-none tabular-nums text-xs text-txt-mid">
-                {{ dayLabel(decision.decidedOn, locale, true) }}
-              </span>
-              <div class="min-w-0 flex-1">
-                <b class="text-sm text-txt-hi">{{ decision.text }}</b>
-                <small class="block text-xs text-txt-mid">{{ decision.decidedBy }}</small>
-              </div>
-            </li>
-          </ul>
-          <form class="grid grid-cols-1 gap-2 sm:grid-cols-2" @submit.prevent="addDecision">
-            <label class="flex flex-col gap-1 text-sm text-txt-mid sm:col-span-2">
-              {{ t('followUp.drawer.decisionText') }}
-              <input
-                v-model="decisionText"
-                type="text"
-                required
-                :maxlength="DECISION_TEXT_LIMIT"
-                class="field"
-              />
-            </label>
-            <label class="flex flex-col gap-1 text-sm text-txt-mid">
-              {{ t('followUp.drawer.decisionBy') }}
-              <input
-                v-model="decisionBy"
-                type="text"
-                :maxlength="PERSON_LIMIT"
-                class="field"
-              />
-            </label>
-            <button
-              type="submit"
-              :disabled="busy || decisionText.trim() === ''"
-              class="btn btn-primary btn-sm w-fit self-end"
-            >
-              {{ t('followUp.drawer.addDecision') }}
-            </button>
-          </form>
-        </section>
+        <FollowUpDecisions
+          :project-id="projectId"
+          :decisions="followUp.decisions"
+          :busy="busy"
+          :add="addDecision"
+        />
 
         <section class="flex flex-col gap-2" :aria-labelledby="`fu-meetings-${projectId}`">
           <h3 :id="`fu-meetings-${projectId}`" class="text-xs text-txt-low">
