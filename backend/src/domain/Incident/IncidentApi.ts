@@ -7,6 +7,7 @@ import {
   IncidentViolationError,
   OriginNotFoundError,
 } from './IncidentViolation.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -50,7 +51,7 @@ export function createIncidentApi({ incidents, events }: IncidentApiInput): Hono
   })
 
   api.post('/api/origins', async (context) => {
-    const draft = originDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, originDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidOriginDraft', issues: draft.error.issues }, 422)
     }
@@ -60,7 +61,7 @@ export function createIncidentApi({ incidents, events }: IncidentApiInput): Hono
   api.get('/api/origins', (context) => context.json(incidents.listOrigins()))
 
   api.post('/api/origins/:slug/incidents', async (context) => {
-    const report = reportSchema.safeParse(await context.req.json().catch(() => null))
+    const report = await parseBody(context, reportSchema)
     if (!report.success) {
       return context.json({ error: 'InvalidIncidentReport', issues: report.error.issues }, 422)
     }
@@ -89,7 +90,7 @@ export function createIncidentApi({ incidents, events }: IncidentApiInput): Hono
     if (!incidentId.success) {
       return context.json({ error: 'InvalidIncidentIdentifier' }, 422)
     }
-    const body = acceptSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, acceptSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidAcceptance', issues: body.error.issues }, 422)
     }
@@ -103,7 +104,7 @@ export function createIncidentApi({ incidents, events }: IncidentApiInput): Hono
     if (!incidentId.success) {
       return context.json({ error: 'InvalidIncidentIdentifier' }, 422)
     }
-    const body = refusalSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, refusalSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidRefusal', issues: body.error.issues }, 422)
     }

@@ -7,6 +7,7 @@ import {
   ProviderRefusedError,
   type OrganisationRepository,
 } from './OrganisationRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -55,7 +56,7 @@ export function createOrganisationApi({
     if (!maySettle(context)) {
       return context.json({ error: 'ProviderNeedsAnAdmin' }, 403)
     }
-    const draft = providerSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, providerSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidProvider', issues: draft.error.issues }, 422)
     }
@@ -71,7 +72,7 @@ export function createOrganisationApi({
     if (!maySettle(context)) {
       return context.json({ error: 'InstanceTokenNeedsAnAdmin' }, 403)
     }
-    const draft = tokenSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, tokenSchema)
     if (!draft.success) {
       return context.json({ error: 'MissingTokenName' }, 422)
     }

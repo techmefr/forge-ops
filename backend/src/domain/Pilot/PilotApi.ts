@@ -12,6 +12,7 @@ import {
   PilotRunPausedError,
   PilotViolationError,
 } from './PilotViolation.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -83,7 +84,7 @@ export function createPilotApi({ pilots, events, suggest, mayRun }: PilotApiInpu
     if (mayRun !== undefined && !mayRun(storyId, context)) {
       return context.json({ error: 'PilotNeedsTheHolder' }, 403)
     }
-    const order = orderSchema.safeParse(await context.req.json().catch(() => null))
+    const order = await parseBody(context, orderSchema)
     if (!order.success) {
       return context.json({ error: 'InvalidPilotOrder', issues: order.error.issues }, 422)
     }

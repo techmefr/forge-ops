@@ -41,6 +41,7 @@ import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateRe
 import { attentionOf, daysLeft, nextMilestone } from './CardAttention.js'
 import type { StoryHold } from '../Discussion/Discussion.js'
 import { sessionContextOf } from '../Agent/SessionContext.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const projectDraftSchema = z.object({
   slug: z
@@ -180,7 +181,7 @@ export function createBoardApi({
   api.get('/api/projects', (context) => context.json(repository.listProjects()))
 
   api.post('/api/epics', async (context) => {
-    const draft = epicCreateSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, epicCreateSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidEpicDraft', issues: draft.error.issues }, 422)
     }
@@ -191,7 +192,7 @@ export function createBoardApi({
 
   api.put('/api/epics/:id/assignee', async (context) => {
     const epicId = identifierSchema.safeParse(context.req.param('id'))
-    const body = epicAssignmentSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, epicAssignmentSchema)
     if (!epicId.success || !body.success) {
       return context.json({ error: 'InvalidEpicAssignment' }, 422)
     }
@@ -275,7 +276,7 @@ export function createBoardApi({
   api.route('/', createHumanGateApi({ stories: repository, events }))
 
   api.post('/api/hooks', async (context) => {
-    const payload = hookPayloadSchema.safeParse(await context.req.json().catch(() => null))
+    const payload = await parseBody(context, hookPayloadSchema)
     if (!payload.success) {
       return context.json({ error: 'InvalidHookPayload', issues: payload.error.issues }, 422)
     }

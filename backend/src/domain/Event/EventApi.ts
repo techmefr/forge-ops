@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { eventDraftSchema, eventPatchSchema, eventWindowSchema } from '../../../../contract/EventContract.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import type { EventRepository } from './EventRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -30,7 +31,7 @@ export function createEventApi({ agenda, events }: EventApiInput): Hono {
   })
 
   api.post('/api/events', async (context) => {
-    const draft = eventDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, eventDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidEventDraft', issues: draft.error.issues }, 422)
     }
@@ -44,7 +45,7 @@ export function createEventApi({ agenda, events }: EventApiInput): Hono {
     if (!eventId.success) {
       return context.json({ error: 'InvalidEventIdentifier' }, 422)
     }
-    const patch = eventPatchSchema.safeParse(await context.req.json().catch(() => null))
+    const patch = await parseBody(context, eventPatchSchema)
     if (!patch.success) {
       return context.json({ error: 'InvalidEventPatch', issues: patch.error.issues }, 422)
     }

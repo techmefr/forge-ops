@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { autopilotSettingsSchema, type ProjectAutopilot } from '../../../../contract/AutopilotContract.js'
 import { mapApiError } from '../Board/ApiErrorMap.js'
 import type { AutopilotRepository } from './AutopilotRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -49,7 +50,7 @@ export function createAutopilotApi({ autopilot, projectExists, mayAdminister }: 
     if (!mayAdminister(guarded.projectId, context)) {
       return context.json({ error: 'AutopilotNeedsTheProjectAdmin' }, 403)
     }
-    const settings = autopilotSettingsSchema.safeParse(await context.req.json().catch(() => null))
+    const settings = await parseBody(context, autopilotSettingsSchema)
     if (!settings.success) {
       return context.json({ error: 'InvalidAutopilotSettings', issues: settings.error.issues }, 422)
     }

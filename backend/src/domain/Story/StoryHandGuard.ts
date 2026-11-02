@@ -4,6 +4,7 @@ import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import { mayAdministerProject } from '../Project/ProjectAuthority.js'
 import type { StoryRepository } from './StoryRepository.js'
 import { mayActOnEpic } from './StoryHand.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 export type StoryHandGuardInput = {
   stories: StoryRepository
@@ -55,7 +56,7 @@ export function createStoryHandGuard({ stories, isSuperAdmin, isDirector }: Stor
         )
       }
       if (kind === 'epics' && action === 'assignee' && assignee === null && !mayAdminister) {
-        const body = assignmentSchema.safeParse(await context.req.json().catch(() => null))
+        const body = await parseBody(context, assignmentSchema)
         if (body.success && body.data.login !== login) {
           return context.json({ error: 'AssignmentNeedsAnAdmin' }, 403)
         }

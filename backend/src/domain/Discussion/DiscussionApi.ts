@@ -6,6 +6,7 @@ import type { StoryRepository } from '../Story/StoryRepository.js'
 import { StoryNotFoundError } from '../Story/StoryViolation.js'
 import type { DiscussionRepository } from './DiscussionRepository.js'
 import { EmptyRemarkError, StoryAlreadyHeldError } from './DiscussionViolation.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -54,7 +55,7 @@ export function createDiscussionApi({ stories, discussion, events }: DiscussionA
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const draft = remarkSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, remarkSchema)
     if (!draft.success) {
       return context.json({ error: 'EmptyRemark' }, 422)
     }
@@ -84,7 +85,7 @@ export function createDiscussionApi({ stories, discussion, events }: DiscussionA
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const draft = holdSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, holdSchema)
     if (!draft.success) {
       return context.json({ error: 'MissingHoldReason' }, 422)
     }

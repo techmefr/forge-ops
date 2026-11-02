@@ -7,6 +7,7 @@ import { stateAfterCheckpoint } from '../Story/Advance.js'
 import type { CascadeStep } from './ReviewCascade.js'
 import { CHECKPOINT_SEQUENCE, REVIEW_LENS_SEQUENCE } from './Checkpoint.js'
 import type { CheckpointRepository } from './CheckpointRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -42,7 +43,7 @@ export function createCheckpointApi({
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const draft = checkpointDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, checkpointDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidCheckpointDraft', issues: draft.error.issues }, 422)
     }
@@ -82,7 +83,7 @@ export function createCheckpointApi({
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const body = lensSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, lensSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidReviewPass', issues: body.error.issues }, 422)
     }
