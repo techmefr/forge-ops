@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import Avatar from '@/technical/Ui/Avatar.vue'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SUBJECT_FILTERS, type ManualEpicState, type SubjectFilter } from '@contract/EpicContract'
 import type { EpicOverview } from '@/domain/Board/BoardModel'
@@ -16,6 +15,7 @@ import ProjectPicker from '@/domain/Project/ProjectPicker.vue'
 import SubjectFormDialog from './SubjectFormDialog.vue'
 import SubjectDrawer from './SubjectDrawer.vue'
 import SubjectRow from './SubjectRow.vue'
+import SubjectSidebar from './SubjectSidebar.vue'
 import {
   VIEWS,
   VIEW_ALL,
@@ -27,7 +27,6 @@ import {
   loadText,
   loadTone,
   narrow,
-  stepSelection,
   subjectsOfView,
   viewCounts,
   type Facet,
@@ -52,7 +51,6 @@ const refusal = ref<Phrase | null>(null)
 const openId = ref<number | null>(null)
 const creating = ref(false)
 const editing = ref(false)
-const peopleRoot = ref<HTMLElement | null>(null)
 
 const data = computed(() => subjects.data.value)
 const live = computed(() => data.value?.live ?? [])
@@ -159,25 +157,6 @@ function select(view: string): void {
   writePreference(SELECTION_KEY, view)
 }
 
-function focusSelected(): void {
-  const buttons = peopleRoot.value?.querySelectorAll<HTMLElement>('[data-selection]') ?? []
-  Array.from(buttons)
-    .find((button) => button.dataset.selection === selection.value)
-    ?.focus()
-}
-
-async function moveWithArrows(event: KeyboardEvent): Promise<void> {
-  const forward = event.key === 'ArrowDown' || event.key === 'ArrowRight'
-  const backward = event.key === 'ArrowUp' || event.key === 'ArrowLeft'
-  if (!forward && !backward) {
-    return
-  }
-  event.preventDefault()
-  select(stepSelection(order.value, selection.value, forward ? 1 : -1))
-  await nextTick()
-  focusSelected()
-}
-
 function chooseProject(projectId: number | null): void {
   projectChoice.value = projectId === null ? ALL : String(projectId)
   writePreference(PROJECT_KEY, projectChoice.value)
@@ -235,27 +214,6 @@ async function edited(id: number): Promise<void> {
   await subjects.reload()
   openId.value = id
 }
-
-function loadDescription(row: (typeof rows.value)[number]): string {
-  const base =
-    row.person.capacity === null
-      ? t('subjects.loadAlone', { load: row.load }, row.load)
-      : t('subjects.loadOf', { load: row.load, capacity: row.person.capacity }, row.load)
-  if (row.tone === 'full') {
-    return `${base}, ${t('subjects.atCapacity')}`
-  }
-  return row.tone === 'over' ? `${base}, ${t('subjects.overCapacity')}` : base
-}
-
-const TONE_CLASSES = {
-  neutral: 'text-txt-low',
-  full: 'text-orange',
-  over: 'text-red',
-} as const
-
-const SELECTED_CLASSES = 'bg-acc/10 text-txt-hi shadow-[inset_3px_0_0_0_var(--color-acc)]'
-
-const IDLE_CLASSES = 'text-txt-mid hover:bg-elev/60'
 
 watch(
   () => data.value,
@@ -360,77 +318,14 @@ onMounted(() => {
       @retry="subjects.reload()"
     >
       <div class="grid flex-none grid-cols-[minmax(0,1fr)] items-start gap-4 min-[760px]:grid-cols-[232px_1fr] min-[760px]:gap-8">
-        <div
-          ref="peopleRoot"
-          class="relative flex min-w-0 flex-row gap-0.5 overflow-x-auto border-b border-hair pb-2 min-[760px]:flex-col min-[760px]:overflow-x-visible min-[760px]:border-r min-[760px]:border-b-0 min-[760px]:pr-4 min-[760px]:pb-0"
-          role="group"
-          :aria-label="t('subjects.teamAria')"
-          data-test-id="subjects-people"
-          @keydown="moveWithArrows"
-        >
-          <h2 class="hidden px-2.5 pb-1 text-xs text-txt-low min-[760px]:block">
-            {{ t('subjects.views') }}
-          </h2>
-          <button
-            v-for="view in viewRows"
-            :key="view.key"
-            type="button"
-            class="flex min-h-12 flex-none items-center gap-2 rounded-md px-3 py-2 text-left text-sm min-[760px]:w-full"
-            :class="selection === view.key ? SELECTED_CLASSES : IDLE_CLASSES"
-            :tabindex="selection === view.key ? 0 : -1"
-            :aria-current="selection === view.key ? 'true' : undefined"
-            :data-selection="view.key"
-            :data-test-id="view.testId"
-            @click="select(view.key)"
-          >
-            <span class="flex-1 whitespace-nowrap">{{ view.label }}</span>
-            <span class="tabular-nums text-xs" :class="view.key === VIEW_LATE && view.count > 0 ? 'text-red' : 'text-txt-low'" :data-test-id="view.countId">{{ view.count }}</span>
-          </button>
-
-          <h2 class="hidden px-2.5 pt-4 pb-1 text-xs text-txt-low min-[760px]:block">
-            {{ t('subjects.team') }}
-          </h2>
-          <button
-            v-for="row in rows"
-            :key="row.person.login"
-            type="button"
-            class="flex min-h-12 flex-none items-center gap-2 rounded-md px-3 py-2 text-left text-sm min-[760px]:w-full"
-            :class="selection === row.person.login ? SELECTED_CLASSES : IDLE_CLASSES"
-            :tabindex="selection === row.person.login ? 0 : -1"
-            :aria-current="selection === row.person.login ? 'true' : undefined"
-            :data-selection="row.person.login"
-            :data-test-id="`person-${row.person.login}`"
-            @click="select(row.person.login)"
-          >
-            <Avatar :name="row.person.displayName" :size="28" />
-            <span class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2">
-              <span class="truncate whitespace-nowrap">
-                {{ row.person.displayName }}<span v-if="row.person.login === self" class="ml-1 text-txt-low">{{ t('subjects.me') }}</span><span v-if="!row.person.active" class="ml-1 text-txt-low" data-test-id="person-inactive">{{ t('team.inactive') }}</span>
-              </span>
-              <span
-                v-if="row.flags.late > 0 || row.flags.blocked > 0"
-                class="flex flex-wrap gap-x-2 text-xs"
-              >
-                <span v-if="row.flags.late > 0" class="whitespace-nowrap text-red" data-test-id="flag-late">
-                  {{ t('subjects.flagLate', { count: row.flags.late }, row.flags.late) }}
-                </span>
-                <span v-if="row.flags.blocked > 0" class="whitespace-nowrap text-warn" data-test-id="flag-blocked">
-                  {{ t('subjects.flagBlocked', { count: row.flags.blocked }, row.flags.blocked) }}
-                </span>
-              </span>
-            </span>
-            <span
-              class="flex-none tabular-nums text-xs"
-              :class="TONE_CLASSES[row.tone]"
-              :title="loadDescription(row)"
-              :data-tone="row.tone"
-              data-test-id="load-chip"
-            >
-              <span aria-hidden="true">{{ row.text }}</span>
-              <span class="sr-only">{{ loadDescription(row) }}</span>
-            </span>
-          </button>
-        </div>
+        <SubjectSidebar
+          :selection="selection"
+          :views="viewRows"
+          :rows="rows"
+          :order="order"
+          :self="self"
+          @select="select"
+        />
 
         <section class="card min-w-0 overflow-hidden" :aria-label="heading">
           <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-line px-4 py-3">
