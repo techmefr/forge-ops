@@ -1,9 +1,4 @@
 {
-  "backend/src/composition/BoardServer.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/composition/ForgeAutopilot.ts": {
     "max-lines-per-function": {
       "count": 1
@@ -52,11 +47,6 @@
   "backend/src/domain/Dispatch/Dispatcher.ts": {
     "max-lines-per-function": {
       "count": 2
-    }
-  },
-  "backend/src/domain/Epic/EpicRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
     }
   },
   "backend/src/domain/Event/EventRepository.ts": {
