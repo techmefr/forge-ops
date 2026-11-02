@@ -19,11 +19,6 @@
       "count": 1
     }
   },
-  "backend/src/domain/Board/BoardApi.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/domain/Checkpoint/CheckpointRepository.ts": {
     "max-lines-per-function": {
       "count": 1
@@ -115,11 +110,6 @@
     }
   },
   "backend/src/domain/Story/EpicCatalog.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Story/StoryApi.ts": {
     "max-lines-per-function": {
       "count": 1
     }
