@@ -1,20 +1,11 @@
 import type Database from 'better-sqlite3'
-import type {
-  BehaviouralKind,
-  WorkflowColumn,
-  WorkflowColumnDraft,
-  WorkflowEffort,
-  WorkflowProvider,
-} from '../../../../contract/WorkflowColumnContract.js'
+import type { WorkflowColumn, WorkflowColumnDraft } from '../../../../contract/WorkflowColumnContract.js'
 import { DEFAULT_STEP_RETRIES } from '../../../../contract/AutopilotContract.js'
-import { behaviouralKindOf, keyOfLabel, refusalOfDraft } from './WorkflowColumn.js'
+import { behaviouralKindOf, keyOfLabel } from './WorkflowColumn.js'
 import { createProjectWorkflowRepository } from './ProjectWorkflowRepository.js'
-import {
-  WorkflowColumnInUseError,
-  WorkflowColumnNotFoundError,
-  WorkflowColumnRefusedError,
-} from './WorkflowColumnViolation.js'
-import { WorkflowNotFoundError } from './ProjectWorkflowViolation.js'
+import { createWorkflowColumnScope } from './WorkflowColumnScope.js'
+import { fromRow, prepareWorkflowColumnStatements } from './WorkflowColumnStatements.js'
+import { WorkflowColumnInUseError, WorkflowColumnRefusedError } from './WorkflowColumnViolation.js'
 
 export type WorkflowColumnRepository = {
   list: (projectId: number, workflowId?: number) => readonly WorkflowColumn[]
@@ -25,107 +16,21 @@ export type WorkflowColumnRepository = {
   reorder: (projectId: number, keysInOrder: readonly string[], workflowId?: number) => readonly WorkflowColumn[]
 }
 
-type ColumnRow = {
-  id: number
-  project_id: number
-  workflow_id: number
-  key: string
-  label: string
-  colour: string
-  position: number
-  provider: WorkflowProvider
-  model: string
-  effort: WorkflowEffort | ''
-  agent_name: string
-  command: string
-  preprompt: string
-  auto_start: number
-  max_retries: number
-  behavioural_kind: BehaviouralKind
-}
-
-function fromRow(row: ColumnRow): WorkflowColumn {
-  return {
-    id: row.id,
-    projectId: row.project_id,
-    workflowId: row.workflow_id,
-    key: row.key,
-    label: row.label,
-    colour: row.colour,
-    position: row.position,
-    provider: row.provider,
-    model: row.model,
-    effort: row.effort,
-    agentName: row.agent_name,
-    command: row.command,
-    preprompt: row.preprompt,
-    autoStart: row.auto_start === 1,
-    maxRetries: row.max_retries,
-    behaviouralKind: row.behavioural_kind,
-  }
-}
-
 export function createWorkflowColumnRepository(db: Database.Database): WorkflowColumnRepository {
   const workflows = createProjectWorkflowRepository(db)
-  const selectOfWorkflow = db.prepare<[number], ColumnRow>(
-    'SELECT * FROM workflow_column WHERE workflow_id = ? ORDER BY position ASC',
-  )
-  const selectById = db.prepare<[number], ColumnRow>('SELECT * FROM workflow_column WHERE id = ?')
-  const selectMaxPosition = db.prepare<[number], { max_position: number | null }>(
-    'SELECT MAX(position) AS max_position FROM workflow_column WHERE workflow_id = ?',
-  )
-  const insertColumn = db.prepare<
-    [number, number, string, string, string, number, string, string, string, string, string, string, number, number, string]
-  >(
-    `INSERT INTO workflow_column
-       (project_id, workflow_id, key, label, colour, position, provider, model, effort, agent_name, command, preprompt, auto_start, max_retries, behavioural_kind)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  )
-  const updateColumn = db.prepare<[string, string, string, string, string, string, string, string, number, number | null, string, number]>(
-    `UPDATE workflow_column
-        SET label = ?, colour = ?, provider = ?, model = ?, effort = ?, agent_name = ?, command = ?,
-            preprompt = ?, auto_start = ?, max_retries = COALESCE(?, max_retries), behavioural_kind = ?
-      WHERE id = ?`,
-  )
-  const deleteColumn = db.prepare<[number]>('DELETE FROM workflow_column WHERE id = ?')
-  const shiftPositionsDown = db.prepare<[number, number]>(
-    'UPDATE workflow_column SET position = position - 1 WHERE workflow_id = ? AND position > ?',
-  )
-  const updatePosition = db.prepare<[number, number]>('UPDATE workflow_column SET position = ? WHERE id = ?')
-  const countStoriesInStep = db.prepare<[number], { total: number }>(
-    'SELECT COUNT(*) AS total FROM story WHERE workflow_column_id = ?',
-  )
-
-  function scopeOf(projectId: number, workflowId: number | undefined): number | null {
-    if (workflowId === undefined || workflowId === 0) {
-      return workflows.list(projectId)[0]?.id ?? null
-    }
-    const workflow = workflows.find(workflowId)
-    if (workflow === null || workflow.projectId !== projectId) {
-      throw new WorkflowNotFoundError(workflowId)
-    }
-    return workflow.id
-  }
-
-  function list(projectId: number, workflowId?: number): readonly WorkflowColumn[] {
-    const scope = scopeOf(projectId, workflowId)
-    return scope === null ? [] : selectOfWorkflow.all(scope).map(fromRow)
-  }
-
-  function ownedBy(projectId: number, columnId: number): ColumnRow {
-    const row = selectById.get(columnId)
-    if (row === undefined || row.project_id !== projectId) {
-      throw new WorkflowColumnNotFoundError(columnId)
-    }
-    return row
-  }
-
-  function refuseIfInvalid(draft: WorkflowColumnDraft, otherLabels: readonly string[]): void {
-    const refusal = refusalOfDraft(draft, otherLabels)
-    if (refusal !== null) {
-      throw new WorkflowColumnRefusedError(refusal)
-    }
-  }
+  const statements = prepareWorkflowColumnStatements(db)
+  const {
+    selectOfWorkflow,
+    selectById,
+    selectMaxPosition,
+    insertColumn,
+    updateColumn,
+    deleteColumn,
+    shiftPositionsDown,
+    updatePosition,
+    countStoriesInStep,
+  } = statements
+  const { scopeOf, list, ownedBy, refuseIfInvalid } = createWorkflowColumnScope(statements, workflows)
 
   return {
     list,

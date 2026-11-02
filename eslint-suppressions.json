@@ -29,11 +29,6 @@
       "count": 1
     }
   },
-  "backend/src/domain/FollowUp/FollowUpRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/domain/ForgeCard/ForgeBoardApi.ts": {
     "max-lines-per-function": {
       "count": 1
