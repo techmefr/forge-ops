@@ -91,4 +91,3 @@ export type Dispatched = {
   provider?: string
   effort?: string
 }
-

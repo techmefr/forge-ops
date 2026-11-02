@@ -1,11 +1,11 @@
 export type {
   DestinationGuard,
   PilotAct,
+  PilotDriver,
   PilotObservation,
   PilotOutcome,
   PilotPace,
   PilotRun,
-  PilotDriver,
   PilotRunState,
   PilotStep,
   PilotStepKind,
