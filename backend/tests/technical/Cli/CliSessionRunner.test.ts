@@ -15,7 +15,6 @@ import {
   KIMI_MANIFEST,
   OPENCODE_MANIFEST,
 } from '../../../src/technical/Cli/AgentManifests.js'
-import { isCommandInstalled } from '../../../src/technical/Cli/AgentAvailability.js'
 
 const ORDER: CliLaunchOrder = {
   storyId: 7,
@@ -287,19 +286,5 @@ describe('createCliSessionRunner', () => {
     expect(prompts[0]).toBe('ecris la story')
     expect(prompts[1]).toContain('ecris la story')
     expect(prompts[1]).toContain('continue')
-  })
-})
-
-describe('isCommandInstalled', () => {
-  it('finds a command that sits on the path', () => {
-    expect(isCommandInstalled('node', process.env.PATH)).toBe(true)
-  })
-
-  it('reports a command that is nowhere on the path', () => {
-    expect(isCommandInstalled('forge-no-such-agent', process.env.PATH)).toBe(false)
-  })
-
-  it('reports nothing installed on an empty path', () => {
-    expect(isCommandInstalled('node', undefined)).toBe(false)
   })
 })

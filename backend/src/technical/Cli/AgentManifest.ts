@@ -1,8 +1,6 @@
 import type { DriverAbility } from '../../../../contract/DriverContract.js'
 
-export type ManifestPlaceholder = 'prompt' | 'cwd' | 'model'
-
-export type ManifestArgument =
+type ManifestArgument =
   | string
   | { whenSet: 'model'; args: readonly string[] }
 
@@ -14,14 +12,14 @@ export type AgentManifest = {
   abilities: readonly DriverAbility[]
 }
 
-export type ManifestValues = {
+type ManifestValues = {
   prompt: string
   cwd: string
   model?: string
 }
 
 function substitute(template: string, values: ManifestValues): string {
-  return template.replace(/\{(prompt|cwd|model)\}/g, (_match, key: ManifestPlaceholder) => values[key] ?? '')
+  return template.replace(/\{(prompt|cwd|model)\}/g, (_match, key: keyof ManifestValues) => values[key] ?? '')
 }
 
 export function argumentsOf(manifest: AgentManifest, values: ManifestValues): readonly string[] {

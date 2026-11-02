@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto'
 import { createCodexTranscriptStore, type CodexTranscriptStore } from '../Codex/CodexTranscriptStore.js'
 import { agentEnvironmentOf } from '../Guardrail/AgentEnvironment.js'
 import { argumentsOf, type AgentManifest } from './AgentManifest.js'
+import { promptWithReplay } from './ReplayPrompt.js'
+import { nonEmptyLinesOf } from './StdoutLines.js'
 
 export type CliLaunchOrder = {
   storyId: number
@@ -58,14 +60,6 @@ const defaultSpawn: CliSpawn = (command, args, options) =>
     stdio: ['ignore', 'pipe', 'pipe'],
   }) as unknown as SpawnedCliProcess
 
-function promptWithFallback(order: CliLaunchOrder, transcripts: CodexTranscriptStore): string {
-  if (order.resumeSessionId === undefined) {
-    return order.prompt
-  }
-  const priorTranscript = transcripts.read(order.resumeSessionId)
-  return priorTranscript === null ? order.prompt : `${priorTranscript}\n\n## Tour actuel\n${order.prompt}`
-}
-
 function isMissingCommand(error: Error): boolean {
   return (error as NodeJS.ErrnoException).code === 'ENOENT'
 }
@@ -82,7 +76,7 @@ export function createCliSessionRunner({
       const cwd = cwdFor(order)
       const claudeSessionId = randomUUID()
       const args = argumentsOf(manifest, {
-        prompt: promptWithFallback(order, transcripts),
+        prompt: promptWithReplay(order, transcripts),
         cwd,
         ...(order.model === undefined ? {} : { model: order.model }),
       })
@@ -105,36 +99,26 @@ export function createCliSessionRunner({
       })
       closed.catch(() => undefined)
 
-      let output = ''
-      let buffered = ''
-      for await (const chunk of child.stdout) {
-        buffered += chunk.toString()
-        let breakAt = buffered.indexOf('\n')
-        while (breakAt !== -1) {
-          const line = buffered.slice(0, breakAt)
-          buffered = buffered.slice(breakAt + 1)
-          if (line.trim() !== '') {
-            if (output === '') {
-              onEvent({
-                name: 'session.working',
-                payload: { reference: order.reference, phase: order.phase, claudeSessionId },
-              })
-            }
-            output += `${line}\n`
-            onEvent({
-              name: `session.${manifest.name}_line`,
-              payload: { reference: order.reference, phase: order.phase, claudeSessionId, line },
-            })
-          }
-          breakAt = buffered.indexOf('\n')
+      const lines: string[] = []
+      for await (const line of nonEmptyLinesOf(child.stdout)) {
+        if (lines.length === 0) {
+          onEvent({
+            name: 'session.working',
+            payload: { reference: order.reference, phase: order.phase, claudeSessionId },
+          })
         }
+        lines.push(line)
+        onEvent({
+          name: `session.${manifest.name}_line`,
+          payload: { reference: order.reference, phase: order.phase, claudeSessionId, line },
+        })
       }
 
       const code = await closed
       if (code !== 0) {
         throw new AgentProcessFailedError(manifest.name, order.reference, code)
       }
-      transcripts.append(claudeSessionId, { prompt: order.prompt, output })
+      transcripts.append(claudeSessionId, { prompt: order.prompt, output: lines.map((line) => `${line}\n`).join('') })
       return { claudeSessionId }
     },
   }

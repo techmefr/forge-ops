@@ -2,6 +2,8 @@ import { spawn } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { createCodexTranscriptStore, type CodexTranscriptStore } from './CodexTranscriptStore.js'
 import { codexAgentEnvironmentOf } from '../Guardrail/AgentEnvironment.js'
+import { promptWithReplay } from '../Cli/ReplayPrompt.js'
+import { nonEmptyLinesOf } from '../Cli/StdoutLines.js'
 
 export type CodexLaunchOrder = {
   storyId: number
@@ -53,16 +55,6 @@ function defaultSpawnCodex(
   }) as unknown as SpawnedCodexProcess
 }
 
-function promptWithFallback(order: CodexLaunchOrder, transcripts: CodexTranscriptStore): string {
-  if (order.resumeSessionId === undefined) {
-    return order.prompt
-  }
-  const priorTranscript = transcripts.read(order.resumeSessionId)
-  return priorTranscript === null
-    ? order.prompt
-    : `${priorTranscript}\n\n## Tour actuel\n${order.prompt}`
-}
-
 const CODEX_REASONING: Readonly<Record<string, string>> = {
   low: 'low',
   medium: 'medium',
@@ -85,7 +77,7 @@ export function createCodexSessionRunner({
   return {
     launch: async (order: CodexLaunchOrder) => {
       const cwd = cwdFor(order)
-      const prompt = promptWithFallback(order, transcripts)
+      const prompt = promptWithReplay(order, transcripts)
       const claudeSessionId = randomUUID()
 
       const child = spawnCodex(['exec', '--json', ...reasoningOf(order.effort), '--cd', cwd, prompt], {
@@ -102,36 +94,26 @@ export function createCodexSessionRunner({
         child.on('close', (code) => resolve(code as number | null))
       })
 
-      let output = ''
-      let buffered = ''
-      for await (const chunk of child.stdout) {
-        buffered += chunk.toString()
-        let breakAt = buffered.indexOf('\n')
-        while (breakAt !== -1) {
-          const line = buffered.slice(0, breakAt)
-          buffered = buffered.slice(breakAt + 1)
-          if (line.trim() !== '') {
-            if (output === '') {
-              onEvent({
-                name: 'session.working',
-                payload: { reference: order.reference, phase: order.phase, claudeSessionId },
-              })
-            }
-            output += `${line}\n`
-            onEvent({
-              name: 'session.codex_line',
-              payload: { reference: order.reference, phase: order.phase, claudeSessionId, line },
-            })
-          }
-          breakAt = buffered.indexOf('\n')
+      const lines: string[] = []
+      for await (const line of nonEmptyLinesOf(child.stdout)) {
+        if (lines.length === 0) {
+          onEvent({
+            name: 'session.working',
+            payload: { reference: order.reference, phase: order.phase, claudeSessionId },
+          })
         }
+        lines.push(line)
+        onEvent({
+          name: 'session.codex_line',
+          payload: { reference: order.reference, phase: order.phase, claudeSessionId, line },
+        })
       }
 
       const code = await closed
       if (code !== 0) {
         throw new CodexProcessFailedError(order.reference, code)
       }
-      transcripts.append(claudeSessionId, { prompt: order.prompt, output })
+      transcripts.append(claudeSessionId, { prompt: order.prompt, output: lines.map((line) => `${line}\n`).join('') })
       return { claudeSessionId }
     },
   }
