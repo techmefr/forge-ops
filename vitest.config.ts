@@ -12,8 +12,24 @@ export default defineConfig({
   },
   test: {
     root: '.',
-    include: ['backend/tests/**/*.test.ts', 'frontend/tests/**/*.test.ts'],
-    environmentMatchGlobs: [['frontend/tests/**', 'jsdom']],
     env: { TZ: 'Europe/Paris' },
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'backend',
+          include: ['backend/tests/**/*.test.ts'],
+          environment: 'node',
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'frontend',
+          include: ['frontend/tests/**/*.test.ts'],
+          environment: 'jsdom',
+        },
+      },
+    ],
   },
 })
