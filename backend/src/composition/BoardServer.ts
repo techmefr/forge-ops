@@ -1,51 +1,31 @@
 import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
 import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { openDatabase } from '../technical/Database/Connection.js'
+import { mountAdministrationRoutes } from './AdministrationRoutes.js'
+import { createAgentRuntime, sessionCap } from './AgentRuntime.js'
+import { createForgeAutopilot } from './ForgeAutopilot.js'
+import { createGuardedApp } from './GuardedApp.js'
+import { createSessionEventSink } from './SessionEventSink.js'
 import { createStoryRepository } from '../domain/Story/StoryRepository.js'
 import { createAgentSessionRepository } from '../domain/Agent/AgentSessionRepository.js'
-import { createCheckpointRepository } from '../domain/Checkpoint/CheckpointRepository.js'
 import { createZoneRepository } from '../domain/Zone/ZoneRepository.js'
-import { createCriterionRepository } from '../domain/Criterion/CriterionRepository.js'
-import { createDispatcher } from '../domain/Dispatch/Dispatcher.js'
-import { createStoryWorkspace } from './StoryWorkspace.js'
 import { createBudgetRepository } from '../domain/Budget/BudgetRepository.js'
 import { createWorkflowRepository } from '../domain/Workflow/WorkflowRepository.js'
 import { createWorkflowColumnRepository } from '../domain/Workflow/WorkflowColumnRepository.js'
-import { createWorkflowColumnApi } from '../domain/Workflow/WorkflowColumnApi.js'
-import { createProjectWorkflowApi } from '../domain/Workflow/ProjectWorkflowApi.js'
 import { createProjectWorkflowRepository } from '../domain/Workflow/ProjectWorkflowRepository.js'
-import { DEFAULT_DISPATCH_RATE } from '../domain/Dispatch/DispatchRate.js'
 import { createEvidenceFileReader } from '../technical/Evidence/EvidenceFileReader.js'
 import { createBoardApi } from '../domain/Board/BoardApi.js'
 import { advanceCascade } from '../domain/Checkpoint/ReviewCascade.js'
 import { createIdentityRepository } from '../domain/Identity/IdentityRepository.js'
-import { createIdentityApi } from '../domain/Identity/IdentityApi.js'
-import { createOidcApi } from '../domain/Identity/OidcApi.js'
-import { readAllowedDomains } from '../domain/Identity/ExternalIdentity.js'
-import { readOidcProviders } from '../technical/Auth/OidcProvider.js'
-import { createWorktreeRepository } from '../domain/Worktree/WorktreeRepository.js'
 import { createWorktreeApi } from '../domain/Worktree/WorktreeApi.js'
 import { createForgeCardRepository } from '../domain/ForgeCard/ForgeCardRepository.js'
 import { createForgeCardApi } from '../domain/ForgeCard/ForgeCardApi.js'
-import { createForgeBoardRepository } from '../domain/ForgeCard/ForgeBoardRepository.js'
-import { createForgeCardMover } from '../domain/ForgeCard/ForgeCardMover.js'
-import { createForgeCardCloser } from '../domain/ForgeCard/ForgeCardCloser.js'
 import { createForgeBoardApi } from '../domain/ForgeCard/ForgeBoardApi.js'
 import { createAutopilotApi } from '../domain/Autopilot/AutopilotApi.js'
-import { createAutopilotConductor, type AutopilotConductor } from '../domain/Autopilot/AutopilotConductor.js'
+import { type AutopilotConductor } from '../domain/Autopilot/AutopilotConductor.js'
 import { createAutopilotRepository } from '../domain/Autopilot/AutopilotRepository.js'
-import { createStoryPublisher } from '../technical/Git/StoryPublication.js'
-import { clearVerdictFile } from '../technical/Evidence/VerdictFile.js'
-import { createStepEntry } from '../domain/Dispatch/StepEntry.js'
 import { cleanUpAfterMerge } from '../domain/Deployment/MergeCleanup.js'
-import { projectTestCommand } from '../technical/Gate/ProjectTestCommand.js'
-import { createStoryInspection } from '../technical/Git/StoryInspection.js'
-import { writeEvidenceFile } from '../technical/Evidence/EvidenceFileWriter.js'
-import { createStepProver } from '../domain/Autopilot/StepProver.js'
-import { createCheckoutResolver, createProofGates } from './ProjectCheckout.js'
-import { createGitWorktree } from '../technical/Git/GitWorktree.js'
 import { createForemergeRepository } from '../domain/Foremerge/ForemergeRepository.js'
 import { createForemergeApi } from '../domain/Foremerge/ForemergeApi.js'
 import { createDestinationPolicy, parseAllowedOrigins } from '../domain/Pilot/PilotDestination.js'
@@ -57,10 +37,7 @@ import { createPilotShotApi } from '../technical/Http/PilotShotApi.js'
 import { createMachineApi } from '../domain/Resource/MachineApi.js'
 import { createPreferenceApi } from '../domain/Preference/PreferenceApi.js'
 import { createPreferenceRepository } from '../domain/Preference/PreferenceRepository.js'
-import { createDoctrineSource } from '../technical/Doctrine/DoctrineSource.js'
 import { installGuardrails } from '../technical/Guardrail/GuardrailInstall.js'
-import { carryLocalSettings } from '../technical/Guardrail/LocalSettings.js'
-import { createGuardrailSeal } from '../technical/Guardrail/GuardrailSeal.js'
 import { createFileApi } from '../domain/File/FileApi.js'
 import { createFileRepository } from '../domain/File/FileRepository.js'
 import { createStatisticRepository } from '../domain/Statistic/StatisticRepository.js'
@@ -74,56 +51,25 @@ import { createLiveSessions } from '../technical/ClaudeCode/LiveSessions.js'
 import { createDiscussionApi } from '../domain/Discussion/DiscussionApi.js'
 import { createDiscussionRepository } from '../domain/Discussion/DiscussionRepository.js'
 import { operatorOf } from '../technical/Auth/BoardIdentity.js'
-import { createStoryHandGuard } from '../domain/Story/StoryHandGuard.js'
 import { createBoardAccess } from './BoardAccess.js'
-import { createAgentDrivers } from './AgentDrivers.js'
 import { readSuperAdminConfiguration } from '../technical/Auth/SuperAdminConfiguration.js'
 import { createTemplateRepository } from '../domain/Template/TemplateRepository.js'
-import { createTemplateApi } from '../domain/Template/TemplateApi.js'
 import { createOutboxRepository } from '../domain/Boundary/OutboxRepository.js'
-import { createBoundaryApi } from '../domain/Boundary/BoundaryApi.js'
 import { createOrganisationRepository } from '../domain/Organisation/OrganisationRepository.js'
-import { createOrganisationApi } from '../domain/Organisation/OrganisationApi.js'
 import { createBatchRepository } from '../domain/Delivery/BatchRepository.js'
-import { createBatchApi } from '../domain/Delivery/BatchApi.js'
-import { columnAgentOfPhase, createDrivenRunner } from '../domain/Driver/Driver.js'
-import { DEFAULT_FORGE_CARD_PROVIDER } from '../../../contract/ForgeCardContract.js'
-import { createDriverApi } from '../domain/Driver/DriverApi.js'
 import type { SdkUserTurn } from '../technical/ClaudeCode/TurnDelivery.js'
 import { createConversationApi } from '../domain/Conversation/ConversationApi.js'
 import { createMessageRepository } from '../domain/Conversation/MessageRepository.js'
-import { recordMessageFromEvent } from '../domain/Conversation/MessageRecorder.js'
-import { createToolLogRepository, recordToolLogFromEvent } from '../domain/Conversation/ToolLogRepository.js'
-import { recordUsageFromEvent } from '../technical/ClaudeCode/UsageRecorder.js'
-import { recordLifecycleFromEvent } from '../technical/ClaudeCode/LifecycleRecorder.js'
-import { recordHeartbeatFromEvent } from '../technical/ClaudeCode/HeartbeatRecorder.js'
-import { stopRunOverCap } from '../domain/Budget/CostGuard.js'
-import type { BoardEvent } from '../technical/Http/EventBus.js'
-import { createTokenGuard } from '../technical/Auth/TokenGuard.js'
-import { createBrowserSessions } from '../technical/Auth/BrowserSession.js'
-import { createSessionApi } from '../technical/Http/SessionApi.js'
+import { createToolLogRepository } from '../domain/Conversation/ToolLogRepository.js'
 import { deriveHookToken, resolveBoardToken } from '../technical/Auth/BoardToken.js'
-import { requestBodyLimit } from '../technical/Http/RequestBodyLimit.js'
-import { securityHeaders } from '../technical/Http/SecurityHeaders.js'
-import { boardOrigins, isLocalOrigin } from '../technical/Auth/BoardOrigin.js'
-import { isLoopbackPeer } from '../technical/Auth/ClientAddress.js'
+import { isLocalOrigin } from '../technical/Auth/BoardOrigin.js'
 import { ALLOW_REMOTE_LOCAL_ENV, assertLocalModeBinding } from '../technical/Auth/LocalBinding.js'
-import { installedVersion, offeredVersion } from '../technical/Version/ForgeVersion.js'
 
-const DEFAULT_SESSION_CAP = 5
-
-const sessionCap = Number(process.env.FORGE_SESSION_CAP ?? DEFAULT_SESSION_CAP)
 const PURGE_EVERY_MS = 24 * 60 * 60 * 1000
-
-const DEFAULT_MUTATION_TEST_COMMAND = 'npx vitest run'
-
-const DEFAULT_RED_TEST_COMMAND = 'npx vitest run --reporter=json'
 
 type ServerType = ReturnType<typeof serve>
 
 const LOOPBACK = '127.0.0.1'
-
-const AUTOPILOT_EVERY_MS = 5000
 
 export type BoardServerInput = {
   port: number
@@ -233,101 +179,35 @@ export function startBoardServer({
   const toolLogs = createToolLogRepository(db)
   const autopilotSettings = createAutopilotRepository(db)
   let conductor: AutopilotConductor | null = null
-  const onSessionEvent = (event: BoardEvent): void => {
-    recordUsageFromEvent(sessions, event)
-    recordHeartbeatFromEvent(sessions, event)
-    recordLifecycleFromEvent(sessions, event)
-    recordMessageFromEvent({ sessions, messages }, event)
-    recordToolLogFromEvent({ sessions, toolLogs }, event)
-    const { claudeSessionId } = event.payload
-    if (typeof claudeSessionId === 'string' && claudeSessionId !== '') {
-      stopRunOverCap(
-        {
-          sessions,
-          budget,
-          hangUp: (identifier) => {
-            live.terminate(identifier)
-          },
-        },
-        claudeSessionId,
-      )
-    }
-    if (
-      (event.name === 'session.result' || event.name === 'session.failed') &&
-      typeof claudeSessionId === 'string' &&
-      claudeSessionId !== ''
-    ) {
-      void conductor?.turnEnded(claudeSessionId)
-    }
-    events.publish(event)
-  }
-  const guardrailSeal = createGuardrailSeal(process.cwd())
-  const checkouts = createCheckoutResolver({
-    stories,
-    worktreePathOf: (storyId) => worktrees.findForStory(storyId)?.path ?? null,
-  })
-  const { cwdForStory } = checkouts
-  const checkpointGates = createProofGates({
-    readEvidence,
-    testsDir,
-    redCommand: process.env.FORGE_RED_TEST_COMMAND ?? DEFAULT_RED_TEST_COMMAND,
-    mutationCommand: process.env.FORGE_MUTATION_TEST_COMMAND ?? DEFAULT_MUTATION_TEST_COMMAND,
-    mutationCommandOf: (root) =>
-      process.env.FORGE_MUTATION_TEST_COMMAND === undefined ? projectTestCommand(root) : null,
-    cwdForStory,
-  })
-  const worktrees = createWorktreeRepository(db, {
-    stories,
-    git: createGitWorktree({ repositoryRoot: process.cwd() }),
-    root: worktreeRoot,
-    checkoutOf: checkouts.checkoutOfStory,
+  const onSessionEvent = createSessionEventSink({
+    sessions,
+    messages,
+    toolLogs,
+    budget,
+    live,
+    events,
+    onTurnEnded: (claudeSessionId) => void conductor?.turnEnded(claudeSessionId),
   })
   const templates = createTemplateRepository(db)
   const outbox = createOutboxRepository(db)
   const organisations = createOrganisationRepository(db)
-  const drivers = createAgentDrivers({
-    cwdForStory,
-    branchOfStory: (storyId) => worktrees.findForStory(storyId)?.branch ?? null,
-    live,
-    seal: guardrailSeal,
-    onEvent: onSessionEvent,
-  })
-  const dispatcher = createDispatcher({
-    database: db,
+  const { guardrailSeal, cwdForStory, worktrees, checkpoints, criteria, drivers, dispatcher } = createAgentRuntime({
+    db,
     stories,
-    checkpoints: createCheckpointRepository(db, checkpointGates),
-    criteria: createCriterionRepository(db),
     sessions,
     budget,
     foremerge,
     workflow,
-    forgeCards,
     workflowColumns,
-    prepareWorkspace: createStoryWorkspace({
-      hasCheckout: checkouts.hasCheckout,
-      worktrees,
-      onOpened: (opened) => events.publish({ name: 'worktree.opened', payload: { ...opened } }),
-      equip: (worktree) => carryLocalSettings(checkouts.checkoutOfStory(worktree.storyId), worktree.path),
-    }),
-    doctrineFor: createDoctrineSource({ forgeRoot: process.cwd(), checkoutOf: cwdForStory }),
-    runner: createDrivenRunner({
-      drivers,
-      providerOf: (order) =>
-        order.provider ??
-        (order.forgeCardId === undefined
-          ? DEFAULT_FORGE_CARD_PROVIDER
-          : forgeCards.findForgeCard(order.forgeCardId).provider),
-      columnAgentOf: (order) =>
-        columnAgentOfPhase(templates.templateOfProject(stories.projectOfStory(order.storyId)).columns, order.phase),
-    }),
-    concurrencyCap: sessionCap,
-    claudeCodeVersion: process.env.CLAUDE_CODE_VERSION ?? 'unknown',
-    rate: {
-      burst: Number(process.env.FORGE_DISPATCH_BURST ?? DEFAULT_DISPATCH_RATE.burst),
-      windowMs: Number(process.env.FORGE_DISPATCH_WINDOW_MS ?? DEFAULT_DISPATCH_RATE.windowMs),
-    },
+    forgeCards,
+    templates,
+    readEvidence,
+    live,
+    events,
+    onSessionEvent,
+    testsDir,
+    worktreeRoot,
   })
-  const cascadeCheckpoints = createCheckpointRepository(db, checkpointGates)
   const discussion = createDiscussionRepository(db, { stories })
   const batches = createBatchRepository(db)
   const identities = createIdentityRepository(db)
@@ -352,13 +232,13 @@ export function startBoardServer({
     budget,
     repository: stories,
     agentSessions: sessions,
-    checkpoints: createCheckpointRepository(db, checkpointGates),
-    criteria: createCriterionRepository(db),
+    checkpoints,
+    criteria,
     events,
     dispatcher,
     advanceReviewCascade: (storyId) =>
       advanceCascade({
-        cascade: cascadeCheckpoints.reviewCascade(storyId),
+        cascade: checkpoints.reviewCascade(storyId),
         dispatchLens: async (lens) => {
           await dispatcher.dispatch({ storyId, phase: 'review', lens })
         },
@@ -372,109 +252,22 @@ export function startBoardServer({
     claudeHome,
   })
 
-  const browserSessions = createBrowserSessions()
-  const guarded = new Hono()
-  guarded.use('*', securityHeaders())
-  guarded.use('/api/*', requestBodyLimit())
-  guarded.get('/health', (context) =>
-    context.json({ role: process.env.FORGE_ROLE ?? 'instance', mode, ready: true }),
-  )
-  guarded.use(
-    '/api/*',
-    createTokenGuard({
-      token,
-      allowedOrigins: boardOrigins(host, port, publicOrigin),
-      hookToken: deriveHookToken(token),
-      requireIdentity: mode === 'hub',
-      readIdentity: (sessionToken) => identities.readSession(sessionToken),
-      readBrowserSession: (sessionToken) => browserSessions.isOpen(sessionToken),
-      allowSessionExchange: mode === 'local',
-      allowLocalAutologin: mode === 'local',
-      isLocalOrigin: (origin) => isLocalOrigin(origin, host, port),
-      isLoopbackPeer,
-    }),
-  )
-  guarded.get('/api/auth/whoami', (context) => context.json({ authenticated: true }))
-  guarded.use(
-    '/api/*',
-    createStoryHandGuard({
-      stories,
-      isSuperAdmin: access.isSuperAdmin,
-      isDirector: access.isDirector,
-    }),
-  )
-  if (mode === 'local') {
-    guarded.route('/', createSessionApi({ token, sessions: browserSessions }))
-  }
-  guarded.route(
-    '/',
-    createIdentityApi({
-      identities,
-      allowEnrolment: () => identities.countUsers() === 0 && (mode !== 'hub' || setupToken !== null),
-      setupToken,
-    }),
-  )
-  guarded.route(
-    '/',
-    createOidcApi({
-      identities,
-      providers: readOidcProviders(),
-      allowedDomains: readAllowedDomains(),
-      publicOrigin,
-    }),
-  )
-  guarded.route('/', createDriverApi({ drivers }))
-  guarded.route(
-    '/',
-    createBoundaryApi({
-      outbox,
-      installedVersion: installedVersion(),
-      offeredVersion,
-    }),
-  )
-  guarded.route(
-    '/',
-    createOrganisationApi({
-      organisations,
-      maySettle: access.maySettle,
-    }),
-  )
-  guarded.route(
-    '/',
-    createBatchApi({
-      batches,
-      maySettle: access.maySettle,
-    }),
-  )
-  guarded.route(
-    '/',
-    createTemplateApi({
-      templates,
-      maySettle: access.maySettle,
-    }),
-  )
-  guarded.route(
-    '/',
-    createProjectWorkflowApi({
-      workflows: projectWorkflows,
-      projectExists: (projectId) => stories.projects.find(projectId) !== null,
-      mayAdminister: access.mayAdminister,
-    }),
-  )
-  guarded.route(
-    '/',
-    createWorkflowColumnApi({
-      columns: workflowColumns,
-      projectExists: (projectId) => stories.projects.find(projectId) !== null,
-      mayAdminister: access.mayAdminister,
-      adminOf: (projectId) => {
-        const sheet = stories.projects.find(projectId)
-        return sheet === null || sheet.adminLogin === null
-          ? null
-          : { login: sheet.adminLogin, name: sheet.adminName ?? sheet.adminLogin }
-      },
-    }),
-  )
+  const guarded = createGuardedApp({ mode, token, host, port, publicOrigin, identities, stories, access })
+  mountAdministrationRoutes(guarded, {
+    mode,
+    publicOrigin,
+    setupToken,
+    identities,
+    stories,
+    access,
+    drivers,
+    outbox,
+    organisations,
+    batches,
+    templates,
+    projectWorkflows,
+    workflowColumns,
+  })
   guarded.get('/api/board/mode', (context) =>
     context.json({
       mode,
@@ -490,7 +283,7 @@ export function startBoardServer({
       events,
       talker: createSdkSessionTalker({ live, onEvent: onSessionEvent }),
       discussion,
-      checkpoints: cascadeCheckpoints,
+      checkpoints,
       templates,
       messages,
       toolLogs,
@@ -510,99 +303,28 @@ export function startBoardServer({
   )
   guarded.route('/', createWorktreeApi({ worktrees, stories, events }))
   guarded.route('/', createForgeCardApi({ forgeCards, worktrees, stories }))
-  const pilotCriteria = createCriterionRepository(db)
-  const forgeBoard = createForgeBoardRepository(db, {
-    forgeCards,
-    columns: workflowColumns,
-    autoOf: (view) => conductor?.autoViewOf(view) ?? null,
-  })
-  forgeBoard.backfillCards()
-  const storyPublisher = createStoryPublisher()
-  const forgeCardCloser = createForgeCardCloser({
-    board: forgeBoard,
-    forgeCards,
+  const forgeAutopilot = createForgeAutopilot({
+    db,
+    ticking: environmentMode === 'real' && process.env.FORGE_AUTOPILOT !== 'off',
     stories,
-    columns: workflowColumns,
-    checkpoints: cascadeCheckpoints,
-    criteria: pilotCriteria,
-    cleanUpAfterMerge: (storyId) =>
-      cleanUpAfterMerge({
-        storyId,
-        releaseScope: foremerge.release,
-        closeWorktree: (target) => worktrees.close(target, { deleteBranch: true }),
-      }),
-    publishStory: (storyId) => {
-      const projectId = stories.projectOfStory(storyId)
-      const settings = autopilotSettings.settingsOf(projectId)
-      const worktree = worktrees.findForStory(storyId)
-      if (!settings.enabled || !settings.autoPublish || worktree === null) {
-        return null
-      }
-      const story = stories.findStory(storyId)
-      const report = storyPublisher.publish({
-        worktreePath: worktree.path,
-        branch: worktree.branch,
-        baseBranch: stories.listProjects().find((project) => project.id === projectId)?.integrationBranch ?? 'main',
-        title: story.title,
-        body: `${story.reference}\n\n${story.body}`,
-        autoMerge: settings.autoMerge,
-      })
-      events.publish({ name: 'story.published', payload: { storyId, ...report } })
-      return report
-    },
-  })
-  const forgeCardMover = createForgeCardMover({
-    board: forgeBoard,
-    forgeCards,
-    stories,
-    columns: workflowColumns,
-    enterStep: createStepEntry({ dispatcher, columns: workflowColumns }),
-    launchStep: (entry) => dispatcher.dispatch(entry),
-  })
-  conductor = createAutopilotConductor({
-    autopilot: autopilotSettings,
-    board: forgeBoard,
-    forgeCards,
-    stories,
-    criteria: pilotCriteria,
-    budget,
-    columns: workflowColumns,
     sessions,
-    checkpoints: cascadeCheckpoints,
+    budget,
+    messages,
+    foremerge,
+    forgeCards,
+    workflowColumns,
+    autopilotSettings,
+    checkpoints,
+    criteria,
+    worktrees,
+    dispatcher,
+    guardrailSeal,
+    cwdForStory,
     readEvidence,
-    cwdOf: cwdForStory,
-    clearVerdict: clearVerdictFile,
-    mover: forgeCardMover,
-    closer: forgeCardCloser,
-    prover: createStepProver({
-      checkpoints: cascadeCheckpoints,
-      criteria: pilotCriteria,
-      inspection: createStoryInspection({ testCommandOf: (root) => projectTestCommand(root) }),
-      writeEvidence: writeEvidenceFile,
-      latestSessionOf: (storyId) => sessions.latestSessionOf(storyId),
-    }),
-    baseShaOf: (storyId) => worktrees.findForStory(storyId)?.baseSha ?? null,
-    integrityOf: (storyId) => {
-      const cwd = cwdForStory(storyId)
-      const changes = guardrailSeal.changesSince(cwd)
-      if (changes.length > 0) {
-        guardrailSeal.markTampered(cwd, changes)
-      }
-      return guardrailSeal.tamperedReason(cwd)
-    },
-    lastAgentMessage: (storyId) =>
-      messages
-        .listOfStory(storyId)
-        .filter((message) => message.voice === 'agent')
-        .at(-1)?.body ?? null,
-    publish: (name, payload) => events.publish({ name, payload }),
+    events,
   })
-  const autopilotConductor = conductor
-  const autopilotTimer =
-    environmentMode === 'real' && process.env.FORGE_AUTOPILOT !== 'off'
-      ? setInterval(() => void autopilotConductor.tick(), AUTOPILOT_EVERY_MS)
-      : null
-  autopilotTimer?.unref()
+  const { board: forgeBoard, closer: forgeCardCloser, mover: forgeCardMover } = forgeAutopilot
+  conductor = forgeAutopilot.conductor
   guarded.route(
     '/',
     createAutopilotApi({
@@ -620,7 +342,7 @@ export function startBoardServer({
       events,
       closer: forgeCardCloser,
       mover: forgeCardMover,
-      autopilot: autopilotConductor,
+      autopilot: forgeAutopilot.conductor,
     }),
   )
   const pilots = createPilotRepository(db, {
@@ -643,7 +365,7 @@ export function startBoardServer({
       suggest: (storyId) =>
         suggestParcours({
           port: worktrees.findForStory(storyId)?.port ?? null,
-          criteria: pilotCriteria.listCriteria(storyId),
+          criteria: criteria.listCriteria(storyId),
         }),
     }),
   )
@@ -692,7 +414,7 @@ export function startBoardServer({
         server,
         port: address.port,
         close: () =>
-          Promise.resolve(autopilotTimer === null ? undefined : clearInterval(autopilotTimer))
+          Promise.resolve(forgeAutopilot.stop())
             .then(() => live.closeAll())
             .then(() => pilots.closeBrowsers())
             .then(
