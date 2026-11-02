@@ -6,6 +6,7 @@ import {
   type ReviewLens,
   type ReviewPass,
 } from './Checkpoint.js'
+import { createReviewCascade } from './ReviewPassCascade.js'
 import {
   LensAlreadyPassedError,
   LensOutOfOrderError,
@@ -31,6 +32,7 @@ export type ReviewRepository = {
 }
 
 export function createReviewRepository(db: Database.Database): ReviewRepository {
+  const statements = prepareReviewStatements(db)
   const {
     selectStory,
     selectSession,
@@ -40,31 +42,11 @@ export function createReviewRepository(db: Database.Database): ReviewRepository 
     selectUnresolvedFindings,
     selectUnresolvedStrongCount,
     updateFindingResolved,
-    selectPasses,
     upsertPassRunning,
     updatePassPassed,
     selectUnresolvedStrongForLens,
-  } = prepareReviewStatements(db)
-
-  function reviewCascade(storyId: number): readonly ReviewPass[] {
-    const rows = selectPasses.all(storyId)
-    return REVIEW_LENS_SEQUENCE.map((lens) => {
-      const row = rows.find((candidate) => candidate.lens === lens)
-      return {
-        lens,
-        state: row?.state ?? 'pending',
-        agentName: row?.agent_name ?? null,
-      }
-    })
-  }
-
-  function passOf(storyId: number, lens: ReviewLens): ReviewPass {
-    const pass = reviewCascade(storyId).find((candidate) => candidate.lens === lens)
-    if (pass === undefined) {
-      throw new StoryNotFoundError(storyId)
-    }
-    return pass
-  }
+  } = statements
+  const { reviewCascade, passOf } = createReviewCascade(statements)
 
   return {
     recordFinding: (draft) => {

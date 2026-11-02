@@ -2,6 +2,12 @@ import type Database from 'better-sqlite3'
 import type { Workflow } from '../../../../contract/WorkflowContract.js'
 import { keyOfLabel } from './WorkflowColumn.js'
 import {
+  copyColumns,
+  fromRow,
+  prepareProjectWorkflowStatements,
+  type WorkflowRow,
+} from './ProjectWorkflowStatements.js'
+import {
   WorkflowInUseError,
   WorkflowNotFoundError,
   WorkflowRefusedError,
@@ -19,48 +25,19 @@ export type ProjectWorkflowRepository = {
   remove: (projectId: number, workflowId: number) => void
 }
 
-type WorkflowRow = {
-  id: number
-  project_id: number
-  key: string
-  name: string
-  position: number
-}
-
-function fromRow(row: WorkflowRow): Workflow {
-  return { id: row.id, projectId: row.project_id, key: row.key, name: row.name, position: row.position }
-}
-
 export function createProjectWorkflowRepository(db: Database.Database): ProjectWorkflowRepository {
-  const selectOfProject = db.prepare<[number], WorkflowRow>(
-    'SELECT * FROM workflow WHERE project_id = ? ORDER BY position ASC',
-  )
-  const selectById = db.prepare<[number], WorkflowRow>('SELECT * FROM workflow WHERE id = ?')
-  const selectMaxPosition = db.prepare<[number], { max_position: number | null }>(
-    'SELECT MAX(position) AS max_position FROM workflow WHERE project_id = ?',
-  )
-  const insertWorkflow = db.prepare<[number, string, string, number]>(
-    'INSERT INTO workflow (project_id, key, name, position) VALUES (?, ?, ?, ?)',
-  )
-  const renameWorkflow = db.prepare<[string, number]>('UPDATE workflow SET name = ? WHERE id = ?')
-  const deleteWorkflow = db.prepare<[number]>('DELETE FROM workflow WHERE id = ?')
-  const deleteColumnsOf = db.prepare<[number]>('DELETE FROM workflow_column WHERE workflow_id = ?')
-  const shiftPositionsDown = db.prepare<[number, number]>(
-    'UPDATE workflow SET position = position - 1 WHERE project_id = ? AND position > ?',
-  )
-  const countStories = db.prepare<[number], { total: number }>(
-    'SELECT COUNT(*) AS total FROM story WHERE workflow_id = ?',
-  )
-  const selectColumnsOf = db.prepare<[number], Record<string, unknown>>(
-    'SELECT * FROM workflow_column WHERE workflow_id = ? ORDER BY position ASC',
-  )
-  const insertColumnCopy = db.prepare<
-    [number, number, string, string, string, number, string, string, string, string, string, string, number, number, string]
-  >(
-    `INSERT INTO workflow_column
-       (project_id, workflow_id, key, label, colour, position, provider, model, effort, agent_name, command, preprompt, auto_start, max_retries, behavioural_kind)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  )
+  const statements = prepareProjectWorkflowStatements(db)
+  const {
+    selectOfProject,
+    selectById,
+    selectMaxPosition,
+    insertWorkflow,
+    renameWorkflow,
+    deleteWorkflow,
+    deleteColumnsOf,
+    shiftPositionsDown,
+    countStories,
+  } = statements
 
   function list(projectId: number): readonly Workflow[] {
     return selectOfProject.all(projectId).map(fromRow)
@@ -131,25 +108,7 @@ export function createProjectWorkflowRepository(db: Database.Database): ProjectW
       db.transaction((): Workflow => {
         ownedBy(projectId, workflowId)
         const copy = insert(projectId, name)
-        for (const column of selectColumnsOf.all(workflowId)) {
-          insertColumnCopy.run(
-            projectId,
-            copy.id,
-            column['key'] as string,
-            column['label'] as string,
-            column['colour'] as string,
-            column['position'] as number,
-            column['provider'] as string,
-            column['model'] as string,
-            column['effort'] as string,
-            column['agent_name'] as string,
-            column['command'] as string,
-            column['preprompt'] as string,
-            column['auto_start'] as number,
-            column['max_retries'] as number,
-            column['behavioural_kind'] as string,
-          )
-        }
+        copyColumns(statements, projectId, workflowId, copy.id)
         return copy
       })(),
 

@@ -1,16 +1,13 @@
 import type Database from 'better-sqlite3'
 import { resolve } from 'node:path'
-import { allocatePort, DEFAULT_BASE_PORT, DEFAULT_PORT_RANGE } from '../../technical/Network/PortAllocator.js'
 import { GitCommandFailedError } from '../../technical/Git/GitWorktree.js'
 import { isPortBindable } from '../../technical/Network/PortProbe.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import { branchNameFor, worktreeFolderFor } from './Branch.js'
 import type { GitWorktreeRunner, Worktree, WorktreeOrder } from './Worktree.js'
-import {
-  WorktreeAlreadyLiveError,
-  WorktreeNotFoundError,
-  WorktreeNotRemovableError,
-} from './WorktreeViolation.js'
+import { createWorktreePorts } from './WorktreePorts.js'
+import { prepareWorktreeStatements, toWorktree } from './WorktreeStatements.js'
+import { WorktreeAlreadyLiveError, WorktreeNotFoundError, WorktreeNotRemovableError } from './WorktreeViolation.js'
 
 export type WorktreeRepository = {
   open: (order: WorktreeOrder) => Worktree
@@ -27,104 +24,23 @@ export type WorktreeRepositoryInput = {
   isPortFree?: (port: number) => boolean
 }
 
-type WorktreeRow = {
-  id: number
-  story_id: number
-  reference: string
-  forge_card_id: number | null
-  path: string
-  branch: string
-  base_ref: string
-  base_sha: string
-  port: number
-  subdomain: string
-  created_at: string
-}
-
-const LIVE_SELECTION = `
-  SELECT worktree.id, worktree.story_id, story.reference, worktree.forge_card_id, worktree.path,
-         worktree.branch, worktree.base_ref, worktree.base_sha, reservation.port, reservation.subdomain,
-         worktree.created_at
-  FROM worktree
-  JOIN story ON story.id = worktree.story_id
-  JOIN port_reservation AS reservation ON reservation.worktree_id = worktree.id
-  WHERE worktree.removed_at IS NULL AND reservation.released_at IS NULL
-`
-
 export function createWorktreeRepository(
   db: Database.Database,
   { stories, git, root, checkoutOf, isPortFree = isPortBindable }: WorktreeRepositoryInput,
 ): WorktreeRepository {
-  const selectLive = db.prepare<[], WorktreeRow>(`${LIVE_SELECTION} ORDER BY worktree.id ASC`)
-
-  const selectLiveForStory = db.prepare<[number], WorktreeRow>(
-    `${LIVE_SELECTION} AND worktree.story_id = ?`,
-  )
-
-  const selectRowForStory = db.prepare<[number], { id: number; path: string }>(
-    'SELECT id, path FROM worktree WHERE story_id = ?',
-  )
-
-  const insertWorktree = db.prepare<[number, number | null, string, string, string, string]>(
-    'INSERT INTO worktree (story_id, forge_card_id, path, branch, base_ref, base_sha) VALUES (?, ?, ?, ?, ?, ?)',
-  )
-
-  const reopenWorktree = db.prepare<[string, string, string, number | null, number]>(
-    'UPDATE worktree SET removed_at = NULL, path = ?, branch = ?, base_sha = ?, forge_card_id = ?, created_at = CURRENT_TIMESTAMP WHERE id = ?',
-  )
-
-  const takenPort = db.prepare<[number], { port: number }>(
-    'SELECT port FROM port_reservation WHERE port = ? AND released_at IS NULL',
-  )
-
-  const previousPort = db.prepare<[number], { port: number }>(
-    'SELECT port FROM port_reservation WHERE worktree_id = ?',
-  )
-
-  const dropReservation = db.prepare<[number]>('DELETE FROM port_reservation WHERE worktree_id = ?')
-
-  const insertReservation = db.prepare<[number, number, string]>(
-    'INSERT INTO port_reservation (port, worktree_id, subdomain) VALUES (?, ?, ?)',
-  )
-
-  const releaseReservation = db.prepare<[number]>(
-    "UPDATE port_reservation SET released_at = datetime('now') WHERE worktree_id = ? AND released_at IS NULL",
-  )
-
-  const markRemoved = db.prepare<[number]>(
-    "UPDATE worktree SET removed_at = datetime('now') WHERE id = ?",
-  )
-
-  function toWorktree(row: WorktreeRow): Worktree {
-    return {
-      id: row.id,
-      storyId: row.story_id,
-      storyReference: row.reference,
-      forgeCardId: row.forge_card_id,
-      path: row.path,
-      branch: row.branch,
-      baseRef: row.base_ref,
-      baseSha: row.base_sha,
-      port: row.port,
-      subdomain: row.subdomain,
-      createdAt: row.created_at,
-    }
-  }
-
-  function freePortFor(branch: string, worktreeId: number): number {
-    const held = previousPort.get(worktreeId)
-    if (held !== undefined && takenPort.get(held.port) === undefined && isPortFree(held.port)) {
-      return held.port
-    }
-    const wanted = allocatePort(branch)
-    for (let step = 0; step < DEFAULT_PORT_RANGE; step += 1) {
-      const candidate = ((wanted - DEFAULT_BASE_PORT + step) % DEFAULT_PORT_RANGE) + DEFAULT_BASE_PORT
-      if (takenPort.get(candidate) === undefined && isPortFree(candidate)) {
-        return candidate
-      }
-    }
-    throw new WorktreeNotRemovableError(branch, 'plus aucun port libre dans la plage')
-  }
+  const statements = prepareWorktreeStatements(db)
+  const {
+    selectLive,
+    selectLiveForStory,
+    selectRowForStory,
+    insertWorktree,
+    reopenWorktree,
+    dropReservation,
+    insertReservation,
+    releaseReservation,
+    markRemoved,
+  } = statements
+  const freePortFor = createWorktreePorts(statements, isPortFree)
 
   return {
     open: (order) =>
