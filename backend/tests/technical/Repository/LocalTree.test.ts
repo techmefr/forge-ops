@@ -34,6 +34,13 @@ describe('listDirectory', () => {
   it('refuse de sortir du depot', async () => {
     await expect(listDirectory(root, '../..')).rejects.toThrow(PathOutsideCheckoutError)
   })
+
+  it('accepte un dossier dont le nom commence par deux points', async () => {
+    const own = mkdtempSync(join(tmpdir(), 'forge-tree-dots-'))
+    mkdirSync(join(own, '..cache'), { recursive: true })
+    writeFileSync(join(own, '..cache', 'a.txt'), 'a')
+    expect((await listDirectory(own, '..cache')).map((entry) => entry.path)).toEqual(['..cache/a.txt'])
+  })
 })
 
 describe('readTextFile', () => {
