@@ -14,27 +14,12 @@
       "count": 1
     }
   },
-  "backend/src/domain/Conversation/ConversationApi.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/domain/Delivery/BatchRepository.ts": {
     "max-lines-per-function": {
       "count": 1
     }
   },
   "backend/src/domain/Event/EventRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/ForgeCard/ForgeBoardApi.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Identity/OidcApi.ts": {
     "max-lines-per-function": {
       "count": 1
     }
@@ -54,17 +39,7 @@
       "count": 1
     }
   },
-  "backend/src/domain/Workflow/ProjectWorkflowApi.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/domain/Workflow/ProjectWorkflowRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Workflow/WorkflowColumnApi.ts": {
     "max-lines-per-function": {
       "count": 1
     }

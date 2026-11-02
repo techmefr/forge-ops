@@ -1,75 +1,22 @@
 import { Hono } from 'hono'
-import type { Context } from 'hono'
-import { z } from 'zod'
 import { mapApiError } from '../Board/ApiErrorMap.js'
-import { assertHandOf } from '../Story/StoryHand.js'
-import type { ForgeCardMoved } from '../../../../contract/ForgeCardContract.js'
-import type { StoryRepository } from '../Story/StoryRepository.js'
-import type { EventBus } from '../../technical/Http/EventBus.js'
-import type { ForgeBoardRepository } from './ForgeBoardRepository.js'
-import type { ForgeCardCloser } from './ForgeCardCloser.js'
-import type { ForgeCardMover } from './ForgeCardMover.js'
-import type { ForgeCardRepository } from './ForgeCardRepository.js'
 import { parseBody } from '../../technical/Http/ParseBody.js'
+import {
+  backlogSchema,
+  createForgeBoardSupport,
+  identifierSchema,
+  type ForgeBoardApiInput,
+} from './ForgeBoardApiSupport.js'
+import { mountForgeBoardStepRoutes } from './ForgeBoardStepRoutes.js'
 
-const identifierSchema = z.coerce.number().int().positive()
+export type { ForgeBoardApiInput }
 
-const moveSchema = z.object({ stepKey: z.string().trim().min(1).max(80) }).strict()
-
-const launchSchema = z.object({ feedback: z.string().trim().min(1).max(4000).optional() }).strict()
-
-const backlogSchema = z
-  .object({
-    subjectId: z.number().int().positive(),
-    title: z.string().trim().min(1).max(200),
-    workflowId: z.number().int().positive().optional(),
-  })
-  .strict()
-
-export type ForgeBoardApiInput = {
-  board: ForgeBoardRepository
-  mover: ForgeCardMover
-  closer: ForgeCardCloser
-  forgeCards: ForgeCardRepository
-  stories: StoryRepository
-  events: Pick<EventBus, 'publish'>
-  autopilot?: {
-    reset: (forgeCardId: number) => void
-    suspend: (forgeCardId: number) => () => void
-    resume: (forgeCardId: number) => Promise<boolean>
-  }
-}
-
-export function createForgeBoardApi({
-  board,
-  mover,
-  closer,
-  forgeCards,
-  stories,
-  events,
-  autopilot,
-}: ForgeBoardApiInput): Hono {
+export function createForgeBoardApi(input: ForgeBoardApiInput): Hono {
+  const { board, forgeCards, stories, events } = input
   const api = new Hono()
+  const { assertHand } = createForgeBoardSupport({ stories, events })
 
   api.onError(mapApiError)
-
-  function assertHand(context: Context, subjectId: number, reference: string): void {
-    assertHandOf(context, reference, stories.assigneeOf(subjectId))
-  }
-
-  function announce(moved: ForgeCardMoved): void {
-    if (!moved.started || moved.claudeSessionId === null) {
-      return
-    }
-    events.publish({
-      name: 'session.dispatched',
-      payload: {
-        storyId: moved.card.storyId,
-        reference: moved.card.storyReference,
-        claudeSessionId: moved.claudeSessionId,
-      },
-    })
-  }
 
   api.get('/api/forge-cards', (context) => {
     const project = identifierSchema.safeParse(context.req.query('project'))
@@ -99,69 +46,7 @@ export function createForgeBoardApi({
     return context.json(board.view(card.id), 201)
   })
 
-  api.post('/api/forge-cards/:id/move', async (context) => {
-    const forgeCardId = identifierSchema.safeParse(context.req.param('id'))
-    if (!forgeCardId.success) {
-      return context.json({ error: 'InvalidForgeCardIdentifier' }, 422)
-    }
-    const order = await parseBody(context, moveSchema)
-    if (!order.success) {
-      return context.json({ error: 'InvalidMoveOrder', issues: order.error.issues }, 422)
-    }
-    const current = board.view(forgeCardId.data)
-    assertHand(context, current.subjectId, current.reference)
-    const restore = autopilot?.suspend(forgeCardId.data)
-    try {
-      const moved = await mover.move(forgeCardId.data, order.data.stepKey)
-      announce(moved)
-      return context.json(moved)
-    } catch (error) {
-      restore?.()
-      throw error
-    }
-  })
-
-  api.post('/api/forge-cards/:id/done', (context) => {
-    const forgeCardId = identifierSchema.safeParse(context.req.param('id'))
-    if (!forgeCardId.success) {
-      return context.json({ error: 'InvalidForgeCardIdentifier' }, 422)
-    }
-    const current = board.view(forgeCardId.data)
-    assertHand(context, current.subjectId, current.reference)
-    const closed = closer.close(forgeCardId.data)
-    autopilot?.reset(forgeCardId.data)
-    for (const story of closed.unblocked) {
-      events.publish({ name: 'story.unblocked', payload: { ...story } })
-    }
-    events.publish({ name: 'story.merged', payload: { storyId: current.storyId, ...closed.cleanUp } })
-    return context.json(closed)
-  })
-
-  api.post('/api/forge-cards/:id/launch', async (context) => {
-    const forgeCardId = identifierSchema.safeParse(context.req.param('id'))
-    if (!forgeCardId.success) {
-      return context.json({ error: 'InvalidForgeCardIdentifier' }, 422)
-    }
-    const order = launchSchema.safeParse(await context.req.json().catch(() => ({})))
-    if (!order.success) {
-      return context.json({ error: 'InvalidLaunchOrder', issues: order.error.issues }, 422)
-    }
-    const current = board.view(forgeCardId.data)
-    assertHand(context, current.subjectId, current.reference)
-    const feedback = order.data.feedback
-    if (feedback === undefined && (await autopilot?.resume(forgeCardId.data)) === true) {
-      return context.json({ card: board.view(forgeCardId.data), started: false, claudeSessionId: null }, 201)
-    }
-    const restore = autopilot?.suspend(forgeCardId.data)
-    try {
-      const moved = await mover.launch(forgeCardId.data, feedback === undefined ? {} : { feedback })
-      announce(moved)
-      return context.json(moved, 201)
-    } catch (error) {
-      restore?.()
-      throw error
-    }
-  })
+  mountForgeBoardStepRoutes(api, input)
 
   return api
 }
