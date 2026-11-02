@@ -4,11 +4,6 @@
       "count": 1
     }
   },
-  "backend/src/composition/DemoSeed.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/composition/ForgeAutopilot.ts": {
     "max-lines-per-function": {
       "count": 1
