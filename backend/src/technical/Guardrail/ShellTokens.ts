@@ -47,13 +47,45 @@ function redirectAt(command: string, index: number): string | null {
   return null
 }
 
-export function tokenizeShell(command: string): ShellSegment[] {
+type QuotedRead = { text: string; next: number }
+
+function readSingleQuoted(command: string, index: number): QuotedRead {
+  const close = command.indexOf("'", index + 1)
+  if (close === -1) {
+    throw new UnparseableShellError('a single quote is never closed')
+  }
+  return { text: command.slice(index + 1, close), next: close + 1 }
+}
+
+function readDoubleQuoted(command: string, index: number): QuotedRead {
+  let text = ''
+  let cursor = index + 1
+  while (cursor < command.length) {
+    const inner = command[cursor] as string
+    if (inner === '"') {
+      return { text, next: cursor + 1 }
+    }
+    const forbidden = FORBIDDEN_QUOTED.get(inner)
+    if (forbidden !== undefined) {
+      throw new UnparseableShellError(`${forbidden} are not allowed`)
+    }
+    text += inner
+    cursor += 1
+  }
+  throw new UnparseableShellError('a double quote is never closed')
+}
+
+function assertTokenizable(command: string): void {
   if (command.trim() === '') {
     throw new UnparseableShellError('the command is empty')
   }
   if (command.includes('\0')) {
     throw new UnparseableShellError('the command contains a NUL byte')
   }
+}
+
+export function tokenizeShell(command: string): ShellSegment[] {
+  assertTokenizable(command)
 
   const segments: ShellSegment[] = []
   let words: string[] = []
@@ -83,38 +115,11 @@ export function tokenizeShell(command: string): ShellSegment[] {
   while (index < command.length) {
     const char = command[index] as string
 
-    if (char === "'") {
-      const close = command.indexOf("'", index + 1)
-      if (close === -1) {
-        throw new UnparseableShellError('a single quote is never closed')
-      }
-      word += command.slice(index + 1, close)
+    if (char === "'" || char === '"') {
+      const quoted = char === "'" ? readSingleQuoted(command, index) : readDoubleQuoted(command, index)
+      word += quoted.text
       inWord = true
-      index = close + 1
-      continue
-    }
-
-    if (char === '"') {
-      let cursor = index + 1
-      let closed = false
-      while (cursor < command.length) {
-        const inner = command[cursor] as string
-        if (inner === '"') {
-          closed = true
-          break
-        }
-        const forbidden = FORBIDDEN_QUOTED.get(inner)
-        if (forbidden !== undefined) {
-          throw new UnparseableShellError(`${forbidden} are not allowed`)
-        }
-        word += inner
-        cursor += 1
-      }
-      if (!closed) {
-        throw new UnparseableShellError('a double quote is never closed')
-      }
-      inWord = true
-      index = cursor + 1
+      index = quoted.next
       continue
     }
 

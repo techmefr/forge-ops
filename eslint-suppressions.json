@@ -1,27 +1,2 @@
 {
-  "backend/src/composition/ForgeAutopilot.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Autopilot/StepVerifier.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/technical/Git/StoryPublication.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/technical/Guardrail/ShellTokens.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "frontend/src/domain/Forge/UseForgeBoard.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  }
 }

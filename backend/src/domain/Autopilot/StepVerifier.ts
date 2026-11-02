@@ -3,17 +3,12 @@ import type { StepVerdict } from '../../../../contract/AutopilotContract.js'
 import type { WorkflowColumn } from '../../../../contract/WorkflowColumnContract.js'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
-import {
-  CheckpointAlreadyProvenError,
-  CheckpointOutOfOrderError,
-  CriteriaRequiredError,
-} from '../Checkpoint/CheckpointViolation.js'
 import { contractOfPhase } from '../Dispatch/Dispatch.js'
 import type { EvidenceReader } from '../Evidence/EvidenceRead.js'
 import { phaseOfStep } from '../ForgeCard/ForgeCardStatus.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
 import type { WorkflowColumnRepository } from '../Workflow/WorkflowColumnRepository.js'
-import { proofPathOf } from './StepBrief.js'
+import { NEEDS_CRITERIA_REASON, createOwnCheckpointProof } from './StepOwnProof.js'
 import type { StepProver } from './StepProver.js'
 import { readVerdict, safeVerdictPath } from './StepVerdict.js'
 
@@ -22,7 +17,7 @@ export type StepOutcome =
   | { kind: 'fail'; reason: string }
   | { kind: 'blocked'; reason: string }
 
-export const NEEDS_CRITERIA_REASON = 'Needs acceptance criteria'
+export { NEEDS_CRITERIA_REASON }
 
 export type StepVerifierInput = {
   stories: Pick<StoryRepository, 'findStory'>
@@ -41,10 +36,6 @@ export type StepVerifierInput = {
 export type StepVerifier = {
   verify: (view: ForgeCardView, step: WorkflowColumn) => StepOutcome
   discard: (root: string, storyReference: string, stepKey: string) => void
-}
-
-function messageOf(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
 }
 
 export function createStepVerifier({
@@ -67,34 +58,7 @@ export function createStepVerifier({
     }
   }
 
-  function proveOwnCheckpoint(view: ForgeCardView, step: WorkflowColumn, storyReference: string): StepOutcome {
-    const keys = columns.list(view.projectId, view.workflowId).map((candidate) => candidate.key)
-    const proves = contractOfPhase(phaseOfStep(step.key, keys)).proves
-    if (proves === null) {
-      return { kind: 'pass' }
-    }
-    const proven = checkpoints.definitionOfDone(view.storyId).find((entry) => entry.name === proves)?.proven === true
-    if (proven) {
-      return { kind: 'pass' }
-    }
-    try {
-      const checkpoint = checkpoints.proveCheckpoint({
-        storyId: view.storyId,
-        name: proves,
-        evidencePath: proofPathOf(storyReference, proves),
-      })
-      publish?.('checkpoint.proven', { ...checkpoint })
-      return { kind: 'pass' }
-    } catch (error) {
-      if (error instanceof CheckpointOutOfOrderError || error instanceof CheckpointAlreadyProvenError) {
-        return { kind: 'pass' }
-      }
-      if (error instanceof CriteriaRequiredError) {
-        return { kind: 'blocked', reason: NEEDS_CRITERIA_REASON }
-      }
-      return { kind: 'fail', reason: messageOf(error) }
-    }
-  }
+  const proveOwnCheckpoint = createOwnCheckpointProof(columns, checkpoints, publish)
 
   function proveByOrchestrator(
     view: ForgeCardView,

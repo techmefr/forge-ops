@@ -61,26 +61,86 @@ function lastUrlOf(output: string): string | null {
   return found === null ? null : (found[found.length - 1] ?? null)
 }
 
+function attemptWith(run: CommandRunner, step: string, file: string, argv: readonly string[], cwd: string): string {
+  try {
+    return run(file, argv, cwd)
+  } catch (error) {
+    throw new PublicationFailedError(step, reasonOf(error))
+  }
+}
+
+function unavailableNote(run: CommandRunner, forge: 'github' | 'gitlab', cwd: string): string | null {
+  const cli = forge === 'github' ? 'gh' : 'glab'
+  try {
+    run(cli, ['auth', 'status'], cwd)
+    return null
+  } catch {
+    const noun = forge === 'github' ? 'pull' : 'merge'
+    return `${cli} is missing or not signed in, the branch is pushed: open the ${noun} request by hand`
+  }
+}
+
+function openGithubRequest(run: CommandRunner, order: PublicationOrder): PublicationReport {
+  const created = attemptWith(
+    run,
+    'opening the pull request',
+    'gh',
+    ['pr', 'create', '--head', order.branch, '--base', order.baseBranch, '--title', order.title, '--body', order.body],
+    order.worktreePath,
+  )
+  const requestUrl = lastUrlOf(created)
+  if (order.autoMerge && requestUrl !== null) {
+    attemptWith(run, 'requesting the merge', 'gh', ['pr', 'merge', requestUrl, '--squash', '--auto'], order.worktreePath)
+  }
+  return {
+    branch: order.branch,
+    pushed: true,
+    requestUrl,
+    mergeRequested: order.autoMerge && requestUrl !== null,
+    note: null,
+  }
+}
+
+function openGitlabRequest(run: CommandRunner, order: PublicationOrder): PublicationReport {
+  const created = attemptWith(
+    run,
+    'opening the merge request',
+    'glab',
+    [
+      'mr',
+      'create',
+      '--source-branch',
+      order.branch,
+      '--target-branch',
+      order.baseBranch,
+      '--title',
+      order.title,
+      '--description',
+      order.body,
+      '--yes',
+    ],
+    order.worktreePath,
+  )
+  const requestUrl = lastUrlOf(created)
+  if (order.autoMerge && requestUrl !== null) {
+    attemptWith(
+      run,
+      'requesting the merge',
+      'glab',
+      ['mr', 'merge', requestUrl, '--squash', '--when-pipeline-succeeds', '--yes'],
+      order.worktreePath,
+    )
+  }
+  return {
+    branch: order.branch,
+    pushed: true,
+    requestUrl,
+    mergeRequested: order.autoMerge && requestUrl !== null,
+    note: null,
+  }
+}
+
 export function createStoryPublisher(run: CommandRunner = runCommand): StoryPublisher {
-  function attempt(step: string, file: string, argv: readonly string[], cwd: string): string {
-    try {
-      return run(file, argv, cwd)
-    } catch (error) {
-      throw new PublicationFailedError(step, reasonOf(error))
-    }
-  }
-
-  function unavailableNote(forge: 'github' | 'gitlab', cwd: string): string | null {
-    const cli = forge === 'github' ? 'gh' : 'glab'
-    try {
-      run(cli, ['auth', 'status'], cwd)
-      return null
-    } catch {
-      const noun = forge === 'github' ? 'pull' : 'merge'
-      return `${cli} is missing or not signed in, the branch is pushed: open the ${noun} request by hand`
-    }
-  }
-
   return {
     publish: (order) => {
       let remoteUrl: string
@@ -95,7 +155,7 @@ export function createStoryPublisher(run: CommandRunner = runCommand): StoryPubl
           note: 'The checkout has no origin remote, nothing was published',
         }
       }
-      attempt('pushing the branch', 'git', ['push', '--set-upstream', 'origin', order.branch], order.worktreePath)
+      attemptWith(run, 'pushing the branch', 'git', ['push', '--set-upstream', 'origin', order.branch], order.worktreePath)
       const forge = forgeOf(remoteUrl)
       if (forge === 'unknown') {
         return {
@@ -106,63 +166,11 @@ export function createStoryPublisher(run: CommandRunner = runCommand): StoryPubl
           note: 'The remote is neither GitHub nor GitLab, open the merge request by hand',
         }
       }
-      const unavailable = unavailableNote(forge, order.worktreePath)
+      const unavailable = unavailableNote(run, forge, order.worktreePath)
       if (unavailable !== null) {
         return { branch: order.branch, pushed: true, requestUrl: null, mergeRequested: false, note: unavailable }
       }
-      if (forge === 'github') {
-        const created = attempt(
-          'opening the pull request',
-          'gh',
-          ['pr', 'create', '--head', order.branch, '--base', order.baseBranch, '--title', order.title, '--body', order.body],
-          order.worktreePath,
-        )
-        const requestUrl = lastUrlOf(created)
-        if (order.autoMerge && requestUrl !== null) {
-          attempt('requesting the merge', 'gh', ['pr', 'merge', requestUrl, '--squash', '--auto'], order.worktreePath)
-        }
-        return {
-          branch: order.branch,
-          pushed: true,
-          requestUrl,
-          mergeRequested: order.autoMerge && requestUrl !== null,
-          note: null,
-        }
-      }
-      const created = attempt(
-        'opening the merge request',
-        'glab',
-        [
-          'mr',
-          'create',
-          '--source-branch',
-          order.branch,
-          '--target-branch',
-          order.baseBranch,
-          '--title',
-          order.title,
-          '--description',
-          order.body,
-          '--yes',
-        ],
-        order.worktreePath,
-      )
-      const requestUrl = lastUrlOf(created)
-      if (order.autoMerge && requestUrl !== null) {
-        attempt(
-          'requesting the merge',
-          'glab',
-          ['mr', 'merge', requestUrl, '--squash', '--when-pipeline-succeeds', '--yes'],
-          order.worktreePath,
-        )
-      }
-      return {
-        branch: order.branch,
-        pushed: true,
-        requestUrl,
-        mergeRequested: order.autoMerge && requestUrl !== null,
-        note: null,
-      }
+      return forge === 'github' ? openGithubRequest(run, order) : openGitlabRequest(run, order)
     },
   }
 }
