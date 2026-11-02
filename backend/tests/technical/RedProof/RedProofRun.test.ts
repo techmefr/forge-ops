@@ -60,6 +60,35 @@ describe('runRedReport', () => {
     CHILD_TIMEOUT_MS,
   )
 
+  it('reads the report from the file the runner says it wrote inside the project', () => {
+    const file = join(root, 'report.json')
+    writeFileSync(file, RED_JSON)
+
+    const report = runRedReport({ command: `echo "JSON report written to ${file}"`, cwd: root })
+
+    expect(redVerdictOf(report).kind).toBe('assertion')
+  })
+
+  it('does not read a report file that sits outside the project', () => {
+    const outside = mkdtempSync(join(tmpdir(), 'forge-outside-'))
+    const file = join(outside, 'report.json')
+    writeFileSync(file, RED_JSON)
+
+    const report = runRedReport({ command: `echo "JSON report written to ${file}"`, cwd: root })
+    rmSync(outside, { recursive: true, force: true })
+
+    expect(redVerdictOf(report).kind).toBe('uncollected')
+  })
+
+  it('prefers the report printed on the output over a file it also mentions', () => {
+    const file = join(root, 'stale.json')
+    writeFileSync(file, '{"testResults":[]}')
+
+    const report = runRedReport({ command: `echo '${RED_JSON}'; echo "JSON report written to ${file}"`, cwd: root })
+
+    expect(redVerdictOf(report).kind).toBe('assertion')
+  })
+
   it('reports an unreadable report as a collection failure', () => {
     const report = runRedReport({ command: 'echo not-json', cwd: root })
 

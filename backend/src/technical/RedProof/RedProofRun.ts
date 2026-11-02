@@ -1,5 +1,7 @@
 import { spawnSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { agentEnvironmentOf } from '../Guardrail/AgentEnvironment.js'
+import { realPathInsideSync } from '../File/ConfinedRealPath.js'
 import {
   RED_PROOF_OUTPUT_CAP,
   RED_PROOF_TIMEOUT_MS,
@@ -99,5 +101,22 @@ export function runRedReport({
     const cause = result.error?.message ?? result.signal
     return unreadable(`le lanceur de tests a ete interrompu avant ${timeoutMs} ms : ${cause}`)
   }
-  return parseRedReport(result.stdout ?? '')
+  return parseRedReport(reportTextOf(result.stdout ?? '', cwd))
+}
+
+const WRITTEN_REPORT = /JSON report written to (.+)$/m
+
+function reportTextOf(stdout: string, cwd: string): string {
+  if (jsonSliceOf(stdout) !== null) {
+    return stdout
+  }
+  const written = WRITTEN_REPORT.exec(stdout)?.[1]?.trim()
+  if (written === undefined) {
+    return stdout
+  }
+  try {
+    return readFileSync(realPathInsideSync(cwd, written), 'utf-8')
+  } catch {
+    return stdout
+  }
 }
