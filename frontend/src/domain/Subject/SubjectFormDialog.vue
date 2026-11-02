@@ -3,8 +3,6 @@ import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
 import { EPIC_PRIORITIES, type Tag } from '@contract/EpicContract'
-import { DEADLINE_KINDS } from '@contract/StoryContract'
-import type { ProjectEvent } from '@contract/EventContract'
 import type { EpicOverview, Project } from '@/domain/Board/BoardModel'
 import ProjectPicker from '@/domain/Project/ProjectPicker.vue'
 import { board } from '@/technical/Api/Board'
@@ -25,16 +23,13 @@ import {
   firstIssueField,
   formOf,
   issuesOf,
-  milestoneStep,
   stateAfterOwnerChange,
   type FieldName,
   type FormIssue,
   type SubjectForm,
 } from './SubjectFormRule'
+import { useSubjectMilestone } from './UseSubjectMilestone'
 import type { Person } from './UseSubjects'
-
-const MILESTONE_KIND = 'production'
-const EVENT_TITLE_LIMIT = 120
 
 const props = defineProps<{
   subject: EpicOverview | null
@@ -59,9 +54,9 @@ const refusal = ref<Phrase | null>(null)
 const busy = ref(false)
 const formElement = ref<HTMLFormElement | null>(null)
 const madeTags = ref<readonly Tag[]>([])
-const milestoneEvent = ref<{ id: number; date: string } | null>(null)
 const savedId = ref<number | null>(null)
 const coreDone = ref(false)
+const { loadMilestone, writeMilestone } = useSubjectMilestone(props.subject, form)
 
 const knownTags = computed(() => [
   ...props.tags,
@@ -93,47 +88,6 @@ function borderOf(field: FieldName): string {
   return invalid(field) ? 'border-red' : 'border-line'
 }
 
-async function loadMilestone(): Promise<void> {
-  const subject = props.subject
-  if (subject === null) {
-    return
-  }
-  const events = await board
-    .read<readonly ProjectEvent[]>(`/api/projects/${subject.projectId}/events`)
-    .catch(() => [] as readonly ProjectEvent[])
-  const own = events
-    .filter((event) => event.epicId === subject.id && (DEADLINE_KINDS as readonly string[]).includes(event.type))
-    .sort((one, other) => one.date.localeCompare(other.date))
-  const match = own.find((event) => event.date === subject.dueOn) ?? own[0]
-  if (match !== undefined) {
-    milestoneEvent.value = { id: match.id, date: match.date }
-    if (form.value.milestone === '') {
-      form.value = { ...form.value, milestone: match.date }
-    }
-  }
-}
-
-async function writeMilestone(subjectId: number): Promise<void> {
-  const existing = milestoneEvent.value
-  const step = milestoneStep(existing?.date ?? null, form.value.milestone)
-  let createdId: number | null = null
-  if (step === 'create') {
-    const created = await board.send<ProjectEvent>('/api/events', 'POST', {
-      type: MILESTONE_KIND,
-      date: form.value.milestone,
-      title: form.value.title.trim().slice(0, EVENT_TITLE_LIMIT),
-      projectId: form.value.projectId,
-      epicId: subjectId,
-    })
-    createdId = created.id
-  } else if (step === 'change' && existing !== null) {
-    await board.send(`/api/events/${existing.id}`, 'PATCH', { date: form.value.milestone })
-  } else if (step === 'remove' && existing !== null) {
-    await board.send(`/api/events/${existing.id}`, 'DELETE')
-  }
-  milestoneEvent.value =
-    form.value.milestone === '' ? null : { id: createdId ?? existing?.id ?? 0, date: form.value.milestone }
-}
 
 async function writeCore(): Promise<number> {
   const subject = props.subject

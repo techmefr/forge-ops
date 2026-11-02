@@ -11,6 +11,8 @@ import EpicBoard from './EpicBoard.vue'
 import { useTranscript } from '@/domain/Session/UseTranscript'
 import { useTicket } from './UseTicket'
 import StoryTicket from './StoryTicket.vue'
+import StoryTranscript from './StoryTranscript.vue'
+import StoryTwinForm, { type TwinDraft } from './StoryTwinForm.vue'
 import { PARTS, bothPartsWritten, type StoryPart } from './StoryPart'
 import { storiesOfEpic } from './Batch'
 import { requestFor, type TicketPoint } from './TicketRequest'
@@ -37,8 +39,6 @@ const said = computed(() => transcript.visible())
 
 const turn = ref('')
 const part = ref<StoryPart>('functional')
-const twinTitle = ref('')
-const twinBody = ref('')
 
 const desk = ref<Desk>('write')
 const running = useResource<readonly KanbanStory[]>(() => board.read('/api/board/kanban'))
@@ -82,7 +82,7 @@ async function backToEpics(): Promise<void> {
   await Promise.all(talking.map((storyId) => hangUp(storyId).catch(() => undefined)))
 }
 
-const { busy, refusal, guard } = useGuardedAction()
+const { busy, refusal, guard, attempt } = useGuardedAction()
 
 function newStory(epic: EpicOverview): Promise<void> {
   return guard(async () => {
@@ -134,16 +134,12 @@ function askClaude(point: TicketPoint): void {
   turn.value = say(requestFor(point))
 }
 
-async function submitTwin(): Promise<void> {
+function submitTwin(draft: TwinDraft): Promise<boolean> {
   const storyId = ticket.data.value?.functional.id
   if (storyId === undefined) {
-    return
+    return Promise.resolve(false)
   }
-  await guard(async () => {
-    await writeTwin(storyId, { title: twinTitle.value, body: twinBody.value })
-    twinTitle.value = ''
-    twinBody.value = ''
-  })
+  return attempt(() => writeTwin(storyId, draft))
 }
 
 function toBacklog(): Promise<void> {
@@ -262,28 +258,7 @@ onMounted(async () => {
         {{ t('story.batchStarting') }}
       </p>
 
-      <div class="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
-        <article
-          v-for="(utterance, index) in said"
-          :key="index"
-          class="rounded-lg p-3"
-          :class="utterance.name === 'session.human' ? 'ml-8 bg-elev' : 'mr-8 bg-card'"
-        >
-          <p class="text-xs text-txt-low">
-            {{ utterance.name === 'session.human' ? t('story.you') : t('story.claude') }}
-            <span v-if="utterance.phase !== null"> · {{ t(`phase.${utterance.phase}`) }}</span>
-          </p>
-          <p
-            v-if="utterance.text !== null || utterance.textKey !== null"
-            class="mt-1.5 text-sm whitespace-pre-wrap text-txt-hi"
-          >
-            {{ utterance.text ?? t(utterance.textKey ?? '') }}
-          </p>
-          <p v-if="utterance.costUsd !== null" class="mt-1.5 font-mono text-xs text-acc">
-            {{ t('common.money', { amount: utterance.costUsd.toFixed(4) }) }}
-          </p>
-        </article>
-      </div>
+      <StoryTranscript :said="said" />
 
       <form class="mt-3 flex flex-none gap-2" @submit.prevent="sendTurn">
         <textarea
@@ -376,34 +351,7 @@ onMounted(async () => {
           </button>
         </form>
 
-        <form
-          v-if="part === 'tests' && ticket.data.value?.tests === null"
-          class="mt-6 flex flex-col gap-2 card p-4"
-          @submit.prevent="submitTwin"
-        >
-          <p class="title-face text-sm text-violet">{{ t('story.twinTitle') }}</p>
-          <input
-            v-model="twinTitle"
-            type="text"
-            :placeholder="t('story.twinTitlePlaceholder')"
-            :aria-label="t('story.twinTitlePlaceholder')"
-            class="field"
-          />
-          <textarea
-            v-model="twinBody"
-            rows="3"
-            :placeholder="t('story.twinBodyPlaceholder')"
-            :aria-label="t('story.twinBodyPlaceholder')"
-            class="field"
-          ></textarea>
-          <button
-            type="submit"
-            :disabled="busy"
-            class="rounded-lg bg-card px-3 py-2 text-sm font-bold text-violet disabled:opacity-50"
-          >
-            {{ t('story.writeTwin') }}
-          </button>
-        </form>
+        <StoryTwinForm v-if="part === 'tests' && ticket.data.value?.tests === null" :busy="busy" :submit="submitTwin" />
       </div>
     </section>
   </div>
