@@ -5,7 +5,8 @@ import { behaviouralKindOf, keyOfLabel } from './WorkflowColumn.js'
 import { createProjectWorkflowRepository } from './ProjectWorkflowRepository.js'
 import { createWorkflowColumnScope } from './WorkflowColumnScope.js'
 import { fromRow, prepareWorkflowColumnStatements } from './WorkflowColumnStatements.js'
-import { WorkflowColumnInUseError, WorkflowColumnRefusedError } from './WorkflowColumnViolation.js'
+import { createWorkflowColumnOrder } from './WorkflowColumnOrder.js'
+import { WorkflowColumnInUseError } from './WorkflowColumnViolation.js'
 
 export type WorkflowColumnRepository = {
   list: (projectId: number, workflowId?: number) => readonly WorkflowColumn[]
@@ -27,7 +28,6 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
     updateColumn,
     deleteColumn,
     shiftPositionsDown,
-    updatePosition,
     countStoriesInStep,
   } = statements
   const { scopeOf, list, ownedBy, refuseIfInvalid } = createWorkflowColumnScope(statements, workflows)
@@ -104,24 +104,6 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
       })()
     },
 
-    reorder: (projectId, keysInOrder, workflowId) => {
-      const current = list(projectId, workflowId)
-      const sameSet =
-        keysInOrder.length === current.length &&
-        new Set(keysInOrder).size === current.length &&
-        current.every((column) => keysInOrder.includes(column.key))
-      if (!sameSet) {
-        throw new WorkflowColumnRefusedError({ reason: 'OrderMismatch' })
-      }
-      db.transaction(() => {
-        keysInOrder.forEach((key, index) => {
-          updatePosition.run(-1 * (index + 1), current.find((column) => column.key === key)!.id)
-        })
-        keysInOrder.forEach((key, index) => {
-          updatePosition.run(index + 1, current.find((column) => column.key === key)!.id)
-        })
-      })()
-      return list(projectId, workflowId)
-    },
+    reorder: createWorkflowColumnOrder(db, statements, list),
   }
 }

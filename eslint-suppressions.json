@@ -9,36 +9,6 @@
       "count": 1
     }
   },
-  "backend/src/domain/Checkpoint/ReviewRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Organisation/OrganisationRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Template/TemplateRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Workflow/ProjectWorkflowRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Workflow/WorkflowColumnRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Worktree/WorktreeRepository.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/technical/Git/StoryPublication.ts": {
     "max-lines-per-function": {
       "count": 1
