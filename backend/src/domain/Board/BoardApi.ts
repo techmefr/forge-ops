@@ -1,30 +1,16 @@
 import { Hono } from 'hono'
 import type { Context } from 'hono'
-import { streamSSE } from 'hono/streaming'
-import { z } from 'zod'
-import { projectCreateSchema } from '../../../../contract/ProjectContract.js'
-import {
-  MANUAL_EPIC_STATES,
-  epicAssignmentSchema,
-  epicCreateSchema,
-  epicQuerySchema,
-} from '../../../../contract/EpicContract.js'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import type { StoryRepository } from '../Story/StoryRepository.js'
-import { ProjectSlugTakenError } from '../Story/StoryViolation.js'
 import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import type { AgentSessionRepository } from '../Agent/AgentSessionRepository.js'
-import { reapStaleSessions, STALE_AFTER_SECONDS } from '../Agent/Heartbeat.js'
-import { isWriteTool } from '../Agent/ToolName.js'
 import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js'
 import { createCheckpointApi } from '../Checkpoint/CheckpointApi.js'
-import { describeZone } from '../Zone/ZoneDigest.js'
 import type { ZoneRepository } from '../Zone/ZoneRepository.js'
 import { createZoneApi } from '../Zone/ZoneApi.js'
 import type { CriterionRepository } from '../Criterion/CriterionRepository.js'
 import { createCriterionApi } from '../Criterion/CriterionApi.js'
 import type { Dispatcher } from '../Dispatch/Dispatcher.js'
-import { PHASE_CONTRACTS } from '../Dispatch/Dispatch.js'
 import type { BudgetRepository } from '../Budget/BudgetRepository.js'
 import { createBudgetApi } from '../Budget/BudgetApi.js'
 import { createEpicApi } from '../Epic/EpicApi.js'
@@ -35,56 +21,11 @@ import { createStoryApi } from '../Story/StoryApi.js'
 import { createHumanGateApi } from '../Story/HumanGateApi.js'
 import type { MergeCleanupReport } from '../Deployment/MergeCleanup.js'
 import type { CascadeStep } from '../Checkpoint/ReviewCascade.js'
-import { mapApiError } from './ApiErrorMap.js'
-import { isConfinedPath, relativeToDirectory } from '../File/ConfinedPath.js'
-import { readJobStates, readRoster } from '../../technical/ClaudeCode/JobStateReader.js'
-import { attentionOf, daysLeft, nextMilestone } from './CardAttention.js'
 import type { StoryHold } from '../Discussion/Discussion.js'
-import { sessionContextOf } from '../Agent/SessionContext.js'
-import { parseBody } from '../../technical/Http/ParseBody.js'
-
-const projectDraftSchema = z.object({
-  slug: z
-    .string()
-    .min(1)
-    .regex(/^[a-z0-9][a-z0-9-]*$/),
-  name: z.string().min(1),
-  repositoryUrl: z.string().min(1),
-  integrationBranch: z.string().min(1),
-  colour: z.string().min(1),
-})
-
-const DEFAULT_INTEGRATION_BRANCH = 'main'
-
-function slugOf(name: string): string {
-  const slug = name
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-  return slug === '' ? 'project' : slug
-}
-
-function freeSlug(base: string, taken: ReadonlySet<string>): string {
-  let candidate = base
-  for (let attempt = 2; taken.has(candidate); attempt += 1) {
-    candidate = `${base}-${attempt}`
-  }
-  return candidate
-}
-
-const identifierSchema = z.coerce.number().int().positive()
-
-const stateWithClaimSchema = z.enum(MANUAL_EPIC_STATES).optional()
-
-const hookPayloadSchema = z.object({
-  session_id: z.string().min(1),
-  hook_event_name: z.string().min(1),
-  cwd: z.string().nullish(),
-  tool_name: z.string().nullish(),
-  tool_input: z.object({ file_path: z.string().nullish() }).passthrough().nullish(),
-})
+import { mapApiError } from './ApiErrorMap.js'
+import { mountEpicRoutes, mountProjectRoutes } from './BoardProjectRoutes.js'
+import { mountSessionRoutes } from './BoardSessionRoutes.js'
+import { mountBoardViewRoutes } from './BoardViewRoutes.js'
 
 export type BoardApiInput = {
   repository: StoryRepository
@@ -129,264 +70,31 @@ export function createBoardApi({
   mayReadFleet,
 }: BoardApiInput): Hono {
   const api = new Hono()
-
-  api.get('/api/events', (context) =>
-    streamSSE(context, async (stream) => {
-      const frames: Promise<void>[] = []
-      const unsubscribe = events.subscribe((event) => {
-        frames.push(stream.writeSSE({ event: event.name, data: JSON.stringify(event.payload) }))
-      })
-      stream.onAbort(unsubscribe)
-      await new Promise<void>((resolve) => {
-        stream.onAbort(() => {
-          unsubscribe()
-          resolve()
-        })
-      })
-      await Promise.allSettled(frames)
-    }),
-  )
-
   api.onError(mapApiError)
 
   api.route('/', createBudgetApi({ budget, events, maySettle: maySettleBudget }))
-
-  api.post('/api/projects', async (context) => {
-    const body = await context.req.json().catch(() => null)
-    const legacy = projectDraftSchema.safeParse(body)
-    if (legacy.success) {
-      const project = repository.createProject(legacy.data)
-      events.publish({ name: 'project.created', payload: { ...project } })
-      return context.json(project, 201)
-    }
-    const draft = projectCreateSchema.safeParse(body)
-    if (!draft.success) {
-      return context.json({ error: 'InvalidProjectDraft', issues: draft.error.issues }, 422)
-    }
-    const existing = repository.listProjects()
-    if (existing.some((project) => project.name.toLowerCase() === draft.data.name.toLowerCase())) {
-      throw new ProjectSlugTakenError(draft.data.name)
-    }
-    const project = repository.createProject({
-      slug: freeSlug(slugOf(draft.data.name), new Set(existing.map((entry) => entry.slug))),
-      name: draft.data.name,
-      repositoryUrl: draft.data.repository,
-      integrationBranch: DEFAULT_INTEGRATION_BRANCH,
-      colour: draft.data.colour,
-    })
-    events.publish({ name: 'project.created', payload: { ...project } })
-    return context.json(project, 201)
-  })
-
-  api.get('/api/projects', (context) => context.json(repository.listProjects()))
-
-  api.post('/api/epics', async (context) => {
-    const draft = await parseBody(context, epicCreateSchema)
-    if (!draft.success) {
-      return context.json({ error: 'InvalidEpicDraft', issues: draft.error.issues }, 422)
-    }
-    const epic = repository.createSubject(draft.data, operatorOf(context))
-    events.publish({ name: 'epic.created', payload: { ...epic } })
-    return context.json(epic, 201)
-  })
-
-  api.put('/api/epics/:id/assignee', async (context) => {
-    const epicId = identifierSchema.safeParse(context.req.param('id'))
-    const body = await parseBody(context, epicAssignmentSchema)
-    if (!epicId.success || !body.success) {
-      return context.json({ error: 'InvalidEpicAssignment' }, 422)
-    }
-    repository.assignEpic(epicId.data, body.data.login)
-    events.publish({ name: 'epic.updated', payload: { id: epicId.data } })
-    return context.json({ id: epicId.data, assignee: body.data.login })
-  })
-
-  api.get('/api/board/self', (context) => {
-    const login = operatorOf(context)
-    return context.json({ login, superAdmin: isSuperAdmin(login), director: isDirector(login) })
-  })
-
-  api.post('/api/epics/:id/claim', async (context) => {
-    const epicId = identifierSchema.safeParse(context.req.param('id'))
-    const body = (await context.req.json().catch(() => ({}))) as { state?: unknown } | null
-    const state = stateWithClaimSchema.safeParse(body?.state)
-    if (!epicId.success || !state.success) {
-      return context.json({ error: 'InvalidEpicIdentifier' }, 422)
-    }
-    repository.claimEpic(epicId.data, operatorOf(context), state.data)
-    return context.json({ claimed: true })
-  })
-
-  api.delete('/api/epics/:id/claim', (context) => {
-    const epicId = identifierSchema.safeParse(context.req.param('id'))
-    const state = stateWithClaimSchema.safeParse(context.req.query('state'))
-    if (!epicId.success || !state.success) {
-      return context.json({ error: 'InvalidEpicIdentifier' }, 422)
-    }
-    repository.releaseEpic(epicId.data, operatorOf(context), state.data)
-    return context.json({ released: true })
-  })
-
-  api.get('/api/epics', (context) => {
-    const query = epicQuerySchema.safeParse(context.req.query())
-    if (!query.success) {
-      return context.json({ error: 'InvalidEpicQuery', issues: query.error.issues }, 422)
-    }
-    return context.json(repository.listEveryEpic(query.data, today()))
-  })
-
-  api.get('/api/projects/:id/epics', (context) => {
-    const projectId = identifierSchema.safeParse(context.req.param('id'))
-    if (!projectId.success) {
-      return context.json({ error: 'InvalidProjectIdentifier' }, 422)
-    }
-    return context.json(
-      repository.listEpics(projectId.data, {
-        today: today(),
-        deleted: context.req.query('deleted') === 'true',
-      }),
-    )
-  })
+  mountProjectRoutes(api, { repository, events })
+  mountEpicRoutes(api, { repository, events, today, isSuperAdmin, isDirector })
 
   api.route('/', createEpicApi({ epics: repository.epics, events, today, projects: repository.projects, isSuperAdmin, isDirector }))
   api.route('/', createEventApi({ agenda: repository.agenda, events }))
   api.route('/', createProjectApi({ projects: repository.projects, events, isSuperAdmin, isDirector }))
   api.route('/', createFollowUpApi({ followUps: repository.followUps, projects: repository.projects, events, today, isSuperAdmin, isDirector }))
-
-  api.route(
-    '/',
-    createStoryApi({
-      repository,
-      agentSessions,
-      checkpoints,
-      criteria,
-      events,
-      dispatcher,
-      cleanUpAfterMerge,
-    }),
-  )
-
-  api.route(
-    '/',
-    createCheckpointApi({ repository, checkpoints, events, advanceReviewCascade }),
-  )
-
+  api.route('/', createStoryApi({ repository, agentSessions, checkpoints, criteria, events, dispatcher, cleanUpAfterMerge }))
+  api.route('/', createCheckpointApi({ repository, checkpoints, events, advanceReviewCascade }))
   api.route('/', createCriterionApi({ criteria }))
-
   api.route('/', createHumanGateApi({ stories: repository, events }))
 
-  api.post('/api/hooks', async (context) => {
-    const payload = await parseBody(context, hookPayloadSchema)
-    if (!payload.success) {
-      return context.json({ error: 'InvalidHookPayload', issues: payload.error.issues }, 422)
-    }
-
-    const hook = payload.data
-    if (agentSessions.findByClaudeSessionId(hook.session_id) !== null) {
-      agentSessions.recordHeartbeat(hook.session_id)
-    }
-    const reported = hook.tool_input?.file_path
-    const path = typeof reported === 'string' ? relativeToDirectory(reported, hook.cwd) : reported
-    const touchesAFile =
-      hook.hook_event_name === 'PostToolUse' &&
-      hook.tool_name !== null &&
-      hook.tool_name !== undefined &&
-      isWriteTool(hook.tool_name) &&
-      path !== null &&
-      path !== undefined
-    if (!touchesAFile) {
-      return context.json({ recorded: false }, 202)
-    }
-
-    if (!isConfinedPath(path)) {
-      return context.json({ error: 'UnconfinedFilePath', recorded: false }, 422)
-    }
-
-    const session = agentSessions.findByClaudeSessionId(hook.session_id)
-    if (session === null) {
-      return context.json({ recorded: false }, 202)
-    }
-
-    agentSessions.recordFileTouch({ claudeSessionId: hook.session_id, path })
-    const zone = zones.zoneOfPath(repository.projectOfStory(session.storyId), path)
-    if (zone !== null) {
-      zones.summariseZone(
-        zone.projectId,
-        zone.pathPrefix,
-        describeZone(zones.overviewOfZone(zone.projectId, zone.pathPrefix)),
-      )
-    }
-    return context.json({ recorded: true }, 202)
+  mountSessionRoutes(api, { repository, agentSessions, zones })
+  mountBoardViewRoutes(api, {
+    repository,
+    agentSessions,
+    events,
+    claudeHome,
+    openHolds,
+    today,
+    mayReadFleet: mayReadFleet ?? maySettleBudget,
   })
-
-  api.get('/api/sessions/stale', (context) =>
-    context.json({
-      staleAfterSeconds: STALE_AFTER_SECONDS,
-      sessions: agentSessions.listStaleSessions(),
-    }),
-  )
-
-  api.get('/api/board/kanban', (context) => {
-    reapStaleSessions({ sessions: agentSessions, stories: repository })
-    return context.json(
-      repository.listKanban().map((story) => ({
-        ...story,
-        usage: agentSessions.sumUsage(story.id),
-        blockers: repository.listBlockers(story.id),
-        context: sessionContextOf(agentSessions.latestSessionOf(story.id)),
-        activity: agentSessions.listRecentActivity(story.id),
-      })),
-    )
-  })
-
-  api.get('/api/board/projects', (context) => {
-    const held = new Set(openHolds().map((hold) => hold.storyId))
-    const context_ = new Map(repository.listCardContexts().map((card) => [card.storyId, card]))
-    const day = today()
-    return context.json(
-      repository.listKanban().map((story) => {
-        const card = context_.get(story.id) ?? null
-        const blockers = repository.listBlockers(story.id)
-        const milestone = nextMilestone(card?.milestones ?? [], day)
-        return {
-          ...story,
-          usage: agentSessions.sumUsage(story.id),
-          blockers,
-          context: sessionContextOf(agentSessions.latestSessionOf(story.id)),
-          activity: agentSessions.listRecentActivity(story.id),
-          projectSlug: card?.projectSlug ?? '',
-          projectColour: card?.projectColour ?? 'line',
-          epicTitle: card?.epicTitle ?? '',
-          holder: card?.holder ?? null,
-          milestone,
-          daysLeft: daysLeft(milestone, day),
-          attention: attentionOf({
-            story,
-            blockers,
-            held: held.has(story.id),
-            milestone,
-            today: day,
-          }),
-        }
-      }),
-    )
-  })
-
-  api.get('/api/board/phases', (context) => context.json(PHASE_CONTRACTS))
-
   api.route('/', createZoneApi({ zones }))
-
-  api.get('/api/files/conflicts', (context) => context.json(agentSessions.listConflictingPaths()))
-
-  api.get('/api/fleet', (context) => {
-    if (!(mayReadFleet ?? maySettleBudget)(context)) {
-      return context.json({ error: 'FleetNeedsAnAdmin' }, 403)
-    }
-    return context.json({
-      roster: readRoster(claudeHome),
-      jobs: readJobStates(claudeHome),
-    })
-  })
-
   return api
 }
