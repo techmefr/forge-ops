@@ -1,23 +1,19 @@
 import type Database from 'better-sqlite3'
-import { createHash, randomBytes } from 'node:crypto'
+import { randomBytes } from 'node:crypto'
 import {
   hashPassword,
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
-  spendVerificationTime,
   verifyPassword,
 } from '../../technical/Auth/PasswordHash.js'
 import {
-  SESSION_LIFETIME_MS,
   type BoardUser,
-  type OpenedSession,
   type SuperAdminSeed,
   type ExternalUserDraft,
   type UserDraft,
   type UserRole,
 } from './Identity.js'
 import {
-  AccountDisabledError,
   EmailTakenError,
   ExternalSubjectTakenError,
   LastSuperAdminError,
@@ -26,8 +22,8 @@ import {
   PasswordRefusedError,
   UnknownAccountError,
 } from './IdentityViolation.js'
-
-const TOKEN_BYTES = 32
+import { TOKEN_BYTES, toUser, type UserRow } from './IdentityRows.js'
+import { createSessionStore, type SessionStore } from './SessionStore.js'
 
 const ERASED_DISPLAY_NAME = 'Former user'
 
@@ -42,26 +38,13 @@ const LOGIN_COLUMNS: readonly { table: string; column: string }[] = [
   { table: 'epic_state_history', column: 'by' },
 ]
 
-type UserRow = {
-  id: number
-  login: string
-  display_name: string
-  password_hash: string
-  role: UserRole
-  email: string | null
-  external_subject: string | null
-  super_admin: number
-  capacity: number | null
-  disabled_at: string | null
-}
-
 export type IdentityClock = () => number
 
 export type IdentityRepositoryInput = {
   clock?: IdentityClock
 }
 
-export type IdentityRepository = {
+export type IdentityRepository = Omit<SessionStore, 'revokeSessionsOf'> & {
   enrolUser: (draft: UserDraft) => BoardUser
   disableUser: (login: string) => void
   countUsers: () => number
@@ -72,9 +55,6 @@ export type IdentityRepository = {
   eraseUser: (login: string) => BoardUser
   changeCapacity: (login: string, capacity: number | null) => BoardUser
   listUsers: () => readonly BoardUser[]
-  openSession: (login: string, password: string) => OpenedSession
-  readSession: (token: string) => BoardUser | null
-  closeSession: (token: string) => void
   findUser: (login: string) => BoardUser | null
   changeEmail: (login: string, email: string) => BoardUser
   changeDisplayName: (login: string, displayName: string) => BoardUser
@@ -85,30 +65,13 @@ export type IdentityRepository = {
   verifyEmail: (login: string) => BoardUser
   linkExternalSubject: (login: string, subject: string) => BoardUser
   enrolExternalUser: (draft: ExternalUserDraft) => BoardUser
-  openSessionFor: (login: string) => OpenedSession
-}
-
-function toUser(row: UserRow): BoardUser {
-  return {
-    id: row.id,
-    login: row.login,
-    displayName: row.display_name,
-    role: row.role,
-    email: row.email ?? null,
-    superAdmin: row.super_admin === 1,
-    active: row.disabled_at === null,
-    capacity: row.capacity ?? null,
-  }
-}
-
-function digest(token: string): string {
-  return createHash('sha256').update(token).digest('hex')
 }
 
 export function createIdentityRepository(
   db: Database.Database,
   { clock = Date.now }: IdentityRepositoryInput = {},
 ): IdentityRepository {
+  const sessions = createSessionStore(db, { clock })
   const insertUser = db.prepare<[string, string, string, UserRole]>(
     'INSERT INTO board_user (login, display_name, password_hash, role) VALUES (?, ?, ?, ?)',
   )
@@ -125,21 +88,6 @@ export function createIdentityRepository(
   const selectEveryUser = db.prepare<[], UserRow>('SELECT * FROM board_user ORDER BY display_name COLLATE NOCASE, login')
   const updateSuperAdmin = db.prepare<[number, string]>(
     'UPDATE board_user SET super_admin = ? WHERE login = ?',
-  )
-  const insertSession = db.prepare<[string, number, string]>(
-    'INSERT INTO board_session (token_hash, user_id, expires_at) VALUES (?, ?, ?)',
-  )
-  const selectSession = db.prepare<[string], UserRow & { expires_at: string; revoked_at: string | null }>(
-    `SELECT board_user.*, board_session.expires_at AS expires_at, board_session.revoked_at AS revoked_at
-       FROM board_session
-       JOIN board_user ON board_user.id = board_session.user_id
-      WHERE board_session.token_hash = ?`,
-  )
-  const revokeSession = db.prepare<[string]>(
-    "UPDATE board_session SET revoked_at = datetime('now') WHERE token_hash = ?",
-  )
-  const revokeSessionsOfUser = db.prepare<[number]>(
-    "UPDATE board_session SET revoked_at = datetime('now') WHERE user_id = ? AND revoked_at IS NULL",
   )
   const selectUserByEmail = db.prepare<[string], UserRow>('SELECT * FROM board_user WHERE lower(email) = ?')
   const selectVerifiedUserByEmail = db.prepare<[string], UserRow>(
@@ -216,6 +164,11 @@ export function createIdentityRepository(
   }
 
   return {
+    openSession: sessions.openSession,
+    openSessionFor: sessions.openSessionFor,
+    readSession: sessions.readSession,
+    closeSession: sessions.closeSession,
+
     enrolUser: enrolAccount,
 
     bootstrapSuperAdmin: (seed) => {
@@ -243,7 +196,7 @@ export function createIdentityRepository(
           throw new LastSuperAdminError()
         }
         disableByLogin.run(login)
-        revokeSessionsOfUser.run(row.id)
+        sessions.revokeSessionsOf(row.id)
       }
       if (active && row.disabled_at !== null) {
         reactivateByLogin.run(login)
@@ -343,50 +296,6 @@ export function createIdentityRepository(
       return toUser(demandUser(draft.login))
     },
 
-    openSessionFor: (login) => {
-      const row = demandUser(login)
-      if (row.disabled_at !== null) {
-        throw new AccountDisabledError(login)
-      }
-      const token = randomBytes(TOKEN_BYTES).toString('hex')
-      const expiresAt = new Date(clock() + SESSION_LIFETIME_MS).toISOString()
-      insertSession.run(digest(token), row.id, expiresAt)
-      return { user: toUser(row), token, expiresAt }
-    },
-
-    openSession: (login, password) => {
-      const row = selectUserByLogin.get(login)
-      if (row === undefined) {
-        spendVerificationTime(password)
-        throw new LoginRefusedError()
-      }
-      if (!verifyPassword(password, row.password_hash)) {
-        throw new LoginRefusedError()
-      }
-      if (row.disabled_at !== null) {
-        throw new AccountDisabledError(login)
-      }
-      const token = randomBytes(TOKEN_BYTES).toString('hex')
-      const expiresAt = new Date(clock() + SESSION_LIFETIME_MS).toISOString()
-      insertSession.run(digest(token), row.id, expiresAt)
-      return { user: toUser(row), token, expiresAt }
-    },
-
-    readSession: (token) => {
-      const row = selectSession.get(digest(token))
-      if (row === undefined || row.revoked_at !== null || row.disabled_at !== null) {
-        return null
-      }
-      if (Date.parse(row.expires_at) <= clock()) {
-        return null
-      }
-      return toUser(row)
-    },
-
-    closeSession: (token) => {
-      revokeSession.run(digest(token))
-    },
-
     findUser: (login) => {
       const row = selectUserByLogin.get(login)
       return row === undefined ? null : toUser(row)
@@ -421,7 +330,7 @@ export function createIdentityRepository(
         throw new PasswordRefusedError(`il faut au plus ${PASSWORD_MAX_LENGTH} caracteres`)
       }
       updatePassword.run(hashPassword(next), login)
-      revokeSessionsOfUser.run(row.id)
+      sessions.revokeSessionsOf(row.id)
     },
   }
 }

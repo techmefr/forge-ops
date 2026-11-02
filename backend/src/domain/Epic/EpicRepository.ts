@@ -8,9 +8,6 @@ import {
   type EpicStateChange,
   type ManualEpicState,
   type LinkKind,
-  type SubjectLink,
-  type Tag,
-  type TagDraft,
 } from '../../../../contract/EpicContract.js'
 import type { Milestone, MilestoneKind } from '../../../../contract/StoryContract.js'
 import { nextMilestone } from '../Board/CardAttention.js'
@@ -20,11 +17,11 @@ import {
   EpicNotDeletedError,
   EpicSelfDependencyError,
   EpicStateDerivedError,
-  TagInUseError,
-  TagLabelTakenError,
   TagNotFoundError,
 } from './EpicViolation.js'
-import { EpicNotFoundError, ProjectNotFoundError } from '../Story/StoryViolation.js'
+import { EpicNotFoundError } from '../Story/StoryViolation.js'
+import { createProjectLinkCatalog, type ProjectLinkCatalog } from './ProjectLinkCatalog.js'
+import { createTagCatalog, type TagCatalog, type TagRow } from './TagCatalog.js'
 
 const DAY_MS = 86400000
 
@@ -33,7 +30,7 @@ export type OverviewOptions = {
   deleted?: boolean
 }
 
-export type EpicRepository = {
+export type EpicRepository = TagCatalog & ProjectLinkCatalog & {
   recordState: (epicId: number, by?: string) => void
   planningOf: (projectId: number, options?: OverviewOptions) => ReadonlyMap<number, EpicPlanning>
   planningOfEpic: (epicId: number, today?: string) => EpicPlanning
@@ -42,12 +39,6 @@ export type EpicRepository = {
   softDelete: (epicId: number, login: string) => void
   restore: (epicId: number, login: string) => void
   purgeExpired: () => number
-  listTags: () => readonly Tag[]
-  createTag: (draft: TagDraft) => Tag
-  updateTag: (tagId: number, draft: TagDraft) => Tag
-  deleteTag: (tagId: number) => void
-  projectLinks: (projectId: number) => readonly SubjectLink[]
-  setProjectLinks: (projectId: number, links: readonly SubjectLink[]) => void
 }
 
 export type EpicRepositoryOptions = {
@@ -67,7 +58,6 @@ type EpicRow = {
 }
 
 type CensusRow = { epic_id: number; total: number; delivered: number; started: number; blocked: number }
-type TagRow = { id: number; label: string; colour: string; usage: number }
 type EpicTagRow = TagRow & { epic_id: number }
 type LinkRow = { owner_id: number; kind: LinkKind; url: string }
 type DependencyRow = { epic_id: number; depends_on_epic_id: number }
@@ -173,34 +163,12 @@ export function createEpicRepository(
   const insertHistory = db.prepare<[number, EpicState, string, string]>(
     'INSERT INTO epic_state_history (epic_id, state, at, by) VALUES (?, ?, ?, ?)',
   )
-  const selectProject = db.prepare<[number], { id: number }>('SELECT id FROM project WHERE id = ?')
   const selectTag = db.prepare<[number], { id: number }>('SELECT id FROM tag WHERE id = ?')
-  const selectTagByLabel = db.prepare<[string], { id: number }>('SELECT id FROM tag WHERE label = ?')
-  const insertTag = db.prepare<[string, string]>('INSERT INTO tag (label, colour) VALUES (?, ?)')
-  const updateTag = db.prepare<[string, string, number]>('UPDATE tag SET label = ?, colour = ? WHERE id = ?')
-  const deleteTag = db.prepare<[number]>('DELETE FROM tag WHERE id = ?')
-  const selectTags = db.prepare<[], TagRow>(
-    `SELECT tag.id, tag.label, tag.colour, COUNT(epic_tag.epic_id) AS usage
-       FROM tag LEFT JOIN epic_tag ON epic_tag.tag_id = tag.id
-      GROUP BY tag.id ORDER BY tag.label`,
-  )
-  const selectTagById = db.prepare<[number], TagRow>(
-    `SELECT tag.id, tag.label, tag.colour, COUNT(epic_tag.epic_id) AS usage
-       FROM tag LEFT JOIN epic_tag ON epic_tag.tag_id = tag.id
-      WHERE tag.id = ? GROUP BY tag.id`,
-  )
   const deleteEpicTags = db.prepare<[number]>('DELETE FROM epic_tag WHERE epic_id = ?')
   const insertEpicTag = db.prepare<[number, number]>('INSERT INTO epic_tag (epic_id, tag_id) VALUES (?, ?)')
   const deleteEpicLinks = db.prepare<[number]>('DELETE FROM epic_link WHERE epic_id = ?')
   const insertEpicLink = db.prepare<[number, LinkKind, string]>(
     'INSERT INTO epic_link (epic_id, kind, url) VALUES (?, ?, ?)',
-  )
-  const deleteProjectLinks = db.prepare<[number]>('DELETE FROM project_link WHERE project_id = ?')
-  const insertProjectLink = db.prepare<[number, LinkKind, string]>(
-    'INSERT INTO project_link (project_id, kind, url) VALUES (?, ?, ?)',
-  )
-  const selectProjectLinks = db.prepare<[number], { kind: LinkKind; url: string }>(
-    'SELECT kind, url FROM project_link WHERE project_id = ? ORDER BY id',
   )
   const deleteOwnDependencies = db.prepare<[number]>('DELETE FROM epic_dependency WHERE epic_id = ?')
   const insertDependency = db.prepare<[number, number]>(
@@ -389,22 +357,9 @@ export function createEpicRepository(
     return expired.length
   })
 
-  function assertLabelFree(label: string, ownId: number | null): void {
-    const taken = selectTagByLabel.get(label)
-    if (taken !== undefined && taken.id !== ownId) {
-      throw new TagLabelTakenError(label)
-    }
-  }
-
-  function tagById(tagId: number): Tag {
-    const row = selectTagById.get(tagId)
-    if (row === undefined) {
-      throw new TagNotFoundError(tagId)
-    }
-    return { id: row.id, label: row.label, colour: row.colour, usage: row.usage }
-  }
-
   return {
+    ...createTagCatalog(db),
+    ...createProjectLinkCatalog(db),
     recordState,
     planningOf,
 
@@ -439,45 +394,5 @@ export function createEpicRepository(
     },
 
     purgeExpired: () => purge(),
-
-    listTags: () => selectTags.all().map(({ id, label, colour, usage }) => ({ id, label, colour, usage })),
-
-    createTag: (draft) => {
-      assertLabelFree(draft.label, null)
-      const info = insertTag.run(draft.label, draft.colour)
-      return tagById(Number(info.lastInsertRowid))
-    },
-
-    updateTag: (tagId, draft) => {
-      tagById(tagId)
-      assertLabelFree(draft.label, tagId)
-      updateTag.run(draft.label, draft.colour, tagId)
-      return tagById(tagId)
-    },
-
-    deleteTag: (tagId) => {
-      const tag = tagById(tagId)
-      if (tag.usage > 0) {
-        throw new TagInUseError(tagId, tag.usage)
-      }
-      deleteTag.run(tagId)
-    },
-
-    projectLinks: (projectId) => {
-      if (selectProject.get(projectId) === undefined) {
-        throw new ProjectNotFoundError(projectId)
-      }
-      return selectProjectLinks.all(projectId)
-    },
-
-    setProjectLinks: (projectId, links) => {
-      if (selectProject.get(projectId) === undefined) {
-        throw new ProjectNotFoundError(projectId)
-      }
-      db.transaction(() => {
-        deleteProjectLinks.run(projectId)
-        links.forEach((link) => insertProjectLink.run(projectId, link.kind, link.url))
-      })()
-    },
   }
 }
