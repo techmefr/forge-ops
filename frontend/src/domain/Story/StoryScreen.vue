@@ -3,9 +3,9 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { board } from '@/technical/Api/Board'
-import { reasonOf, useResource } from '@/technical/Api/UseResource'
+import { useResource } from '@/technical/Api/UseResource'
+import { useGuardedAction } from '@/technical/Api/UseGuardedAction'
 import { usePhrase } from '@/technical/Language/UsePhrase'
-import type { Phrase } from '@/technical/Language/Phrase'
 import type { EpicOverview, Project, Story } from '@/domain/Board/BoardModel'
 import EpicBoard from './EpicBoard.vue'
 import { useTranscript } from '@/domain/Session/UseTranscript'
@@ -39,8 +39,6 @@ const turn = ref('')
 const part = ref<StoryPart>('functional')
 const twinTitle = ref('')
 const twinBody = ref('')
-const refusal = ref<Phrase | null>(null)
-const busy = ref(false)
 
 const desk = ref<Desk>('write')
 const running = useResource<readonly KanbanStory[]>(() => board.read('/api/board/kanban'))
@@ -84,17 +82,7 @@ async function backToEpics(): Promise<void> {
   await Promise.all(talking.map((storyId) => hangUp(storyId).catch(() => undefined)))
 }
 
-async function guard(action: () => Promise<void>): Promise<void> {
-  busy.value = true
-  refusal.value = null
-  try {
-    await action()
-  } catch (error) {
-    refusal.value = reasonOf(error)
-  } finally {
-    busy.value = false
-  }
-}
+const { busy, refusal, guard } = useGuardedAction()
 
 function newStory(epic: EpicOverview): Promise<void> {
   return guard(async () => {

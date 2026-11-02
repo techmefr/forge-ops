@@ -2,9 +2,10 @@
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
-import { reasonOf, useResource } from '@/technical/Api/UseResource'
+import { useResource } from '@/technical/Api/UseResource'
+import { useGuardedAction } from '@/technical/Api/UseGuardedAction'
 import { usePhrase } from '@/technical/Language/UsePhrase'
-import { phrase, type Phrase } from '@/technical/Language/Phrase'
+import { phrase } from '@/technical/Language/Phrase'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import {
   INCIDENT_STATE_SEQUENCE,
@@ -27,21 +28,8 @@ const projects = useResource<readonly Project[]>(() => board.read('/api/projects
 const epics = ref<readonly Epic[]>([])
 const chosenEpic = ref<number | null>(null)
 const reasons = ref<Map<number, string>>(new Map())
-const refusal = ref<Phrase | null>(null)
-const busy = ref(false)
 
-async function guard(action: () => Promise<void>): Promise<void> {
-  busy.value = true
-  refusal.value = null
-  try {
-    await action()
-    await incidents.reload()
-  } catch (error) {
-    refusal.value = reasonOf(error)
-  } finally {
-    busy.value = false
-  }
-}
+const { busy, refusal, guard } = useGuardedAction(() => incidents.reload())
 
 function accept(incident: Incident): Promise<void> {
   const epicId = chosenEpic.value
@@ -84,7 +72,7 @@ watch(chosenState, () => void incidents.reload())
 
 onMounted(async () => {
   await Promise.all([incidents.reload(), origins.reload(), projects.reload()])
-  await loadEpics()
+  await guard(loadEpics)
 })
 </script>
 

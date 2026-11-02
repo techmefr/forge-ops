@@ -11,9 +11,9 @@ import {
   DialogTitle,
 } from 'reka-ui'
 import { board } from '@/technical/Api/Board'
-import { reasonOf, useResource } from '@/technical/Api/UseResource'
+import { useResource } from '@/technical/Api/UseResource'
+import { useGuardedAction } from '@/technical/Api/UseGuardedAction'
 import { usePhrase } from '@/technical/Language/UsePhrase'
-import type { Phrase } from '@/technical/Language/Phrase'
 import { tintOf } from '@/technical/Ui/Tint'
 import type { EpicOverview } from '@/domain/Board/BoardModel'
 import EventDialog from '@/domain/Roadmap/EventDialog.vue'
@@ -58,8 +58,6 @@ const riskOwner = ref('')
 const riskEpic = ref<number | null>(null)
 const decisionText = ref('')
 const decisionBy = ref('')
-const refusal = ref<Phrase | null>(null)
-const busy = ref(false)
 const dialog = ref<{ event: ProjectEvent | null } | null>(null)
 
 watch(
@@ -110,20 +108,7 @@ function eventName(event: ProjectEvent): string {
   return event.title === '' ? typeLabel(event) : event.title
 }
 
-async function guard(action: () => Promise<unknown>): Promise<boolean> {
-  busy.value = true
-  refusal.value = null
-  try {
-    await action()
-    emit('changed')
-    return true
-  } catch (error) {
-    refusal.value = reasonOf(error)
-    return false
-  } finally {
-    busy.value = false
-  }
-}
+const { busy, refusal, attempt: guard } = useGuardedAction(() => emit('changed'))
 
 function chooseWeather(event: Event): void {
   const chosen = (event.target as HTMLSelectElement).value

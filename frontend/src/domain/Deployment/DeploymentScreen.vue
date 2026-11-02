@@ -2,9 +2,9 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { board } from '@/technical/Api/Board'
-import { reasonOf, useResource } from '@/technical/Api/UseResource'
+import { useResource } from '@/technical/Api/UseResource'
+import { useGuardedAction } from '@/technical/Api/UseGuardedAction'
 import { usePhrase } from '@/technical/Language/UsePhrase'
-import type { Phrase } from '@/technical/Language/Phrase'
 import ScreenState from '@/technical/Ui/ScreenState.vue'
 import { readPreference } from '@/technical/Appearance/Preference'
 import { FORGE_PROJECT_KEY } from '@/domain/Forge/ForgeRule'
@@ -20,9 +20,7 @@ const stories = useResource<readonly KanbanStory[]>(() => board.read('/api/board
 const worktrees = useResource<readonly Worktree[]>(() => board.read('/api/worktrees'))
 const percents = ref<Map<number, number>>(new Map())
 const baseRef = ref(FALLBACK_INTEGRATION_BRANCH)
-const refusal = ref<Phrase | null>(null)
 const lastCleanUp = ref<{ reference: string; cleanUp: MergeCleanupReport } | null>(null)
-const busy = ref(false)
 
 const shipping = computed(() =>
   (stories.data.value ?? []).filter((story) => SHIPPING_STATES.includes(story.state)),
@@ -52,18 +50,7 @@ const doneNotice = computed(() => {
   return t('deployment.doneNone', values)
 })
 
-async function guard(action: () => Promise<void>): Promise<void> {
-  busy.value = true
-  refusal.value = null
-  try {
-    await action()
-    await Promise.all([stories.reload(), worktrees.reload()])
-  } catch (error) {
-    refusal.value = reasonOf(error)
-  } finally {
-    busy.value = false
-  }
-}
+const { busy, refusal, guard } = useGuardedAction(() => Promise.all([stories.reload(), worktrees.reload()]))
 
 function openWorktree(story: KanbanStory): Promise<void> {
   return guard(() =>
