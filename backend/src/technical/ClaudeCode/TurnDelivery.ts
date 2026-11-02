@@ -1,4 +1,4 @@
-import type { SpokenTurn } from '../../domain/Conversation/Conversation.js'
+import type { SpokenTurn } from '../../../../contract/ConversationContract.js'
 import type { LiveSessions } from './LiveSessions.js'
 
 export type SdkUserTurn = {

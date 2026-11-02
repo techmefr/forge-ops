@@ -6,7 +6,7 @@ import {
   type AssertionStatus,
   type TestFileOutcome,
   type TestReport,
-} from '../../domain/RedProof/RedProof.js'
+} from '../../../../contract/RedProofContract.js'
 
 export type RedReportInput = {
   command: string

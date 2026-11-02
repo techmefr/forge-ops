@@ -1,6 +1,6 @@
 import { readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
-import type { EvidenceRead, EvidenceReader } from '../../domain/Evidence/EvidenceRead.js'
+import type { EvidenceRead, EvidenceReader } from '../../../../contract/EvidenceContract.js'
 import { PathOutsideRootError, realPathInsideSync } from '../File/ConfinedRealPath.js'
 
 export type EvidenceFileReaderInput = {

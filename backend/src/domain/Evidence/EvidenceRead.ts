@@ -1,8 +1,4 @@
-export type EvidenceRead =
-  | { kind: 'read'; content: string }
-  | { kind: 'unreadable'; reason: string }
-
-export type EvidenceReader = (path: string, root?: string) => EvidenceRead
+export type { EvidenceRead, EvidenceReader } from '../../../../contract/EvidenceContract.js'
 
 export class EvidenceUnreadableError extends Error {
   constructor(path: string, reason: string) {

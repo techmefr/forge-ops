@@ -1,5 +1,5 @@
-import type { AgentPhase } from '../../domain/Agent/AgentSession.js'
-import { READ_TOOLS, SHELL_TOOLS, WRITE_TOOLS } from '../../domain/Agent/ToolName.js'
+import type { AgentPhase } from '../../../../contract/AgentContract.js'
+import { READ_TOOLS, SHELL_TOOLS, WRITE_TOOLS } from '../../../../contract/ToolContract.js'
 import { UnknownPhaseError } from './GuardrailViolation.js'
 
 export const PHASE_TOOL_POLICY: Readonly<Record<AgentPhase, readonly string[]>> = {

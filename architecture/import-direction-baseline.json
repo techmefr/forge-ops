@@ -1,20 +1,8 @@
 [
-  "backend/src/technical/Auth/HookSettings.ts -> backend/src/domain/Agent/ToolName.ts",
-  "backend/src/technical/Browser/PlaywrightPilot.ts -> backend/src/domain/Pilot/Pilot.ts",
-  "backend/src/technical/ClaudeCode/SdkSessionRunner.ts -> backend/src/domain/Conversation/Conversation.ts",
-  "backend/src/technical/ClaudeCode/SdkSessionRunner.ts -> backend/src/domain/Dispatch/Dispatch.ts",
-  "backend/src/technical/ClaudeCode/TurnDelivery.ts -> backend/src/domain/Conversation/Conversation.ts",
-  "backend/src/technical/Evidence/EvidenceFileReader.ts -> backend/src/domain/Evidence/EvidenceRead.ts",
-  "backend/src/technical/Guardrail/PhaseToolPolicy.ts -> backend/src/domain/Agent/AgentSession.ts",
-  "backend/src/technical/Guardrail/PhaseToolPolicy.ts -> backend/src/domain/Agent/ToolName.ts",
-  "backend/src/technical/Guardrail/ScopeDecision.ts -> backend/src/domain/Agent/ToolName.ts",
   "backend/src/technical/Guardrail/ScopeDecision.ts -> backend/src/domain/Foremerge/ForemergeRepository.ts",
   "backend/src/technical/Guardrail/ScopeDecision.ts -> backend/src/domain/Foremerge/ScopeGuard.ts",
   "backend/src/technical/Guardrail/ScopeHook.ts -> backend/src/domain/Foremerge/ForemergeRepository.ts",
   "backend/src/technical/Guardrail/ScopeHook.ts -> backend/src/domain/Story/StoryRepository.ts",
-  "backend/src/technical/Machine/LocalMachine.ts -> backend/src/domain/Resource/MachineSnapshot.ts",
-  "backend/src/technical/Mutation/MutationRun.ts -> backend/src/domain/Mutation/Mutation.ts",
   "backend/src/technical/Mutation/MutationRun.ts -> backend/src/domain/Mutation/MutationOperator.ts",
-  "backend/src/technical/RedProof/RedProofRun.ts -> backend/src/domain/RedProof/RedProof.ts",
   "backend/src/technical/Tamper/TestTreeCensus.ts -> backend/src/domain/Tamper/TestCensus.ts"
 ]
