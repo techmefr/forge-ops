@@ -1,42 +1,11 @@
 import type Database from 'better-sqlite3'
-import { randomBytes } from 'node:crypto'
-import {
-  hashPassword,
-  PASSWORD_MAX_LENGTH,
-  PASSWORD_MIN_LENGTH,
-  verifyPassword,
-} from '../../technical/Auth/PasswordHash.js'
-import {
-  type BoardUser,
-  type SuperAdminSeed,
-  type ExternalUserDraft,
-  type UserDraft,
-  type UserRole,
-} from './Identity.js'
-import {
-  EmailTakenError,
-  ExternalSubjectTakenError,
-  LastSuperAdminError,
-  LoginRefusedError,
-  LoginTakenError,
-  PasswordRefusedError,
-  UnknownAccountError,
-} from './IdentityViolation.js'
-import { TOKEN_BYTES, toUser, type UserRow } from './IdentityRows.js'
+import type { BoardUser, SuperAdminSeed, ExternalUserDraft, UserDraft } from './Identity.js'
+import { createIdentityAccountChanges } from './IdentityAccountChanges.js'
+import { createIdentityEnrolment } from './IdentityEnrolment.js'
+import { createIdentityErasure } from './IdentityErasure.js'
+import { createIdentityLookups } from './IdentityLookups.js'
+import { prepareIdentityStatements } from './IdentityStatements.js'
 import { createSessionStore, type SessionStore } from './SessionStore.js'
-
-const ERASED_DISPLAY_NAME = 'Former user'
-
-const LOGIN_COLUMNS: readonly { table: string; column: string }[] = [
-  { table: 'epic', column: 'assignee' },
-  { table: 'story_step_back', column: 'asked_by' },
-  { table: 'story_hold', column: 'asked_by' },
-  { table: 'story_remark', column: 'author' },
-  { table: 'story_message', column: 'author' },
-  { table: 'project_decision', column: 'decided_by' },
-  { table: 'project_risk', column: 'owner' },
-  { table: 'epic_state_history', column: 'by' },
-]
 
 export type IdentityClock = () => number
 
@@ -72,265 +41,22 @@ export function createIdentityRepository(
   { clock = Date.now }: IdentityRepositoryInput = {},
 ): IdentityRepository {
   const sessions = createSessionStore(db, { clock })
-  const insertUser = db.prepare<[string, string, string, UserRole]>(
-    'INSERT INTO board_user (login, display_name, password_hash, role) VALUES (?, ?, ?, ?)',
-  )
-  const selectUserByLogin = db.prepare<[string], UserRow>('SELECT * FROM board_user WHERE login = ?')
-  const countAllUsers = db.prepare<[], { total: number }>('SELECT COUNT(*) AS total FROM board_user')
-  const disableByLogin = db.prepare<[string]>(
-    "UPDATE board_user SET disabled_at = datetime('now') WHERE login = ?",
-  )
-  const countActiveSuperAdmins = db.prepare<[], { total: number }>(
-    'SELECT COUNT(*) AS total FROM board_user WHERE super_admin = 1 AND disabled_at IS NULL',
-  )
-  const reactivateByLogin = db.prepare<[string]>('UPDATE board_user SET disabled_at = NULL WHERE login = ?')
-  const updateCapacity = db.prepare<[number | null, string]>('UPDATE board_user SET capacity = ? WHERE login = ?')
-  const selectEveryUser = db.prepare<[], UserRow>('SELECT * FROM board_user ORDER BY display_name COLLATE NOCASE, login')
-  const updateSuperAdmin = db.prepare<[number, string]>(
-    'UPDATE board_user SET super_admin = ? WHERE login = ?',
-  )
-  const selectUserByEmail = db.prepare<[string], UserRow>('SELECT * FROM board_user WHERE lower(email) = ?')
-  const selectVerifiedUserByEmail = db.prepare<[string], UserRow>(
-    'SELECT * FROM board_user WHERE lower(email) = ? AND email_verified_at IS NOT NULL',
-  )
-  const updateEmail = db.prepare<[string, string]>(
-    'UPDATE board_user SET email = ?, email_verified_at = NULL WHERE login = ?',
-  )
-  const markEmailVerified = db.prepare<[string]>(
-    "UPDATE board_user SET email_verified_at = datetime('now') WHERE login = ? AND email IS NOT NULL",
-  )
-  const selectUserBySubject = db.prepare<[string], UserRow>(
-    'SELECT * FROM board_user WHERE external_subject = ?',
-  )
-  const updateSubject = db.prepare<[string, string]>(
-    'UPDATE board_user SET external_subject = ? WHERE login = ?',
-  )
-  const insertExternalUser = db.prepare<[string, string, string, UserRole, string, string, number]>(
-    "INSERT INTO board_user (login, display_name, password_hash, role, email, external_subject, email_verified_at) VALUES (?, ?, ?, ?, ?, ?, CASE WHEN ? = 1 THEN datetime('now') END)",
-  )
-  const updateDisplayName = db.prepare<[string, string]>(
-    'UPDATE board_user SET display_name = ? WHERE login = ?',
-  )
-  const updatePassword = db.prepare<[string, string]>(
-    'UPDATE board_user SET password_hash = ? WHERE login = ?',
-  )
-
-  const erasedLoginColumns = LOGIN_COLUMNS.map(({ table, column }) =>
-    db.prepare<[string, string]>(`UPDATE ${table} SET ${column} = ? WHERE ${column} = ?`),
-  )
-  const eraseRequestedBy = db.prepare<[string, string, string]>(
-    'UPDATE epic SET requested_by = ? WHERE requested_by = ? OR requested_by = ?',
-  )
-  const eraseAccount = db.prepare<[string, string, string, number]>(
-    `UPDATE board_user
-        SET login = ?, display_name = ?, password_hash = ?, email = NULL, email_verified_at = NULL, external_subject = NULL,
-            capacity = NULL, super_admin = 0, disabled_at = COALESCE(disabled_at, datetime('now'))
-      WHERE id = ?`,
-  )
-  const releaseProjects = db.prepare<[number]>('UPDATE project SET admin_user_id = NULL WHERE admin_user_id = ?')
-  const deleteSessionsOfUser = db.prepare<[number]>('DELETE FROM board_session WHERE user_id = ?')
-  const deletePreferencesOfUser = db.prepare<[number]>('DELETE FROM user_preference WHERE user_id = ?')
-
-  function demandUser(login: string): UserRow {
-    const row = selectUserByLogin.get(login)
-    if (row === undefined) {
-      throw new UnknownAccountError(login)
-    }
-    return row
-  }
-
-  function enrolAccount(draft: UserDraft): BoardUser {
-    if (selectUserByLogin.get(draft.login) !== undefined) {
-      throw new LoginTakenError(draft.login)
-    }
-    if (draft.password.length < PASSWORD_MIN_LENGTH) {
-      throw new PasswordRefusedError(`il faut au moins ${PASSWORD_MIN_LENGTH} caracteres`)
-    }
-    if (draft.password.length > PASSWORD_MAX_LENGTH) {
-      throw new PasswordRefusedError(`il faut au plus ${PASSWORD_MAX_LENGTH} caracteres`)
-    }
-    const stored = hashPassword(draft.password)
-    const info = insertUser.run(draft.login, draft.displayName, stored, draft.role)
-    return {
-      id: Number(info.lastInsertRowid),
-      login: draft.login,
-      displayName: draft.displayName,
-      role: draft.role,
-      email: null,
-      superAdmin: false,
-      active: true,
-      capacity: null,
-    }
-  }
-
+  const statements = prepareIdentityStatements(db)
+  const lookups = createIdentityLookups(statements)
   return {
     openSession: sessions.openSession,
     openSessionFor: sessions.openSessionFor,
     readSession: sessions.readSession,
     closeSession: sessions.closeSession,
-
-    enrolUser: enrolAccount,
-
-    bootstrapSuperAdmin: (seed) => {
-      if (selectUserByLogin.get(seed.login) === undefined) {
-        enrolAccount({ login: seed.login, displayName: seed.login, password: seed.password, role: 'director' })
-      }
-      updateSuperAdmin.run(1, seed.login)
-      reactivateByLogin.run(seed.login)
-      return toUser(demandUser(seed.login))
-    },
-
-    changeSuperAdmin: (login, superAdmin) => {
-      const row = demandUser(login)
-      if (!superAdmin && row.super_admin === 1 && (countActiveSuperAdmins.get()?.total ?? 0) <= 1) {
-        throw new LastSuperAdminError()
-      }
-      updateSuperAdmin.run(superAdmin ? 1 : 0, login)
-      return { ...toUser(row), superAdmin }
-    },
-
-    changeActive: (login, active) => {
-      const row = demandUser(login)
-      if (!active && row.disabled_at === null) {
-        if (row.super_admin === 1 && (countActiveSuperAdmins.get()?.total ?? 0) <= 1) {
-          throw new LastSuperAdminError()
-        }
-        disableByLogin.run(login)
-        sessions.revokeSessionsOf(row.id)
-      }
-      if (active && row.disabled_at !== null) {
-        reactivateByLogin.run(login)
-      }
-      return toUser(demandUser(login))
-    },
-
-    eraseUser: (login) => {
-      const row = demandUser(login)
-      if (row.super_admin === 1 && row.disabled_at === null && (countActiveSuperAdmins.get()?.total ?? 0) <= 1) {
-        throw new LastSuperAdminError()
-      }
-      const pseudonym = `erased-${row.id}`
-      db.transaction(() => {
-        eraseAccount.run(pseudonym, ERASED_DISPLAY_NAME, hashPassword(randomBytes(TOKEN_BYTES).toString('hex')), row.id)
-        for (const update of erasedLoginColumns) {
-          update.run(pseudonym, row.login)
-        }
-        eraseRequestedBy.run(pseudonym, row.login, row.display_name)
-        releaseProjects.run(row.id)
-        deleteSessionsOfUser.run(row.id)
-        deletePreferencesOfUser.run(row.id)
-      })()
-      return toUser(demandUser(pseudonym))
-    },
-
-    changeCapacity: (login, capacity) => {
-      demandUser(login)
-      updateCapacity.run(capacity, login)
-      return toUser(demandUser(login))
-    },
-
-    listUsers: () => selectEveryUser.all().map(toUser),
-
-    countSuperAdmins: () => countActiveSuperAdmins.get()?.total ?? 0,
-
-    disableUser: (login) => {
-      disableByLogin.run(login)
-    },
-
-    countUsers: () => countAllUsers.get()?.total ?? 0,
-
-    findUserByExternalSubject: (subject) => {
-      const row = selectUserBySubject.get(subject)
-      return row === undefined ? null : toUser(row)
-    },
-
-    findUserByEmail: (email) => {
-      const row = selectUserByEmail.get(email.toLowerCase())
-      return row === undefined ? null : toUser(row)
-    },
-
-    findVerifiedUserByEmail: (email) => {
-      const row = selectVerifiedUserByEmail.get(email.toLowerCase())
-      return row === undefined ? null : toUser(row)
-    },
-
-    verifyEmail: (login) => {
-      const row = demandUser(login)
-      const holder = row.email === null ? undefined : selectVerifiedUserByEmail.get(row.email.toLowerCase())
-      if (holder !== undefined && holder.id !== row.id) {
-        throw new EmailTakenError()
-      }
-      markEmailVerified.run(login)
-      return toUser(demandUser(login))
-    },
-
-    linkExternalSubject: (login, subject) => {
-      const row = demandUser(login)
-      if (row.external_subject !== null && row.external_subject !== subject) {
-        throw new ExternalSubjectTakenError(login)
-      }
-      updateSubject.run(subject, login)
-      return toUser(demandUser(login))
-    },
-
-    enrolExternalUser: (draft) => {
-      if (selectUserByLogin.get(draft.login) !== undefined) {
-        throw new LoginTakenError(draft.login)
-      }
-      const holder = draft.isEmailVerified
-        ? selectVerifiedUserByEmail.get(draft.email.toLowerCase())
-        : selectUserByEmail.get(draft.email.toLowerCase())
-      if (holder !== undefined) {
-        throw new EmailTakenError()
-      }
-      const unusablePassword = hashPassword(randomBytes(TOKEN_BYTES).toString('hex'))
-      insertExternalUser.run(
-        draft.login,
-        draft.displayName,
-        unusablePassword,
-        draft.role,
-        draft.email.toLowerCase(),
-        draft.subject,
-        draft.isEmailVerified ? 1 : 0,
-      )
-      return toUser(demandUser(draft.login))
-    },
-
-    findUser: (login) => {
-      const row = selectUserByLogin.get(login)
-      return row === undefined ? null : toUser(row)
-    },
-
-    changeEmail: (login, rawEmail) => {
-      const email = rawEmail.toLowerCase()
-      const row = demandUser(login)
-      const worn = selectUserByEmail.get(email.toLowerCase())
-      if (worn !== undefined && worn.id !== row.id) {
-        throw new EmailTakenError()
-      }
-      updateEmail.run(email, login)
-      return { ...toUser(row), email }
-    },
-
-    changeDisplayName: (login, displayName) => {
-      const row = demandUser(login)
-      updateDisplayName.run(displayName, login)
-      return { ...toUser(row), displayName }
-    },
-
-    changePassword: (login, current, next) => {
-      const row = demandUser(login)
-      if (!verifyPassword(current, row.password_hash)) {
-        throw new LoginRefusedError()
-      }
-      if (next.length < PASSWORD_MIN_LENGTH) {
-        throw new PasswordRefusedError(`il faut au moins ${PASSWORD_MIN_LENGTH} caracteres`)
-      }
-      if (next.length > PASSWORD_MAX_LENGTH) {
-        throw new PasswordRefusedError(`il faut au plus ${PASSWORD_MAX_LENGTH} caracteres`)
-      }
-      updatePassword.run(hashPassword(next), login)
-      sessions.revokeSessionsOf(row.id)
-    },
+    findUser: lookups.findUser,
+    findUserByExternalSubject: lookups.findUserByExternalSubject,
+    findUserByEmail: lookups.findUserByEmail,
+    findVerifiedUserByEmail: lookups.findVerifiedUserByEmail,
+    listUsers: lookups.listUsers,
+    countUsers: lookups.countUsers,
+    countSuperAdmins: lookups.activeSuperAdmins,
+    ...createIdentityEnrolment(statements, lookups),
+    ...createIdentityAccountChanges(statements, lookups, sessions),
+    ...createIdentityErasure(db, lookups),
   }
 }

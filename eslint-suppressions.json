@@ -9,11 +9,6 @@
       "count": 1
     }
   },
-  "backend/src/domain/Autopilot/StepProver.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/domain/Autopilot/StepVerifier.ts": {
     "max-lines-per-function": {
       "count": 1
@@ -80,11 +75,6 @@
     }
   },
   "backend/src/domain/Identity/IdentityApi.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "backend/src/domain/Identity/IdentityRepository.ts": {
     "max-lines-per-function": {
       "count": 1
     }
