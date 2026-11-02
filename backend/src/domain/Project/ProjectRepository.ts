@@ -3,18 +3,7 @@ import type { ProjectSheet, ProjectUpdate } from '../../../../contract/ProjectCo
 import type { EpicRepository } from '../Epic/EpicRepository.js'
 import { ProjectAdminRefusedError, ProjectInUseError } from '../Epic/EpicViolation.js'
 import { ProjectNotFoundError } from '../Story/StoryViolation.js'
-
-type SheetRow = {
-  id: number
-  slug: string
-  name: string
-  colour: string
-  position: number
-  admin_user_id: number | null
-  admin_login: string | null
-  admin_name: string | null
-  usage: number
-}
+import { deleteProjectRows, prepareProjectStatements, type SheetRow } from './ProjectStatements.js'
 
 export type ProjectRepository = {
   list: () => readonly ProjectSheet[]
@@ -27,40 +16,13 @@ export type ProjectRepositoryInput = {
   epics: EpicRepository
 }
 
-const SHEET_QUERY = `SELECT project.id, project.slug, project.name, project.colour, project.position,
-         project.admin_user_id, board_user.login AS admin_login, board_user.display_name AS admin_name,
-         (SELECT COUNT(*) FROM epic WHERE epic.project_id = project.id) AS usage
-    FROM project LEFT JOIN board_user ON board_user.id = project.admin_user_id`
-
 export function createProjectRepository(
   db: Database.Database,
   { epics }: ProjectRepositoryInput,
 ): ProjectRepository {
-  const selectSheets = db.prepare<[], SheetRow>(`${SHEET_QUERY} ORDER BY project.position, project.name`)
-  const selectSheet = db.prepare<[number], SheetRow>(`${SHEET_QUERY} WHERE project.id = ?`)
-  const selectUser = db.prepare<[number], { disabled_at: string | null }>(
-    'SELECT disabled_at FROM board_user WHERE id = ?',
-  )
-  const updateColour = db.prepare<[string, number]>('UPDATE project SET colour = ? WHERE id = ?')
-  const updatePosition = db.prepare<[number, number]>('UPDATE project SET position = ? WHERE id = ?')
-  const selectOrder = db.prepare<[], { id: number }>('SELECT id FROM project ORDER BY position, name, id')
-  const updateAdmin = db.prepare<[number | null, number]>('UPDATE project SET admin_user_id = ? WHERE id = ?')
-  const selectAdmin = db.prepare<[number], { admin_user_id: number | null }>(
-    'SELECT admin_user_id FROM project WHERE id = ?',
-  )
-  const deleteLinks = db.prepare<[number]>('DELETE FROM project_link WHERE project_id = ?')
-  const deleteTemplate = db.prepare<[number]>('DELETE FROM project_template WHERE project_id = ?')
-  const deleteRisks = db.prepare<[number]>('DELETE FROM project_risk WHERE project_id = ?')
-  const deleteDecisions = db.prepare<[number]>('DELETE FROM project_decision WHERE project_id = ?')
-  const deleteZones = db.prepare<[number]>('DELETE FROM zone WHERE project_id = ?')
-  const deleteWorkflowColumns = db.prepare<[number]>('DELETE FROM workflow_column WHERE project_id = ?')
-  const deleteWorkflows = db.prepare<[number]>('DELETE FROM workflow WHERE project_id = ?')
-  const deleteBatchStories = db.prepare<[number]>(
-    'DELETE FROM batch_story WHERE batch_id IN (SELECT id FROM merge_batch WHERE project_id = ?)',
-  )
-  const deleteEvents = db.prepare<[number]>('DELETE FROM epic_milestone WHERE project_id = ?')
-  const deleteBatches = db.prepare<[number]>('DELETE FROM merge_batch WHERE project_id = ?')
-  const deleteProject = db.prepare<[number]>('DELETE FROM project WHERE id = ?')
+  const statements = prepareProjectStatements(db)
+  const { selectSheets, selectSheet, selectUser, updateColour, updatePosition, selectOrder, updateAdmin, selectAdmin } =
+    statements
 
   function sheetOf(row: SheetRow): ProjectSheet {
     return {
@@ -126,17 +88,7 @@ export function createProjectRepository(
     if (sheet.usage > 0) {
       throw new ProjectInUseError(projectId, sheet.usage)
     }
-    deleteEvents.run(projectId)
-    deleteLinks.run(projectId)
-    deleteTemplate.run(projectId)
-    deleteRisks.run(projectId)
-    deleteDecisions.run(projectId)
-    deleteZones.run(projectId)
-    deleteWorkflowColumns.run(projectId)
-    deleteWorkflows.run(projectId)
-    deleteBatchStories.run(projectId)
-    deleteBatches.run(projectId)
-    deleteProject.run(projectId)
+    deleteProjectRows(statements, projectId)
   })
 
   return {
