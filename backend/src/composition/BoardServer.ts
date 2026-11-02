@@ -1,5 +1,5 @@
 import { serve } from '@hono/node-server'
-import { Hono, type Context } from 'hono'
+import { Hono } from 'hono'
 import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { openDatabase } from '../technical/Database/Connection.js'
@@ -61,7 +61,6 @@ import { createDoctrineSource } from '../technical/Doctrine/DoctrineSource.js'
 import { installGuardrails } from '../technical/Guardrail/GuardrailInstall.js'
 import { carryLocalSettings } from '../technical/Guardrail/LocalSettings.js'
 import { createGuardrailSeal } from '../technical/Guardrail/GuardrailSeal.js'
-import { DEFAULT_PUSH_REMOTE } from '../technical/Guardrail/ShellPolicy.js'
 import { createFileApi } from '../domain/File/FileApi.js'
 import { createFileRepository } from '../domain/File/FileRepository.js'
 import { createStatisticRepository } from '../domain/Statistic/StatisticRepository.js'
@@ -70,13 +69,14 @@ import { createIncidentRepository } from '../domain/Incident/IncidentRepository.
 import { createIncidentApi } from '../domain/Incident/IncidentApi.js'
 import { createEventBus } from '../technical/Http/EventBus.js'
 import { createBoardPage } from '../technical/Http/BoardPage.js'
-import { createSdkSessionRunner, createSdkSessionTalker } from '../technical/ClaudeCode/SdkSessionRunner.js'
+import { createSdkSessionTalker } from '../technical/ClaudeCode/SdkSessionRunner.js'
 import { createLiveSessions } from '../technical/ClaudeCode/LiveSessions.js'
 import { createDiscussionApi } from '../domain/Discussion/DiscussionApi.js'
 import { createDiscussionRepository } from '../domain/Discussion/DiscussionRepository.js'
 import { operatorOf } from '../technical/Auth/BoardIdentity.js'
 import { createStoryHandGuard } from '../domain/Story/StoryHandGuard.js'
-import { mayAdministerProject } from '../domain/Project/ProjectAuthority.js'
+import { createBoardAccess } from './BoardAccess.js'
+import { createAgentDrivers } from './AgentDrivers.js'
 import { readSuperAdminConfiguration } from '../technical/Auth/SuperAdminConfiguration.js'
 import { createTemplateRepository } from '../domain/Template/TemplateRepository.js'
 import { createTemplateApi } from '../domain/Template/TemplateApi.js'
@@ -88,14 +88,7 @@ import { createBatchRepository } from '../domain/Delivery/BatchRepository.js'
 import { createBatchApi } from '../domain/Delivery/BatchApi.js'
 import { columnAgentOfPhase, createDrivenRunner } from '../domain/Driver/Driver.js'
 import { DEFAULT_FORGE_CARD_PROVIDER } from '../../../contract/ForgeCardContract.js'
-import { createCodexSessionRunner } from '../technical/Codex/CodexSessionRunner.js'
-import { createCodexTranscriptStore } from '../technical/Codex/CodexTranscriptStore.js'
-import { codexDriver } from './CodexDriver.js'
-import { cliDriver } from './CliDriver.js'
-import { AGENT_MANIFESTS } from '../technical/Cli/AgentManifests.js'
-import { createCliSessionRunner } from '../technical/Cli/CliSessionRunner.js'
 import { createDriverApi } from '../domain/Driver/DriverApi.js'
-import { claudeCodeDriver } from './ClaudeCodeDriver.js'
 import type { SdkUserTurn } from '../technical/ClaudeCode/TurnDelivery.js'
 import { createConversationApi } from '../domain/Conversation/ConversationApi.js'
 import { createMessageRepository } from '../domain/Conversation/MessageRepository.js'
@@ -292,40 +285,13 @@ export function startBoardServer({
   const templates = createTemplateRepository(db)
   const outbox = createOutboxRepository(db)
   const organisations = createOrganisationRepository(db)
-  const transcripts = createCodexTranscriptStore()
-  const drivers = [
-    claudeCodeDriver(
-      createSdkSessionRunner({
-        cwdFor: (order) => cwdForStory(order.storyId),
-        live,
-        onEvent: onSessionEvent,
-        forgeRoot: process.cwd(),
-        seal: guardrailSeal,
-        shellSeedFor: (order) => {
-          const declared = projectTestCommand(cwdForStory(order.storyId))
-          return {
-            branch: worktrees.findForStory(order.storyId)?.branch ?? null,
-            remote: process.env.FORGE_PUSH_REMOTE?.trim() || DEFAULT_PUSH_REMOTE,
-            testCommands: declared === null ? [] : [declared],
-          }
-        },
-      }),
-    ),
-    codexDriver(
-      createCodexSessionRunner({ cwdFor: (order) => cwdForStory(order.storyId), onEvent: onSessionEvent, transcripts }),
-    ),
-    ...AGENT_MANIFESTS.map((manifest) =>
-      cliDriver(
-        manifest,
-        createCliSessionRunner({
-          manifest,
-          cwdFor: (order) => cwdForStory(order.storyId),
-          onEvent: onSessionEvent,
-          transcripts,
-        }),
-      ),
-    ),
-  ]
+  const drivers = createAgentDrivers({
+    cwdForStory,
+    branchOfStory: (storyId) => worktrees.findForStory(storyId)?.branch ?? null,
+    live,
+    seal: guardrailSeal,
+    onEvent: onSessionEvent,
+  })
   const dispatcher = createDispatcher({
     database: db,
     stories,
@@ -374,18 +340,12 @@ export function startBoardServer({
       'No super admin configured: set FORGE_SUPER_ADMIN_LOGIN and FORGE_SUPER_ADMIN_PASSWORD (or FORGE_SUPER_ADMIN_PASSWORD_FILE); nobody can manage super admins and first enrolment stays closed until then (or set FORGE_SETUP_TOKEN).',
     )
   }
-  function mayRunTheBoard(context: Context): boolean {
-    if (mode === 'local') {
-      return true
-    }
-    const user = identities.findUser(operatorOf(context))
-    return user?.superAdmin === true || user?.role === 'director'
-  }
+  const access = createBoardAccess({ identities, stories, mode })
   const api = createBoardApi({
-    isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
-    isDirector: (login) => identities.findUser(login)?.role === 'director',
-    maySettleBudget: mayRunTheBoard,
-    mayReadFleet: mayRunTheBoard,
+    isSuperAdmin: access.isSuperAdmin,
+    isDirector: access.isDirector,
+    maySettleBudget: access.mayRunTheBoard,
+    mayReadFleet: access.mayRunTheBoard,
     openHolds: discussion.openHolds,
     today: () => new Date().toISOString().slice(0, 10),
     zones: createZoneRepository(db),
@@ -439,8 +399,8 @@ export function startBoardServer({
     '/api/*',
     createStoryHandGuard({
       stories,
-      isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
-      isDirector: (login) => identities.findUser(login)?.role === 'director',
+      isSuperAdmin: access.isSuperAdmin,
+      isDirector: access.isDirector,
     }),
   )
   if (mode === 'local') {
@@ -476,24 +436,21 @@ export function startBoardServer({
     '/',
     createOrganisationApi({
       organisations,
-      maySettle: (context) =>
-        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
+      maySettle: access.maySettle,
     }),
   )
   guarded.route(
     '/',
     createBatchApi({
       batches,
-      maySettle: (context) =>
-        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
+      maySettle: access.maySettle,
     }),
   )
   guarded.route(
     '/',
     createTemplateApi({
       templates,
-      maySettle: (context) =>
-        mode === 'local' || identities.findUser(operatorOf(context))?.role === 'director',
+      maySettle: access.maySettle,
     }),
   )
   guarded.route(
@@ -501,13 +458,7 @@ export function startBoardServer({
     createProjectWorkflowApi({
       workflows: projectWorkflows,
       projectExists: (projectId) => stories.projects.find(projectId) !== null,
-      mayAdminister: (projectId, context) =>
-        mayAdministerProject({
-          login: operatorOf(context),
-          adminLogin: stories.projects.find(projectId)?.adminLogin ?? null,
-          isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
-          isDirector: (login) => identities.findUser(login)?.role === 'director',
-        }),
+      mayAdminister: access.mayAdminister,
     }),
   )
   guarded.route(
@@ -515,13 +466,7 @@ export function startBoardServer({
     createWorkflowColumnApi({
       columns: workflowColumns,
       projectExists: (projectId) => stories.projects.find(projectId) !== null,
-      mayAdminister: (projectId, context) =>
-        mayAdministerProject({
-          login: operatorOf(context),
-          adminLogin: stories.projects.find(projectId)?.adminLogin ?? null,
-          isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
-          isDirector: (login) => identities.findUser(login)?.role === 'director',
-        }),
+      mayAdminister: access.mayAdminister,
       adminOf: (projectId) => {
         const sheet = stories.projects.find(projectId)
         return sheet === null || sheet.adminLogin === null
@@ -663,13 +608,7 @@ export function startBoardServer({
     createAutopilotApi({
       autopilot: autopilotSettings,
       projectExists: (projectId) => stories.projects.find(projectId) !== null,
-      mayAdminister: (projectId, context) =>
-        mayAdministerProject({
-          login: operatorOf(context),
-          adminLogin: stories.projects.find(projectId)?.adminLogin ?? null,
-          isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
-          isDirector: (login) => identities.findUser(login)?.role === 'director',
-        }),
+      mayAdminister: access.mayAdminister,
     }),
   )
   guarded.route(
@@ -739,13 +678,7 @@ export function startBoardServer({
         guardrailSeal.forget(checkout)
         return installed
       },
-      mayAdminister: (projectId, context) =>
-        mayAdministerProject({
-          login: operatorOf(context),
-          adminLogin: stories.projects.find(projectId)?.adminLogin ?? null,
-          isSuperAdmin: (login) => identities.findUser(login)?.superAdmin ?? false,
-          isDirector: (login) => identities.findUser(login)?.role === 'director',
-        }),
+      mayAdminister: access.mayAdminister,
     }),
   )
   guarded.route('/', createStatisticApi({ statistics: createStatisticRepository(db) }))
