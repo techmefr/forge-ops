@@ -1,0 +1,197 @@
+{
+  "backend/src/composition/BoardServer.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/composition/DemoSeed.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/composition/ForgeAutopilot.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Agent/AgentSessionRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Autopilot/AutopilotConductor.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Autopilot/StepProver.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Autopilot/StepVerifier.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Board/BoardApi.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Checkpoint/CheckpointRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Checkpoint/ReviewRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Conversation/ConversationApi.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Delivery/BatchRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Dispatch/Dispatcher.ts": {
+    "max-lines-per-function": {
+      "count": 2
+    }
+  },
+  "backend/src/domain/Epic/EpicRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Event/EventRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/File/FileApi.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/FollowUp/FollowUpRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/ForgeCard/ForgeBoardApi.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/ForgeCard/ForgeBoardRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/ForgeCard/ForgeCardMover.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/ForgeCard/ForgeCardRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Identity/IdentityApi.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Identity/IdentityRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Identity/OidcApi.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Organisation/OrganisationRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Pilot/PilotRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Project/ProjectRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Story/EpicCatalog.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Story/StoryApi.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Story/StoryRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Template/TemplateRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Workflow/ProjectWorkflowApi.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Workflow/ProjectWorkflowRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Workflow/WorkflowColumnApi.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Workflow/WorkflowColumnRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/domain/Worktree/WorktreeRepository.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/technical/Git/StoryPublication.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "backend/src/technical/Guardrail/ShellTokens.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "frontend/src/domain/Forge/UseForgeBoard.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  }
+}

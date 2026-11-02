@@ -75,6 +75,12 @@ export default tseslint.config(
     },
   },
   {
+    files: ['backend/src/**/*.{ts,js}', 'frontend/src/**/*.{ts,vue,js}'],
+    rules: {
+      'max-lines-per-function': ['error', { max: 100, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
     files: [
       'backend/src/*.ts',
       'backend/src/technical/Guardrail/*Hook.ts',
