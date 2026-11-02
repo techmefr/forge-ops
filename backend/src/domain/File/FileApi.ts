@@ -15,6 +15,7 @@ import { describeFile } from './FileDigest.js'
 import { markOfFile, type FileTouch } from './FileMark.js'
 import { clashesOf } from './NameClash.js'
 import type { FileRepository } from './FileRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 export type FileApiInput = {
   stories: StoryRepository
@@ -246,7 +247,7 @@ export function createFileApi({
     if (!mayAdminister(projectId.data, context)) {
       return context.json({ error: 'CheckoutNeedsAnAdmin' }, 403)
     }
-    const body = checkoutSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, checkoutSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidCheckoutPath', issues: body.error.issues }, 422)
     }

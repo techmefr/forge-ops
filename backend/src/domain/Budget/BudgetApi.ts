@@ -4,6 +4,7 @@ import { z } from 'zod'
 import type { EventBus } from '../../technical/Http/EventBus.js'
 import { mapApiError } from '../Board/ApiErrorMap.js'
 import type { BudgetRepository } from './BudgetRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const budgetPolicySchema = z.object({
   capUsd: z.number().positive(),
@@ -35,7 +36,7 @@ export function createBudgetApi({ budget, events, maySettle }: BudgetApiInput): 
     if (!maySettle(context)) {
       return context.json({ error: 'BudgetNeedsAnAdmin' }, 403)
     }
-    const policy = budgetPolicySchema.safeParse(await context.req.json().catch(() => null))
+    const policy = await parseBody(context, budgetPolicySchema)
     if (!policy.success) {
       return context.json({ error: 'InvalidBudgetPolicy', issues: policy.error.issues }, 422)
     }

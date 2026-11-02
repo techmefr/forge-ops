@@ -6,6 +6,7 @@ import { operatorOf } from '../../technical/Auth/BoardIdentity.js'
 import { mayAdministerProject } from '../Project/ProjectAuthority.js'
 import type { ProjectRepository } from '../Project/ProjectRepository.js'
 import type { EpicRepository } from './EpicRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -28,7 +29,7 @@ export function createEpicApi({ epics, events, today, projects, isSuperAdmin, is
     if (!epicId.success) {
       return context.json({ error: 'InvalidEpicIdentifier' }, 422)
     }
-    const patch = epicPatchSchema.safeParse(await context.req.json().catch(() => null))
+    const patch = await parseBody(context, epicPatchSchema)
     if (!patch.success) {
       return context.json({ error: 'InvalidEpicPatch', issues: patch.error.issues }, 422)
     }
@@ -69,7 +70,7 @@ export function createEpicApi({ epics, events, today, projects, isSuperAdmin, is
   api.get('/api/tags', (context) => context.json(epics.listTags()))
 
   api.post('/api/tags', async (context) => {
-    const draft = tagDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, tagDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidTag', issues: draft.error.issues }, 422)
     }
@@ -78,7 +79,7 @@ export function createEpicApi({ epics, events, today, projects, isSuperAdmin, is
 
   api.put('/api/tags/:id', async (context) => {
     const tagId = identifierSchema.safeParse(context.req.param('id'))
-    const draft = tagDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, tagDraftSchema)
     if (!tagId.success || !draft.success) {
       return context.json({ error: 'InvalidTag' }, 422)
     }
@@ -104,7 +105,7 @@ export function createEpicApi({ epics, events, today, projects, isSuperAdmin, is
 
   api.put('/api/projects/:id/links', async (context) => {
     const projectId = identifierSchema.safeParse(context.req.param('id'))
-    const body = projectLinksSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, projectLinksSchema)
     if (!projectId.success || !body.success) {
       return context.json({ error: 'InvalidProjectLinks' }, 422)
     }

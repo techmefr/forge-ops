@@ -22,6 +22,7 @@ import {
   checkpointsAheadOf,
 } from './StepBack.js'
 import type { StoryRepository } from './StoryRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -90,7 +91,7 @@ export function createStoryApi({
   api.onError(mapApiError)
 
   api.post('/api/stories', async (context) => {
-    const draft = storyDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, storyDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidStoryDraft', issues: draft.error.issues }, 422)
     }
@@ -104,7 +105,7 @@ export function createStoryApi({
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const draft = cardSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, cardSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidCard', issues: draft.error.issues }, 422)
     }
@@ -120,7 +121,7 @@ export function createStoryApi({
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const draft = twinDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, twinDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidTwinDraft', issues: draft.error.issues }, 422)
     }
@@ -142,7 +143,7 @@ export function createStoryApi({
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const body = dependencySchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, dependencySchema)
     if (!body.success) {
       return context.json({ error: 'InvalidDependency', issues: body.error.issues }, 422)
     }
@@ -196,7 +197,7 @@ export function createStoryApi({
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const body = stepBackSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, stepBackSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidStepBack', issues: body.error.issues }, 422)
     }
@@ -271,7 +272,7 @@ export function createStoryApi({
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const body = estimateSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, estimateSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidEstimate', issues: body.error.issues }, 422)
     }
@@ -283,7 +284,7 @@ export function createStoryApi({
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const body = rolloutSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, rolloutSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidRollout', issues: body.error.issues }, 422)
     }
@@ -311,7 +312,7 @@ export function createStoryApi({
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const body = blockSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, blockSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidBlockedReason', issues: body.error.issues }, 422)
     }
@@ -335,7 +336,7 @@ export function createStoryApi({
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const body = dispatchSchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, dispatchSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidDispatchOrder', issues: body.error.issues }, 422)
     }

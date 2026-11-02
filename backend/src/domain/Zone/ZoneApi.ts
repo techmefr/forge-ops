@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import { mapApiError } from '../Board/ApiErrorMap.js'
 import type { ZoneRepository } from './ZoneRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -28,7 +29,7 @@ export function createZoneApi({ zones }: ZoneApiInput): Hono {
   api.onError(mapApiError)
 
   api.post('/api/zones', async (context) => {
-    const draft = zoneDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, zoneDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidZoneDraft', issues: draft.error.issues }, 422)
     }
@@ -36,7 +37,7 @@ export function createZoneApi({ zones }: ZoneApiInput): Hono {
   })
 
   api.post('/api/zones/summary', async (context) => {
-    const body = zoneSummarySchema.safeParse(await context.req.json().catch(() => null))
+    const body = await parseBody(context, zoneSummarySchema)
     if (!body.success) {
       return context.json({ error: 'InvalidZoneSummary', issues: body.error.issues }, 422)
     }

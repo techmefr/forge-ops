@@ -4,6 +4,7 @@ import type { EventBus } from '../../technical/Http/EventBus.js'
 import { StoryNotFoundError } from '../Story/StoryViolation.js'
 import type { ForemergeRepository } from './ForemergeRepository.js'
 import { ScopeTakenError, ScopeViolationError } from './ForemergeViolation.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -50,7 +51,7 @@ export function createForemergeApi({ foremerge, events }: ForemergeApiInput): Ho
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const claim = claimSchema.safeParse(await context.req.json().catch(() => null))
+    const claim = await parseBody(context, claimSchema)
     if (!claim.success) {
       return context.json({ error: 'InvalidScopeClaim', issues: claim.error.issues }, 422)
     }

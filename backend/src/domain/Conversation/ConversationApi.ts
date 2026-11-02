@@ -13,6 +13,7 @@ import type { CheckpointRepository } from '../Checkpoint/CheckpointRepository.js
 import type { DiscussionRepository } from '../Discussion/DiscussionRepository.js'
 import type { TemplateRepository } from '../Template/TemplateRepository.js'
 import type { MessageRepository } from './MessageRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -60,7 +61,7 @@ export function createConversationApi({
     if (!storyId.success) {
       return context.json({ error: 'InvalidStoryIdentifier' }, 422)
     }
-    const turn = turnSchema.safeParse(await context.req.json().catch(() => null))
+    const turn = await parseBody(context, turnSchema)
     if (!turn.success) {
       return context.json({ error: 'EmptyTurn' }, 422)
     }

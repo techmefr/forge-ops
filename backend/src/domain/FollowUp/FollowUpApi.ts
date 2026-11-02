@@ -11,6 +11,7 @@ import type { EventBus } from '../../technical/Http/EventBus.js'
 import { mayAdministerProject } from '../Project/ProjectAuthority.js'
 import type { ProjectRepository } from '../Project/ProjectRepository.js'
 import type { FollowUpRepository } from './FollowUpRepository.js'
+import { parseBody } from '../../technical/Http/ParseBody.js'
 
 const identifierSchema = z.coerce.number().int().positive()
 
@@ -39,7 +40,7 @@ export function createFollowUpApi({ followUps, projects, events, today, isSuperA
     if (!projectId.success) {
       return context.json({ error: 'InvalidProjectIdentifier' }, 422)
     }
-    const draft = riskDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, riskDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidRiskDraft', issues: draft.error.issues }, 422)
     }
@@ -53,7 +54,7 @@ export function createFollowUpApi({ followUps, projects, events, today, isSuperA
     if (!riskId.success) {
       return context.json({ error: 'InvalidRiskIdentifier' }, 422)
     }
-    const patch = riskPatchSchema.safeParse(await context.req.json().catch(() => null))
+    const patch = await parseBody(context, riskPatchSchema)
     if (!patch.success) {
       return context.json({ error: 'InvalidRiskPatch', issues: patch.error.issues }, 422)
     }
@@ -67,7 +68,7 @@ export function createFollowUpApi({ followUps, projects, events, today, isSuperA
     if (!projectId.success) {
       return context.json({ error: 'InvalidProjectIdentifier' }, 422)
     }
-    const draft = decisionDraftSchema.safeParse(await context.req.json().catch(() => null))
+    const draft = await parseBody(context, decisionDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidDecisionDraft', issues: draft.error.issues }, 422)
     }
@@ -81,7 +82,7 @@ export function createFollowUpApi({ followUps, projects, events, today, isSuperA
     if (!projectId.success) {
       return context.json({ error: 'InvalidProjectIdentifier' }, 422)
     }
-    const change = weatherChangeSchema.safeParse(await context.req.json().catch(() => null))
+    const change = await parseBody(context, weatherChangeSchema)
     if (!change.success) {
       return context.json({ error: 'InvalidWeatherChange', issues: change.error.issues }, 422)
     }
