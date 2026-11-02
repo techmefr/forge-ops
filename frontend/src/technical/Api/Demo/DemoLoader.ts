@@ -27,6 +27,22 @@ function highest(numbers: readonly number[]): number {
   return numbers.reduce((top, value) => Math.max(top, value), 0)
 }
 
+function historyOf(snapshot: Record<string, unknown>, epics: readonly EpicOverview[]): Map<number, EpicStateChange[]> {
+  const history = new Map<number, EpicStateChange[]>()
+  for (const epic of epics) {
+    history.set(epic.id, held<EpicStateChange[]>(snapshot, `/api/epics/${epic.id}/history`, []))
+  }
+  return history
+}
+
+function threadsOf(snapshot: Record<string, unknown>): Map<number, StoryThread> {
+  const threads = new Map<number, StoryThread>()
+  for (const storyId of threadIdentifiers(snapshot)) {
+    threads.set(storyId, held<StoryThread>(snapshot, `/api/stories/${storyId}/thread`, undefined as never))
+  }
+  return threads
+}
+
 export function createDemoState(source: Record<string, unknown>): DemoState {
   const snapshot = structuredClone(source)
   const projects = held<Project[]>(snapshot, '/api/projects', [])
@@ -74,15 +90,8 @@ export function createDemoState(source: Record<string, unknown>): DemoState {
     }
   }
 
-  const history = new Map<number, EpicStateChange[]>()
-  for (const epic of epics) {
-    history.set(epic.id, held<EpicStateChange[]>(snapshot, `/api/epics/${epic.id}/history`, []))
-  }
-
-  const threads = new Map<number, StoryThread>()
-  for (const storyId of threadIdentifiers(snapshot)) {
-    threads.set(storyId, held<StoryThread>(snapshot, `/api/stories/${storyId}/thread`, undefined as never))
-  }
+  const history = historyOf(snapshot, epics)
+  const threads = threadsOf(snapshot)
 
   const sheets = held<ProjectSheet[]>(snapshot, '/api/projects/sheets', [])
   const users = held<BoardUserSheet[]>(snapshot, '/api/board-users', [])

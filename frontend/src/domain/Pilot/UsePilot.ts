@@ -41,6 +41,25 @@ type Answer = {
   suggestion: ParcoursSuggestion | null
 }
 
+type Holders = {
+  run: Ref<PilotRun | null>
+  history: Ref<readonly PilotRun[]>
+  suggestion: Ref<ParcoursSuggestion | null>
+}
+
+async function loadPilot(target: number | null, holders: Holders): Promise<void> {
+  if (target === null) {
+    holders.run.value = null
+    holders.history.value = []
+    holders.suggestion.value = null
+    return
+  }
+  const answer = await board.read<Answer>(`/api/stories/${target}/pilot`)
+  holders.run.value = answer.run
+  holders.history.value = answer.history
+  holders.suggestion.value = answer.suggestion
+}
+
 export function usePilot(storyId: Ref<number | null>): PilotDesk {
   const run = ref<PilotRun | null>(null)
   const history = ref<readonly PilotRun[]>([])
@@ -52,19 +71,7 @@ export function usePilot(storyId: Ref<number | null>): PilotDesk {
   const url = ref('')
   const script = ref<PilotStep[]>([])
 
-  async function load(): Promise<void> {
-    const target = storyId.value
-    if (target === null) {
-      run.value = null
-      history.value = []
-      suggestion.value = null
-      return
-    }
-    const answer = await board.read<Answer>(`/api/stories/${target}/pilot`)
-    run.value = answer.run
-    history.value = answer.history
-    suggestion.value = answer.suggestion
-  }
+  const load = (): Promise<void> => loadPilot(storyId.value, { run, history, suggestion })
 
   async function guard(action: (target: number) => Promise<void>): Promise<void> {
     const target = storyId.value

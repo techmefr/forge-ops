@@ -35,27 +35,29 @@ export type PilotApiInput = {
   mayRun?: (storyId: number, context: Context) => boolean
 }
 
+function mapPilotError(error: Error, context: Context): Response {
+  if (error instanceof StoryNotFoundError || error instanceof PilotRunNotFoundError) {
+    return context.json({ error: error.name, message: error.message }, 404)
+  }
+  if (error instanceof PilotRunAlreadyLiveError || error instanceof PilotRunOverError) {
+    return context.json({ error: error.name, message: error.message }, 409)
+  }
+  if (error instanceof PilotBrowserLostError) {
+    return context.json({ error: error.name, message: error.message }, 409)
+  }
+  if (error instanceof PilotRunPausedError) {
+    return context.json({ error: error.name, message: error.message }, 409)
+  }
+  if (error instanceof PilotViolationError) {
+    return context.json({ error: error.name, message: error.message }, 422)
+  }
+  return context.json({ error: 'UnexpectedError' }, 500)
+}
+
 export function createPilotApi({ pilots, events, suggest, mayRun }: PilotApiInput): Hono {
   const api = new Hono()
 
-  api.onError((error, context) => {
-    if (error instanceof StoryNotFoundError || error instanceof PilotRunNotFoundError) {
-      return context.json({ error: error.name, message: error.message }, 404)
-    }
-    if (error instanceof PilotRunAlreadyLiveError || error instanceof PilotRunOverError) {
-      return context.json({ error: error.name, message: error.message }, 409)
-    }
-    if (error instanceof PilotBrowserLostError) {
-      return context.json({ error: error.name, message: error.message }, 409)
-    }
-    if (error instanceof PilotRunPausedError) {
-      return context.json({ error: error.name, message: error.message }, 409)
-    }
-    if (error instanceof PilotViolationError) {
-      return context.json({ error: error.name, message: error.message }, 422)
-    }
-    return context.json({ error: 'UnexpectedError' }, 500)
-  })
+  api.onError(mapPilotError)
 
   function storyOf(raw: string | undefined): number | null {
     const parsed = identifierSchema.safeParse(raw)

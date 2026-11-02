@@ -39,6 +39,38 @@ export class SessionIdentifierMissingError extends Error {
   }
 }
 
+type ConversationInput = {
+  order: LaunchOrder
+  cwd: string
+  shell: ShellSeed
+  forgeRoot: string
+  prompt: Parameters<typeof query>[0]['prompt']
+}
+
+function openConversation({ order, cwd, shell, forgeRoot, prompt }: ConversationInput) {
+  return query({
+    prompt,
+    options: {
+      cwd,
+      settingSources: [...forgeSettingSources],
+      settings: guardrailHookSettings(forgeRoot) as Settings,
+      permissionMode: 'default',
+      canUseTool: (tool, input) =>
+        Promise.resolve(decideToolPermission({ phase: order.phase, tool, input, root: cwd, shell })),
+      ...(order.model === undefined ? {} : { model: order.model }),
+      ...effortOptionOf(order),
+      ...(order.resumeSessionId === undefined ? {} : { resume: order.resumeSessionId }),
+      env: {
+        ...agentEnvironmentOf({ source: process.env }),
+        ...shellEnvOf(shell),
+        FORGE_STORY_REFERENCE: order.reference,
+        FORGE_PHASE: order.phase,
+        ...(order.baseUrl === undefined ? {} : { ANTHROPIC_BASE_URL: order.baseUrl }),
+      },
+    },
+  })
+}
+
 export function createSdkSessionRunner({
   cwdFor,
   onEvent,
@@ -59,27 +91,7 @@ export function createSdkSessionRunner({
       const shell = shellSeedFor?.(order) ?? EMPTY_SHELL_SEED
       const started = live.start()
       started.channel.push(userTurn(order.prompt))
-      const conversation = query({
-        prompt: started.channel,
-        options: {
-          cwd,
-          settingSources: [...forgeSettingSources],
-          settings: guardrailHookSettings(forgeRoot) as Settings,
-          permissionMode: 'default',
-          canUseTool: (tool, input) =>
-            Promise.resolve(decideToolPermission({ phase: order.phase, tool, input, root: cwd, shell })),
-          ...(order.model === undefined ? {} : { model: order.model }),
-          ...effortOptionOf(order),
-          ...(order.resumeSessionId === undefined ? {} : { resume: order.resumeSessionId }),
-          env: {
-            ...agentEnvironmentOf({ source: process.env }),
-            ...shellEnvOf(shell),
-            FORGE_STORY_REFERENCE: order.reference,
-            FORGE_PHASE: order.phase,
-            ...(order.baseUrl === undefined ? {} : { ANTHROPIC_BASE_URL: order.baseUrl }),
-          },
-        },
-      })
+      const conversation = openConversation({ order, cwd, shell, forgeRoot, prompt: started.channel })
 
       let forceClose: ReturnType<typeof setTimeout> | null = null
       started.onTerminate(() => {

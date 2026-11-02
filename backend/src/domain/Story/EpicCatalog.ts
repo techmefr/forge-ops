@@ -20,6 +20,19 @@ export type EpicCatalog = {
   findEpic: (epicId: number) => Epic
 }
 
+function toEpic(row: { id: number; project_id: number; title: string; business_intent: string }): Epic {
+  return { id: row.id, projectId: row.project_id, title: row.title, businessIntent: row.business_intent }
+}
+
+function subjectInputOf(draft: EpicCreate) {
+  const { assignee = null, businessIntent, ...planning } = draft
+  return {
+    assignee,
+    businessIntent: businessIntent === undefined || businessIntent === '' ? draft.title : businessIntent,
+    planning,
+  }
+}
+
 export function createEpicCatalog(
   db: Database.Database,
   { epics, projects }: { epics: EpicRepository; projects: ProjectCatalog },
@@ -38,17 +51,7 @@ export function createEpicCatalog(
       const planned = planning.get(row.id)
       return planned === undefined
         ? []
-        : [
-            {
-              id: row.id,
-              projectId: row.project_id,
-              title: row.title,
-              businessIntent: row.business_intent,
-              assignee: row.assignee,
-              storyCount: row.story_count,
-              ...planned,
-            },
-          ]
+        : [{ ...toEpic(row), assignee: row.assignee, storyCount: row.story_count, ...planned }]
     })
   }
 
@@ -87,13 +90,7 @@ export function createEpicCatalog(
       return { id, ...draft }
     },
 
-    createSubject: (draft, by) => {
-      const { assignee = null, businessIntent, ...planning } = draft
-      return createSubjectAtomically(
-        { assignee, businessIntent: businessIntent === undefined || businessIntent === '' ? draft.title : businessIntent, planning },
-        by,
-      )
-    },
+    createSubject: (draft, by) => createSubjectAtomically(subjectInputOf(draft), by),
 
     assignEpic,
     claimEpic,
@@ -112,12 +109,7 @@ export function createEpicCatalog(
       if (row === undefined) {
         throw new EpicNotFoundError(epicId)
       }
-      return {
-        id: row.id,
-        projectId: row.project_id,
-        title: row.title,
-        businessIntent: row.business_intent,
-      }
+      return toEpic(row)
     },
   }
 }
