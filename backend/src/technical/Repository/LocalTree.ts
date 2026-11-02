@@ -32,7 +32,7 @@ async function insideOf(root: string, asked: string): Promise<ResolvedPath> {
     throw new CheckoutUnreadableError(asked, error.code ?? 'UNKNOWN')
   })
   const inside = relative(base, full)
-  if (inside.startsWith('..') || inside.startsWith(`${sep}..`) || isAbsolute(inside)) {
+  if (inside === '..' || inside.startsWith(`..${sep}`) || isAbsolute(inside)) {
     throw new PathOutsideCheckoutError(asked)
   }
   if (isSensitivePath(asked) || isSensitivePath(inside)) {

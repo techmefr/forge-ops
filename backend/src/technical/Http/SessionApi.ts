@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { Hono, type Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { z } from 'zod'
 import type { BrowserSessions } from '../Auth/BrowserSession.js'
@@ -16,6 +16,17 @@ export type SessionApiInput = {
 
 export function createSessionApi({ token, sessions }: SessionApiInput): Hono {
   const api = new Hono()
+  const openSession = (context: Context): Response => {
+    const opened = sessions.open()
+    setCookie(context, BOARD_COOKIE, opened.token, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'Strict',
+      secure: cookieSecure(context),
+      expires: new Date(opened.expiresAt),
+    })
+    return context.json({ expiresAt: new Date(opened.expiresAt).toISOString() }, 201)
+  }
 
   api.post(SESSION_EXCHANGE_PATH, async (context) => {
     const offered = exchangeSchema.safeParse(await context.req.json().catch(() => null))
@@ -25,27 +36,11 @@ export function createSessionApi({ token, sessions }: SessionApiInput): Hono {
     if (!sameSecret(offered.data.token, token)) {
       return context.json({ error: 'UnauthorizedSessionRequest' }, 401)
     }
-    const opened = sessions.open()
-    setCookie(context, BOARD_COOKIE, opened.token, {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'Strict',
-      secure: cookieSecure(context),
-      expires: new Date(opened.expiresAt),
-    })
-    return context.json({ expiresAt: new Date(opened.expiresAt).toISOString() }, 201)
+    return openSession(context)
   })
 
   api.post(LOCAL_SESSION_PATH, (context) => {
-    const opened = sessions.open()
-    setCookie(context, BOARD_COOKIE, opened.token, {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'Strict',
-      secure: cookieSecure(context),
-      expires: new Date(opened.expiresAt),
-    })
-    return context.json({ expiresAt: new Date(opened.expiresAt).toISOString() }, 201)
+    return openSession(context)
   })
 
   api.delete(SESSION_EXCHANGE_PATH, (context) => {
