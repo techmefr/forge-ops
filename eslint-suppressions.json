@@ -14,11 +14,6 @@
       "count": 1
     }
   },
-  "backend/src/domain/Autopilot/AutopilotConductor.ts": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "backend/src/domain/Autopilot/StepProver.ts": {
     "max-lines-per-function": {
       "count": 1
