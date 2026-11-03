@@ -8,7 +8,7 @@ export type TemplateRow = {
   is_default: number
 }
 
-type ColumnRow = {
+export type ColumnRow = {
   template_id: number
   state: string
   label: string

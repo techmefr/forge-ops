@@ -134,8 +134,85 @@ export function seedSpareEpics(context: DemoContext): void {
   }
 }
 
+type ProjectExtras = NonNullable<(typeof PROJECT_EXTRAS)[string]>
+
+function seedProjectExtras(context: DemoContext, projectId: number, firstEpicId: number, extras: ProjectExtras): void {
+  const { stories, identities } = context
+  const admin = extras.admin === null ? null : identities.findUser(extras.admin)
+  if (admin !== null) {
+    stories.projects.update(projectId, { adminId: admin.id })
+  }
+  if (extras.links.length > 0) {
+    stories.epics.setProjectLinks(projectId, extras.links)
+  }
+  for (const event of extras.events) {
+    stories.agenda.create({
+      type: event.type,
+      date: dayFromNow(event.inDays),
+      title: event.title,
+      projectId,
+      epicId: event.onFirstEpic ? firstEpicId : null,
+      note: null,
+      minutes: event.minutes,
+    })
+  }
+  for (const risk of extras.risks) {
+    stories.followUps.openRisk(
+      projectId,
+      { text: risk.text, level: risk.level, owner: risk.owner, epicId: null },
+      dayFromNow(-risk.openedDaysAgo),
+    )
+  }
+  for (const decision of extras.decisions) {
+    stories.followUps.recordDecision(
+      projectId,
+      { text: decision.text, decidedOn: dayFromNow(-decision.daysAgo), decidedBy: decision.by },
+      'local',
+      dayFromNow(0),
+    )
+  }
+  stories.followUps.changeWeather(projectId, { statusSentence: extras.sentence })
+}
+
+function seedDefaultFollowUps(context: DemoContext, projectId: number, firstEpicId: number): void {
+  const { stories } = context
+  const agenda = [
+    { type: 'steering', inDays: -14, title: 'Steering committee', epicId: null, minutes: 'Priority stays on the first epic. Next review in three weeks.' },
+    { type: 'client', inDays: -3, title: 'Client review', epicId: firstEpicId, minutes: null },
+    { type: 'production', inDays: 9, title: 'Production release', epicId: firstEpicId, minutes: null },
+    { type: 'steering', inDays: 16, title: 'Steering committee', epicId: null, minutes: null },
+  ] as const
+  for (const event of agenda) {
+    stories.agenda.create({
+      type: event.type,
+      date: dayFromNow(event.inDays),
+      title: event.title,
+      projectId,
+      epicId: event.epicId,
+      note: null,
+      minutes: event.minutes,
+    })
+  }
+  stories.followUps.openRisk(
+    projectId,
+    { text: 'The client validation may slip past the release date', level: 'high', owner: null, epicId: firstEpicId },
+    dayFromNow(-5),
+  )
+  stories.followUps.openRisk(
+    projectId,
+    { text: 'Staging data is not refreshed every week', level: 'low', owner: null, epicId: null },
+    dayFromNow(-9),
+  )
+  stories.followUps.recordDecision(
+    projectId,
+    { text: 'Release stays on the planned date, scope is frozen', decidedOn: dayFromNow(-14), decidedBy: 'Steering committee' },
+    'local',
+    dayFromNow(0),
+  )
+}
+
 export function seedProjectFollowUps(context: DemoContext): void {
-  const { stories, identities, projectIds } = context
+  const { stories, projectIds } = context
   for (const projectId of projectIds.values()) {
     const first = stories.listEpics(projectId)[0]
     if (first === undefined) {
@@ -145,77 +222,12 @@ export function seedProjectFollowUps(context: DemoContext): void {
     const slug = [...projectIds.entries()].find(([, id]) => id === projectId)?.[0] ?? ''
     const extras = PROJECT_EXTRAS[slug]
     if (extras !== undefined) {
-      const admin = extras.admin === null ? null : identities.findUser(extras.admin)
-      if (admin !== null) {
-        stories.projects.update(projectId, { adminId: admin.id })
-      }
-      if (extras.links.length > 0) {
-        stories.epics.setProjectLinks(projectId, extras.links)
-      }
-      for (const event of extras.events) {
-        stories.agenda.create({
-          type: event.type,
-          date: dayFromNow(event.inDays),
-          title: event.title,
-          projectId,
-          epicId: event.onFirstEpic ? first.id : null,
-          note: null,
-          minutes: event.minutes,
-        })
-      }
-      for (const risk of extras.risks) {
-        stories.followUps.openRisk(
-          projectId,
-          { text: risk.text, level: risk.level, owner: risk.owner, epicId: null },
-          dayFromNow(-risk.openedDaysAgo),
-        )
-      }
-      for (const decision of extras.decisions) {
-        stories.followUps.recordDecision(
-          projectId,
-          { text: decision.text, decidedOn: dayFromNow(-decision.daysAgo), decidedBy: decision.by },
-          'local',
-          dayFromNow(0),
-        )
-      }
-      stories.followUps.changeWeather(projectId, { statusSentence: extras.sentence })
+      seedProjectExtras(context, projectId, first.id, extras)
       if (extras.calm) {
         continue
       }
     }
-    const agenda = [
-      { type: 'steering', inDays: -14, title: 'Steering committee', epicId: null, minutes: 'Priority stays on the first epic. Next review in three weeks.' },
-      { type: 'client', inDays: -3, title: 'Client review', epicId: first.id, minutes: null },
-      { type: 'production', inDays: 9, title: 'Production release', epicId: first.id, minutes: null },
-      { type: 'steering', inDays: 16, title: 'Steering committee', epicId: null, minutes: null },
-    ] as const
-    for (const event of agenda) {
-      stories.agenda.create({
-        type: event.type,
-        date: dayFromNow(event.inDays),
-        title: event.title,
-        projectId,
-        epicId: event.epicId,
-        note: null,
-        minutes: event.minutes,
-      })
-    }
-    stories.followUps.openRisk(
-      projectId,
-      { text: 'The client validation may slip past the release date', level: 'high', owner: null, epicId: first.id },
-      dayFromNow(-5),
-    )
-    stories.followUps.openRisk(
-      projectId,
-      { text: 'Staging data is not refreshed every week', level: 'low', owner: null, epicId: null },
-      dayFromNow(-9),
-    )
-    stories.followUps.recordDecision(
-      projectId,
-      { text: 'Release stays on the planned date, scope is frozen', decidedOn: dayFromNow(-14), decidedBy: 'Steering committee' },
-      'local',
-      dayFromNow(0),
-    )
+    seedDefaultFollowUps(context, projectId, first.id)
   }
 }
 

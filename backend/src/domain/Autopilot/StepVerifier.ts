@@ -38,29 +38,13 @@ export type StepVerifier = {
   discard: (root: string, storyReference: string, stepKey: string) => void
 }
 
-export function createStepVerifier({
-  stories,
+function createOrchestratorProof({
   columns,
-  sessions,
-  checkpoints,
-  readEvidence,
   cwdOf,
-  clearVerdict,
-  prover,
   baseShaOf,
-  integrityOf,
   publish,
-}: StepVerifierInput): StepVerifier {
-  function discard(root: string, storyReference: string, stepKey: string): void {
-    const path = safeVerdictPath(storyReference, stepKey)
-    if (path !== null) {
-      clearVerdict(root, path)
-    }
-  }
-
-  const proveOwnCheckpoint = createOwnCheckpointProof(columns, checkpoints, publish)
-
-  function proveByOrchestrator(
+}: Pick<StepVerifierInput, 'columns' | 'cwdOf' | 'baseShaOf' | 'publish'>) {
+  return function proveByOrchestrator(
     view: ForgeCardView,
     step: WorkflowColumn,
     storyReference: string,
@@ -90,6 +74,31 @@ export function createStepVerifier({
     }
     return { kind: 'pass' }
   }
+}
+
+export function createStepVerifier({
+  stories,
+  columns,
+  sessions,
+  checkpoints,
+  readEvidence,
+  cwdOf,
+  clearVerdict,
+  prover,
+  baseShaOf,
+  integrityOf,
+  publish,
+}: StepVerifierInput): StepVerifier {
+  function discard(root: string, storyReference: string, stepKey: string): void {
+    const path = safeVerdictPath(storyReference, stepKey)
+    if (path !== null) {
+      clearVerdict(root, path)
+    }
+  }
+
+  const proveOwnCheckpoint = createOwnCheckpointProof(columns, checkpoints, publish)
+
+  const proveByOrchestrator = createOrchestratorProof({ columns, cwdOf, baseShaOf, publish })
 
   function verify(view: ForgeCardView, step: WorkflowColumn): StepOutcome {
     const breach = integrityOf?.(view.storyId) ?? null

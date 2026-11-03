@@ -87,6 +87,17 @@ function isError(message: ConsoleMessage): boolean {
   return message.type() === 'error'
 }
 
+function collectErrors(target: Page, sink: (text: string) => void): void {
+  target.on('console', (message) => {
+    if (isError(message)) {
+      sink(message.text())
+    }
+  })
+  target.on('pageerror', (error) => {
+    sink(error.message)
+  })
+}
+
 export function createPlaywrightPilot({ shotDir, headless = true, guard }: PlaywrightPilotInput): PilotDriver {
   let browser: Browser | null = null
   let page: Page | null = null
@@ -123,14 +134,7 @@ export function createPlaywrightPilot({ shotDir, headless = true, guard }: Playw
       }
       page = await context.newPage()
       errors = []
-      page.on('console', (message) => {
-        if (isError(message)) {
-          errors.push(message.text())
-        }
-      })
-      page.on('pageerror', (error) => {
-        errors.push(error.message)
-      })
+      collectErrors(page, (text) => errors.push(text))
       await page.goto(url, { timeout: STEP_TIMEOUT })
     },
 

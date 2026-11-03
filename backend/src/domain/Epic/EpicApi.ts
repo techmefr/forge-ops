@@ -21,6 +21,36 @@ export type EpicApiInput = {
   isDirector: (login: string) => boolean
 }
 
+function mountTagRoutes(api: Hono, epics: EpicRepository): void {
+  api.get('/api/tags', (context) => context.json(epics.listTags()))
+
+  api.post('/api/tags', async (context) => {
+    const draft = await parseBody(context, tagDraftSchema)
+    if (!draft.success) {
+      return context.json({ error: 'InvalidTag', issues: draft.error.issues }, 422)
+    }
+    return context.json(epics.createTag(draft.data), 201)
+  })
+
+  api.put('/api/tags/:id', async (context) => {
+    const tagId = identifierSchema.safeParse(context.req.param('id'))
+    const draft = await parseBody(context, tagDraftSchema)
+    if (!tagId.success || !draft.success) {
+      return context.json({ error: 'InvalidTag' }, 422)
+    }
+    return context.json(epics.updateTag(tagId.data, draft.data))
+  })
+
+  api.delete('/api/tags/:id', (context) => {
+    const tagId = identifierSchema.safeParse(context.req.param('id'))
+    if (!tagId.success) {
+      return context.json({ error: 'InvalidTagIdentifier' }, 422)
+    }
+    epics.deleteTag(tagId.data)
+    return context.json({ deleted: true })
+  })
+}
+
 export function createEpicApi({ epics, events, today, projects, isSuperAdmin, isDirector }: EpicApiInput): Hono {
   const api = new Hono()
 
@@ -67,33 +97,7 @@ export function createEpicApi({ epics, events, today, projects, isSuperAdmin, is
     return context.json({ restored: true })
   })
 
-  api.get('/api/tags', (context) => context.json(epics.listTags()))
-
-  api.post('/api/tags', async (context) => {
-    const draft = await parseBody(context, tagDraftSchema)
-    if (!draft.success) {
-      return context.json({ error: 'InvalidTag', issues: draft.error.issues }, 422)
-    }
-    return context.json(epics.createTag(draft.data), 201)
-  })
-
-  api.put('/api/tags/:id', async (context) => {
-    const tagId = identifierSchema.safeParse(context.req.param('id'))
-    const draft = await parseBody(context, tagDraftSchema)
-    if (!tagId.success || !draft.success) {
-      return context.json({ error: 'InvalidTag' }, 422)
-    }
-    return context.json(epics.updateTag(tagId.data, draft.data))
-  })
-
-  api.delete('/api/tags/:id', (context) => {
-    const tagId = identifierSchema.safeParse(context.req.param('id'))
-    if (!tagId.success) {
-      return context.json({ error: 'InvalidTagIdentifier' }, 422)
-    }
-    epics.deleteTag(tagId.data)
-    return context.json({ deleted: true })
-  })
+  mountTagRoutes(api, epics)
 
   api.get('/api/projects/:id/links', (context) => {
     const projectId = identifierSchema.safeParse(context.req.param('id'))

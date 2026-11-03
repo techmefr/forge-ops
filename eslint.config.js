@@ -77,7 +77,7 @@ export default tseslint.config(
   {
     files: ['backend/src/**/*.{ts,js}', 'frontend/src/**/*.{ts,vue,js}'],
     rules: {
-      'max-lines-per-function': ['error', { max: 90, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': ['error', { max: 80, skipBlankLines: true, skipComments: true }],
     },
   },
   {

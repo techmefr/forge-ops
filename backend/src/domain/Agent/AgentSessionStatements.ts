@@ -127,6 +127,12 @@ export function prepareAgentSessionStatements(db: Database.Database) {
               SUM(COALESCE(output_tokens, 0)) AS output_tokens
          FROM agent_session WHERE story_id = ?`,
     ),
+    ...prepareFileTouchStatements(db),
+  }
+}
+
+function prepareFileTouchStatements(db: Database.Database) {
+  return {
     insertFileTouch: db.prepare<[number, number, string]>(
       'INSERT INTO file_touch (story_id, agent_session_id, path) VALUES (?, ?, ?)',
     ),

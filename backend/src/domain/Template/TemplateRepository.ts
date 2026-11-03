@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3'
 import type { ColumnTemplate, TemplateColumn, TemplateDraft } from './Template.js'
 import { SHIPPED_TEMPLATE, refusalOf } from './Template.js'
-import { prepareTemplateStatements, type TemplateRow } from './TemplateStatements.js'
+import { prepareTemplateStatements, type ColumnRow, type TemplateRow } from './TemplateStatements.js'
 
 export type TemplateRepository = {
   listTemplates: () => readonly ColumnTemplate[]
@@ -19,6 +19,24 @@ export class TemplateRefusedError extends Error {
   }
 }
 
+function toTemplateWith(row: TemplateRow, columns: readonly ColumnRow[]): ColumnTemplate {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    version: row.version,
+    isDefault: row.is_default === 1,
+    columns: columns.map((column) => ({
+      state: column.state,
+      label: column.label,
+      colour: column.colour,
+      agent: column.agent,
+      prompt: column.prompt,
+      delayHours: column.delay_hours,
+    })) as readonly TemplateColumn[],
+  }
+}
+
 export function createTemplateRepository(db: Database.Database): TemplateRepository {
   const {
     selectTemplates,
@@ -33,26 +51,8 @@ export function createTemplateRepository(db: Database.Database): TemplateReposit
     selectAdoption,
   } = prepareTemplateStatements(db)
 
-  function columnsOf(templateId: number): readonly TemplateColumn[] {
-    return selectColumns.all(templateId).map((row) => ({
-      state: row.state,
-      label: row.label,
-      colour: row.colour,
-      agent: row.agent,
-      prompt: row.prompt,
-      delayHours: row.delay_hours,
-    })) as readonly TemplateColumn[]
-  }
-
   function toTemplate(row: TemplateRow): ColumnTemplate {
-    return {
-      id: row.id,
-      slug: row.slug,
-      name: row.name,
-      version: row.version,
-      isDefault: row.is_default === 1,
-      columns: columnsOf(row.id),
-    }
+    return toTemplateWith(row, selectColumns.all(row.id))
   }
 
   function write(draft: TemplateDraft): ColumnTemplate {

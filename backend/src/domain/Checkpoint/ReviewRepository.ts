@@ -31,6 +31,14 @@ export type ReviewRepository = {
   passLens: (storyId: number, lens: ReviewLens) => ReviewPass
 }
 
+function assertPrecedingLensesPassed(cascade: readonly ReviewPass[], lens: ReviewLens): void {
+  const index = REVIEW_LENS_SEQUENCE.indexOf(lens)
+  const blocking = cascade.slice(0, index).find((candidate) => candidate.state !== 'passed')
+  if (blocking !== undefined) {
+    throw new LensOutOfOrderError(lens, blocking.lens)
+  }
+}
+
 export function createReviewRepository(db: Database.Database): ReviewRepository {
   const statements = prepareReviewStatements(db)
   const {
@@ -91,14 +99,7 @@ export function createReviewRepository(db: Database.Database): ReviewRepository 
       if (PRODUCING_PHASES.includes(session.phase)) {
         throw new SelfReviewRefusedError(claudeSessionId, session.phase)
       }
-      const cascade = reviewCascade(storyId)
-      const index = REVIEW_LENS_SEQUENCE.indexOf(lens)
-      const blocking = cascade
-        .slice(0, index)
-        .find((candidate) => candidate.state !== 'passed')
-      if (blocking !== undefined) {
-        throw new LensOutOfOrderError(lens, blocking.lens)
-      }
+      assertPrecedingLensesPassed(reviewCascade(storyId), lens)
       if (passOf(storyId, lens).state === 'passed') {
         throw new LensAlreadyPassedError(lens)
       }
