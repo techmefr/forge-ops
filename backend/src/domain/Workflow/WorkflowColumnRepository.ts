@@ -29,20 +29,55 @@ function labelsExcept(rows: readonly ColumnRow[], columnId: number): string[] {
   return rows.filter((column) => column.id !== columnId).map((column) => column.label)
 }
 
+type ColumnStatements = ReturnType<typeof prepareWorkflowColumnStatements>
+
+type ColumnScope = ReturnType<typeof createWorkflowColumnScope>
+
+function createColumnWriter(
+  { selectOfWorkflow, selectById, selectMaxPosition, insertColumn }: ColumnStatements,
+  workflows: ReturnType<typeof createProjectWorkflowRepository>,
+  { scopeOf, refuseIfInvalid }: ColumnScope,
+): WorkflowColumnRepository['create'] {
+  return (projectId, draft, workflowId) => {
+    const scope = workflowId === undefined ? workflows.defaultOf(projectId).id : scopeOf(projectId, workflowId)!
+    const existing = selectOfWorkflow.all(scope).map(fromRow)
+    refuseIfInvalid(draft, existing.map((column) => column.label))
+    const key = keyOfLabel(draft.label, existing.map((column) => column.key))
+    const nextPosition = (selectMaxPosition.get(scope)?.max_position ?? 0) + 1
+    const { lastInsertRowid } = insertColumn.run(
+      projectId,
+      scope,
+      key,
+      draft.label.trim(),
+      draft.colour,
+      nextPosition,
+      draft.provider,
+      draft.model,
+      draft.effort,
+      draft.agentName,
+      draft.command,
+      draft.preprompt,
+      draft.autoStart ? 1 : 0,
+      draft.maxRetries ?? DEFAULT_STEP_RETRIES,
+      behaviouralKindOf(draft),
+    )
+    return fromRow(selectById.get(Number(lastInsertRowid))!)
+  }
+}
+
 export function createWorkflowColumnRepository(db: Database.Database): WorkflowColumnRepository {
   const workflows = createProjectWorkflowRepository(db)
   const statements = prepareWorkflowColumnStatements(db)
   const {
     selectOfWorkflow,
     selectById,
-    selectMaxPosition,
-    insertColumn,
     updateColumn,
     deleteColumn,
     shiftPositionsDown,
     countStoriesInStep,
   } = statements
-  const { scopeOf, list, ownedBy, refuseIfInvalid } = createWorkflowColumnScope(statements, workflows)
+  const scope = createWorkflowColumnScope(statements, workflows)
+  const { list, ownedBy, refuseIfInvalid } = scope
 
   return {
     list,
@@ -52,31 +87,7 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
       return row === undefined ? null : fromRow(row)
     },
 
-    create: (projectId, draft, workflowId) => {
-      const scope = workflowId === undefined ? workflows.defaultOf(projectId).id : scopeOf(projectId, workflowId)!
-      const existing = selectOfWorkflow.all(scope).map(fromRow)
-      refuseIfInvalid(draft, existing.map((column) => column.label))
-      const key = keyOfLabel(draft.label, existing.map((column) => column.key))
-      const nextPosition = (selectMaxPosition.get(scope)?.max_position ?? 0) + 1
-      const { lastInsertRowid } = insertColumn.run(
-        projectId,
-        scope,
-        key,
-        draft.label.trim(),
-        draft.colour,
-        nextPosition,
-        draft.provider,
-        draft.model,
-        draft.effort,
-        draft.agentName,
-        draft.command,
-        draft.preprompt,
-        draft.autoStart ? 1 : 0,
-        draft.maxRetries ?? DEFAULT_STEP_RETRIES,
-        behaviouralKindOf(draft),
-      )
-      return fromRow(selectById.get(Number(lastInsertRowid))!)
-    },
+    create: createColumnWriter(statements, workflows, scope),
 
     update: (projectId, columnId, draft) => {
       const owned = ownedBy(projectId, columnId)

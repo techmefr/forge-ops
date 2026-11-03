@@ -20,9 +20,7 @@ export type DiscussionApiInput = {
   events: EventBus
 }
 
-export function createDiscussionApi({ stories, discussion, events }: DiscussionApiInput): Hono {
-  const api = new Hono()
-
+function mountDiscussionErrors(api: Hono): void {
   api.onError((error, context) => {
     if (error instanceof StoryNotFoundError) {
       return context.json({ error: error.name, message: error.message }, 404)
@@ -35,7 +33,9 @@ export function createDiscussionApi({ stories, discussion, events }: DiscussionA
     }
     return context.json({ error: 'UnexpectedError' }, 500)
   })
+}
 
+function mountDiscussionReads(api: Hono, { stories, discussion }: DiscussionApiInput): void {
   api.get('/api/board/holds', (context) => context.json(discussion.openHolds()))
 
   api.get('/api/stories/:id/discussion', (context) => {
@@ -49,7 +49,9 @@ export function createDiscussionApi({ stories, discussion, events }: DiscussionA
       hold: discussion.openHold(story.id),
     })
   })
+}
 
+function mountRemarkRoute(api: Hono, { stories, discussion, events }: DiscussionApiInput): void {
   api.post('/api/stories/:id/discussion', async (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
     if (!storyId.success) {
@@ -79,7 +81,9 @@ export function createDiscussionApi({ stories, discussion, events }: DiscussionA
     }
     return context.json(remark, 201)
   })
+}
 
+function mountHoldRoute(api: Hono, { stories, discussion, events }: DiscussionApiInput): void {
   api.post('/api/stories/:id/hold', async (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
     if (!storyId.success) {
@@ -101,6 +105,13 @@ export function createDiscussionApi({ stories, discussion, events }: DiscussionA
     })
     return context.json(held, 201)
   })
+}
 
+export function createDiscussionApi(input: DiscussionApiInput): Hono {
+  const api = new Hono()
+  mountDiscussionErrors(api)
+  mountDiscussionReads(api, input)
+  mountRemarkRoute(api, input)
+  mountHoldRoute(api, input)
   return api
 }

@@ -28,16 +28,21 @@ export type CheckpointApiInput = {
   advanceReviewCascade: (storyId: number) => Promise<CascadeStep>
 }
 
-export function createCheckpointApi({
-  repository,
-  checkpoints,
-  events,
-  advanceReviewCascade,
-}: CheckpointApiInput): Hono {
+export function createCheckpointApi(input: CheckpointApiInput): Hono {
   const api = new Hono()
 
   api.onError(mapApiError)
+  mountProveRoute(api, input)
+  mountReadRoutes(api, input)
+  mountReviewRoutes(api, input)
 
+  return api
+}
+
+function mountProveRoute(
+  api: Hono,
+  { repository, checkpoints, events, advanceReviewCascade }: CheckpointApiInput,
+): void {
   api.post('/api/stories/:id/checkpoints', async (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
     if (!storyId.success) {
@@ -61,7 +66,9 @@ export function createCheckpointApi({
     events.publish({ name: 'review.cascade', payload: { storyId: storyId.data, ...cascade } })
     return context.json({ ...checkpoint, cascade }, 201)
   })
+}
 
+function mountReadRoutes(api: Hono, { checkpoints }: Pick<CheckpointApiInput, 'checkpoints'>): void {
   api.get('/api/stories/:id/dod', (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
     if (!storyId.success) {
@@ -77,7 +84,12 @@ export function createCheckpointApi({
     }
     return context.json(checkpoints.reviewCascade(storyId.data))
   })
+}
 
+function mountReviewRoutes(
+  api: Hono,
+  { checkpoints, events, advanceReviewCascade }: Pick<CheckpointApiInput, 'checkpoints' | 'events' | 'advanceReviewCascade'>,
+): void {
   api.post('/api/stories/:id/review', async (context) => {
     const storyId = identifierSchema.safeParse(context.req.param('id'))
     if (!storyId.success) {
@@ -107,6 +119,4 @@ export function createCheckpointApi({
     events.publish({ name: 'review.cascade', payload: { storyId: storyId.data, ...cascade } })
     return context.json({ ...passed, cascade })
   })
-
-  return api
 }

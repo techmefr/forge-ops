@@ -98,6 +98,31 @@ function collectErrors(target: Page, sink: (text: string) => void): void {
   })
 }
 
+async function actOnPage(target: Page, step: PilotStep): Promise<string> {
+  const selector = step.target ?? ''
+  if (step.kind === 'goto') {
+    await target.goto(selector, { timeout: STEP_TIMEOUT })
+    return `ouvert ${selector}`
+  }
+  if (step.kind === 'click') {
+    await target.click(selector, { timeout: STEP_TIMEOUT })
+    return `clique sur ${selector}`
+  }
+  if (step.kind === 'fill') {
+    await target.fill(selector, step.value ?? '', { timeout: STEP_TIMEOUT })
+    return `ecrit dans ${selector}`
+  }
+  if (step.kind === 'expectText') {
+    const wanted = step.value ?? ''
+    const text = await target.locator(selector).first().innerText({ timeout: STEP_TIMEOUT })
+    if (!text.includes(wanted)) {
+      throw new TextNotFoundError(selector, wanted)
+    }
+    return `${selector} dit bien ${wanted}`
+  }
+  return 'capture'
+}
+
 export function createPlaywrightPilot({ shotDir, headless = true, guard }: PlaywrightPilotInput): PilotDriver {
   let browser: Browser | null = null
   let page: Page | null = null
@@ -138,30 +163,7 @@ export function createPlaywrightPilot({ shotDir, headless = true, guard }: Playw
       await page.goto(url, { timeout: STEP_TIMEOUT })
     },
 
-    perform: async (step: PilotStep) => {
-      const target = step.target ?? ''
-      if (step.kind === 'goto') {
-        await live().goto(target, { timeout: STEP_TIMEOUT })
-        return look(`ouvert ${target}`)
-      }
-      if (step.kind === 'click') {
-        await live().click(target, { timeout: STEP_TIMEOUT })
-        return look(`clique sur ${target}`)
-      }
-      if (step.kind === 'fill') {
-        await live().fill(target, step.value ?? '', { timeout: STEP_TIMEOUT })
-        return look(`ecrit dans ${target}`)
-      }
-      if (step.kind === 'expectText') {
-        const wanted = step.value ?? ''
-        const text = await live().locator(target).first().innerText({ timeout: STEP_TIMEOUT })
-        if (!text.includes(wanted)) {
-          throw new TextNotFoundError(target, wanted)
-        }
-        return look(`${target} dit bien ${wanted}`)
-      }
-      return look('capture')
-    },
+    perform: async (step: PilotStep) => look(await actOnPage(live(), step)),
 
     inspect: async () => {
       const current = live()

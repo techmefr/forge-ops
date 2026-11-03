@@ -42,6 +42,50 @@ function criterionProblemsOf(
   return problems
 }
 
+function passLenses(checkpoints: StepProverInput['checkpoints'], order: ProofOrder, session: ReviewerSession): void {
+  const cascade = checkpoints.reviewCascade(order.storyId)
+  for (const lens of REVIEW_LENS_SEQUENCE) {
+    if (cascade.find((pass) => pass.lens === lens)?.state === 'passed') {
+      continue
+    }
+    checkpoints.startLens(order.storyId, lens, session.claudeSessionId)
+    for (const finding of order.verdict.lenses?.[lens]?.findings ?? []) {
+      checkpoints.recordFinding({
+        storyId: order.storyId,
+        claudeSessionId: session.claudeSessionId,
+        lens,
+        severity: finding.severity,
+        path: finding.path,
+        statement: finding.statement,
+      })
+    }
+    checkpoints.passLens(order.storyId, lens)
+  }
+}
+
+function satisfyCriteria(
+  { criteria, inspection, writeEvidence }: Pick<StepProverInput, 'criteria' | 'inspection' | 'writeEvidence'>,
+  order: ProofOrder,
+  changed: readonly ChangedFile[],
+): void {
+  const head = inspection.headSha(order.root).slice(0, SHORT_SHA)
+  for (const criterion of criteria.listCriteria(order.storyId).filter((candidate) => !candidate.satisfied)) {
+    const evidence = order.verdict.criteria?.find((candidate) => candidate.reference === criterion.reference)?.evidence ?? ''
+    const path = criterionProofPathOf(order.storyReference, criterion.reference)
+    writeEvidence(
+      order.root,
+      path,
+      proofDocument(`Criterion ${criterion.reference} of ${order.storyReference}`, {
+        claim: [`Criterion: ${criterion.statement}`, `The reviewer answered it as met and cited ${evidence}, a file changed by this story.`],
+        check: [
+          `The cited file is part of the diff of the story branch at HEAD ${head}, and ${changed.length} file(s) changed in total.`,
+        ],
+      }),
+    )
+    criteria.satisfyCriterion(criterion.id, path)
+  }
+}
+
 export function createReviewProof(
   { checkpoints, criteria, inspection, writeEvidence, latestSessionOf }: StepProverInput,
   { factsOf, record }: ProofTools,
@@ -52,46 +96,6 @@ export function createReviewProof(
 
   function criterionProblems(order: ProofOrder, changed: readonly ChangedFile[]): readonly string[] {
     return criterionProblemsOf(order, changed, criteria.listCriteria(order.storyId))
-  }
-
-  function passLenses(order: ProofOrder, session: ReviewerSession): void {
-    const cascade = checkpoints.reviewCascade(order.storyId)
-    for (const lens of REVIEW_LENS_SEQUENCE) {
-      if (cascade.find((pass) => pass.lens === lens)?.state === 'passed') {
-        continue
-      }
-      checkpoints.startLens(order.storyId, lens, session.claudeSessionId)
-      for (const finding of order.verdict.lenses?.[lens]?.findings ?? []) {
-        checkpoints.recordFinding({
-          storyId: order.storyId,
-          claudeSessionId: session.claudeSessionId,
-          lens,
-          severity: finding.severity,
-          path: finding.path,
-          statement: finding.statement,
-        })
-      }
-      checkpoints.passLens(order.storyId, lens)
-    }
-  }
-
-  function satisfyCriteria(order: ProofOrder, changed: readonly ChangedFile[]): void {
-    const head = inspection.headSha(order.root).slice(0, SHORT_SHA)
-    for (const criterion of criteria.listCriteria(order.storyId).filter((candidate) => !candidate.satisfied)) {
-      const evidence = order.verdict.criteria?.find((candidate) => candidate.reference === criterion.reference)?.evidence ?? ''
-      const path = criterionProofPathOf(order.storyReference, criterion.reference)
-      writeEvidence(
-        order.root,
-        path,
-        proofDocument(`Criterion ${criterion.reference} of ${order.storyReference}`, {
-          claim: [`Criterion: ${criterion.statement}`, `The reviewer answered it as met and cited ${evidence}, a file changed by this story.`],
-          check: [
-            `The cited file is part of the diff of the story branch at HEAD ${head}, and ${changed.length} file(s) changed in total.`,
-          ],
-        }),
-      )
-      criteria.satisfyCriterion(criterion.id, path)
-    }
   }
 
   function proveReviewed(order: ProofOrder): Checkpoint | string {
@@ -107,8 +111,8 @@ export function createReviewProof(
     if (problems.length > 0) {
       return `The review cannot be recorded: ${problems.join('; ')}. Answer every lens and every declared criterion in the verdict, and fix what failed.`
     }
-    passLenses(order, session)
-    satisfyCriteria(order, facts.changed)
+    passLenses(checkpoints, order, session)
+    satisfyCriteria({ criteria, inspection, writeEvidence }, order, facts.changed)
     const lensLines = REVIEW_LENS_SEQUENCE.map((lens: ReviewLens) => {
       const findings = order.verdict.lenses?.[lens]?.findings ?? []
       return `- ${lens}: pass, ${findings.length} finding(s) recorded, none of them strong`

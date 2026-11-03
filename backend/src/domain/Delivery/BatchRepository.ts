@@ -42,20 +42,10 @@ function batchFromRow(row: BatchRow, storyIds: number[]): Batch {
   return { id: row.id, projectId: row.project_id, branch: row.branch, state: row.state, storyIds }
 }
 
-export function createBatchRepository(db: Database.Database): BatchRepository {
-  const {
-    selectSetting,
-    writeSetting,
-    selectStory,
-    selectProjectOfStory,
-    insertBatch,
-    selectBatch,
-    selectBatchOfStory,
-    selectStories,
-    insertStory,
-    deleteStory,
-    shipBatch,
-  } = prepareBatchStatements(db)
+type BatchStatements = ReturnType<typeof prepareBatchStatements>
+
+function createBatchLookup(statements: BatchStatements) {
+  const { selectStory, selectProjectOfStory, insertBatch, selectBatch, selectStories, insertStory } = statements
 
   function storyOf(storyId: number): StoryRow {
     const row = selectStory.get(storyId)
@@ -83,6 +73,15 @@ export function createBatchRepository(db: Database.Database): BatchRepository {
     insertStory.run(batchId, storyId)
     return findBatch(batchId)
   }
+
+  return { storyOf, findBatch, toBatch, open }
+}
+
+export function createBatchRepository(db: Database.Database): BatchRepository {
+  const statements = prepareBatchStatements(db)
+  const { selectSetting, writeSetting, selectProjectOfStory, selectBatchOfStory, insertStory, deleteStory, shipBatch } =
+    statements
+  const { storyOf, findBatch, toBatch, open } = createBatchLookup(statements)
 
   return {
     grouping: () => groupingOf(selectSetting.get(GROUPING_KEY)?.value ?? null),

@@ -98,6 +98,13 @@ export function prepareAgentSessionStatements(db: Database.Database) {
         WHERE lifecycle IN ${RUNNING_LIFECYCLES} AND ${SILENCE_SECONDS} > ?
         ORDER BY silent_for_seconds DESC`,
     ),
+    ...prepareSessionClosingStatements(db),
+    ...prepareFileTouchStatements(db),
+  }
+}
+
+function prepareSessionClosingStatements(db: Database.Database) {
+  return {
     closeSessionRow: db.prepare<[AgentLifecycle, OutcomeClass, string]>(
       `UPDATE agent_session
           SET lifecycle = ?, outcome = ?, ended_at = datetime('now'),
@@ -127,7 +134,6 @@ export function prepareAgentSessionStatements(db: Database.Database) {
               SUM(COALESCE(output_tokens, 0)) AS output_tokens
          FROM agent_session WHERE story_id = ?`,
     ),
-    ...prepareFileTouchStatements(db),
   }
 }
 

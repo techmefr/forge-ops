@@ -71,6 +71,48 @@ function cardsOf(snapshot: Record<string, unknown>, projectId: number, ownId: nu
   }))
 }
 
+type ProjectAggregate = {
+  events: ProjectEvent[]
+  links: Map<number, SubjectLink[]>
+  workflows: Workflow[]
+  columns: WorkflowColumn[]
+  cards: ForgeCardView[]
+  risks: ProjectFollowUp['risks'][number][]
+  decisions: ProjectFollowUp['decisions'][number][]
+  notes: Map<number, FollowUpNote>
+}
+
+function aggregateProjects(snapshot: Record<string, unknown>, projects: readonly Project[]): ProjectAggregate {
+  const aggregate: ProjectAggregate = {
+    events: [],
+    links: new Map(),
+    workflows: [],
+    columns: [],
+    cards: [],
+    risks: [],
+    decisions: [],
+    notes: new Map(),
+  }
+  for (const project of projects) {
+    aggregate.events.push(...held<ProjectEvent[]>(snapshot, `/api/projects/${project.id}/events`, []))
+    aggregate.links.set(project.id, held<SubjectLink[]>(snapshot, `/api/projects/${project.id}/links`, []))
+    const owned = workflowsOf(snapshot, project)
+    aggregate.workflows.push(...owned.workflows)
+    aggregate.columns.push(...owned.columns)
+    aggregate.cards.push(...cardsOf(snapshot, project.id, owned.ownId))
+    const followUp = snapshot[`/api/projects/${project.id}/follow-up`] as ProjectFollowUp | undefined
+    if (followUp !== undefined) {
+      aggregate.risks.push(...followUp.risks)
+      aggregate.decisions.push(...followUp.decisions)
+      aggregate.notes.set(project.id, {
+        statusSentence: followUp.statusSentence,
+        manual: followUp.source === 'manual' ? followUp.weather : null,
+      })
+    }
+  }
+  return aggregate
+}
+
 export function createDemoState(source: Record<string, unknown>): DemoState {
   const snapshot = structuredClone(source)
   const projects = held<Project[]>(snapshot, '/api/projects', [])
@@ -78,32 +120,7 @@ export function createDemoState(source: Record<string, unknown>): DemoState {
     ...held<EpicOverview[]>(snapshot, '/api/epics', []),
     ...held<EpicOverview[]>(snapshot, '/api/epics?state=trash', []),
   ]
-  const events: ProjectEvent[] = []
-  const links = new Map<number, SubjectLink[]>()
-  const workflows: Workflow[] = []
-  const columns: WorkflowColumn[] = []
-  const cards: ForgeCardView[] = []
-  const risks = []
-  const decisions = []
-  const notes = new Map<number, FollowUpNote>()
-
-  for (const project of projects) {
-    events.push(...held<ProjectEvent[]>(snapshot, `/api/projects/${project.id}/events`, []))
-    links.set(project.id, held<SubjectLink[]>(snapshot, `/api/projects/${project.id}/links`, []))
-    const owned = workflowsOf(snapshot, project)
-    workflows.push(...owned.workflows)
-    columns.push(...owned.columns)
-    cards.push(...cardsOf(snapshot, project.id, owned.ownId))
-    const followUp = snapshot[`/api/projects/${project.id}/follow-up`] as ProjectFollowUp | undefined
-    if (followUp !== undefined) {
-      risks.push(...followUp.risks)
-      decisions.push(...followUp.decisions)
-      notes.set(project.id, {
-        statusSentence: followUp.statusSentence,
-        manual: followUp.source === 'manual' ? followUp.weather : null,
-      })
-    }
-  }
+  const { events, links, workflows, columns, cards, risks, decisions, notes } = aggregateProjects(snapshot, projects)
 
   const history = historyOf(snapshot, epics)
   const threads = threadsOf(snapshot)

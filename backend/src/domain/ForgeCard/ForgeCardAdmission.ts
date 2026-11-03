@@ -12,6 +12,35 @@ import {
   UnknownWorkflowForStoryError,
 } from './ForgeCardViolation.js'
 
+function hydrateRow(row: ForgeCardRow, storyIds: number[]): ForgeCard {
+  return {
+    id: row.id,
+    reference: row.reference,
+    storyIds,
+    provider: row.provider,
+    claudeSessionId: row.claude_session_id,
+    currentPhase: row.current_phase,
+    createdAt: row.created_at,
+    closedAt: row.closed_at,
+  }
+}
+
+function admittedProvider(draft: ForgeCardDraft): ForgeCardProvider {
+  const refusal = refusalOfSelection(draft.storyIds)
+  if (refusal !== null) {
+    if (refusal.reason === 'EmptySelection') {
+      throw new EmptySelectionError()
+    }
+    throw new DuplicateStoryIdError(refusal.storyId)
+  }
+  const provider = draft.provider ?? DEFAULT_FORGE_CARD_PROVIDER
+  const providerRefusal = refusalOfProvider(provider)
+  if (providerRefusal !== null) {
+    throw new UnknownForgeCardProviderError(providerRefusal.provider)
+  }
+  return provider
+}
+
 export function createForgeCardAdmission({
   selectStory,
   selectOpenCardIdForStory,
@@ -22,16 +51,7 @@ export function createForgeCardAdmission({
   updateStoryWorkflow,
 }: ForgeCardStatements) {
   function hydrate(row: ForgeCardRow): ForgeCard {
-    return {
-      id: row.id,
-      reference: row.reference,
-      storyIds: selectStoryIdsOfCard.all(row.id).map((link) => link.story_id),
-      provider: row.provider,
-      claudeSessionId: row.claude_session_id,
-      currentPhase: row.current_phase,
-      createdAt: row.created_at,
-      closedAt: row.closed_at,
-    }
+    return hydrateRow(row, selectStoryIdsOfCard.all(row.id).map((link) => link.story_id))
   }
 
   function findCard(forgeCardId: number): ForgeCard {
@@ -59,18 +79,7 @@ export function createForgeCardAdmission({
   }
 
   function admit(draft: ForgeCardDraft): ForgeCardProvider {
-    const refusal = refusalOfSelection(draft.storyIds)
-    if (refusal !== null) {
-      if (refusal.reason === 'EmptySelection') {
-        throw new EmptySelectionError()
-      }
-      throw new DuplicateStoryIdError(refusal.storyId)
-    }
-    const provider = draft.provider ?? DEFAULT_FORGE_CARD_PROVIDER
-    const providerRefusal = refusalOfProvider(provider)
-    if (providerRefusal !== null) {
-      throw new UnknownForgeCardProviderError(providerRefusal.provider)
-    }
+    const provider = admittedProvider(draft)
     for (const storyId of draft.storyIds) {
       const story = selectStory.get(storyId)
       if (story === undefined) {

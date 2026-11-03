@@ -28,6 +28,28 @@ const columnsOfPatch = {
   note: 'note',
 } as const
 
+type EventAssignments = { assignments: string[]; values: (string | number | null)[] }
+
+function assignmentsOfPatch(patch: EventPatch, current: ProjectEvent, now: () => string): EventAssignments {
+  const assignments: string[] = []
+  const values: (string | number | null)[] = []
+  for (const [key, column] of Object.entries(columnsOfPatch)) {
+    const value = patch[key as keyof typeof columnsOfPatch]
+    if (value !== undefined) {
+      assignments.push(`${column} = ?`)
+      values.push(value)
+    }
+  }
+  if (patch.minutes !== undefined) {
+    const minutes = blankToNull(patch.minutes)
+    if (minutes !== current.minutes) {
+      assignments.push('minutes = ?', 'minutes_updated_at = ?')
+      values.push(minutes, minutes === null ? null : now())
+    }
+  }
+  return { assignments, values }
+}
+
 export function createEventRepository(
   db: Database.Database,
   { now = () => new Date().toISOString() }: EventRepositoryOptions = {},
@@ -41,22 +63,7 @@ export function createEventRepository(
     if (patch.epicId !== undefined && patch.epicId !== null) {
       assertEpicInProject(patch.epicId, current.projectId)
     }
-    const assignments: string[] = []
-    const values: (string | number | null)[] = []
-    for (const [key, column] of Object.entries(columnsOfPatch)) {
-      const value = patch[key as keyof typeof columnsOfPatch]
-      if (value !== undefined) {
-        assignments.push(`${column} = ?`)
-        values.push(value)
-      }
-    }
-    if (patch.minutes !== undefined) {
-      const minutes = blankToNull(patch.minutes)
-      if (minutes !== current.minutes) {
-        assignments.push('minutes = ?', 'minutes_updated_at = ?')
-        values.push(minutes, minutes === null ? null : now())
-      }
-    }
+    const { assignments, values } = assignmentsOfPatch(patch, current, now)
     if (assignments.length > 0) {
       db.prepare(`UPDATE epic_milestone SET ${assignments.join(', ')} WHERE id = ?`).run(...values, eventId)
     }

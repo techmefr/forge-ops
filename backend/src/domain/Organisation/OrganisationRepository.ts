@@ -53,19 +53,54 @@ function withDefaultProviders(written: readonly AuthProvider[]): readonly AuthPr
   )
 }
 
+type OrganisationStatements = ReturnType<typeof prepareOrganisationStatements>
+
+function soleOrganisationOf({
+  selectOrganisation,
+  insertOrganisation,
+}: OrganisationStatements): OrganisationRepository['soleOrganisation'] {
+  return () => {
+    const known = selectOrganisation.get(SOLE_ORGANISATION)
+    if (known !== undefined) {
+      return known
+    }
+    insertOrganisation.run(SOLE_ORGANISATION, 'Forge')
+    const written = selectOrganisation.get(SOLE_ORGANISATION)
+    if (written === undefined) {
+      throw new Error("l'organisation unique n'a pas pu etre ecrite")
+    }
+    return written
+  }
+}
+
+function identifierOf({
+  selectTokenByHash,
+  touchToken,
+}: OrganisationStatements): OrganisationRepository['identifyToken'] {
+  return (secret) => {
+    const row = selectTokenByHash.get(fingerprint(secret))
+    if (row === undefined || row.revoked_at !== null) {
+      return null
+    }
+    const seen = Buffer.from(row.token_hash)
+    if (!timingSafeEqual(seen, Buffer.from(fingerprint(secret)))) {
+      return null
+    }
+    touchToken.run(row.id)
+    return toToken(row)
+  }
+}
+
 export function createOrganisationRepository(db: Database.Database): OrganisationRepository {
+  const statements = prepareOrganisationStatements(db)
   const {
-    selectOrganisation,
-    insertOrganisation,
     selectProviders,
     writeProvider,
     insertToken,
     selectTokens,
     selectToken,
-    selectTokenByHash,
     revoke,
-    touchToken,
-  } = prepareOrganisationStatements(db)
+  } = statements
 
   function listProviders(organisationId: number): readonly AuthProvider[] {
     return withDefaultProviders(selectProviders.all(organisationId).map(toProvider))
@@ -80,18 +115,7 @@ export function createOrganisationRepository(db: Database.Database): Organisatio
   }
 
   return {
-    soleOrganisation: () => {
-      const known = selectOrganisation.get(SOLE_ORGANISATION)
-      if (known !== undefined) {
-        return known
-      }
-      insertOrganisation.run(SOLE_ORGANISATION, 'Forge')
-      const written = selectOrganisation.get(SOLE_ORGANISATION)
-      if (written === undefined) {
-        throw new Error("l'organisation unique n'a pas pu etre ecrite")
-      }
-      return written
-    },
+    soleOrganisation: soleOrganisationOf(statements),
 
     listProviders,
 
@@ -128,17 +152,6 @@ export function createOrganisationRepository(db: Database.Database): Organisatio
       return findToken(tokenId)
     },
 
-    identifyToken: (secret) => {
-      const row = selectTokenByHash.get(fingerprint(secret))
-      if (row === undefined || row.revoked_at !== null) {
-        return null
-      }
-      const seen = Buffer.from(row.token_hash)
-      if (!timingSafeEqual(seen, Buffer.from(fingerprint(secret)))) {
-        return null
-      }
-      touchToken.run(row.id)
-      return toToken(row)
-    },
+    identifyToken: identifierOf(statements),
   }
 }

@@ -60,24 +60,64 @@ function writeStoryWithTwin(stories: StoryRepository, epicId: number, incident: 
   return story
 }
 
+type IncidentStatements = ReturnType<typeof prepareIncidentStatements>
+
+function createOriginBook({
+  insertOrigin,
+  selectOriginBySlug,
+  selectOrigins,
+}: IncidentStatements): Pick<IncidentRepository, 'declareOrigin' | 'listOrigins'> {
+  return {
+    declareOrigin: (draft) => {
+      if (selectOriginBySlug.get(draft.slug) !== undefined) {
+        throw new OriginSlugTakenError(draft.slug)
+      }
+      const info = insertOrigin.run(draft.slug, draft.name, draft.kind)
+      return { id: Number(info.lastInsertRowid), ...draft }
+    },
+
+    listOrigins: () =>
+      selectOrigins.all().map((row) => ({ id: row.id, slug: row.slug, name: row.name, kind: row.kind })),
+  }
+}
+
+function reporterOf({
+  selectOriginBySlug,
+  selectByFingerprint,
+  bumpIncident,
+  insertIncident,
+}: IncidentStatements): IncidentRepository['reportIncident'] {
+  return (draft) => {
+    const origin = selectOriginBySlug.get(draft.originSlug)
+    if (origin === undefined) {
+      throw new OriginNotFoundError(draft.originSlug)
+    }
+    if (selectByFingerprint.get(origin.id, draft.fingerprint) !== undefined) {
+      bumpIncident.run(origin.id, draft.fingerprint)
+    } else {
+      insertIncident.run(origin.id, draft.fingerprint, draft.title, draft.detail)
+    }
+    const row = selectByFingerprint.get(origin.id, draft.fingerprint)
+    if (row === undefined) {
+      throw new OriginNotFoundError(draft.originSlug)
+    }
+    return toIncident(row)
+  }
+}
+
 export function createIncidentRepository(
   db: Database.Database,
   { stories }: IncidentRepositoryInput,
 ): IncidentRepository {
+  const statements = prepareIncidentStatements(db)
   const {
-    insertOrigin,
-    selectOriginBySlug,
     selectOriginById,
-    selectOrigins,
-    insertIncident,
-    bumpIncident,
-    selectByFingerprint,
     selectIncident,
     selectIncidents,
     selectIncidentsByState,
     acceptRow,
     refuseRow,
-  } = prepareIncidentStatements(db)
+  } = statements
 
   function findIncident(incidentId: number): Incident {
     const row = selectIncident.get(incidentId)
@@ -96,33 +136,9 @@ export function createIncidentRepository(
   }
 
   return {
-    declareOrigin: (draft) => {
-      if (selectOriginBySlug.get(draft.slug) !== undefined) {
-        throw new OriginSlugTakenError(draft.slug)
-      }
-      const info = insertOrigin.run(draft.slug, draft.name, draft.kind)
-      return { id: Number(info.lastInsertRowid), ...draft }
-    },
+    ...createOriginBook(statements),
 
-    listOrigins: () =>
-      selectOrigins.all().map((row) => ({ id: row.id, slug: row.slug, name: row.name, kind: row.kind })),
-
-    reportIncident: (draft) => {
-      const origin = selectOriginBySlug.get(draft.originSlug)
-      if (origin === undefined) {
-        throw new OriginNotFoundError(draft.originSlug)
-      }
-      if (selectByFingerprint.get(origin.id, draft.fingerprint) !== undefined) {
-        bumpIncident.run(origin.id, draft.fingerprint)
-      } else {
-        insertIncident.run(origin.id, draft.fingerprint, draft.title, draft.detail)
-      }
-      const row = selectByFingerprint.get(origin.id, draft.fingerprint)
-      if (row === undefined) {
-        throw new OriginNotFoundError(draft.originSlug)
-      }
-      return toIncident(row)
-    },
+    reportIncident: reporterOf(statements),
 
     listIncidents: (state) =>
       (state === undefined ? selectIncidents.all() : selectIncidentsByState.all(state)).map(toIncident),

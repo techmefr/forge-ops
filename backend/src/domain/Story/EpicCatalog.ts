@@ -33,12 +33,46 @@ function subjectInputOf(draft: EpicCreate) {
   }
 }
 
+type EpicCatalogStatements = ReturnType<typeof prepareEpicCatalogStatements>
+
+type SubjectInput = {
+  assignee: string | null
+  businessIntent: string
+  planning: Omit<EpicCreate, 'assignee' | 'businessIntent'>
+}
+
+function createSubjectWriter(
+  db: Database.Database,
+  { insertEpic, updateEpicAssignee, selectProjectById }: EpicCatalogStatements,
+  epics: EpicRepository,
+  assertAssignable: (login: string) => void,
+): (input: SubjectInput, by: string) => Epic {
+  return db.transaction((input: SubjectInput, by: string): Epic => {
+    const { projectId, title, ...fields } = input.planning
+    if (selectProjectById.get(projectId) === undefined) {
+      throw new ProjectNotFoundError(projectId)
+    }
+    if (input.assignee !== null) {
+      assertAssignable(input.assignee)
+    }
+    const info = insertEpic.run(projectId, title, input.businessIntent)
+    const id = Number(info.lastInsertRowid)
+    epics.recordState(id, by)
+    const patch: EpicPatch = { ...fields, ...(input.assignee === null ? {} : { state: 'doing' as const }) }
+    epics.plan(id, patch, by)
+    if (input.assignee !== null) {
+      updateEpicAssignee.run(input.assignee, id)
+    }
+    return { id, projectId, title, businessIntent: input.businessIntent }
+  })
+}
+
 export function createEpicCatalog(
   db: Database.Database,
   { epics, projects }: { epics: EpicRepository; projects: ProjectCatalog },
 ): EpicCatalog {
   const statements = prepareEpicCatalogStatements(db)
-  const { insertEpic, selectEpics, updateEpicAssignee, selectProjectById, selectFullEpic } = statements
+  const { insertEpic, selectEpics, selectProjectById, selectFullEpic } = statements
   const { assertAssignable, assignEpic, claimEpic, releaseEpic, assigneeOf } = createEpicAssignment(
     db,
     statements,
@@ -55,29 +89,7 @@ export function createEpicCatalog(
     })
   }
 
-  const createSubjectAtomically = db.transaction(
-    (
-      input: { assignee: string | null; businessIntent: string; planning: Omit<EpicCreate, 'assignee' | 'businessIntent'> },
-      by: string,
-    ): Epic => {
-      const { projectId, title, ...fields } = input.planning
-      if (selectProjectById.get(projectId) === undefined) {
-        throw new ProjectNotFoundError(projectId)
-      }
-      if (input.assignee !== null) {
-        assertAssignable(input.assignee)
-      }
-      const info = insertEpic.run(projectId, title, input.businessIntent)
-      const id = Number(info.lastInsertRowid)
-      epics.recordState(id, by)
-      const patch: EpicPatch = { ...fields, ...(input.assignee === null ? {} : { state: 'doing' as const }) }
-      epics.plan(id, patch, by)
-      if (input.assignee !== null) {
-        updateEpicAssignee.run(input.assignee, id)
-      }
-      return { id, projectId, title, businessIntent: input.businessIntent }
-    },
-  )
+  const createSubjectAtomically = createSubjectWriter(db, statements, epics, assertAssignable)
 
   return {
     createEpic: (draft) => {

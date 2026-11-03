@@ -36,13 +36,10 @@ export type EpicRepositoryOptions = {
   now?: () => string
 }
 
-export function createEpicRepository(
-  db: Database.Database,
-  { now = () => new Date().toISOString() }: EpicRepositoryOptions = {},
-): EpicRepository {
-  const reads = prepareEpicReads(db)
-  const writes = prepareEpicWrites(db)
+type EpicReadStatements = ReturnType<typeof prepareEpicReads>
+type EpicWriteStatements = ReturnType<typeof prepareEpicWrites>
 
+function createEpicLookups(reads: EpicReadStatements) {
   function liveEpic(epicId: number): EpicRow {
     const row = reads.selectEpic.get(epicId)
     if (row === undefined || row.deleted_at !== null) {
@@ -59,7 +56,11 @@ export function createEpicRepository(
     return row
   }
 
-  function recordState(epicId: number, by: string = SYSTEM_AUTHOR): void {
+  return { liveEpic, anyEpic }
+}
+
+function createEpicStateRecorder(reads: EpicReadStatements, writes: EpicWriteStatements, now: () => string) {
+  return (epicId: number, by: string = SYSTEM_AUTHOR): void => {
     const epic = reads.selectEpic.get(epicId)
     if (epic === undefined) {
       return
@@ -71,11 +72,10 @@ export function createEpicRepository(
     }
     writes.insertHistory.run(epicId, state, now(), by)
   }
+}
 
-  const { planningOf } = createEpicPlanningReader(reads, now)
-  const { writePlan } = createEpicPlanWriter({ db, reads, writes, liveEpic, recordState })
-
-  const purge = db.transaction((): number => {
+function createEpicPurge(db: Database.Database, reads: EpicReadStatements, now: () => string) {
+  return db.transaction((): number => {
     const cutoff = new Date(Date.parse(now()) - TRASH_RETENTION_DAYS * DAY_MS).toISOString()
     const expired = reads.selectExpired.all(cutoff)
     for (const { id } of expired) {
@@ -87,6 +87,19 @@ export function createEpicRepository(
     }
     return expired.length
   })
+}
+
+export function createEpicRepository(
+  db: Database.Database,
+  { now = () => new Date().toISOString() }: EpicRepositoryOptions = {},
+): EpicRepository {
+  const reads = prepareEpicReads(db)
+  const writes = prepareEpicWrites(db)
+  const { liveEpic, anyEpic } = createEpicLookups(reads)
+  const recordState = createEpicStateRecorder(reads, writes, now)
+  const { planningOf } = createEpicPlanningReader(reads, now)
+  const { writePlan } = createEpicPlanWriter({ db, reads, writes, liveEpic, recordState })
+  const purge = createEpicPurge(db, reads, now)
 
   return {
     ...createTagCatalog(db),

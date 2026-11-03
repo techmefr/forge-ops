@@ -84,6 +84,41 @@ function assertTokenizable(command: string): void {
   }
 }
 
+type Operator = { piped: boolean; width: number }
+
+function rejectLeadingChar(char: string): void {
+  if (char === '#') {
+    throw new UnparseableShellError('comments are not allowed')
+  }
+  if (char === '~') {
+    throw new UnparseableShellError('tilde expansion is not allowed')
+  }
+}
+
+function rejectBareChar(char: string): void {
+  const forbidden = FORBIDDEN_BARE.get(char)
+  if (forbidden !== undefined) {
+    throw new UnparseableShellError(`${forbidden} are not allowed`)
+  }
+}
+
+function operatorAt(command: string, index: number): Operator | null {
+  const char = command[index]
+  if (char === '&') {
+    if (command[index + 1] === '&') {
+      return { piped: false, width: 2 }
+    }
+    throw new UnparseableShellError('background jobs and bare & are not allowed')
+  }
+  if (char === '|') {
+    if (command[index + 1] === '|') {
+      throw new UnparseableShellError('|| chaining is not allowed')
+    }
+    return { piped: true, width: 1 }
+  }
+  return null
+}
+
 export function tokenizeShell(command: string): ShellSegment[] {
   assertTokenizable(command)
 
@@ -135,36 +170,17 @@ export function tokenizeShell(command: string): ShellSegment[] {
         index += redirect.length
         continue
       }
-      if (char === '#') {
-        throw new UnparseableShellError('comments are not allowed')
-      }
-      if (char === '~') {
-        throw new UnparseableShellError('tilde expansion is not allowed')
-      }
+      rejectLeadingChar(char)
     }
 
-    if (char === '&') {
-      if (command[index + 1] === '&') {
-        endSegment(false)
-        index += 2
-        continue
-      }
-      throw new UnparseableShellError('background jobs and bare & are not allowed')
-    }
-
-    if (char === '|') {
-      if (command[index + 1] === '|') {
-        throw new UnparseableShellError('|| chaining is not allowed')
-      }
-      endSegment(true)
-      index += 1
+    const operator = operatorAt(command, index)
+    if (operator !== null) {
+      endSegment(operator.piped)
+      index += operator.width
       continue
     }
 
-    const forbidden = FORBIDDEN_BARE.get(char)
-    if (forbidden !== undefined) {
-      throw new UnparseableShellError(`${forbidden} are not allowed`)
-    }
+    rejectBareChar(char)
 
     word += char
     inWord = true
