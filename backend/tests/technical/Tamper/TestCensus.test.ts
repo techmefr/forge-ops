@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { censusOfSource, compareCensus } from '../../../src/domain/Tamper/TestCensus.js'
+import { censusOfSource, compareCensus } from '../../../src/technical/Tamper/TestCensus.js'
 
 describe('censusOfSource', () => {
   it('compte les tests declares', () => {

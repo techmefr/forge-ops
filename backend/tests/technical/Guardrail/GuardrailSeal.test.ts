@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createGuardrailSeal } from '../../../src/technical/Guardrail/GuardrailSeal.js'
 import { isProtectedPath } from '../../../src/technical/Guardrail/ProtectedPaths.js'
-import { decideOnScopePayload } from '../../../src/technical/Guardrail/ScopeDecision.js'
+import { decideOnScopePayload } from '../../../src/domain/Foremerge/ScopeDecision.js'
 import { decideToolPermission } from '../../../src/technical/Guardrail/ToolPermission.js'
 
 describe('guardrail files', () => {

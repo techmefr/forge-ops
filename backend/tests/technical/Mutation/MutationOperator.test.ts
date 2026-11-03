@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mutationsOfSource } from '../../../src/domain/Mutation/MutationOperator.js'
+import { mutationsOfSource } from '../../../src/technical/Mutation/MutationOperator.js'
 
 describe('mutationsOfSource', () => {
   it('flips a boolean literal one occurrence at a time', () => {

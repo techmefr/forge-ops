@@ -9,7 +9,7 @@ import {
 } from '../../../src/domain/Checkpoint/CheckpointRepository.js'
 import { createAgentSessionRepository } from '../../../src/domain/Agent/AgentSessionRepository.js'
 import { TestsTamperedError } from '../../../src/domain/Checkpoint/CheckpointViolation.js'
-import type { TestCensus } from '../../../src/domain/Tamper/TestCensus.js'
+import type { TestCensus } from '../../../src/technical/Tamper/TestCensus.js'
 import { PERMISSIVE_CHECKPOINT_GATES } from '../../../src/domain/Checkpoint/PermissiveCheckpointGate.js'
 
 let db: Database.Database

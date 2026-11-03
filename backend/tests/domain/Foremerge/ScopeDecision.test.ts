@@ -3,7 +3,7 @@ import {
   decideOnScopePayload,
   decideOnWriteToolCall,
   WRITING_TOOLS,
-} from '../../../src/technical/Guardrail/ScopeDecision.js'
+} from '../../../src/domain/Foremerge/ScopeDecision.js'
 import type { ScopeReservation } from '../../../src/domain/Foremerge/ForemergeRepository.js'
 
 const HELD: readonly ScopeReservation[] = [

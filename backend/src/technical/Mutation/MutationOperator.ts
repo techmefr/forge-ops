@@ -1,4 +1,4 @@
-import { MUTATION_OPERATORS, MUTATION_PER_FILE_CAP, type Mutation, type MutationOperator } from './Mutation.js'
+import { MUTATION_OPERATORS, MUTATION_PER_FILE_CAP, type Mutation, type MutationOperator } from '../../../../contract/MutationContract.js'
 
 type Candidate = {
   start: number

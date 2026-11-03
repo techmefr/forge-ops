@@ -1,8 +1,5 @@
 [
-  "backend/src/technical/Guardrail/ScopeDecision.ts -> backend/src/domain/Foremerge/ForemergeRepository.ts",
-  "backend/src/technical/Guardrail/ScopeDecision.ts -> backend/src/domain/Foremerge/ScopeGuard.ts",
   "backend/src/technical/Guardrail/ScopeHook.ts -> backend/src/domain/Foremerge/ForemergeRepository.ts",
-  "backend/src/technical/Guardrail/ScopeHook.ts -> backend/src/domain/Story/StoryRepository.ts",
-  "backend/src/technical/Mutation/MutationRun.ts -> backend/src/domain/Mutation/MutationOperator.ts",
-  "backend/src/technical/Tamper/TestTreeCensus.ts -> backend/src/domain/Tamper/TestCensus.ts"
+  "backend/src/technical/Guardrail/ScopeHook.ts -> backend/src/domain/Foremerge/ScopeDecision.ts",
+  "backend/src/technical/Guardrail/ScopeHook.ts -> backend/src/domain/Story/StoryRepository.ts"
 ]
