@@ -34,7 +34,7 @@ const CENSUS_COLUMNS = `COUNT(story.id) AS total,
             COALESCE(SUM(story.state NOT IN ('drafting', 'backlog', 'done')), 0) AS started,
             COALESCE(SUM(story.state <> 'done' AND (story.blocked_reason IS NOT NULL OR story.state = 'escalated')), 0) AS blocked`
 
-export function prepareEpicReads(db: Database.Database) {
+function prepareEpicOwnReads(db: Database.Database) {
   return {
     selectEpic: db.prepare<[number], EpicRow>(
       `SELECT id, project_id, title, priority, started_on, status_note, requested_by, deleted_at, manual_state
@@ -58,6 +58,11 @@ export function prepareEpicReads(db: Database.Database) {
         WHERE epic.id = ?
         GROUP BY epic.id`,
     ),
+  }
+}
+
+function prepareEpicProjectReads(db: Database.Database) {
+  return {
     selectTagsOfProject: db.prepare<[number], EpicTagRow>(
       `SELECT epic_tag.epic_id AS epic_id, tag.id AS id, tag.label AS label, tag.colour AS colour,
               (SELECT COUNT(*) FROM epic_tag AS used WHERE used.tag_id = tag.id) AS usage
@@ -94,6 +99,11 @@ export function prepareEpicReads(db: Database.Database) {
          FROM epic_state_history JOIN epic ON epic.id = epic_state_history.epic_id
         WHERE epic.project_id = ? ORDER BY epic_state_history.id`,
     ),
+  }
+}
+
+function prepareEpicLookupReads(db: Database.Database) {
+  return {
     selectHistory: db.prepare<[number], HistoryRow>(
       'SELECT epic_id, state, at, by FROM epic_state_history WHERE epic_id = ? ORDER BY id',
     ),
@@ -106,6 +116,14 @@ export function prepareEpicReads(db: Database.Database) {
         WHERE epic.deleted_at IS NOT NULL AND epic.deleted_at <= ?
           AND NOT EXISTS (SELECT 1 FROM story WHERE story.epic_id = epic.id)`,
     ),
+  }
+}
+
+export function prepareEpicReads(db: Database.Database) {
+  return {
+    ...prepareEpicOwnReads(db),
+    ...prepareEpicProjectReads(db),
+    ...prepareEpicLookupReads(db),
   }
 }
 

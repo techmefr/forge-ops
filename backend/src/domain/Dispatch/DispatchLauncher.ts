@@ -26,6 +26,20 @@ export type LaunchRequest = {
   admission: Admission
 }
 
+function dispatchedOf({ order, resolved, built, admission }: LaunchRequest, claudeSessionId: string): Dispatched {
+  return {
+    claudeSessionId,
+    storyId: order.storyId,
+    phase: order.phase,
+    ...(order.lens === undefined ? {} : { lens: order.lens }),
+    agentName: resolved.agentName,
+    prompt: built.prompt,
+    ...(built.model === undefined ? {} : { model: built.model }),
+    ...(admission.decision.baseUrl === undefined ? {} : { baseUrl: admission.decision.baseUrl }),
+    ...built.stepSettings,
+  }
+}
+
 export function createDispatchLauncher({
   runner,
   sessions,
@@ -81,7 +95,7 @@ export function createDispatchLauncher({
   }
 
   async function launch(request: LaunchRequest): Promise<Dispatched> {
-    const { order, resolved, claim, built, admission } = request
+    const { order, claim } = request
     for (const waitingSessionId of claim.waitingOnCard) {
       runner.abandon?.(waitingSessionId)
       sessions.closeSession(waitingSessionId, { exitCode: 0 })
@@ -91,17 +105,7 @@ export function createDispatchLauncher({
     if (order.lens !== undefined) {
       checkpoints.startLens(order.storyId, order.lens, claudeSessionId)
     }
-    return {
-      claudeSessionId,
-      storyId: order.storyId,
-      phase: order.phase,
-      ...(order.lens === undefined ? {} : { lens: order.lens }),
-      agentName: resolved.agentName,
-      prompt: built.prompt,
-      ...(built.model === undefined ? {} : { model: built.model }),
-      ...(admission.decision.baseUrl === undefined ? {} : { baseUrl: admission.decision.baseUrl }),
-      ...built.stepSettings,
-    }
+    return dispatchedOf(request, claudeSessionId)
   }
 
   return { launch }

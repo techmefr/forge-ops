@@ -5,12 +5,9 @@ import type { IdentityApiInput } from './IdentityApi.js'
 import { sheetOf, type CallerOf } from './IdentityApiSupport.js'
 import { UnknownAccountError } from './IdentityViolation.js'
 
-export function mountIdentityUserRoutes(
-  api: Hono,
-  { identities, callerOf }: Pick<IdentityApiInput, 'identities'> & { callerOf: CallerOf },
-): void {
-  api.get('/api/board-users', (context) => context.json(identities.listUsers().map(sheetOf)))
+type UserRoutesInput = Pick<IdentityApiInput, 'identities'> & { callerOf: CallerOf }
 
+function mountEnrolRoute(api: Hono, { identities, callerOf }: UserRoutesInput): void {
   api.post('/api/board-users', async (context) => {
     const user = callerOf(context)
     if (user === null) {
@@ -25,7 +22,9 @@ export function mountIdentityUserRoutes(
     }
     return context.json(sheetOf(identities.enrolUser(draft.data)), 201)
   })
+}
 
+function mountChangeRoute(api: Hono, { identities, callerOf }: UserRoutesInput): void {
   api.patch('/api/board-users/:login', async (context) => {
     const user = callerOf(context)
     if (user === null) {
@@ -65,7 +64,9 @@ export function mountIdentityUserRoutes(
     }
     return context.json(sheetOf(changed))
   })
+}
 
+function mountVerifyAndEraseRoutes(api: Hono, { identities, callerOf }: UserRoutesInput): void {
   api.post('/api/board-users/:login/verify-email', (context) => {
     const user = callerOf(context)
     if (user === null) {
@@ -87,4 +88,11 @@ export function mountIdentityUserRoutes(
     }
     return context.json(sheetOf(identities.eraseUser(context.req.param('login'))))
   })
+}
+
+export function mountIdentityUserRoutes(api: Hono, input: UserRoutesInput): void {
+  api.get('/api/board-users', (context) => context.json(input.identities.listUsers().map(sheetOf)))
+  mountEnrolRoute(api, input)
+  mountChangeRoute(api, input)
+  mountVerifyAndEraseRoutes(api, input)
 }

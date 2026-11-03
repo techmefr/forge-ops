@@ -1,7 +1,7 @@
 import { query } from '@anthropic-ai/claude-agent-sdk'
 import type { LaunchOrder, SessionRunner } from '../../../../contract/DispatchContract.js'
 import type { SessionTalker, SpokenTurn } from '../../../../contract/ConversationContract.js'
-import type { LiveSessions } from './LiveSessions.js'
+import type { LiveSession, LiveSessions } from './LiveSessions.js'
 import { deliverTurn, userTurn, type SdkUserTurn } from './TurnDelivery.js'
 import { WORKFLOW_EFFORTS, type WorkflowEffort } from '../../../../contract/WorkflowColumnContract.js'
 import type { Settings } from '@anthropic-ai/claude-agent-sdk'
@@ -71,6 +71,37 @@ function openConversation({ order, cwd, shell, forgeRoot, prompt }: Conversation
   })
 }
 
+type Conversation = ReturnType<typeof openConversation>
+
+type SessionIdInput = {
+  spoken: ReturnType<Conversation[typeof Symbol.asyncIterator]>
+  order: LaunchOrder
+  started: LiveSession<SdkUserTurn>
+  conversation: Conversation
+  onEvent: SdkSessionRunnerInput['onEvent']
+}
+
+async function awaitSessionId({ spoken, order, started, conversation, onEvent }: SessionIdInput): Promise<string> {
+  let claudeSessionId: string | null = null
+  while (claudeSessionId === null) {
+    const step = await spoken.next()
+    if (step.done === true) {
+      started.channel.close()
+      conversation.close()
+      throw new SessionIdentifierMissingError(order.reference)
+    }
+    const message = step.value
+    if ('session_id' in message && typeof message.session_id === 'string') {
+      claudeSessionId = message.session_id
+    }
+    onEvent({
+      name: `session.${message.type}`,
+      payload: { reference: order.reference, phase: order.phase, claudeSessionId },
+    })
+  }
+  return claudeSessionId
+}
+
 export function createSdkSessionRunner({
   cwdFor,
   onEvent,
@@ -100,23 +131,7 @@ export function createSdkSessionRunner({
         conversation.interrupt().catch(() => conversation.close())
       })
       const spoken = conversation[Symbol.asyncIterator]()
-      let claudeSessionId: string | null = null
-      while (claudeSessionId === null) {
-        const step = await spoken.next()
-        if (step.done === true) {
-          started.channel.close()
-          conversation.close()
-          throw new SessionIdentifierMissingError(order.reference)
-        }
-        const message = step.value
-        if ('session_id' in message && typeof message.session_id === 'string') {
-          claudeSessionId = message.session_id
-        }
-        onEvent({
-          name: `session.${message.type}`,
-          payload: { reference: order.reference, phase: order.phase, claudeSessionId },
-        })
-      }
+      const claudeSessionId = await awaitSessionId({ spoken, order, started, conversation, onEvent })
 
       try {
         started.adopt(claudeSessionId)

@@ -45,13 +45,33 @@ function refuseIfNotRemovable(name: string, siblings: number, held: number): voi
   }
 }
 
+type WorkflowStatements = ReturnType<typeof prepareProjectWorkflowStatements>
+
+function createWorkflowInsert(
+  { selectById, selectMaxPosition, insertWorkflow }: WorkflowStatements,
+  list: (projectId: number) => readonly Workflow[],
+): (projectId: number, name: string) => Workflow {
+  return (projectId, name) => {
+    const existing = list(projectId)
+    const trimmed = refuseIfInvalid(
+      name,
+      existing.map((workflow) => workflow.name),
+    )
+    const key = keyOfLabel(
+      trimmed,
+      existing.map((workflow) => workflow.key),
+    )
+    const position = (selectMaxPosition.get(projectId)?.max_position ?? 0) + 1
+    const { lastInsertRowid } = insertWorkflow.run(projectId, key, trimmed, position)
+    return fromRow(selectById.get(Number(lastInsertRowid))!)
+  }
+}
+
 export function createProjectWorkflowRepository(db: Database.Database): ProjectWorkflowRepository {
   const statements = prepareProjectWorkflowStatements(db)
   const {
     selectOfProject,
     selectById,
-    selectMaxPosition,
-    insertWorkflow,
     renameWorkflow,
     deleteWorkflow,
     deleteColumnsOf,
@@ -71,20 +91,7 @@ export function createProjectWorkflowRepository(db: Database.Database): ProjectW
     return row
   }
 
-  function insert(projectId: number, name: string): Workflow {
-    const existing = list(projectId)
-    const trimmed = refuseIfInvalid(
-      name,
-      existing.map((workflow) => workflow.name),
-    )
-    const key = keyOfLabel(
-      trimmed,
-      existing.map((workflow) => workflow.key),
-    )
-    const position = (selectMaxPosition.get(projectId)?.max_position ?? 0) + 1
-    const { lastInsertRowid } = insertWorkflow.run(projectId, key, trimmed, position)
-    return fromRow(selectById.get(Number(lastInsertRowid))!)
-  }
+  const insert = createWorkflowInsert(statements, list)
 
   return {
     list,

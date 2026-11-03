@@ -20,6 +20,37 @@ export type ForgeCardRepository = {
   recordDispatch: (forgeCardId: number, progress: ForgeCardDispatchProgress) => ForgeCard
 }
 
+type ForgeCardStatementSet = ReturnType<typeof prepareForgeCardStatements>
+type ForgeCardAdmission = ReturnType<typeof createForgeCardAdmission>
+
+function createForgeCardAttacher(
+  statements: ForgeCardStatementSet,
+  { findCard, refuseUnknownWorkflow, assignWorkflow }: ForgeCardAdmission,
+  nextReference: () => string,
+): ForgeCardRepository['attachCardToStory'] {
+  const { selectStory, selectAnyCardIdForStory, insertCard, linkStory, closeCard } = statements
+  return (storyId, workflowId) => {
+    const story = selectStory.get(storyId)
+    if (story === undefined) {
+      throw new ForgeStoryNotFoundError(storyId)
+    }
+    refuseUnknownWorkflow(storyId, story.reference, workflowId)
+    const existing = selectAnyCardIdForStory.get(storyId)
+    if (existing !== undefined) {
+      assignWorkflow(storyId, workflowId)
+      return findCard(existing.forge_card_id)
+    }
+    const info = insertCard.run(nextReference(), DEFAULT_FORGE_CARD_PROVIDER)
+    const forgeCardId = Number(info.lastInsertRowid)
+    linkStory.run(forgeCardId, storyId)
+    assignWorkflow(storyId, workflowId)
+    if (story.state === 'done') {
+      closeCard.run(forgeCardId)
+    }
+    return findCard(forgeCardId)
+  }
+}
+
 export function createForgeCardRepository(db: Database.Database): ForgeCardRepository {
   const statements = prepareForgeCardStatements(db)
   const {
@@ -28,17 +59,18 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
     linkStory,
     closeCard,
     updateDispatchProgress,
-    selectStory,
     selectProjectOfWorkflow,
     selectOpenCardIdForStory,
-    selectAnyCardIdForStory,
     selectCard,
   } = statements
-  const { hydrate, findCard, refuseUnknownWorkflow, assignWorkflow, admit } = createForgeCardAdmission(statements)
+  const admission = createForgeCardAdmission(statements)
+  const { hydrate, findCard, assignWorkflow, admit } = admission
 
   function nextReference(): string {
     return `FORGE-${(countCards.get()?.total ?? 0) + 1}`
   }
+
+  const attachCardToStory = createForgeCardAttacher(statements, admission, nextReference)
 
   return {
     createForgeCard: (draft) => {
@@ -62,26 +94,7 @@ export function createForgeCardRepository(db: Database.Database): ForgeCardRepos
       closeCard.run(forgeCardId)
     },
 
-    attachCardToStory: (storyId, workflowId) => {
-      const story = selectStory.get(storyId)
-      if (story === undefined) {
-        throw new ForgeStoryNotFoundError(storyId)
-      }
-      refuseUnknownWorkflow(storyId, story.reference, workflowId)
-      const existing = selectAnyCardIdForStory.get(storyId)
-      if (existing !== undefined) {
-        assignWorkflow(storyId, workflowId)
-        return findCard(existing.forge_card_id)
-      }
-      const info = insertCard.run(nextReference(), DEFAULT_FORGE_CARD_PROVIDER)
-      const forgeCardId = Number(info.lastInsertRowid)
-      linkStory.run(forgeCardId, storyId)
-      assignWorkflow(storyId, workflowId)
-      if (story.state === 'done') {
-        closeCard.run(forgeCardId)
-      }
-      return findCard(forgeCardId)
-    },
+    attachCardToStory,
 
     openCardOfStory: (storyId) => {
       const link = selectOpenCardIdForStory.get(storyId)

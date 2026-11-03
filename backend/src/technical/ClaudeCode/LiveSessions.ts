@@ -35,6 +35,55 @@ export type LiveSessionsInput = {
   cap?: number
 }
 
+function findOpenChannel<T>(channels: Map<string, InputChannel<T>>, claudeSessionId: string): InputChannel<T> | null {
+  const channel = channels.get(claudeSessionId)
+  if (channel === undefined) {
+    return null
+  }
+  if (!channel.open) {
+    channels.delete(claudeSessionId)
+    return null
+  }
+  return channel
+}
+
+function closeChannel<T>(channels: Map<string, InputChannel<T>>, claudeSessionId: string): boolean {
+  const channel = channels.get(claudeSessionId)
+  if (channel === undefined) {
+    return false
+  }
+  channel.close()
+  channels.delete(claudeSessionId)
+  return true
+}
+
+function terminateChannel<T>(
+  channels: Map<string, InputChannel<T>>,
+  stoppers: Map<string, () => void>,
+  claudeSessionId: string,
+): boolean {
+  const channel = channels.get(claudeSessionId)
+  const stop = stoppers.get(claudeSessionId)
+  if (channel === undefined) {
+    return false
+  }
+  channel.close()
+  channels.delete(claudeSessionId)
+  stoppers.delete(claudeSessionId)
+  stop?.()
+  return true
+}
+
+function closeEveryChannel<T>(channels: Map<string, InputChannel<T>>, stoppers: Map<string, () => void>): void {
+  for (const claudeSessionId of [...channels.keys()]) {
+    const stop = stoppers.get(claudeSessionId)
+    channels.get(claudeSessionId)?.close()
+    stop?.()
+  }
+  channels.clear()
+  stoppers.clear()
+}
+
 export function createLiveSessions<T>({ cap = DEFAULT_LIVE_SESSION_CAP }: LiveSessionsInput = {}): LiveSessions<T> {
   const channels = new Map<string, InputChannel<T>>()
   const stoppers = new Map<string, () => void>()
@@ -70,50 +119,10 @@ export function createLiveSessions<T>({ cap = DEFAULT_LIVE_SESSION_CAP }: LiveSe
       }
     },
 
-    find: (claudeSessionId) => {
-      const channel = channels.get(claudeSessionId)
-      if (channel === undefined) {
-        return null
-      }
-      if (!channel.open) {
-        channels.delete(claudeSessionId)
-        return null
-      }
-      return channel
-    },
-
-    close: (claudeSessionId) => {
-      const channel = channels.get(claudeSessionId)
-      if (channel === undefined) {
-        return false
-      }
-      channel.close()
-      channels.delete(claudeSessionId)
-      return true
-    },
-
-    terminate: (claudeSessionId) => {
-      const channel = channels.get(claudeSessionId)
-      const stop = stoppers.get(claudeSessionId)
-      if (channel === undefined) {
-        return false
-      }
-      channel.close()
-      channels.delete(claudeSessionId)
-      stoppers.delete(claudeSessionId)
-      stop?.()
-      return true
-    },
-
-    closeAll: () => {
-      for (const claudeSessionId of [...channels.keys()]) {
-        const stop = stoppers.get(claudeSessionId)
-        channels.get(claudeSessionId)?.close()
-        stop?.()
-      }
-      channels.clear()
-      stoppers.clear()
-    },
+    find: (claudeSessionId) => findOpenChannel(channels, claudeSessionId),
+    close: (claudeSessionId) => closeChannel(channels, claudeSessionId),
+    terminate: (claudeSessionId) => terminateChannel(channels, stoppers, claudeSessionId),
+    closeAll: () => closeEveryChannel(channels, stoppers),
 
     count: () => channels.size,
   }

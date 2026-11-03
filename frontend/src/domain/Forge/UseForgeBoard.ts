@@ -29,6 +29,23 @@ export type ForgeBoardState = {
   addStory: (subjectId: number, title: string, workflowId?: number) => Promise<boolean>
 }
 
+async function fetchBoardStructure(project: number) {
+  const [listed, loadedSubjects] = await Promise.all([
+    board.read<ProjectWorkflows>(`/api/projects/${project}/workflows`),
+    board.read<readonly EpicOverview[]>(`/api/projects/${project}/epics`),
+  ])
+  const loaded = await Promise.all(
+    listed.workflows.map((held) =>
+      board.read<ProjectWorkflow>(`/api/projects/${project}/workflow-columns?workflow=${held.id}`),
+    ),
+  )
+  const first = loaded[0] ?? (await board.read<ProjectWorkflow>(`/api/projects/${project}/workflow-columns`))
+  const columns: ReadonlyMap<number, readonly WorkflowColumn[]> = new Map(
+    listed.workflows.map((held, index) => [held.id, loaded[index]?.columns ?? []]),
+  )
+  return { listed, first, columns, loadedSubjects }
+}
+
 export function useForgeBoard(projectId: () => number | null): ForgeBoardState {
   const cards = shallowRef<readonly ForgeCardView[]>([])
   const workflow = shallowRef<ProjectWorkflow | null>(null)
@@ -42,11 +59,7 @@ export function useForgeBoard(projectId: () => number | null): ForgeBoardState {
 
   async function refresh(): Promise<void> {
     const project = projectId()
-    if (project === null) {
-      cards.value = []
-      return
-    }
-    const read = await board.read<readonly ForgeCardView[]>(`/api/forge-cards?project=${project}`)
+    const read = project === null ? [] : await board.read<readonly ForgeCardView[]>(`/api/forge-cards?project=${project}`)
     if (projectId() === project) {
       cards.value = read
     }
@@ -69,22 +82,13 @@ export function useForgeBoard(projectId: () => number | null): ForgeBoardState {
     pending.value = true
     failure.value = null
     try {
-      const [listed, loadedSubjects] = await Promise.all([
-        board.read<ProjectWorkflows>(`/api/projects/${project}/workflows`),
-        board.read<readonly EpicOverview[]>(`/api/projects/${project}/epics`),
-      ])
-      const loaded = await Promise.all(
-        listed.workflows.map((held) =>
-          board.read<ProjectWorkflow>(`/api/projects/${project}/workflow-columns?workflow=${held.id}`),
-        ),
-      )
-      const first = loaded[0] ?? (await board.read<ProjectWorkflow>(`/api/projects/${project}/workflow-columns`))
+      const { listed, first, columns, loadedSubjects } = await fetchBoardStructure(project)
       if (mine !== loading) {
         return
       }
       workflow.value = first
       workflows.value = listed.workflows
-      columnsByWorkflow.value = new Map(listed.workflows.map((held, index) => [held.id, loaded[index]?.columns ?? []]))
+      columnsByWorkflow.value = columns
       subjects.value = loadedSubjects
       await refresh()
     } catch (error) {

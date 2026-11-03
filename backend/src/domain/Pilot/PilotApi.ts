@@ -54,47 +54,12 @@ function mapPilotError(error: Error, context: Context): Response {
   return context.json({ error: 'UnexpectedError' }, 500)
 }
 
-export function createPilotApi({ pilots, events, suggest, mayRun }: PilotApiInput): Hono {
-  const api = new Hono()
+function storyOf(raw: string | undefined): number | null {
+  const parsed = identifierSchema.safeParse(raw)
+  return parsed.success ? parsed.data : null
+}
 
-  api.onError(mapPilotError)
-
-  function storyOf(raw: string | undefined): number | null {
-    const parsed = identifierSchema.safeParse(raw)
-    return parsed.success ? parsed.data : null
-  }
-
-  api.get('/api/pilots', (context) => context.json(pilots.listLive()))
-
-  api.get('/api/stories/:id/pilot', (context) => {
-    const storyId = storyOf(context.req.param('id'))
-    if (storyId === null) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    return context.json({
-      run: pilots.findForStory(storyId),
-      history: pilots.history(storyId),
-      suggestion: suggest(storyId),
-    })
-  })
-
-  api.post('/api/stories/:id/pilot', async (context) => {
-    const storyId = storyOf(context.req.param('id'))
-    if (storyId === null) {
-      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
-    }
-    if (mayRun !== undefined && !mayRun(storyId, context)) {
-      return context.json({ error: 'PilotNeedsTheHolder' }, 403)
-    }
-    const order = await parseBody(context, orderSchema)
-    if (!order.success) {
-      return context.json({ error: 'InvalidPilotOrder', issues: order.error.issues }, 422)
-    }
-    const run = await pilots.start({ storyId, ...order.data })
-    events.publish({ name: 'pilot.started', payload: { ...run } })
-    return context.json(run, 201)
-  })
-
+function mountPilotLifecycleRoutes(api: Hono, { pilots, events }: PilotApiInput): void {
   api.post('/api/stories/:id/pilot/advance', async (context) => {
     const storyId = storyOf(context.req.param('id'))
     if (storyId === null) {
@@ -142,6 +107,46 @@ export function createPilotApi({ pilots, events, suggest, mayRun }: PilotApiInpu
     events.publish({ name: 'pilot.ended', payload: { ...run } })
     return context.json(run)
   })
+}
+
+export function createPilotApi(input: PilotApiInput): Hono {
+  const { pilots, events, suggest, mayRun } = input
+  const api = new Hono()
+
+  api.onError(mapPilotError)
+
+  api.get('/api/pilots', (context) => context.json(pilots.listLive()))
+
+  api.get('/api/stories/:id/pilot', (context) => {
+    const storyId = storyOf(context.req.param('id'))
+    if (storyId === null) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    return context.json({
+      run: pilots.findForStory(storyId),
+      history: pilots.history(storyId),
+      suggestion: suggest(storyId),
+    })
+  })
+
+  api.post('/api/stories/:id/pilot', async (context) => {
+    const storyId = storyOf(context.req.param('id'))
+    if (storyId === null) {
+      return context.json({ error: 'InvalidStoryIdentifier' }, 422)
+    }
+    if (mayRun !== undefined && !mayRun(storyId, context)) {
+      return context.json({ error: 'PilotNeedsTheHolder' }, 403)
+    }
+    const order = await parseBody(context, orderSchema)
+    if (!order.success) {
+      return context.json({ error: 'InvalidPilotOrder', issues: order.error.issues }, 422)
+    }
+    const run = await pilots.start({ storyId, ...order.data })
+    events.publish({ name: 'pilot.started', payload: { ...run } })
+    return context.json(run, 201)
+  })
+
+  mountPilotLifecycleRoutes(api, input)
 
   return api
 }

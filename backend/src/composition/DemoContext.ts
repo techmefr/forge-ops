@@ -16,13 +16,7 @@ import { CENSUS } from './DemoPlans.js'
 
 export type DemoContext = ReturnType<typeof createDemoContext>
 
-export function createDemoContext(db: Database.Database) {
-  const stories = createStoryRepository(db)
-  const checkpoints = createCheckpointRepository(db, {
-    ...PERMISSIVE_CHECKPOINT_GATES,
-    takeCensus: () => CENSUS,
-  })
-  const workflowColumns = createWorkflowColumnRepository(db)
+function prepareDemoStatements(db: Database.Database) {
   const setState = db.prepare<[StoryState, StoryState, number]>(
     `UPDATE story
         SET state = ?,
@@ -64,7 +58,25 @@ export function createDemoContext(db: Database.Database) {
   const markSeeded = db.prepare<[string, string]>(
     'INSERT INTO board_setting (key, value) VALUES (?, ?)',
   )
+  return {
+    setState,
+    placeInColumn,
+    setEscalation,
+    backdateSession,
+    insertWorktree,
+    insertPort,
+    insertRun,
+    insertAct,
+    markSeeded,
+  }
+}
 
+export function createDemoContext(db: Database.Database) {
+  const stories = createStoryRepository(db)
+  const checkpoints = createCheckpointRepository(db, {
+    ...PERMISSIVE_CHECKPOINT_GATES,
+    takeCensus: () => CENSUS,
+  })
   return {
     db,
     stories,
@@ -76,16 +88,8 @@ export function createDemoContext(db: Database.Database) {
     budget: createBudgetRepository(db),
     discussion: createDiscussionRepository(db, { stories }),
     identities: createIdentityRepository(db),
-    workflowColumns,
-    setState,
-    placeInColumn,
-    setEscalation,
-    backdateSession,
-    insertWorktree,
-    insertPort,
-    insertRun,
-    insertAct,
-    markSeeded,
+    workflowColumns: createWorkflowColumnRepository(db),
+    ...prepareDemoStatements(db),
     storyIds: new Map<string, number>(),
     references: new Map<string, string>(),
     projectIds: new Map<string, number>(),

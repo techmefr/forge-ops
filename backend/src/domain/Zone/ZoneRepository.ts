@@ -1,21 +1,7 @@
 import type Database from 'better-sqlite3'
 import type { Zone, ZoneDraft, ZoneFile, ZoneOverview } from './Zone.js'
+import { prepareZoneStatements, type FileRow, type ZoneRow } from './ZoneStatements.js'
 import { ZoneNotFoundError, ZonePrefixRequiredError } from './ZoneViolation.js'
-
-type ZoneRow = {
-  id: number
-  project_id: number
-  path_prefix: string
-  name: string
-  colour: string
-  summary: string | null
-}
-
-type FileRow = {
-  path: string
-  story_reference: string
-  agent_name: string | null
-}
 
 export type ZoneRepository = {
   declareZone: (draft: ZoneDraft) => Zone
@@ -51,38 +37,7 @@ function toFile(row: FileRow): ZoneFile {
 }
 
 export function createZoneRepository(db: Database.Database): ZoneRepository {
-  const insertZone = db.prepare<[number, string, string, string]>(
-    'INSERT INTO zone (project_id, path_prefix, name, colour) VALUES (?, ?, ?, ?)',
-  )
-  const selectZoneById = db.prepare<[number], ZoneRow>('SELECT * FROM zone WHERE id = ?')
-  const selectZoneByPrefix = db.prepare<[number, string], ZoneRow>(
-    'SELECT * FROM zone WHERE project_id = ? AND path_prefix = ?',
-  )
-  const selectZones = db.prepare<[number], ZoneRow>(
-    'SELECT * FROM zone WHERE project_id = ? ORDER BY path_prefix',
-  )
-  const updateSummary = db.prepare<[string, number, string]>(
-    "UPDATE zone SET summary = ?, summarised_at = datetime('now') WHERE project_id = ? AND path_prefix = ?",
-  )
-  const selectZoneFiles = db.prepare<[number, string], FileRow>(
-    `SELECT DISTINCT file_touch.path AS path,
-            story.reference AS story_reference,
-            agent_session.agent_name AS agent_name
-       FROM file_touch
-       JOIN story ON story.id = file_touch.story_id
-       JOIN epic ON epic.id = story.epic_id
-       LEFT JOIN agent_session ON agent_session.id = file_touch.agent_session_id
-      WHERE epic.project_id = ?
-        AND file_touch.path LIKE ? ESCAPE '\\'
-      ORDER BY file_touch.path`,
-  )
-  const selectLongestPrefix = db.prepare<[number, string], ZoneRow>(
-    `SELECT * FROM zone
-      WHERE project_id = ?
-        AND SUBSTR(?, 1, LENGTH(path_prefix)) = path_prefix
-      ORDER BY LENGTH(path_prefix) DESC
-      LIMIT 1`,
-  )
+  const { insertZone, selectZoneById, selectZoneByPrefix, selectZones, updateSummary, selectZoneFiles, selectLongestPrefix } = prepareZoneStatements(db)
 
   function findZone(projectId: number, pathPrefix: string): Zone {
     const row = selectZoneByPrefix.get(projectId, pathPrefix)

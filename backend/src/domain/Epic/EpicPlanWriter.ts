@@ -20,57 +20,68 @@ type PlanWriterInput = {
   recordState: (epicId: number, by: string) => void
 }
 
+function assertDependencies(
+  reads: EpicReads,
+  liveEpic: (epicId: number) => unknown,
+  epicId: number,
+  dependsOn: readonly number[],
+): void {
+  for (const target of dependsOn) {
+    if (target === epicId) {
+      throw new EpicSelfDependencyError(epicId)
+    }
+    liveEpic(target)
+  }
+  const edges = new Map<number, number[]>()
+  for (const row of reads.selectEveryDependency.all()) {
+    if (row.epic_id !== epicId) {
+      edges.set(row.epic_id, [...(edges.get(row.epic_id) ?? []), row.depends_on_epic_id])
+    }
+  }
+  for (const target of dependsOn) {
+    if (closesLoop(edges, epicId, [target])) {
+      throw new EpicDependencyLoopError(epicId, target)
+    }
+  }
+}
+
+function writeScalars(db: Database.Database, epicId: number, patch: EpicPatch): void {
+  const assignments: string[] = []
+  const values: (string | null)[] = []
+  for (const [key, column] of Object.entries(SCALAR_COLUMNS)) {
+    const value = patch[key as keyof typeof SCALAR_COLUMNS]
+    if (value !== undefined) {
+      assignments.push(`${column} = ?`)
+      values.push(value)
+    }
+  }
+  if (assignments.length > 0) {
+    db.prepare(`UPDATE epic SET ${assignments.join(', ')} WHERE id = ?`).run(...values, epicId)
+  }
+}
+
+function writeRelations(
+  writes: EpicWrites,
+  epicId: number,
+  patch: EpicPatch,
+  tagIds: readonly number[],
+  dependsOn: readonly number[],
+): void {
+  if (patch.tagIds !== undefined) {
+    writes.deleteEpicTags.run(epicId)
+    tagIds.forEach((tagId) => writes.insertEpicTag.run(epicId, tagId))
+  }
+  if (patch.links !== undefined) {
+    writes.deleteEpicLinks.run(epicId)
+    patch.links.forEach((link) => writes.insertEpicLink.run(epicId, link.kind, link.url))
+  }
+  if (patch.dependsOn !== undefined) {
+    writes.deleteOwnDependencies.run(epicId)
+    dependsOn.forEach((target) => writes.insertDependency.run(epicId, target))
+  }
+}
+
 export function createEpicPlanWriter({ db, reads, writes, liveEpic, recordState }: PlanWriterInput) {
-  function assertDependencies(epicId: number, dependsOn: readonly number[]): void {
-    for (const target of dependsOn) {
-      if (target === epicId) {
-        throw new EpicSelfDependencyError(epicId)
-      }
-      liveEpic(target)
-    }
-    const edges = new Map<number, number[]>()
-    for (const row of reads.selectEveryDependency.all()) {
-      if (row.epic_id !== epicId) {
-        edges.set(row.epic_id, [...(edges.get(row.epic_id) ?? []), row.depends_on_epic_id])
-      }
-    }
-    for (const target of dependsOn) {
-      if (closesLoop(edges, epicId, [target])) {
-        throw new EpicDependencyLoopError(epicId, target)
-      }
-    }
-  }
-
-  function writeScalars(epicId: number, patch: EpicPatch): void {
-    const assignments: string[] = []
-    const values: (string | null)[] = []
-    for (const [key, column] of Object.entries(SCALAR_COLUMNS)) {
-      const value = patch[key as keyof typeof SCALAR_COLUMNS]
-      if (value !== undefined) {
-        assignments.push(`${column} = ?`)
-        values.push(value)
-      }
-    }
-    if (assignments.length > 0) {
-      db.prepare(`UPDATE epic SET ${assignments.join(', ')} WHERE id = ?`).run(...values, epicId)
-    }
-  }
-
-  function writeRelations(epicId: number, patch: EpicPatch, tagIds: readonly number[], dependsOn: readonly number[]): void {
-    if (patch.tagIds !== undefined) {
-      writes.deleteEpicTags.run(epicId)
-      tagIds.forEach((tagId) => writes.insertEpicTag.run(epicId, tagId))
-    }
-    if (patch.links !== undefined) {
-      writes.deleteEpicLinks.run(epicId)
-      patch.links.forEach((link) => writes.insertEpicLink.run(epicId, link.kind, link.url))
-    }
-    if (patch.dependsOn !== undefined) {
-      writes.deleteOwnDependencies.run(epicId)
-      dependsOn.forEach((target) => writes.insertDependency.run(epicId, target))
-    }
-  }
-
   const writePlan = db.transaction((epicId: number, patch: EpicPatch, by: string) => {
     liveEpic(epicId)
     if (patch.state !== undefined && (reads.selectCensusOfEpic.get(epicId)?.total ?? 0) > 0) {
@@ -84,14 +95,14 @@ export function createEpicPlanWriter({ db, reads, writes, liveEpic, recordState 
     }
     const dependsOn = [...new Set(patch.dependsOn ?? [])]
     if (patch.dependsOn !== undefined) {
-      assertDependencies(epicId, dependsOn)
+      assertDependencies(reads, liveEpic, epicId, dependsOn)
     }
-    writeScalars(epicId, patch)
+    writeScalars(db, epicId, patch)
     if (patch.state !== undefined) {
       writes.updateManualState.run(patch.state, epicId)
       recordState(epicId, by)
     }
-    writeRelations(epicId, patch, tagIds, dependsOn)
+    writeRelations(writes, epicId, patch, tagIds, dependsOn)
   })
 
   return { writePlan }

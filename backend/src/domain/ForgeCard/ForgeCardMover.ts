@@ -22,6 +22,29 @@ export type ForgeCardMover = {
   launch: (forgeCardId: number, options?: { feedback?: string }) => Promise<ForgeCardMoved>
 }
 
+type CardView = ReturnType<ForgeBoardRepository['view']>
+
+function assertMovable(view: CardView, busy: boolean, stepKey: string): void {
+  if (busy || view.status === 'running') {
+    throw new StepBusyError(view.reference)
+  }
+  if (view.stepKey === DONE_STEP_KEY) {
+    throw new DoneIsFinalError(view.reference)
+  }
+  if (stepKey === DONE_STEP_KEY) {
+    throw new DoneIsEarnedError(view.reference)
+  }
+}
+
+function assertLaunchable(view: CardView, busy: boolean): void {
+  if (view.stepKey === BACKLOG_STEP_KEY || view.stepKey === DONE_STEP_KEY) {
+    throw new LaunchNeedsAStepError(view.reference)
+  }
+  if (busy || view.status === 'running') {
+    throw new StepBusyError(view.reference)
+  }
+}
+
 export function createForgeCardMover({
   board,
   forgeCards,
@@ -52,15 +75,7 @@ export function createForgeCardMover({
       if (view.stepKey === stepKey) {
         return moved(forgeCardId, null)
       }
-      if (inFlight.has(forgeCardId) || view.status === 'running') {
-        throw new StepBusyError(view.reference)
-      }
-      if (view.stepKey === DONE_STEP_KEY) {
-        throw new DoneIsFinalError(view.reference)
-      }
-      if (stepKey === DONE_STEP_KEY) {
-        throw new DoneIsEarnedError(view.reference)
-      }
+      assertMovable(view, inFlight.has(forgeCardId), stepKey)
       const card = forgeCards.findForgeCard(forgeCardId)
       const before = placementOfCard(card.storyIds)
 
@@ -87,12 +102,7 @@ export function createForgeCardMover({
 
     launch: async (forgeCardId, options = {}) => {
       const view = board.view(forgeCardId)
-      if (view.stepKey === BACKLOG_STEP_KEY || view.stepKey === DONE_STEP_KEY) {
-        throw new LaunchNeedsAStepError(view.reference)
-      }
-      if (inFlight.has(forgeCardId) || view.status === 'running') {
-        throw new StepBusyError(view.reference)
-      }
+      assertLaunchable(view, inFlight.has(forgeCardId))
       const step = stepOf(view, view.stepKey)
       return guarded(forgeCardId, async () =>
         moved(forgeCardId, await launchStep({ ...entryOf(view, step), ...feedbackOf(options.feedback) })),

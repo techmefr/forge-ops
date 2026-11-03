@@ -35,13 +35,13 @@ function isIdleLaunchable(
 
 export type AutopilotLauncher = ReturnType<typeof createAutopilotLauncher>
 
-export function createAutopilotLauncher(
-  { autopilot, board, stories, columns, criteria, budget, mover }: Pick<
-    AutopilotConductorInput,
-    'autopilot' | 'board' | 'stories' | 'columns' | 'criteria' | 'budget' | 'mover'
-  >,
-  { announce, patch }: Pick<AutopilotCardState, 'announce' | 'patch'>,
-) {
+function createLaunchPolicy({
+  autopilot,
+  stories,
+  columns,
+  criteria,
+  budget,
+}: Pick<AutopilotConductorInput, 'autopilot' | 'stories' | 'columns' | 'criteria' | 'budget'>) {
   function lacksCriteria(storyId: number): boolean {
     return stories.findStory(storyId).kind === 'functional' && criteria.listCriteria(storyId).length === 0
   }
@@ -60,6 +60,20 @@ export function createAutopilotLauncher(
     }
     return first === undefined || first.provider === 'human' || !first.autoStart ? null : first
   }
+
+  return { lacksCriteria, budgetBlocks, backlogEntryOf }
+}
+
+export function createAutopilotLauncher(
+  input: Pick<
+    AutopilotConductorInput,
+    'autopilot' | 'board' | 'stories' | 'columns' | 'criteria' | 'budget' | 'mover'
+  >,
+  { announce, patch }: Pick<AutopilotCardState, 'announce' | 'patch'>,
+) {
+  const { autopilot, board, stories, columns, mover } = input
+  const policy = createLaunchPolicy(input)
+  const { lacksCriteria, budgetBlocks, backlogEntryOf } = policy
 
   async function launchBacklog(): Promise<void> {
     for (const project of stories.listProjects()) {

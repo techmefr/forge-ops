@@ -89,6 +89,21 @@ function closerOf({ board, forgeCards, stories, workflowColumns, checkpoints, cr
   })
 }
 
+type MoverInput = Pick<ForgeAutopilotInput, 'forgeCards' | 'stories' | 'workflowColumns' | 'dispatcher'> & {
+  board: ReturnType<typeof createForgeBoardRepository>
+}
+
+function moverOf({ board, forgeCards, stories, workflowColumns, dispatcher }: MoverInput) {
+  return createForgeCardMover({
+    board,
+    forgeCards,
+    stories,
+    columns: workflowColumns,
+    enterStep: createStepEntry({ dispatcher, columns: workflowColumns }),
+    launchStep: (entry) => dispatcher.dispatch(entry),
+  })
+}
+
 export function createForgeAutopilot({
   db,
   ticking,
@@ -117,14 +132,7 @@ export function createForgeAutopilot({
   })
   board.backfillCards()
   const closer = closerOf({ board, forgeCards, stories, workflowColumns, checkpoints, criteria, foremerge, worktrees, autopilotSettings, events })
-  const mover = createForgeCardMover({
-    board,
-    forgeCards,
-    stories,
-    columns: workflowColumns,
-    enterStep: createStepEntry({ dispatcher, columns: workflowColumns }),
-    launchStep: (entry) => dispatcher.dispatch(entry),
-  })
+  const mover = moverOf({ board, forgeCards, stories, workflowColumns, dispatcher })
   const conductor = createAutopilotConductor({
     autopilot: autopilotSettings,
     board,

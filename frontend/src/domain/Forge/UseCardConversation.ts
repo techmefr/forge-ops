@@ -23,6 +23,24 @@ export type CardConversationOptions = {
   onSettled: () => void
 }
 
+async function talkOrResume(
+  story: ConversationStory,
+  body: string,
+  { reload, onSettled }: { reload: () => Promise<void>; onSettled: () => void },
+): Promise<void> {
+  try {
+    await board.send(`/api/stories/${story.id}/talk`, 'POST', { message: body })
+  } catch (error) {
+    if (story.forgeCardId === undefined || !(error instanceof BoardRequestError) || error.code !== 'ConversationClosed') {
+      throw error
+    }
+    await board.send(`/api/stories/${story.id}/discussion`, 'POST', { body })
+    await board.send(`/api/forge-cards/${story.forgeCardId}/launch`, 'POST', { feedback: body })
+    await reload()
+    onSettled()
+  }
+}
+
 export function useCardConversation(story: ConversationStory, { onSettled }: CardConversationOptions) {
   const history = shallowRef<readonly ThreadItem[]>([])
   const live = shallowRef<readonly ThreadItem[]>(liveByStory.get(story.reference) ?? [])
@@ -68,20 +86,6 @@ export function useCardConversation(story: ConversationStory, { onSettled }: Car
   const handle = openBoardStream({ onEvent: take })
   onScopeDispose(() => handle.close())
 
-  async function talkOrResume(body: string): Promise<void> {
-    try {
-      await board.send(`/api/stories/${story.id}/talk`, 'POST', { message: body })
-    } catch (error) {
-      if (story.forgeCardId === undefined || !(error instanceof BoardRequestError) || error.code !== 'ConversationClosed') {
-        throw error
-      }
-      await board.send(`/api/stories/${story.id}/discussion`, 'POST', { body })
-      await board.send(`/api/forge-cards/${story.forgeCardId}/launch`, 'POST', { feedback: body })
-      await load()
-      onSettled()
-    }
-  }
-
   async function send(text: string, route: ReplyRoute): Promise<boolean> {
     const body = text.trim()
     if (body === '' || sending.value) {
@@ -94,7 +98,7 @@ export function useCardConversation(story: ConversationStory, { onSettled }: Car
         await board.send(`/api/stories/${story.id}/discussion`, 'POST', { body })
         await load()
       } else {
-        await talkOrResume(body)
+        await talkOrResume(story, body, { reload: load, onSettled })
       }
       return true
     } catch {

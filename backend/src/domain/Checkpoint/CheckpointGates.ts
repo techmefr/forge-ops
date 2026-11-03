@@ -20,12 +20,46 @@ type StoryHead = { id: number; reference: string; kind: string }
 
 type GateInput = Pick<CheckpointRepositoryInput, 'takeCensus' | 'surveyMutations' | 'surveyRed'>
 
+type ReviewGateReader = Pick<ReviewRepository, 'countUnresolvedStrongFindings' | 'reviewCascade'>
+
+type ReviewGateDeps = {
+  takeCensus: GateInput['takeCensus']
+  statements: CheckpointStatements
+  reviews: ReviewGateReader
+}
+
+function assertReviewed({ takeCensus, statements, reviews }: ReviewGateDeps, draft: CheckpointDraft, root: string | undefined): void {
+  const written = statements.selectCensus.get(draft.storyId)
+  if (written === undefined) {
+    throw new TestsTamperedError(["aucun recensement n'a ete pris a l'ecriture des tests"])
+  }
+  const drifted = compareCensus(written, takeCensus(root))
+  if (drifted.length > 0) {
+    throw new TestsTamperedError(drifted)
+  }
+  const unresolved = reviews.countUnresolvedStrongFindings(draft.storyId)
+  if (unresolved > 0) {
+    throw new UnresolvedFindingError(unresolved)
+  }
+  const pending = reviews
+    .reviewCascade(draft.storyId)
+    .filter((pass) => pass.state !== 'passed')
+    .map((pass) => pass.lens)
+  if (pending.length > 0) {
+    throw new ReviewIncompleteError(pending)
+  }
+  const unmet = statements.selectUnmetCriteria.all(draft.storyId).map((row) => row.reference)
+  if (unmet.length > 0) {
+    throw new CriteriaUnmetError(unmet)
+  }
+}
+
 export function createProofGates(
   { takeCensus, surveyMutations, surveyRed }: GateInput,
   statements: CheckpointStatements,
-  reviews: Pick<ReviewRepository, 'countUnresolvedStrongFindings' | 'reviewCascade'>,
+  reviews: ReviewGateReader,
 ) {
-  const { upsertCensus, selectCensus, selectTwin, selectCriteriaCount, selectUnmetCriteria, selectTouchedPaths } = statements
+  const { upsertCensus, selectTwin, selectCriteriaCount, selectTouchedPaths } = statements
 
   function assertSpecDone(story: StoryHead, options: ProofOptions): void {
     if (story.kind !== 'functional' || options.waived === true) {
@@ -58,32 +92,6 @@ export function createProofGates(
     }
   }
 
-  function assertReviewed(draft: CheckpointDraft, root: string | undefined): void {
-    const written = selectCensus.get(draft.storyId)
-    if (written === undefined) {
-      throw new TestsTamperedError(["aucun recensement n'a ete pris a l'ecriture des tests"])
-    }
-    const drifted = compareCensus(written, takeCensus(root))
-    if (drifted.length > 0) {
-      throw new TestsTamperedError(drifted)
-    }
-    const unresolved = reviews.countUnresolvedStrongFindings(draft.storyId)
-    if (unresolved > 0) {
-      throw new UnresolvedFindingError(unresolved)
-    }
-    const pending = reviews
-      .reviewCascade(draft.storyId)
-      .filter((pass) => pass.state !== 'passed')
-      .map((pass) => pass.lens)
-    if (pending.length > 0) {
-      throw new ReviewIncompleteError(pending)
-    }
-    const unmet = selectUnmetCriteria.all(draft.storyId).map((row) => row.reference)
-    if (unmet.length > 0) {
-      throw new CriteriaUnmetError(unmet)
-    }
-  }
-
   function assertGate(story: StoryHead, draft: CheckpointDraft, options: ProofOptions, root: string | undefined): void {
     if (draft.name === 'spec_done') {
       assertSpecDone(story, options)
@@ -92,7 +100,7 @@ export function createProofGates(
     } else if (draft.name === 'build_done') {
       assertBuildDone(draft, options, root)
     } else if (draft.name === 'reviewed') {
-      assertReviewed(draft, root)
+      assertReviewed({ takeCensus, statements, reviews }, draft, root)
     }
   }
 

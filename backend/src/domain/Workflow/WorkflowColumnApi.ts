@@ -21,6 +21,43 @@ export type WorkflowColumnApiInput = {
   adminOf: (projectId: number) => WorkflowAdmin | null
 }
 
+type WorkflowColumnGuards = ReturnType<typeof createWorkflowColumnGuards>
+
+function mountColumnItemRoutes(
+  api: Hono,
+  columns: WorkflowColumnRepository,
+  { guardAdmin }: Pick<WorkflowColumnGuards, 'guardAdmin'>,
+): void {
+  api.put('/api/projects/:id/workflow-columns/:columnId', async (context) => {
+    const guarded = guardAdmin(context)
+    if (guarded instanceof Response) {
+      return guarded
+    }
+    const columnId = identifierSchema.safeParse(context.req.param('columnId'))
+    if (!columnId.success) {
+      return context.json({ error: 'InvalidWorkflowColumnIdentifier' }, 422)
+    }
+    const draft = await parseBody(context, workflowColumnDraftSchema)
+    if (!draft.success) {
+      return context.json({ error: 'InvalidWorkflowColumn', issues: draft.error.issues }, 422)
+    }
+    return context.json({ column: columns.update(guarded.projectId, columnId.data, draft.data) })
+  })
+
+  api.delete('/api/projects/:id/workflow-columns/:columnId', (context) => {
+    const guarded = guardAdmin(context)
+    if (guarded instanceof Response) {
+      return guarded
+    }
+    const columnId = identifierSchema.safeParse(context.req.param('columnId'))
+    if (!columnId.success) {
+      return context.json({ error: 'InvalidWorkflowColumnIdentifier' }, 422)
+    }
+    columns.remove(guarded.projectId, columnId.data)
+    return context.json({ columns: columns.list(guarded.projectId) })
+  })
+}
+
 export function createWorkflowColumnApi({
   columns,
   projectExists,
@@ -70,34 +107,7 @@ export function createWorkflowColumnApi({
     return context.json({ columns: columns.reorder(guarded.projectId, body.data.keysInOrder, guarded.workflowId) })
   })
 
-  api.put('/api/projects/:id/workflow-columns/:columnId', async (context) => {
-    const guarded = guardAdmin(context)
-    if (guarded instanceof Response) {
-      return guarded
-    }
-    const columnId = identifierSchema.safeParse(context.req.param('columnId'))
-    if (!columnId.success) {
-      return context.json({ error: 'InvalidWorkflowColumnIdentifier' }, 422)
-    }
-    const draft = await parseBody(context, workflowColumnDraftSchema)
-    if (!draft.success) {
-      return context.json({ error: 'InvalidWorkflowColumn', issues: draft.error.issues }, 422)
-    }
-    return context.json({ column: columns.update(guarded.projectId, columnId.data, draft.data) })
-  })
-
-  api.delete('/api/projects/:id/workflow-columns/:columnId', (context) => {
-    const guarded = guardAdmin(context)
-    if (guarded instanceof Response) {
-      return guarded
-    }
-    const columnId = identifierSchema.safeParse(context.req.param('columnId'))
-    if (!columnId.success) {
-      return context.json({ error: 'InvalidWorkflowColumnIdentifier' }, 422)
-    }
-    columns.remove(guarded.projectId, columnId.data)
-    return context.json({ columns: columns.list(guarded.projectId) })
-  })
+  mountColumnItemRoutes(api, columns, { guardAdmin })
 
   return api
 }

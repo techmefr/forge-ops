@@ -33,24 +33,7 @@ export type TemplateApiInput = {
   maySettle: (context: Context) => boolean
 }
 
-export function createTemplateApi({ templates, maySettle }: TemplateApiInput): Hono {
-  const api = new Hono()
-
-  api.onError((error, context) => {
-    if (error instanceof TemplateRefusedError) {
-      return context.json({ error: 'TemplateRefused', refusal: error.refusal }, 422)
-    }
-    return mapApiError(error, context)
-  })
-
-  api.get('/api/templates', (context) =>
-    context.json({
-      templates: templates.listTemplates(),
-      defaultTemplate: templates.defaultTemplate(),
-      maySettle: maySettle(context),
-    }),
-  )
-
+function mountTemplateFileRoutes(api: Hono, { templates, maySettle }: TemplateApiInput): void {
   api.get('/api/templates/:id/jsonl', (context) => {
     const templateId = identifierSchema.safeParse(context.req.param('id'))
     if (!templateId.success) {
@@ -61,17 +44,6 @@ export function createTemplateApi({ templates, maySettle }: TemplateApiInput): H
       return context.json({ error: 'TemplateNotFound' }, 404)
     }
     return context.json({ jsonl: toJsonl(template) })
-  })
-
-  api.post('/api/templates', async (context) => {
-    if (!maySettle(context)) {
-      return context.json({ error: 'TemplateNeedsAnAdmin' }, 403)
-    }
-    const draft = await parseBody(context, draftSchema)
-    if (!draft.success) {
-      return context.json({ error: 'InvalidTemplate', issues: draft.error.issues }, 422)
-    }
-    return context.json(templates.writeVersion(draft.data as never), 201)
   })
 
   api.post('/api/templates/jsonl', async (context) => {
@@ -89,6 +61,39 @@ export function createTemplateApi({ templates, maySettle }: TemplateApiInput): H
     }
     return context.json(templates.writeVersion(read.draft), 201)
   })
+}
+
+export function createTemplateApi(input: TemplateApiInput): Hono {
+  const { templates, maySettle } = input
+  const api = new Hono()
+
+  api.onError((error, context) => {
+    if (error instanceof TemplateRefusedError) {
+      return context.json({ error: 'TemplateRefused', refusal: error.refusal }, 422)
+    }
+    return mapApiError(error, context)
+  })
+
+  api.get('/api/templates', (context) =>
+    context.json({
+      templates: templates.listTemplates(),
+      defaultTemplate: templates.defaultTemplate(),
+      maySettle: maySettle(context),
+    }),
+  )
+
+  api.post('/api/templates', async (context) => {
+    if (!maySettle(context)) {
+      return context.json({ error: 'TemplateNeedsAnAdmin' }, 403)
+    }
+    const draft = await parseBody(context, draftSchema)
+    if (!draft.success) {
+      return context.json({ error: 'InvalidTemplate', issues: draft.error.issues }, 422)
+    }
+    return context.json(templates.writeVersion(draft.data as never), 201)
+  })
+
+  mountTemplateFileRoutes(api, input)
 
   api.get('/api/projects/:id/template', (context) => {
     const projectId = identifierSchema.safeParse(context.req.param('id'))

@@ -10,10 +10,14 @@ import { attentionOf, daysLeft, nextMilestone } from './CardAttention.js'
 type ViewRoutesInput = Pick<BoardApiInput, 'repository' | 'agentSessions' | 'events' | 'claudeHome'> &
   Required<Pick<BoardApiInput, 'openHolds' | 'today'>> & { mayReadFleet: (context: Context) => boolean }
 
-export function mountBoardViewRoutes(
-  api: Hono,
-  { repository, agentSessions, events, claudeHome, openHolds, today, mayReadFleet }: ViewRoutesInput,
-): void {
+export function mountBoardViewRoutes(api: Hono, input: ViewRoutesInput): void {
+  mountEventsRoute(api, input.events)
+  mountKanbanRoutes(api, input)
+  api.get('/api/board/phases', (context) => context.json(PHASE_CONTRACTS))
+  mountFleetRoute(api, input)
+}
+
+function mountEventsRoute(api: Hono, events: ViewRoutesInput['events']): void {
   api.get('/api/events', (context) =>
     streamSSE(context, async (stream) => {
       const frames: Promise<void>[] = []
@@ -30,7 +34,12 @@ export function mountBoardViewRoutes(
       await Promise.allSettled(frames)
     }),
   )
+}
 
+function mountKanbanRoutes(
+  api: Hono,
+  { repository, agentSessions, openHolds, today }: Pick<ViewRoutesInput, 'repository' | 'agentSessions' | 'openHolds' | 'today'>,
+): void {
   api.get('/api/board/kanban', (context) => {
     reapStaleSessions({ sessions: agentSessions, stories: repository })
     return context.json(
@@ -76,9 +85,12 @@ export function mountBoardViewRoutes(
       }),
     )
   })
+}
 
-  api.get('/api/board/phases', (context) => context.json(PHASE_CONTRACTS))
-
+function mountFleetRoute(
+  api: Hono,
+  { claudeHome, mayReadFleet }: Pick<ViewRoutesInput, 'claudeHome' | 'mayReadFleet'>,
+): void {
   api.get('/api/fleet', (context) => {
     if (!mayReadFleet(context)) {
       return context.json({ error: 'FleetNeedsAnAdmin' }, 403)

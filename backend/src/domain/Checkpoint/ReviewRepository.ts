@@ -39,55 +39,21 @@ function assertPrecedingLensesPassed(cascade: readonly ReviewPass[], lens: Revie
   }
 }
 
-export function createReviewRepository(db: Database.Database): ReviewRepository {
-  const statements = prepareReviewStatements(db)
+type ReviewStatements = ReturnType<typeof prepareReviewStatements>
+type ReviewCascade = ReturnType<typeof createReviewCascade>
+
+function createLensFlow(
+  statements: ReviewStatements,
+  { reviewCascade, passOf }: ReviewCascade,
+): Pick<ReviewRepository, 'startLens' | 'passLens'> {
   const {
     selectStory,
-    selectSession,
     selectSessionWithPhase,
-    insertFinding,
-    selectFinding,
-    selectUnresolvedFindings,
-    selectUnresolvedStrongCount,
-    updateFindingResolved,
-    upsertPassRunning,
     updatePassPassed,
+    upsertPassRunning,
     selectUnresolvedStrongForLens,
   } = statements
-  const { reviewCascade, passOf } = createReviewCascade(statements)
-
   return {
-    recordFinding: (draft) => {
-      const session = selectSession.get(draft.claudeSessionId)
-      if (session === undefined) {
-        throw new UnknownAgentSessionError(draft.claudeSessionId)
-      }
-      const info = insertFinding.run(
-        draft.storyId,
-        session.id,
-        draft.lens,
-        draft.severity,
-        draft.path,
-        draft.line ?? null,
-        draft.statement,
-      )
-      const row = selectFinding.get(Number(info.lastInsertRowid))
-      if (row === undefined) {
-        throw new StoryNotFoundError(draft.storyId)
-      }
-      return toFinding(row)
-    },
-
-    listUnresolvedFindings: (storyId) => selectUnresolvedFindings.all(storyId).map(toFinding),
-
-    countUnresolvedStrongFindings: (storyId) => selectUnresolvedStrongCount.get(storyId)?.total ?? 0,
-
-    resolveFinding: (findingId) => {
-      updateFindingResolved.run(findingId)
-    },
-
-    reviewCascade,
-
     startLens: (storyId, lens, claudeSessionId) => {
       if (selectStory.get(storyId) === undefined) {
         throw new StoryNotFoundError(storyId)
@@ -122,5 +88,52 @@ export function createReviewRepository(db: Database.Database): ReviewRepository 
       updatePassPassed.run(storyId, lens)
       return passOf(storyId, lens)
     },
+  }
+}
+
+export function createReviewRepository(db: Database.Database): ReviewRepository {
+  const statements = prepareReviewStatements(db)
+  const {
+    selectSession,
+    insertFinding,
+    selectFinding,
+    selectUnresolvedFindings,
+    selectUnresolvedStrongCount,
+    updateFindingResolved,
+  } = statements
+  const cascade = createReviewCascade(statements)
+
+  return {
+    recordFinding: (draft) => {
+      const session = selectSession.get(draft.claudeSessionId)
+      if (session === undefined) {
+        throw new UnknownAgentSessionError(draft.claudeSessionId)
+      }
+      const info = insertFinding.run(
+        draft.storyId,
+        session.id,
+        draft.lens,
+        draft.severity,
+        draft.path,
+        draft.line ?? null,
+        draft.statement,
+      )
+      const row = selectFinding.get(Number(info.lastInsertRowid))
+      if (row === undefined) {
+        throw new StoryNotFoundError(draft.storyId)
+      }
+      return toFinding(row)
+    },
+
+    listUnresolvedFindings: (storyId) => selectUnresolvedFindings.all(storyId).map(toFinding),
+
+    countUnresolvedStrongFindings: (storyId) => selectUnresolvedStrongCount.get(storyId)?.total ?? 0,
+
+    resolveFinding: (findingId) => {
+      updateFindingResolved.run(findingId)
+    },
+
+    reviewCascade: cascade.reviewCascade,
+    ...createLensFlow(statements, cascade),
   }
 }

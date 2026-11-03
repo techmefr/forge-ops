@@ -62,83 +62,72 @@ function headerSecret(authorization: string | undefined, ownHeader: string | und
   return value
 }
 
-export function createTokenGuard({
-  token,
-  hookToken,
-  allowedOrigins,
-  requireIdentity = false,
-  readIdentity,
-  readBrowserSession,
-  allowSessionExchange = false,
-  allowLocalAutologin = false,
-  isLocalOrigin,
-  isLoopbackPeer,
-}: TokenGuardInput): MiddlewareHandler {
+function isUnguardedPath(context: Context, input: TokenGuardInput, origin: string | undefined): boolean {
+  const { path } = context.req
+  if (path === BOARD_MODE_PATH) {
+    return true
+  }
+  if (input.allowSessionExchange === true && path === SESSION_EXCHANGE_PATH) {
+    return true
+  }
+  return (
+    input.allowLocalAutologin === true &&
+    path === LOCAL_SESSION_PATH &&
+    (input.isLocalOrigin?.(origin) ?? false) &&
+    (origin !== undefined || (input.isLoopbackPeer?.(context) ?? false))
+  )
+}
+
+function identityRejection(context: Context, input: TokenGuardInput): Response | null {
+  if (isOpenPath(context.req.path)) {
+    return null
+  }
+  const sessionToken = context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE) ?? null
+  const identity = sessionToken === null ? null : (input.readIdentity?.(sessionToken) ?? null)
+  if (identity === null) {
+    return context.json({ error: 'UnauthenticatedBoardAccess' }, 401)
+  }
+  context.set('login', identity.login)
+  return null
+}
+
+function boardRejection(context: Context, input: TokenGuardInput, fromHeader: string | null): Response | null {
+  if (fromHeader !== null) {
+    return sameSecret(fromHeader, input.token) ? null : context.json({ error: 'UnauthorizedBoardAccess' }, 401)
+  }
+  const fromCookie = getCookie(context, BOARD_COOKIE) ?? null
+  if (fromCookie === null || input.readBrowserSession?.(fromCookie) !== true) {
+    return context.json({ error: 'UnauthorizedBoardAccess' }, 401)
+  }
+  return null
+}
+
+function rejectionFor(context: Context, input: TokenGuardInput): Response | null {
+  const origin = context.req.header('origin')
+  if (origin !== undefined && !input.allowedOrigins.includes(origin)) {
+    return context.json({ error: 'ForbiddenOrigin' }, 403)
+  }
+  if (isUnguardedPath(context, input, origin)) {
+    return null
+  }
+  const fromHeader = headerSecret(context.req.header('authorization'), context.req.header('x-forge-token'))
+  if (context.req.path === HOOK_INTAKE_PATH) {
+    return fromHeader === null || !sameSecret(fromHeader, input.hookToken)
+      ? context.json({ error: 'UnauthorizedHookIntake' }, 401)
+      : null
+  }
+  if (input.requireIdentity === true) {
+    return identityRejection(context, input)
+  }
+  return boardRejection(context, input, fromHeader)
+}
+
+export function createTokenGuard(input: TokenGuardInput): MiddlewareHandler {
   return async (context, next) => {
-    const origin = context.req.header('origin')
-    if (origin !== undefined && !allowedOrigins.includes(origin)) {
-      return context.json({ error: 'ForbiddenOrigin' }, 403)
+    const rejection = rejectionFor(context, input)
+    if (rejection !== null) {
+      return rejection
     }
-
-    if (context.req.path === BOARD_MODE_PATH) {
-      await next()
-      return undefined
-    }
-
-    if (allowSessionExchange && context.req.path === SESSION_EXCHANGE_PATH) {
-      await next()
-      return undefined
-    }
-
-    if (
-      allowLocalAutologin &&
-      context.req.path === LOCAL_SESSION_PATH &&
-      (isLocalOrigin?.(origin) ?? false) &&
-      (origin !== undefined || (isLoopbackPeer?.(context) ?? false))
-    ) {
-      await next()
-      return undefined
-    }
-
-    const fromHeader = headerSecret(context.req.header('authorization'), context.req.header('x-forge-token'))
-
-    if (context.req.path === HOOK_INTAKE_PATH) {
-      if (fromHeader === null || !sameSecret(fromHeader, hookToken)) {
-        return context.json({ error: 'UnauthorizedHookIntake' }, 401)
-      }
-      await next()
-      return undefined
-    }
-
-    if (requireIdentity) {
-      if (isOpenPath(context.req.path)) {
-        await next()
-        return undefined
-      }
-      const sessionToken =
-        context.req.header('x-forge-identity') ?? getCookie(context, IDENTITY_COOKIE) ?? null
-      const identity = sessionToken === null ? null : (readIdentity?.(sessionToken) ?? null)
-      if (identity === null) {
-        return context.json({ error: 'UnauthenticatedBoardAccess' }, 401)
-      }
-      context.set('login', identity.login)
-      await next()
-      return undefined
-    }
-
-    if (fromHeader !== null) {
-      if (!sameSecret(fromHeader, token)) {
-        return context.json({ error: 'UnauthorizedBoardAccess' }, 401)
-      }
-      await next()
-      return undefined
-    }
-
-    const fromCookie = getCookie(context, BOARD_COOKIE) ?? null
-    if (fromCookie === null || readBrowserSession?.(fromCookie) !== true) {
-      return context.json({ error: 'UnauthorizedBoardAccess' }, 401)
-    }
-
     await next()
     return undefined
   }

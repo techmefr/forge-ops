@@ -60,7 +60,7 @@ function blank(forgeCardId: number): AutopilotCardRecord {
   return { forgeCardId, stepKey: '', attempts: 0, advances: 0, state: null, reason: null, pending: null, feedback: null }
 }
 
-export function createAutopilotRepository(db: Database.Database): AutopilotRepository {
+function prepareAutopilotStatements(db: Database.Database) {
   const selectSetting = db.prepare<[number], SettingRow>(
     'SELECT enabled, auto_launch, auto_publish, auto_merge FROM autopilot_setting WHERE project_id = ?',
   )
@@ -91,6 +91,24 @@ export function createAutopilotRepository(db: Database.Database): AutopilotRepos
        updated_at = datetime('now')`,
   )
   const deleteCard = db.prepare<[number]>('DELETE FROM autopilot_card WHERE forge_card_id = ?')
+  return { selectSetting, upsertSetting, selectCard, selectPending, upsertCard, deleteCard }
+}
+
+function settingsOfRow(row: SettingRow | undefined): AutopilotSettings {
+  if (row === undefined) {
+    return DEFAULT_AUTOPILOT
+  }
+  return {
+    enabled: row.enabled === 1,
+    autoLaunch: row.auto_launch === 1,
+    autoPublish: row.auto_publish === 1,
+    autoMerge: row.auto_merge === 1,
+  }
+}
+
+export function createAutopilotRepository(db: Database.Database): AutopilotRepository {
+  const { selectSetting, upsertSetting, selectCard, selectPending, upsertCard, deleteCard } =
+    prepareAutopilotStatements(db)
 
   function cardOf(forgeCardId: number): AutopilotCardRecord {
     const row = selectCard.get(forgeCardId)
@@ -98,18 +116,7 @@ export function createAutopilotRepository(db: Database.Database): AutopilotRepos
   }
 
   return {
-    settingsOf: (projectId) => {
-      const row = selectSetting.get(projectId)
-      if (row === undefined) {
-        return DEFAULT_AUTOPILOT
-      }
-      return {
-        enabled: row.enabled === 1,
-        autoLaunch: row.auto_launch === 1,
-        autoPublish: row.auto_publish === 1,
-        autoMerge: row.auto_merge === 1,
-      }
-    },
+    settingsOf: (projectId) => settingsOfRow(selectSetting.get(projectId)),
 
     settle: (projectId, settings) => {
       upsertSetting.run(

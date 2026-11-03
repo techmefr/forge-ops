@@ -70,6 +70,62 @@ function dispatchRateFromEnv() {
   }
 }
 
+type RuntimeDispatcherInput = Pick<
+  AgentRuntimeInput,
+  | 'db'
+  | 'stories'
+  | 'sessions'
+  | 'budget'
+  | 'foremerge'
+  | 'workflow'
+  | 'workflowColumns'
+  | 'forgeCards'
+  | 'templates'
+  | 'events'
+>
+
+type RuntimeDispatcherParts = {
+  checkouts: ReturnType<typeof createCheckoutResolver>
+  worktrees: ReturnType<typeof createWorktreeRepository>
+  checkpoints: ReturnType<typeof createCheckpointRepository>
+  criteria: ReturnType<typeof createCriterionRepository>
+  drivers: ReturnType<typeof createAgentDrivers>
+}
+
+function createRuntimeDispatcher(
+  { db, stories, sessions, budget, foremerge, workflow, workflowColumns, forgeCards, templates, events }: RuntimeDispatcherInput,
+  { checkouts, worktrees, checkpoints, criteria, drivers }: RuntimeDispatcherParts,
+) {
+  return createDispatcher({
+    database: db,
+    stories,
+    checkpoints,
+    criteria,
+    sessions,
+    budget,
+    foremerge,
+    workflow,
+    forgeCards,
+    workflowColumns,
+    prepareWorkspace: createStoryWorkspace({
+      hasCheckout: checkouts.hasCheckout,
+      worktrees,
+      onOpened: (opened) => events.publish({ name: 'worktree.opened', payload: { ...opened } }),
+      equip: (worktree) => carryLocalSettings(checkouts.checkoutOfStory(worktree.storyId), worktree.path),
+    }),
+    doctrineFor: createDoctrineSource({ forgeRoot: process.cwd(), checkoutOf: checkouts.cwdForStory }),
+    runner: createDrivenRunner({
+      drivers,
+      providerOf: providerOfOrder(forgeCards),
+      columnAgentOf: (order) =>
+        columnAgentOfPhase(templates.templateOfProject(stories.projectOfStory(order.storyId)).columns, order.phase),
+    }),
+    concurrencyCap: sessionCap,
+    claudeCodeVersion: process.env.CLAUDE_CODE_VERSION ?? 'unknown',
+    rate: dispatchRateFromEnv(),
+  })
+}
+
 export function createAgentRuntime({
   db,
   stories,
@@ -117,33 +173,9 @@ export function createAgentRuntime({
     seal: guardrailSeal,
     onEvent: onSessionEvent,
   })
-  const dispatcher = createDispatcher({
-    database: db,
-    stories,
-    checkpoints,
-    criteria,
-    sessions,
-    budget,
-    foremerge,
-    workflow,
-    forgeCards,
-    workflowColumns,
-    prepareWorkspace: createStoryWorkspace({
-      hasCheckout: checkouts.hasCheckout,
-      worktrees,
-      onOpened: (opened) => events.publish({ name: 'worktree.opened', payload: { ...opened } }),
-      equip: (worktree) => carryLocalSettings(checkouts.checkoutOfStory(worktree.storyId), worktree.path),
-    }),
-    doctrineFor: createDoctrineSource({ forgeRoot: process.cwd(), checkoutOf: cwdForStory }),
-    runner: createDrivenRunner({
-      drivers,
-      providerOf: providerOfOrder(forgeCards),
-      columnAgentOf: (order) =>
-        columnAgentOfPhase(templates.templateOfProject(stories.projectOfStory(order.storyId)).columns, order.phase),
-    }),
-    concurrencyCap: sessionCap,
-    claudeCodeVersion: process.env.CLAUDE_CODE_VERSION ?? 'unknown',
-    rate: dispatchRateFromEnv(),
-  })
+  const dispatcher = createRuntimeDispatcher(
+    { db, stories, sessions, budget, foremerge, workflow, workflowColumns, forgeCards, templates, events },
+    { checkouts, worktrees, checkpoints, criteria, drivers },
+  )
   return { guardrailSeal, cwdForStory, worktrees, checkpoints, criteria, drivers, dispatcher }
 }

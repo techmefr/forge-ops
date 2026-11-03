@@ -42,20 +42,10 @@ export function createSessionLookup({ selectSession, selectLatestOfStory }: Agen
   return { findByClaudeSessionId, latestSessionOf, requireSession }
 }
 
-export function createSessionLifecycle(statements: AgentSessionStatements, { requireSession }: SessionLookup) {
-  const {
-    selectStory,
-    selectSession,
-    insertSession,
-    resumeSessionRow,
-    updateSessionLifecycle,
-    beatHeartbeat,
-    selectStaleSessions,
-    closeSessionRow,
-    updateUsage,
-    abandonRunning,
-  } = statements
-
+function createSessionRegistration(
+  { selectStory, selectSession, insertSession, resumeSessionRow }: AgentSessionStatements,
+  { requireSession }: SessionLookup,
+) {
   return {
     registerSession: (draft: AgentSessionDraft): AgentSession => {
       if (selectStory.get(draft.storyId) === undefined) {
@@ -74,6 +64,16 @@ export function createSessionLifecycle(statements: AgentSessionStatements, { req
       insertSession.run(draft.storyId, draft.claudeSessionId, draft.phase, draft.agentName, draft.claudeCodeVersion)
       return requireSession(draft.claudeSessionId)
     },
+  }
+}
+
+export function createSessionLifecycle(statements: AgentSessionStatements, lookup: SessionLookup) {
+  const { requireSession } = lookup
+  const { updateSessionLifecycle, beatHeartbeat, selectStaleSessions, closeSessionRow, updateUsage, abandonRunning } =
+    statements
+
+  return {
+    ...createSessionRegistration(statements, lookup),
 
     updateLifecycle: (claudeSessionId: string, lifecycle: AgentLifecycle): AgentSession => {
       requireSession(claudeSessionId)
