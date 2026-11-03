@@ -6,7 +6,7 @@ import {
   createForemergeRepository,
   type ForemergeRepository,
 } from '../../domain/Foremerge/ForemergeRepository.js'
-import { decideOnWriteToolCall } from './ScopeDecision.js'
+import { decideOnWriteToolCall } from '../../domain/Foremerge/ScopeDecision.js'
 
 const MODULE_DIR = dirname(fileURLToPath(import.meta.url))
 const REPOSITORY_ROOT = join(MODULE_DIR, '..', '..', '..', '..')

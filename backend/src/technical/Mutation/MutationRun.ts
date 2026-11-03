@@ -8,7 +8,7 @@ import {
   MUTATION_TEST_TIMEOUT_MS,
   type MutationOutcome,
 } from '../../../../contract/MutationContract.js'
-import { mutationsOfSource } from '../../domain/Mutation/MutationOperator.js'
+import { mutationsOfSource } from './MutationOperator.js'
 
 export type TestVerdict = 'passed' | 'failed'
 

@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync, realpathSync, statSync, type Dirent } from 'node:fs'
 import { join } from 'node:path'
-import { addCensus, censusOfSource, EMPTY_CENSUS, type TestCensus } from '../../domain/Tamper/TestCensus.js'
+import { addCensus, censusOfSource, EMPTY_CENSUS, type TestCensus } from './TestCensus.js'
 
 const TEST_FILE = /\.(?:test|spec)\.[cm]?[jt]sx?$/
 

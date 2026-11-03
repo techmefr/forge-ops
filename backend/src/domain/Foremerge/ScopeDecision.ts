@@ -1,9 +1,9 @@
 import { relative, isAbsolute, resolve } from 'node:path'
-import type { ScopeReservation } from '../../domain/Foremerge/ForemergeRepository.js'
-import { decideOnWrite, type WriteDecision } from '../../domain/Foremerge/ScopeGuard.js'
+import type { ScopeReservation } from './ForemergeRepository.js'
+import { decideOnWrite, type WriteDecision } from './ScopeGuard.js'
 import { isWriteTool, WRITE_TOOLS } from '../../../../contract/ToolContract.js'
-import { decideOnPhasePayload } from './PhaseDecision.js'
-import { isProtectedPath } from './ProtectedPaths.js'
+import { decideOnPhasePayload } from '../../technical/Guardrail/PhaseDecision.js'
+import { isProtectedPath } from '../../technical/Guardrail/ProtectedPaths.js'
 
 export const WRITING_TOOLS: readonly string[] = WRITE_TOOLS
 

@@ -12,7 +12,7 @@ import type { CheckpointRepositoryInput, ProofOptions } from './CheckpointReposi
 import type { CheckpointStatements } from './CheckpointStatements.js'
 import type { ReviewRepository } from './ReviewRepository.js'
 import { TwinRequiredError } from '../Story/StoryViolation.js'
-import { compareCensus } from '../Tamper/TestCensus.js'
+import { compareCensus } from '../../technical/Tamper/TestCensus.js'
 import { describeSurvivor, filesWorthMutating, survivorsOf } from '../Mutation/MutationVerdict.js'
 import { describeRedVerdict, redVerdictOf } from '../RedProof/RedVerdict.js'
 

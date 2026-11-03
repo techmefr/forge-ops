@@ -14,7 +14,7 @@ import { createReviewRepository, type ReviewRepository } from './ReviewRepositor
 import { assertEvidencePath } from '../Evidence/EvidencePath.js'
 import { assertEvidenceShape } from '../Evidence/EvidenceShape.js'
 import { EvidenceUnreadableError, type EvidenceReader } from '../Evidence/EvidenceRead.js'
-import type { TestCensus } from '../Tamper/TestCensus.js'
+import type { TestCensus } from '../../technical/Tamper/TestCensus.js'
 import type { MutationOutcome } from '../Mutation/Mutation.js'
 import type { TestReport } from '../RedProof/RedProof.js'
 import type { ThreadProof } from '../Conversation/Thread.js'

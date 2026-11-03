@@ -11,7 +11,7 @@ import {
 import { AGENT_PHASE_SEQUENCE } from '../../../src/domain/Agent/AgentSession.js'
 import { allowsTool, PHASE_TOOL_POLICY } from '../../../src/technical/Guardrail/PhaseToolPolicy.js'
 import { buildHookSettings } from '../../../src/technical/Auth/HookSettings.js'
-import { WRITING_TOOLS } from '../../../src/technical/Guardrail/ScopeDecision.js'
+import { WRITING_TOOLS } from '../../../src/domain/Foremerge/ScopeDecision.js'
 
 const PROJECT_SETTINGS = fileURLToPath(new URL('../../../../.claude/settings.json', import.meta.url))
 
