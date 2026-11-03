@@ -60,20 +60,12 @@ async function loadPilot(target: number | null, holders: Holders): Promise<void>
   holders.suggestion.value = answer.suggestion
 }
 
-export function usePilot(storyId: Ref<number | null>): PilotDesk {
-  const run = ref<PilotRun | null>(null)
-  const history = ref<readonly PilotRun[]>([])
-  const sight = ref<PilotObservation | null>(null)
-  const suggestion = ref<ParcoursSuggestion | null>(null)
-  const refusal = ref<Phrase | null>(null)
-  const busy = ref(false)
-  const pace = ref<PilotPace>('slow')
-  const url = ref('')
-  const script = ref<PilotStep[]>([])
-
-  const load = (): Promise<void> => loadPilot(storyId.value, { run, history, suggestion })
-
-  async function guard(action: (target: number) => Promise<void>): Promise<void> {
+function pilotGuard(
+  storyId: Ref<number | null>,
+  busy: Ref<boolean>,
+  refusal: Ref<Phrase | null>,
+): (action: (target: number) => Promise<void>) => Promise<void> {
+  return async (action) => {
     const target = storyId.value
     if (target === null) {
       return
@@ -88,6 +80,22 @@ export function usePilot(storyId: Ref<number | null>): PilotDesk {
       busy.value = false
     }
   }
+}
+
+export function usePilot(storyId: Ref<number | null>): PilotDesk {
+  const run = ref<PilotRun | null>(null)
+  const history = ref<readonly PilotRun[]>([])
+  const sight = ref<PilotObservation | null>(null)
+  const suggestion = ref<ParcoursSuggestion | null>(null)
+  const refusal = ref<Phrase | null>(null)
+  const busy = ref(false)
+  const pace = ref<PilotPace>('slow')
+  const url = ref('')
+  const script = ref<PilotStep[]>([])
+
+  const load = (): Promise<void> => loadPilot(storyId.value, { run, history, suggestion })
+
+  const guard = pilotGuard(storyId, busy, refusal)
 
   function walk(path: string): Promise<void> {
     return guard(async (target) => {

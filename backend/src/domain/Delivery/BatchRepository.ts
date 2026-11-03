@@ -8,7 +8,6 @@ import {
   isRefusal,
   joinRefusalOf,
   type Batch,
-  type Extraction,
   type GroupingMode,
 } from './Grouping.js'
 
@@ -39,6 +38,10 @@ export type BatchRepository = {
   ship: (batchId: number) => Batch
 }
 
+function batchFromRow(row: BatchRow, storyIds: number[]): Batch {
+  return { id: row.id, projectId: row.project_id, branch: row.branch, state: row.state, storyIds }
+}
+
 export function createBatchRepository(db: Database.Database): BatchRepository {
   const {
     selectSetting,
@@ -62,15 +65,7 @@ export function createBatchRepository(db: Database.Database): BatchRepository {
     return row
   }
 
-  function toBatch(row: BatchRow): Batch {
-    return {
-      id: row.id,
-      projectId: row.project_id,
-      branch: row.branch,
-      state: row.state,
-      storyIds: selectStories.all(row.id).map((one) => one.story_id),
-    }
-  }
+  const toBatch = (row: BatchRow): Batch => batchFromRow(row, selectStories.all(row.id).map((one) => one.story_id))
 
   function findBatch(batchId: number): Batch {
     const row = selectBatch.get(batchId)
@@ -127,9 +122,8 @@ export function createBatchRepository(db: Database.Database): BatchRepository {
       if (isRefusal(outcome)) {
         throw new BatchRefusedError(outcome)
       }
-      const extraction: Extraction = outcome
-      deleteStory.run(batchId, extraction.storyId)
-      return { batch: findBatch(batchId), extracted: open(extraction.storyId) }
+      deleteStory.run(batchId, outcome.storyId)
+      return { batch: findBatch(batchId), extracted: open(outcome.storyId) }
     },
 
     ship: (batchId) => {

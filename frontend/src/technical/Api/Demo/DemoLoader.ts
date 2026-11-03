@@ -43,6 +43,34 @@ function threadsOf(snapshot: Record<string, unknown>): Map<number, StoryThread> 
   return threads
 }
 
+type ProjectWorkflowSet = {
+  workflows: Workflow[]
+  columns: WorkflowColumn[]
+  ownId: number
+}
+
+function workflowsOf(snapshot: Record<string, unknown>, project: Project): ProjectWorkflowSet {
+  const projectColumns = held<ProjectWorkflow>(snapshot, `/api/projects/${project.id}/workflow-columns`, { columns: [] } as unknown as ProjectWorkflow).columns
+  const listed = held<ProjectWorkflows>(snapshot, `/api/projects/${project.id}/workflows`, { workflows: [] } as unknown as ProjectWorkflows).workflows
+  const own: Workflow =
+    listed[0] ?? { id: project.id, projectId: project.id, key: 'default', name: 'Default', position: 1 }
+  const workflows = listed.length > 0 ? listed : [own]
+  const columns = workflows.flatMap((workflow) => {
+    const ofWorkflow =
+      held<ProjectWorkflow | null>(snapshot, `/api/projects/${project.id}/workflow-columns?workflow=${workflow.id}`, null)?.columns ??
+      (workflow.id === own.id ? projectColumns : [])
+    return ofWorkflow.map((column) => ({ ...column, workflowId: workflow.id }))
+  })
+  return { workflows: [...workflows], columns, ownId: own.id }
+}
+
+function cardsOf(snapshot: Record<string, unknown>, projectId: number, ownId: number): ForgeCardView[] {
+  return held<ForgeCardView[]>(snapshot, `/api/forge-cards?project=${projectId}`, []).map((card) => ({
+    ...card,
+    workflowId: card.workflowId ?? ownId,
+  }))
+}
+
 export function createDemoState(source: Record<string, unknown>): DemoState {
   const snapshot = structuredClone(source)
   const projects = held<Project[]>(snapshot, '/api/projects', [])
@@ -62,23 +90,10 @@ export function createDemoState(source: Record<string, unknown>): DemoState {
   for (const project of projects) {
     events.push(...held<ProjectEvent[]>(snapshot, `/api/projects/${project.id}/events`, []))
     links.set(project.id, held<SubjectLink[]>(snapshot, `/api/projects/${project.id}/links`, []))
-    const projectColumns = held<ProjectWorkflow>(snapshot, `/api/projects/${project.id}/workflow-columns`, { columns: [] } as unknown as ProjectWorkflow).columns
-    const listed = held<ProjectWorkflows>(snapshot, `/api/projects/${project.id}/workflows`, { workflows: [] } as unknown as ProjectWorkflows).workflows
-    const own: Workflow =
-      listed[0] ?? { id: project.id, projectId: project.id, key: 'default', name: 'Default', position: 1 }
-    workflows.push(...(listed.length > 0 ? listed : [own]))
-    for (const workflow of listed.length > 0 ? listed : [own]) {
-      const ofWorkflow =
-        held<ProjectWorkflow | null>(snapshot, `/api/projects/${project.id}/workflow-columns?workflow=${workflow.id}`, null)?.columns ??
-        (workflow.id === own.id ? projectColumns : [])
-      columns.push(...ofWorkflow.map((column) => ({ ...column, workflowId: workflow.id })))
-    }
-    cards.push(
-      ...held<ForgeCardView[]>(snapshot, `/api/forge-cards?project=${project.id}`, []).map((card) => ({
-        ...card,
-        workflowId: card.workflowId ?? own.id,
-      })),
-    )
+    const owned = workflowsOf(snapshot, project)
+    workflows.push(...owned.workflows)
+    columns.push(...owned.columns)
+    cards.push(...cardsOf(snapshot, project.id, owned.ownId))
     const followUp = snapshot[`/api/projects/${project.id}/follow-up`] as ProjectFollowUp | undefined
     if (followUp !== undefined) {
       risks.push(...followUp.risks)

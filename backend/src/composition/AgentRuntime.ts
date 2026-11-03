@@ -55,6 +55,21 @@ export type AgentRuntimeInput = {
 
 export type AgentRuntime = ReturnType<typeof createAgentRuntime>
 
+function providerOfOrder(forgeCards: ForgeCardRepository) {
+  return (order: { provider?: string; forgeCardId?: number }) =>
+    order.provider ??
+    (order.forgeCardId === undefined
+      ? DEFAULT_FORGE_CARD_PROVIDER
+      : forgeCards.findForgeCard(order.forgeCardId).provider)
+}
+
+function dispatchRateFromEnv() {
+  return {
+    burst: Number(process.env.FORGE_DISPATCH_BURST ?? DEFAULT_DISPATCH_RATE.burst),
+    windowMs: Number(process.env.FORGE_DISPATCH_WINDOW_MS ?? DEFAULT_DISPATCH_RATE.windowMs),
+  }
+}
+
 export function createAgentRuntime({
   db,
   stories,
@@ -122,20 +137,13 @@ export function createAgentRuntime({
     doctrineFor: createDoctrineSource({ forgeRoot: process.cwd(), checkoutOf: cwdForStory }),
     runner: createDrivenRunner({
       drivers,
-      providerOf: (order) =>
-        order.provider ??
-        (order.forgeCardId === undefined
-          ? DEFAULT_FORGE_CARD_PROVIDER
-          : forgeCards.findForgeCard(order.forgeCardId).provider),
+      providerOf: providerOfOrder(forgeCards),
       columnAgentOf: (order) =>
         columnAgentOfPhase(templates.templateOfProject(stories.projectOfStory(order.storyId)).columns, order.phase),
     }),
     concurrencyCap: sessionCap,
     claudeCodeVersion: process.env.CLAUDE_CODE_VERSION ?? 'unknown',
-    rate: {
-      burst: Number(process.env.FORGE_DISPATCH_BURST ?? DEFAULT_DISPATCH_RATE.burst),
-      windowMs: Number(process.env.FORGE_DISPATCH_WINDOW_MS ?? DEFAULT_DISPATCH_RATE.windowMs),
-    },
+    rate: dispatchRateFromEnv(),
   })
   return { guardrailSeal, cwdForStory, worktrees, checkpoints, criteria, drivers, dispatcher }
 }

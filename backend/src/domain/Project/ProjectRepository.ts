@@ -16,6 +16,21 @@ export type ProjectRepositoryInput = {
   epics: EpicRepository
 }
 
+function toSheet(row: SheetRow, links: ProjectSheet['links']): ProjectSheet {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    colour: row.colour,
+    position: row.position,
+    adminUserId: row.admin_user_id,
+    adminLogin: row.admin_login,
+    adminName: row.admin_name,
+    links,
+    usage: row.usage,
+  }
+}
+
 export function createProjectRepository(
   db: Database.Database,
   { epics }: ProjectRepositoryInput,
@@ -25,18 +40,7 @@ export function createProjectRepository(
     statements
 
   function sheetOf(row: SheetRow): ProjectSheet {
-    return {
-      id: row.id,
-      slug: row.slug,
-      name: row.name,
-      colour: row.colour,
-      position: row.position,
-      adminUserId: row.admin_user_id,
-      adminLogin: row.admin_login,
-      adminName: row.admin_name,
-      links: epics.projectLinks(row.id),
-      usage: row.usage,
-    }
+    return toSheet(row, epics.projectLinks(row.id))
   }
 
   function demand(projectId: number): ProjectSheet {

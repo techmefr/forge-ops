@@ -17,6 +17,18 @@ export type WorkflowColumnRepository = {
   reorder: (projectId: number, keysInOrder: readonly string[], workflowId?: number) => readonly WorkflowColumn[]
 }
 
+type ColumnRow = Parameters<typeof fromRow>[0]
+
+function refuseIfHeld(label: string, held: number): void {
+  if (held > 0) {
+    throw new WorkflowColumnInUseError(label, held)
+  }
+}
+
+function labelsExcept(rows: readonly ColumnRow[], columnId: number): string[] {
+  return rows.filter((column) => column.id !== columnId).map((column) => column.label)
+}
+
 export function createWorkflowColumnRepository(db: Database.Database): WorkflowColumnRepository {
   const workflows = createProjectWorkflowRepository(db)
   const statements = prepareWorkflowColumnStatements(db)
@@ -70,10 +82,7 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
       const owned = ownedBy(projectId, columnId)
       refuseIfInvalid(
         draft,
-        selectOfWorkflow
-          .all(owned.workflow_id)
-          .filter((column) => column.id !== columnId)
-          .map((column) => column.label),
+        labelsExcept(selectOfWorkflow.all(owned.workflow_id), columnId),
       )
       updateColumn.run(
         draft.label.trim(),
@@ -94,10 +103,7 @@ export function createWorkflowColumnRepository(db: Database.Database): WorkflowC
 
     remove: (projectId, columnId) => {
       const existing = ownedBy(projectId, columnId)
-      const held = countStoriesInStep.get(columnId)?.total ?? 0
-      if (held > 0) {
-        throw new WorkflowColumnInUseError(existing.label, held)
-      }
+      refuseIfHeld(existing.label, countStoriesInStep.get(columnId)?.total ?? 0)
       db.transaction(() => {
         deleteColumn.run(columnId)
         shiftPositionsDown.run(existing.workflow_id, existing.position)

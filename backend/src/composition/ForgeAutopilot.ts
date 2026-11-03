@@ -66,6 +66,29 @@ function proverOf({
   })
 }
 
+type CloserInput = Pick<
+  ForgeAutopilotInput,
+  'stories' | 'forgeCards' | 'workflowColumns' | 'checkpoints' | 'criteria' | 'foremerge' | 'worktrees' | 'autopilotSettings' | 'events'
+> & { board: ReturnType<typeof createForgeBoardRepository> }
+
+function closerOf({ board, forgeCards, stories, workflowColumns, checkpoints, criteria, foremerge, worktrees, autopilotSettings, events }: CloserInput) {
+  return createForgeCardCloser({
+    board,
+    forgeCards,
+    stories,
+    columns: workflowColumns,
+    checkpoints,
+    criteria,
+    cleanUpAfterMerge: (storyId) =>
+      cleanUpAfterMerge({
+        storyId,
+        releaseScope: foremerge.release,
+        closeWorktree: (target) => worktrees.close(target, { deleteBranch: true }),
+      }),
+    publishStory: createStoryPublishing({ stories, autopilotSettings, worktrees, events }),
+  })
+}
+
 export function createForgeAutopilot({
   db,
   ticking,
@@ -93,21 +116,7 @@ export function createForgeAutopilot({
     autoOf: (view) => running?.autoViewOf(view) ?? null,
   })
   board.backfillCards()
-  const closer = createForgeCardCloser({
-    board,
-    forgeCards,
-    stories,
-    columns: workflowColumns,
-    checkpoints,
-    criteria,
-    cleanUpAfterMerge: (storyId) =>
-      cleanUpAfterMerge({
-        storyId,
-        releaseScope: foremerge.release,
-        closeWorktree: (target) => worktrees.close(target, { deleteBranch: true }),
-      }),
-    publishStory: createStoryPublishing({ stories, autopilotSettings, worktrees, events }),
-  })
+  const closer = closerOf({ board, forgeCards, stories, workflowColumns, checkpoints, criteria, foremerge, worktrees, autopilotSettings, events })
   const mover = createForgeCardMover({
     board,
     forgeCards,

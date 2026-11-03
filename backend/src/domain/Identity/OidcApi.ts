@@ -38,6 +38,52 @@ function isVerifierOf(challenge: string, verifier: string): boolean {
   return expected.length === actual.length && timingSafeEqual(expected, actual)
 }
 
+type StartRouteInput = {
+  providers: readonly OidcProvider[]
+  transactions: OidcTransactions
+  isOverLimit: (context: Context, route: string) => boolean
+  redirectUriOf: (name: string) => string
+}
+
+function mountOidcStartRoute(
+  api: Hono,
+  { providers, transactions, isOverLimit, redirectUriOf }: StartRouteInput,
+): void {
+  api.get('/api/auth/oidc/:provider/start', (context) => {
+    if (isOverLimit(context, 'start')) {
+      return context.json({ error: 'TooManyRequests' }, 429)
+    }
+    const provider = providers.find((candidate) => candidate.name === context.req.param('provider'))
+    if (provider === undefined) {
+      return context.json({ error: 'UnknownOidcProvider' }, 404)
+    }
+    const isDesktop = context.req.query('client') === 'desktop'
+    const challenge = context.req.query('challenge') ?? ''
+    if (isDesktop && !CHALLENGE_PATTERN.test(challenge)) {
+      return context.json({ error: 'InvalidChallenge' }, 400)
+    }
+    const pkce = newPkce()
+    const nonce = crypto.randomUUID()
+    const state = transactions.open({
+      provider: provider.name,
+      nonce,
+      verifier: pkce.verifier,
+      isDesktop,
+      challenge: isDesktop ? challenge : null,
+    })
+    setCookie(context, TRANSACTION_COOKIE, bindingOf(state), {
+      path: TRANSACTION_COOKIE_PATH,
+      httpOnly: true,
+      sameSite: 'Lax',
+      secure: cookieSecure(context),
+      maxAge: TRANSACTION_COOKIE_MAX_AGE_SECONDS,
+    })
+    return context.redirect(
+      authorizeUrlOf(provider, redirectUriOf(provider.name), state, nonce, pkce.challenge),
+    )
+  })
+}
+
 export function createOidcApi({
   identities,
   providers,
@@ -72,39 +118,7 @@ export function createOidcApi({
     context.json(providers.map((provider) => provider.name)),
   )
 
-  api.get('/api/auth/oidc/:provider/start', (context) => {
-    if (isOverLimit(context, 'start')) {
-      return context.json({ error: 'TooManyRequests' }, 429)
-    }
-    const provider = providers.find((candidate) => candidate.name === context.req.param('provider'))
-    if (provider === undefined) {
-      return context.json({ error: 'UnknownOidcProvider' }, 404)
-    }
-    const isDesktop = context.req.query('client') === 'desktop'
-    const challenge = context.req.query('challenge') ?? ''
-    if (isDesktop && !CHALLENGE_PATTERN.test(challenge)) {
-      return context.json({ error: 'InvalidChallenge' }, 400)
-    }
-    const pkce = newPkce()
-    const nonce = crypto.randomUUID()
-    const state = transactions.open({
-      provider: provider.name,
-      nonce,
-      verifier: pkce.verifier,
-      isDesktop,
-      challenge: isDesktop ? challenge : null,
-    })
-    setCookie(context, TRANSACTION_COOKIE, bindingOf(state), {
-      path: TRANSACTION_COOKIE_PATH,
-      httpOnly: true,
-      sameSite: 'Lax',
-      secure: cookieSecure(context),
-      maxAge: TRANSACTION_COOKIE_MAX_AGE_SECONDS,
-    })
-    return context.redirect(
-      authorizeUrlOf(provider, redirectUriOf(provider.name), state, nonce, pkce.challenge),
-    )
-  })
+  mountOidcStartRoute(api, { providers, transactions, isOverLimit, redirectUriOf })
 
   mountOidcCallbackRoute(api, {
     identities,

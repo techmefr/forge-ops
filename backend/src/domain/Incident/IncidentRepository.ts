@@ -54,6 +54,12 @@ function storyBody(incident: Incident, originName: string): string {
   ].join('\n')
 }
 
+function writeStoryWithTwin(stories: StoryRepository, epicId: number, incident: Incident, originName: string): Story {
+  const story = stories.writeStory({ epicId, title: incident.title, body: storyBody(incident, originName) })
+  stories.writeTwin({ storyId: story.id, title: `tests ${incident.title}`, body: twinBody(incident) })
+  return story
+}
+
 export function createIncidentRepository(
   db: Database.Database,
   { stories }: IncidentRepositoryInput,
@@ -126,16 +132,7 @@ export function createIncidentRepository(
     acceptIncident: (incidentId, epicId) => {
       const incident = requirePending(incidentId)
       const origin = selectOriginById.get(incident.originId)
-      const story = stories.writeStory({
-        epicId,
-        title: incident.title,
-        body: storyBody(incident, origin?.name ?? 'une source inconnue'),
-      })
-      stories.writeTwin({
-        storyId: story.id,
-        title: `tests ${incident.title}`,
-        body: twinBody(incident),
-      })
+      const story = writeStoryWithTwin(stories, epicId, incident, origin?.name ?? 'une source inconnue')
       acceptRow.run(story.id, incidentId)
       return { incident: findIncident(incidentId), story }
     },

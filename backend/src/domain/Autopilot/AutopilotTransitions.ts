@@ -9,6 +9,23 @@ import type { StepVerifier } from './StepVerifier.js'
 
 export type AutopilotTransitions = ReturnType<typeof createAutopilotTransitions>
 
+function parkOnError(patch: AutopilotCardState['patch'], forgeCardId: number, error: unknown, keepPending: boolean): void {
+  const handling = handlingOf(error)
+  if (handling === 'red') {
+    const publication = error instanceof PublicationFailedError
+    patch(forgeCardId, {
+      state: 'red',
+      reason: messageOf(error),
+      ...(publication && keepPending ? {} : { pending: null }),
+    })
+    return
+  }
+  patch(forgeCardId, {
+    state: 'paused',
+    reason: handling === 'budget' ? WAITING_BUDGET_REASON : 'Waiting for a free session slot',
+  })
+}
+
 export function createAutopilotTransitions(
   { autopilot, board, stories, columns, cwdOf, mover, closer, publish }: Pick<
     AutopilotConductorInput,
@@ -17,23 +34,6 @@ export function createAutopilotTransitions(
   { discard }: Pick<StepVerifier, 'discard'>,
   { announce, patch }: Pick<AutopilotCardState, 'announce' | 'patch'>,
 ) {
-  function parkOnError(forgeCardId: number, error: unknown, keepPending: boolean): void {
-    const handling = handlingOf(error)
-    if (handling === 'red') {
-      const publication = error instanceof PublicationFailedError
-      patch(forgeCardId, {
-        state: 'red',
-        reason: messageOf(error),
-        ...(publication && keepPending ? {} : { pending: null }),
-      })
-      return
-    }
-    patch(forgeCardId, {
-      state: 'paused',
-      reason: handling === 'budget' ? WAITING_BUDGET_REASON : 'Waiting for a free session slot',
-    })
-  }
-
   async function advance(forgeCardId: number): Promise<void> {
     const view = board.view(forgeCardId)
     const record = autopilot.cardOf(forgeCardId)
@@ -89,7 +89,7 @@ export function createAutopilotTransitions(
         await advance(forgeCardId)
       }
     } catch (error) {
-      parkOnError(forgeCardId, error, record.pending === 'advance')
+      parkOnError(patch, forgeCardId, error, record.pending === 'advance')
     }
   }
 

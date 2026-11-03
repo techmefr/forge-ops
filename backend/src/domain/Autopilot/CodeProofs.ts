@@ -3,11 +3,11 @@ import { quoted } from './ProofDocument.js'
 import { list, SHORT_SHA, type ProofTools } from './StepProofSupport.js'
 import type { ProofOrder, StepProverInput } from './StepProofTypes.js'
 
-export function createCodeProofs(
+function createTestsWrittenProof(
   { checkpoints, inspection }: Pick<StepProverInput, 'checkpoints' | 'inspection'>,
   { factsOf, record }: ProofTools,
 ) {
-  function proveTestsWritten(order: ProofOrder): Checkpoint | string {
+  return function proveTestsWritten(order: ProofOrder): Checkpoint | string {
     const facts = factsOf(order)
     if (typeof facts === 'string') {
       return facts
@@ -45,6 +45,13 @@ export function createCodeProofs(
       { redObservedByOrchestrator: true },
     )
   }
+}
+
+export function createCodeProofs(
+  { checkpoints, inspection }: Pick<StepProverInput, 'checkpoints' | 'inspection'>,
+  { factsOf, record }: ProofTools,
+) {
+  const proveTestsWritten = createTestsWrittenProof({ checkpoints, inspection }, { factsOf, record })
 
   function proveBuildDone(order: ProofOrder): Checkpoint | string {
     const facts = factsOf(order)

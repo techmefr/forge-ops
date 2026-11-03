@@ -4,6 +4,35 @@ import { handlingOf, isLaunchRefusal, messageOf } from './AutopilotHandling.js'
 import type { AutopilotCardState } from './AutopilotCardState.js'
 import type { AutopilotConductorInput } from './AutopilotInput.js'
 
+function abortsLaunch(error: unknown, cardId: LaunchableCard['id'], patch: AutopilotCardState['patch']): boolean {
+  if (isLaunchRefusal(error)) {
+    return false
+  }
+  if (handlingOf(error) !== 'red') {
+    return true
+  }
+  patch(cardId, { state: 'red', reason: messageOf(error), pending: null })
+  return false
+}
+
+type LaunchableCard = ReturnType<AutopilotConductorInput['board']['list']>[number]
+
+function isIdleLaunchable(
+  card: LaunchableCard,
+  step: WorkflowColumn | undefined,
+  budgetBlocks: () => boolean,
+  heldOf: (cardId: LaunchableCard['id']) => { state: unknown; pending: unknown },
+): boolean {
+  const resumable = card.status === 'budget_exhausted' ? !budgetBlocks() : card.status === 'idle' && step?.autoStart === true
+  return (
+    resumable &&
+    step !== undefined &&
+    step.provider !== 'human' &&
+    heldOf(card.id).state === null &&
+    heldOf(card.id).pending === null
+  )
+}
+
 export type AutopilotLauncher = ReturnType<typeof createAutopilotLauncher>
 
 export function createAutopilotLauncher(
@@ -50,13 +79,9 @@ export function createAutopilotLauncher(
           announce(moved)
           patch(card.id, { stepKey: first.key, attempts: 0, advances: 0, pending: null, state: null, reason: null })
         } catch (error) {
-          if (isLaunchRefusal(error)) {
-            continue
-          }
-          if (handlingOf(error) !== 'red') {
+          if (abortsLaunch(error, card.id, patch)) {
             return
           }
-          patch(card.id, { state: 'red', reason: messageOf(error), pending: null })
         }
       }
     }
@@ -68,29 +93,23 @@ export function createAutopilotLauncher(
       if (!settings.enabled || !settings.autoLaunch) {
         continue
       }
-      const idle = board.list(project.id).filter((card) => {
-        const step = columns.list(project.id, card.workflowId).find((candidate) => candidate.key === card.stepKey)
-        const resumable =
-          card.status === 'budget_exhausted' ? !budgetBlocks() : card.status === 'idle' && step?.autoStart === true
-        return (
-          resumable &&
-          step !== undefined &&
-          step.provider !== 'human' &&
-          autopilot.cardOf(card.id).state === null &&
-          autopilot.cardOf(card.id).pending === null
+      const idle = board
+        .list(project.id)
+        .filter((card) =>
+          isIdleLaunchable(
+            card,
+            columns.list(project.id, card.workflowId).find((candidate) => candidate.key === card.stepKey),
+            budgetBlocks,
+            (cardId) => autopilot.cardOf(cardId),
+          ),
         )
-      })
       for (const card of idle) {
         try {
           announce(await mover.launch(card.id))
         } catch (error) {
-          if (isLaunchRefusal(error)) {
-            continue
-          }
-          if (handlingOf(error) !== 'red') {
+          if (abortsLaunch(error, card.id, patch)) {
             return
           }
-          patch(card.id, { state: 'red', reason: messageOf(error), pending: null })
         }
       }
     }

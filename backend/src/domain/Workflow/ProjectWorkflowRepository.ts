@@ -36,6 +36,15 @@ function refuseIfInvalid(name: string, otherNames: readonly string[]): string {
   return trimmed
 }
 
+function refuseIfNotRemovable(name: string, siblings: number, held: number): void {
+  if (siblings <= 1) {
+    throw new WorkflowRefusedError({ reason: 'LastWorkflow' })
+  }
+  if (held > 0) {
+    throw new WorkflowInUseError(name, held)
+  }
+}
+
 export function createProjectWorkflowRepository(db: Database.Database): ProjectWorkflowRepository {
   const statements = prepareProjectWorkflowStatements(db)
   const {
@@ -114,13 +123,7 @@ export function createProjectWorkflowRepository(db: Database.Database): ProjectW
 
     remove: (projectId, workflowId) => {
       const existing = ownedBy(projectId, workflowId)
-      if (list(projectId).length <= 1) {
-        throw new WorkflowRefusedError({ reason: 'LastWorkflow' })
-      }
-      const held = countStories.get(workflowId)?.total ?? 0
-      if (held > 0) {
-        throw new WorkflowInUseError(existing.name, held)
-      }
+      refuseIfNotRemovable(existing.name, list(projectId).length, countStories.get(workflowId)?.total ?? 0)
       db.transaction(() => {
         deleteColumnsOf.run(workflowId)
         deleteWorkflow.run(workflowId)

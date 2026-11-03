@@ -41,6 +41,18 @@ function fingerprint(secret: string): string {
   return createHash('sha256').update(secret).digest('hex')
 }
 
+function withDefaultProviders(written: readonly AuthProvider[]): readonly AuthProvider[] {
+  return PROVIDER_KINDS.map(
+    (kind) =>
+      written.find((provider) => provider.kind === kind) ?? {
+        kind,
+        enabled: kind === 'password',
+        issuer: null,
+        clientId: null,
+      },
+  )
+}
+
 export function createOrganisationRepository(db: Database.Database): OrganisationRepository {
   const {
     selectOrganisation,
@@ -56,16 +68,7 @@ export function createOrganisationRepository(db: Database.Database): Organisatio
   } = prepareOrganisationStatements(db)
 
   function listProviders(organisationId: number): readonly AuthProvider[] {
-    const written = selectProviders.all(organisationId).map(toProvider)
-    return PROVIDER_KINDS.map(
-      (kind) =>
-        written.find((provider) => provider.kind === kind) ?? {
-          kind,
-          enabled: kind === 'password',
-          issuer: null,
-          clientId: null,
-        },
-    )
+    return withDefaultProviders(selectProviders.all(organisationId).map(toProvider))
   }
 
   function findToken(tokenId: number): InstanceToken {

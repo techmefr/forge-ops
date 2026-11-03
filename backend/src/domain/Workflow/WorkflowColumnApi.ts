@@ -31,19 +31,15 @@ export function createWorkflowColumnApi({
 
   api.onError(mapWorkflowColumnError)
 
-  const { workflowOf, guard, guardAdmin } = createWorkflowColumnGuards(projectExists, mayAdminister)
+  const { guardAdmin, guardScoped } = createWorkflowColumnGuards(projectExists, mayAdminister)
 
   api.get('/api/projects/:id/workflow-columns', (context) => {
-    const guarded = guard(context)
+    const guarded = guardScoped(context, false)
     if (guarded instanceof Response) {
       return guarded
     }
-    const workflowId = workflowOf(context)
-    if (workflowId instanceof Response) {
-      return workflowId
-    }
     const workflow: ProjectWorkflow = {
-      columns: columns.list(guarded.projectId, workflowId),
+      columns: columns.list(guarded.projectId, guarded.workflowId),
       maySettle: mayAdminister(guarded.projectId, context),
       admin: adminOf(guarded.projectId),
     }
@@ -51,35 +47,27 @@ export function createWorkflowColumnApi({
   })
 
   api.post('/api/projects/:id/workflow-columns', async (context) => {
-    const guarded = guardAdmin(context)
+    const guarded = guardScoped(context, true)
     if (guarded instanceof Response) {
       return guarded
-    }
-    const workflowId = workflowOf(context)
-    if (workflowId instanceof Response) {
-      return workflowId
     }
     const draft = await parseBody(context, workflowColumnDraftSchema)
     if (!draft.success) {
       return context.json({ error: 'InvalidWorkflowColumn', issues: draft.error.issues }, 422)
     }
-    return context.json({ column: columns.create(guarded.projectId, draft.data, workflowId) }, 201)
+    return context.json({ column: columns.create(guarded.projectId, draft.data, guarded.workflowId) }, 201)
   })
 
   api.put('/api/projects/:id/workflow-columns/order', async (context) => {
-    const guarded = guardAdmin(context)
+    const guarded = guardScoped(context, true)
     if (guarded instanceof Response) {
       return guarded
-    }
-    const workflowId = workflowOf(context)
-    if (workflowId instanceof Response) {
-      return workflowId
     }
     const body = await parseBody(context, workflowColumnOrderSchema)
     if (!body.success) {
       return context.json({ error: 'InvalidWorkflowColumnOrder', issues: body.error.issues }, 422)
     }
-    return context.json({ columns: columns.reorder(guarded.projectId, body.data.keysInOrder, workflowId) })
+    return context.json({ columns: columns.reorder(guarded.projectId, body.data.keysInOrder, guarded.workflowId) })
   })
 
   api.put('/api/projects/:id/workflow-columns/:columnId', async (context) => {

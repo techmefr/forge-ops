@@ -59,5 +59,17 @@ export function createWorkflowColumnGuards(
     return guarded
   }
 
-  return { workflowOf, guard, guardAdmin }
+  function guardScoped(context: Context, admin: boolean): { projectId: number; workflowId: number | undefined } | Response {
+    const guarded = admin ? guardAdmin(context) : guard(context)
+    if (guarded instanceof Response) {
+      return guarded
+    }
+    const workflowId = workflowOf(context)
+    if (workflowId instanceof Response) {
+      return workflowId
+    }
+    return { projectId: guarded.projectId, workflowId }
+  }
+
+  return { workflowOf, guard, guardAdmin, guardScoped }
 }

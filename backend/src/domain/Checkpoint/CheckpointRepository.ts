@@ -40,6 +40,19 @@ export type CheckpointRepositoryInput = {
   checkoutOf?: (storyId: number) => string
 }
 
+function readProof(readEvidence: EvidenceReader, draft: CheckpointDraft, root: string | undefined): string {
+  if (draft.evidencePath.trim().length === 0) {
+    throw new EvidenceRequiredError(draft.name)
+  }
+  const evidencePath = assertEvidencePath(draft.evidencePath)
+  const read = readEvidence(evidencePath, root)
+  if (read.kind === 'unreadable') {
+    throw new EvidenceUnreadableError(evidencePath, read.reason)
+  }
+  assertEvidenceShape(draft.name, evidencePath, read.content)
+  return evidencePath
+}
+
 export function createCheckpointRepository(
   db: Database.Database,
   { takeCensus, readEvidence, surveyMutations, surveyRed, checkoutOf }: CheckpointRepositoryInput,
@@ -51,19 +64,6 @@ export function createCheckpointRepository(
 
   function provenNames(storyId: number): readonly CheckpointName[] {
     return selectCheckpoints.all(storyId).map((row) => row.name)
-  }
-
-  function readProof(draft: CheckpointDraft, root: string | undefined): string {
-    if (draft.evidencePath.trim().length === 0) {
-      throw new EvidenceRequiredError(draft.name)
-    }
-    const evidencePath = assertEvidencePath(draft.evidencePath)
-    const read = readEvidence(evidencePath, root)
-    if (read.kind === 'unreadable') {
-      throw new EvidenceUnreadableError(evidencePath, read.reason)
-    }
-    assertEvidenceShape(draft.name, evidencePath, read.content)
-    return evidencePath
   }
 
   function assertInOrder(draft: CheckpointDraft): void {
@@ -85,7 +85,7 @@ export function createCheckpointRepository(
       throw new StoryNotFoundError(draft.storyId)
     }
     const root = checkoutOf?.(draft.storyId)
-    const evidencePath = readProof(draft, root)
+    const evidencePath = readProof(readEvidence, draft, root)
     assertInOrder(draft)
     assertGate(story, draft, options, root)
     const info = insertCheckpoint.run(draft.storyId, draft.name, evidencePath)
