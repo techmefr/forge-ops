@@ -1,6 +1,6 @@
 # forge-ops — story-driven board for agent sessions
 
-forge-ops is a board that runs Claude Code sessions on user stories, each paired with a twin test story, and refuses to let a story move forward without proof.
+forge-ops is a board that runs coding-agent sessions on user stories, each paired with a twin test story, and refuses to let a story move forward without proof. Claude Code is the default agent, Codex can be chosen per card, and four more command-line agents are wired in as drivers (see [Agents](#agents)). The proof rules do not depend on which agent works.
 
 **Look at it without installing anything:** [techmefr.github.io/forge-ops](https://techmefr.github.io/forge-ops/) — the demonstration board, frozen, with its guided tour in seven languages. Nothing runs there; it is a visit, not a trial. A presentation page, in the same seven languages, is at [techmefr.github.io/forge-ops/about](https://techmefr.github.io/forge-ops/about/).
 
@@ -48,6 +48,7 @@ An agent coding on its own produces three classes of friction:
 - **The guardrail fails closed.** One `PreToolUse` hook carries two refusals — the deny list on `Bash|PowerShell`, the scope guard on `Edit|Write` — and blocks whenever it cannot decide: unreadable deny list, incomprehensible payload. The previous version failed open: deleting the script silently deleted all the protection.
 - **File attribution comes from the hooks, not from a watcher.** Claude Code posts every `Edit`/`Write` to the API; the board knows which story touched which file and detects paths claimed by several stories.
 - **Reservation, not a bare hash.** The branch name's hash only seeds a candidate port; the repository walks the range from there, checking both the `port_reservation` table and whether the port actually binds, and reuses a worktree's held port when it is still free. A hash alone collides by birthday paradox well before the range fills up.
+- **The agent is a driver, the proof is not.** Which agent works a card is a driver choice, made once per card. Checkpoints, gates, mutation checks and the human gate belong to the board and are the same whatever the driver.
 - **The last gate is human.** No agent moves a story to `done`.
 
 ## 3. Work hierarchy
@@ -99,7 +100,7 @@ The doctrine lives in [.claude/commands/](.claude/commands) and [.claude/skills/
 
 A project has one or several **workflows** (Default, Hotfix, Checklist, whatever fits the work). Each workflow is its own list of steps, so a hotfix can skip Spec and Plan while a feature walks the whole sequence. A card belongs to one workflow, chosen when the story is added to the backlog, and sits in it: Backlog, the workflow's steps in order, then Done. The default steps map to the phases of the sequence above, and a project administrator can add, duplicate, rename or delete workflows and add, reorder or remove their steps (each one is an agent step or a Human step).
 
-On the Forge screen each card shows a compact stepper of its own workflow, lighter than a kanban of columns and readable on a phone. Opening a card shows the conversation: a step already passed is read-only history, the current step is the one you talk to the agent in. Replying to an agent whose session has ended resumes the same Claude session with your message. A workflow that only has Human steps never needs an agent: its cards close from the last step without proofs or publication, while any workflow with an agent step keeps the full definition of done. A workflow that leaves out a phase (no Spec, no Plan) is not blocked: the board waives the checkpoints of the phases the workflow does not have and records the waiver as a proof file.
+On the Forge screen each card shows a compact stepper of its own workflow, lighter than a kanban of columns and readable on a phone. Opening a card shows the conversation: a step already passed is read-only history, the current step is the one you talk to the agent in. Replying to an agent whose session has ended resumes the same session with your message when its driver can resume (Claude Code), and otherwise starts a new session that is given the earlier transcript. A workflow that only has Human steps never needs an agent: its cards close from the last step without proofs or publication, while any workflow with an agent step keeps the full definition of done. A workflow that leaves out a phase (no Spec, no Plan) is not blocked: the board waives the checkpoints of the phases the workflow does not have and records the waiver as a proof file.
 
 ```
 Backlog
@@ -170,11 +171,26 @@ A review verdict adds the lens results and the criteria: `{"status":"pass","lens
 
 ### Session lifecycle
 
-- **One session per card.** A card keeps the Claude session id of its last turn. Launching a later step resumes that session (Agent SDK `resume`) instead of starting a new one, so the agent keeps its context from step to step.
+- **One session per card.** A card keeps the session id of its last turn. With Claude Code, launching a later step resumes that session (Agent SDK `resume`) instead of starting a new one, so the agent keeps its context from step to step. A driver that cannot resume gets the previous transcript replayed in the prompt instead.
+- **One agent per card.** The driver is chosen when the card is created and kept for its whole life, because a session id means nothing to another provider. The agent, skill, preprompt, model and effort of each step can still differ from step to step.
 - **Cost accumulates.** Each resumed turn starts from the cost the session had already reached, so the cost of a card is the sum of its turns and the budget cap sees all of it.
 - **Waiting for a person.** A session that finished a turn and waits (`awaiting_human`) does not hold the card: the card shows *to validate*, can be moved on, and the waiting session does not count against `FORGE_SESSION_CAP` for that card. Launching the next step closes it.
 - **Stop.** `DELETE /api/stories/:id/talk` ends the Claude process (an interrupt, then a forced close after three seconds), keeps the cost of the turn, and the card shows *stopped*. The autopilot pauses on it until Retry.
 - **Budget.** When the budget policy says stop, a running session is hung up and the card stays on its step as *budget exhausted*; Retry resumes it once the budget allows.
+
+### Agents
+
+A driver starts a session, sends a turn, streams events, and reports what it can and cannot do. `GET /api/drivers` lists them with their abilities and the degradation each missing ability causes.
+
+| Driver | Chosen per card | Abilities | Without the missing ability |
+|---|---|---|---|
+| `claude` (Claude Code, Agent SDK) | Yes, the default | stream, cost, resume, interrupt | Nothing is missing |
+| `codex` (`codex exec`) | Yes | stream | The thread appears at the end, cost is unknown, a resumed turn starts over with the transcript replayed, a stop waits for the run to end |
+| `opencode`, `kimi`, `droid`, `copilot` | Not yet | stream | Same as `codex` |
+
+The four command-line agents are described by a manifest each (command, arguments, environment prefixes) and run by one shared runner, so adding another is a manifest, not a new runner. They are registered and listed by the API, but a card accepts only `claude` or `codex` today; any other provider is refused as unknown.
+
+What stays the same for every driver: the story worktree, the proof files, the checkpoint gates, the mutation check, the budget, the autopilot and the human gate. The agent process gets the allow-listed environment described in *Agent permissions*. The permission callback and the `PreToolUse` hooks of [section 6](#6-execution-guardrail) are Claude Code mechanisms, so they apply to the `claude` driver.
 
 ## 5. API
 
@@ -199,6 +215,7 @@ The board exposes an HTTP API (Hono). `POST /api/hooks` is also the target of th
 | `GET /api/board/phases` | The contract of the phases and their prerequisites |
 | `GET /api/files/conflicts` | Paths claimed by more than one story |
 | `GET /api/fleet` | State of the agent sessions as read from Claude Code |
+| `GET /api/drivers` | The agent drivers, their abilities and what degrades without each |
 | `POST /api/stories/:id/scope` | Reserves a scope (folder and symbols) for a story |
 | `DELETE /api/stories/:id/scope` | Gives back everything the story was holding |
 | `GET /api/scope/reservations` | The scopes held, with the story holding them |
@@ -261,6 +278,21 @@ The board exposes an HTTP API (Hono). `POST /api/hooks` is also the target of th
 | `POST /api/board-users/:login/verify-email` | Marks the email of an account as verified |
 | `POST /api/board-users/:login/erase` | Erases an account; super admin only |
 | `GET /api/board/self` | The signed-in login and whether it is a super admin |
+| `GET /api/boundary` | What the server holds, what the instance holds, the contract version, what is owed and the update on offer |
+| `GET /api/board/human-gates` | The cards waiting for a person |
+| `GET`/`POST /api/delivery/grouping` | Reads or sets how stories are grouped for delivery |
+| `POST /api/batches`, `GET /api/batches/:id` | Opens a batch of stories and reads it |
+| `POST /api/batches/:id/stories`, `POST /api/batches/:id/extract` | Adds a story to a batch, or pulls one out into a batch of its own |
+| `POST /api/zones`, `POST /api/zones/summary`, `GET /api/projects/:id/zones` | File zones, their automatic summary, and a project's zones |
+| `GET /api/templates`, `POST /api/templates`, `GET /api/templates/:id/jsonl`, `POST /api/templates/jsonl` | Workflow templates, exported and imported as JSONL |
+| `GET`/`POST /api/projects/:id/template` | The template a project follows, and adopting one |
+| `GET /api/organisation`, `POST /api/organisation/providers` | The organisation and its sign-in providers |
+| `GET`/`POST /api/instance/tokens`, `DELETE /api/instance/tokens/:id` | The revocable tokens an instance uses to prove it belongs to an account |
+| `GET /api/auth/state`, `/api/auth/me`, `/api/auth/oidc/providers`; `POST /api/auth/enrol`, `/login`, `/logout`, `/oidc/exchange` | Sign-in, enrolment and the single sign-on flow |
+| `GET`/`PUT /api/board/preferences` | The signed-in person's view preferences |
+| `PUT /api/auth/profile`, `PUT /api/auth/password` | Changes one's own display name and email, or password |
+
+This table is the part of the surface the board screens rely on; the routes are registered under `backend/src/domain/*/…Api.ts` and `…Routes.ts`.
 
 Return codes: `404` unknown story, `409` business refusal (sequence violation, missing proof, unresolved dependency, open `strong` finding, guardrail hooks not registered), `413` request body over the limit (1 MiB, 8 KiB under `/api/auth/`), `500` only for a genuine unforeseen event — a business refusal never disguises itself as a server error, and neither does the reverse.
 
@@ -328,7 +360,9 @@ The `PostToolUse` hook on `Edit|Write|NotebookEdit` is of type `http` and posts 
 ### Prerequisites
 
 - Node.js 22+
-- Claude Code ≥ 2.1.224 for inter-session communication
+- Claude Code ≥ 2.1.224 for inter-session communication (the default agent)
+- Optional, only for the cards that use them: the `codex` command (installed with the `@openai/codex` dependency), and `opencode`, `kimi`, `droid` or `copilot` on the `PATH`
+- Optional: `gh` or `glab`, signed in, to open pull requests and merge requests on close
 
 ```bash
 npm install
@@ -389,6 +423,9 @@ FORGE_PORT=8899 npm run demo
 | `FORGE_WORKTREE_ROOT` | `../forge-worktrees` | Where story worktrees are created |
 | `FORGE_SHOT_DIR` | `../forge-shots` | Screenshots of the piloted browser |
 | `FORGE_PILOT_HEADED` | `false` | `true` shows the Chromium on screen |
+| `FORGE_PILOT_ALLOWED_ORIGINS` | empty | Extra origins the piloted browser may visit besides the story's own preview port |
+| `FORGE_TEST_COMMAND` | `npm test` when declared | The project test command the board runs for its proofs |
+| `FORGE_PUSH_REMOTE` | `origin` | Remote the ship phase may push the story branch to |
 | `FORGE_OTEL_METRICS_URL` | empty | OpenTelemetry collector; without it the resources screen says it has no collector |
 | `FORGE_REROUTE_ALLOWED_HOSTS` | `api.anthropic.com` | Comma-separated hosts the budget `reroute` conduct may target (https only) |
 | `FORGE_DENY_PATH` | `.claude-deny.json` at the forge-ops root | Deny list read by the hook |
@@ -474,35 +511,57 @@ db/forge.sql                          SQLite schema (WAL)
 contract/                             the wire contract, imported by both sides
 
 backend/src/forge.ts                  entrypoint
+backend/src/composition/              wiring: routes, drivers, autopilot, demo seed
 backend/src/domain/Story/             story, twin, dependencies, backlog
+backend/src/domain/ForgeCard/         the card: bundled stories, provider, workflow position
 backend/src/domain/Checkpoint/        the six steps and their proofs
 backend/src/domain/Criterion/         acceptance criteria, merge gate
 backend/src/domain/Agent/             agent sessions, touched files, conflicts
+backend/src/domain/Driver/            the driver contract, its registry, the driven runner
+backend/src/domain/Autopilot/         verdict-checked auto-advance, retries, pauses
+backend/src/domain/Workflow/          workflows and their steps
+backend/src/domain/Template/          workflow templates, shared as JSONL
+backend/src/domain/Conversation/      the card's conversation and its recorded tool log
+backend/src/domain/Epic/              subjects, tags, claims, state history
+backend/src/domain/Project/           projects, links, checkout
+backend/src/domain/FollowUp/          weather, risks, decisions, events
 backend/src/domain/Zone/              file zones and path attachment
 backend/src/domain/Dispatch/          phase contract, command file, cap, startup
 backend/src/domain/Board/             the board's HTTP API
 backend/src/domain/Budget/            cost cap and conduct to follow
 backend/src/domain/Foremerge/         scope reservation and collisions
 backend/src/domain/Identity/          accounts, sessions, hub mode
+backend/src/domain/Organisation/      organisation, sign-in providers, instance tokens
+backend/src/domain/Boundary/          what the server holds and what the instance holds
 backend/src/domain/Incident/          outside sources and reports
 backend/src/domain/Statistic/         session history and totals
 backend/src/domain/Tamper/            test census before the review
+backend/src/domain/Mutation/          the mutation check that guards build_done
+backend/src/domain/Evidence/          proof paths and their shape
+backend/src/domain/Pilot/             the browser walkthrough
+backend/src/domain/Worktree/          story worktrees and their ports
 backend/src/technical/Database/       SQLite connection
 backend/src/technical/Http/           server, event bus, SSE stream
-backend/src/technical/Guardrail/      deny list, decision, PreToolUse hook
+backend/src/technical/Guardrail/      allow-list shell policy, deny list, hooks, agent environment
 backend/src/technical/ClaudeCode/     roster, jobs, session launcher (Agent SDK)
+backend/src/technical/Codex/          the `codex exec` session runner and its transcripts
+backend/src/technical/Cli/            manifest-driven runner for opencode, kimi, droid, copilot
+backend/src/technical/Git/            worktrees, branches, publication
 backend/src/technical/Network/        deterministic port and subdomain
 backend/tests/                        mirror of backend/src/
 
 frontend/index.html                   SPA host
 frontend/src/technical/Api/           board client, event stream
-frontend/src/technical/Router/        the nine pipeline screens
+frontend/src/technical/Router/        four screens (Projects, Me, Settings, Statistics) and their tabs
 frontend/src/technical/Theme/         design tokens, themes, contrast
+frontend/src/technical/Language/      seven locales and the language switch
 frontend/src/technical/Ui/            shared screen states
-frontend/src/domain/Shell/            shell, navigation rail, active agents
-frontend/src/domain/<Screen>/         one folder per screen
+frontend/src/domain/Shell/            shell, navigation, active agents
+frontend/src/domain/<Screen>/         one folder per screen or tab
 frontend/tests/                       mirror of frontend/src/
 
+src-tauri/                            the desktop shell (Tauri)
+docker/                               the images and the four compose topologies
 .claude/commands/                     the /SPEC … /SHIP sequence
 .claude/skills/                       embedded methodology
 .claude-deny.json                     commands never executed
@@ -511,10 +570,13 @@ frontend/tests/                       mirror of frontend/src/
 ## 10. Stack
 
 - **Back**: TypeScript on Node + Hono, `better-sqlite3`, `zod`, vitest
-- **Front**: Vue 3 + TypeScript + Vite, pure SPA — no Nuxt, no SSR — `vue-router`, Pinia for state only, shadcn-vue + Tailwind
+- **Front**: Vue 3 + TypeScript + Vite, pure SPA — no Nuxt, no SSR — `vue-router`, Pinia for state only, Tailwind 4 over Reka UI headless primitives (not shadcn-vue, see [docs/Design.md](docs/Design.md)), `vue-i18n`
+- **Agents**: the Claude Agent SDK for Claude Code, the `codex` command, and a manifest-driven runner for four other command-line agents
+- **Desktop**: Tauri 2, with signed self-update, tray, and the token kept in the OS keychain
 - One process in production (the server serves `dist/`), two in development (`vite dev` proxies `/api`)
+- **Architecture rules** checked by `npm run lint`: OSDD direction (`technical/` never imports `domain/`, with a baseline in `architecture/`), and a limit of 70 lines per function
 
-Low-level orchestration is not rewritten: it leans on the first party — the `claude agents` daemon, worktree isolation and the hooks — rather than on driving things by scraping the terminal.
+Low-level orchestration is not rewritten: it leans on the first party — the Claude Agent SDK, worktree isolation and the hooks — rather than on driving things by scraping the terminal.
 
 ## 11. Implementation state
 
@@ -545,7 +607,12 @@ Low-level orchestration is not rewritten: it leans on the first party — the `c
 | Agent permission callback, guardrail registration on external projects | Done |
 | Cost cap that cuts off, conduct of your choosing | Done |
 | Session history and statistics | Done, read from the board's database |
-| Front: router, shell and the nine pipeline screens | Done |
+| Front: router, shell and four screens (Projects, Me, Settings, Statistics) with their tabs | Done |
+| Story and forge card split, one conversation per card (session resume) | Done |
+| Agent drivers: Claude Code, Codex chosen per card | Done |
+| Command-line agent drivers: opencode, kimi, droid, copilot | Registered and listed; not yet selectable on a card |
+| Mutation check, red-then-green on a scratch copy, tamper census | Done |
+| Server and instance split, organisation, instance tokens, four compose topologies | Built; the hosted topology is not yet exercised in production |
 | Worktree lifecycle and port reservations | Done, against a real git, cleaned up after the merge |
 | Fine-grained machine metrics | Done, read from an OpenTelemetry collector (`FORGE_OTEL_METRICS_URL`), never collected here |
 | Feature flags | To be delegated to OpenFeature, the board keeps only the percentage |
@@ -557,7 +624,19 @@ Low-level orchestration is not rewritten: it leans on the first party — the `c
 | Layout on phone widths and every text size | Checked with a headless browser across widths, sizes and palettes |
 | Presentation page in seven languages | Done, served with the demo at `/about/` |
 
-The architecture being built towards is in [docs/Architecture.md](docs/Architecture.md) and the ways to run it in [docs/Deployment.md](docs/Deployment.md). The step-by-step survey of the existing tooling is in [docs/Tooling.md](docs/Tooling.md), and the exhaustive listing of the landscape — around 120 projects, licenses and mechanisms — in [docs/Landscape.md](docs/Landscape.md). What the tool stores about people, and how to erase it, is in [docs/Privacy.md](docs/Privacy.md).
+## Further reading
+
+| Document | What it covers |
+|---|---|
+| [docs/Architecture.md](docs/Architecture.md) | The server and instance split, identity, templates, the agent as a driver |
+| [docs/StoryForgeCard.md](docs/StoryForgeCard.md) | The story and forge card split, the continuous conversation, one provider per card |
+| [docs/Deployment.md](docs/Deployment.md) | The images, the four ways to run it, the first super admin, sign-in, request limits |
+| [docs/DesktopSecurity.md](docs/DesktopSecurity.md) | The desktop shell: policy, HTTP scope, event stream, keychain |
+| [docs/Privacy.md](docs/Privacy.md) | What the tool stores about people, retention, erasure, known limits |
+| [docs/Design.md](docs/Design.md), [docs/VisualDirection.md](docs/VisualDirection.md) | The design system and the earlier visual direction it supersedes |
+| [docs/Platform.md](docs/Platform.md) | The two-panel ticket, and the earlier hub and board design (its deployment half is superseded by Architecture.md) |
+| [docs/Tooling.md](docs/Tooling.md), [docs/Landscape.md](docs/Landscape.md) | What already exists: a first pass, then the survey of around 120 projects |
+| [CHANGELOG.md](CHANGELOG.md), [CONTRIBUTING.md](CONTRIBUTING.md) | Releases, and how to contribute |
 
 ## 12. Licence
 
