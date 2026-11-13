@@ -139,8 +139,8 @@ async function attemptLocalAutologin(): Promise<void> {
 
 onMounted(async () => {
   await mode.reload()
-  await loadProviders()
   if (mode.data.value?.mode !== 'local') {
+    await loadProviders()
     await state.reload()
     return
   }
