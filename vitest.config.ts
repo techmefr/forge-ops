@@ -28,6 +28,7 @@ export default defineConfig({
           name: 'frontend',
           include: ['frontend/tests/**/*.test.ts'],
           environment: 'jsdom',
+          setupFiles: ['frontend/tests/support/WebStorage.ts'],
         },
       },
     ],
