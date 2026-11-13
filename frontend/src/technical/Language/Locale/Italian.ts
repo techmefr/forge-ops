@@ -995,6 +995,14 @@ export const ITALIAN: Message = {
     loading: 'Caricamento della lavagna…',
     minutes: '{count} min',
     money: '{amount} $',
+    usage: {
+      title: 'Consumo',
+      cost: 'Costo',
+      time: 'Tempo agente',
+      tokens: 'Token',
+      input: 'Ingresso',
+      output: 'Uscita',
+    },
     status: {
       idle: 'In attesa',
       running: 'Sessione in corso',

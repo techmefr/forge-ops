@@ -986,6 +986,14 @@ export const CHINESE: Message = {
     loading: '正在加载看板…',
     minutes: '{count} 分钟',
     money: '${amount}',
+    usage: {
+      title: '用量',
+      cost: '费用',
+      time: '代理时间',
+      tokens: '令牌',
+      input: '输入',
+      output: '输出',
+    },
     status: {
       idle: '等待中',
       running: '会话运行中',

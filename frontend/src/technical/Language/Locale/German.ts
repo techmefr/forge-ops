@@ -996,6 +996,14 @@ export const GERMAN: Message = {
     loading: 'Board wird geladen…',
     minutes: '{count} Min.',
     money: '{amount} $',
+    usage: {
+      title: 'Verbrauch',
+      cost: 'Kosten',
+      time: 'Agentenzeit',
+      tokens: 'Tokens',
+      input: 'Eingabe',
+      output: 'Ausgabe',
+    },
     status: {
       idle: 'Wartet',
       running: 'Sitzung läuft',

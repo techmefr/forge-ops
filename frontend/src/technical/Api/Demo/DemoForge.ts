@@ -119,6 +119,8 @@ function startRun(context: DemoContext, card: ForgeCardView): string {
     }
     card.costUsd = Number((card.costUsd + 0.35).toFixed(2))
     card.durationSeconds += 180
+    card.inputTokens = (card.inputTokens ?? 0) + 84_000
+    card.outputTokens = (card.outputTokens ?? 0) + 9_500
     announce(context, card, 'session.result', { claudeSessionId: sessionId })
   })
   return sessionId

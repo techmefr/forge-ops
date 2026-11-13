@@ -145,3 +145,16 @@ describe('the status after a stop', () => {
     expect(board.view(cardId).status).toBe('stopped')
   })
 })
+
+describe('the tokens of a card', () => {
+  it('adds the tokens of every session of its story', () => {
+    start()
+    sessions.recordUsage('sess-1', { costUsd: 1, inputTokens: 1200, outputTokens: 300 })
+
+    expect(board.view(cardId)).toMatchObject({ inputTokens: 1200, outputTokens: 300 })
+  })
+
+  it('reports no tokens before any session ran', () => {
+    expect(board.view(cardId)).toMatchObject({ inputTokens: 0, outputTokens: 0 })
+  })
+})

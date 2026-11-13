@@ -992,6 +992,14 @@ export const FRENCH: Message = {
     loading: 'Chargement du tableau…',
     minutes: '{count} min',
     money: '{amount} $',
+    usage: {
+      title: 'Consommation',
+      cost: 'Coût',
+      time: 'Temps agent',
+      tokens: 'Jetons',
+      input: 'Entrée',
+      output: 'Sortie',
+    },
     status: {
       idle: 'En attente',
       running: 'Session en cours',

@@ -995,6 +995,14 @@ export const SPANISH: Message = {
     loading: 'Cargando el tablero…',
     minutes: '{count} min',
     money: '{amount} $',
+    usage: {
+      title: 'Consumo',
+      cost: 'Coste',
+      time: 'Tiempo del agente',
+      tokens: 'Tokens',
+      input: 'Entrada',
+      output: 'Salida',
+    },
     status: {
       idle: 'En espera',
       running: 'Sesión en curso',

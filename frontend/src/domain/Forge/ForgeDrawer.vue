@@ -18,6 +18,7 @@ import {
 } from './ForgeRule'
 import ForgeLogs from './ForgeLogs.vue'
 import ForgeThread from './ForgeThread.vue'
+import ForgeUsageCard from './ForgeUsageCard.vue'
 import { useCardConversation } from './UseCardConversation'
 
 const props = defineProps<{
@@ -200,6 +201,8 @@ onMounted(() => void conversation.load())
             <span class="mr-1 inline-block size-2 rounded-full bg-current align-middle" aria-hidden="true" />{{ [agentLine, sessionLine].filter((part) => part !== '').join(' · ') }}
           </p>
         </div>
+
+        <ForgeUsageCard :card="card" />
 
         <p v-if="autoNote !== ''" class="m-0 flex-none border-b border-hair px-5 py-2 text-xs text-orange" data-test="auto-note">
           {{ autoNote }}
