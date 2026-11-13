@@ -86,31 +86,32 @@ followUps.reload()
               :style="{ background: tintOf(entry.project.colour) }"
               aria-hidden="true"
             />
-            <strong class="title-face min-w-0 flex-1 break-words text-lg font-bold text-txt-hi">{{ entry.project.name }}</strong>
+            <strong class="title-face min-w-0 flex-1 break-words text-lg font-semibold text-txt-hi">{{ entry.project.name }}</strong>
             <span
-              class="flex w-24 flex-none flex-col items-center gap-1 rounded-xl px-2 py-2"
+              class="flex size-9 flex-none items-center justify-center rounded-full"
               :class="WEATHER_TONES[entry.followUp.weather].chip"
+              :title="weatherWord(entry)"
               data-test-id="weather-badge"
             >
-              <Glyph :name="WEATHER_TONES[entry.followUp.weather].icon" :size="36" />
-              <span class="whitespace-nowrap text-xs font-semibold leading-tight" data-test-id="weather-word">{{ weatherWord(entry) }}</span>
+              <Glyph :name="WEATHER_TONES[entry.followUp.weather].icon" :size="22" />
+              <span class="sr-only" data-test-id="weather-word">{{ weatherWord(entry) }}</span>
             </span>
           </span>
           <span v-if="entry.followUp.statusSentence !== null" class="text-sm text-txt-mid">
             {{ entry.followUp.statusSentence }}
           </span>
-          <span class="grid grid-cols-3 gap-2 text-center" data-test-id="weather-counters">
-            <span class="flex flex-col rounded-lg border border-line bg-panel px-2 py-2">
-              <b class="text-xl font-bold tabular-nums" :class="entry.followUp.alerts.late > 0 ? 'text-red' : 'text-txt-hi'">{{ entry.followUp.alerts.late }}</b>
-              <small class="text-xs font-medium text-txt-mid">{{ t('followUp.counterLate') }}</small>
+          <span class="flex gap-6 border-t border-hair pt-3" data-test-id="weather-counters">
+            <span class="flex flex-col">
+              <b class="text-lg font-semibold tabular-nums" :class="entry.followUp.alerts.late > 0 ? 'text-red' : 'text-txt-hi'">{{ entry.followUp.alerts.late }}</b>
+              <small class="text-xs text-txt-mid">{{ t('followUp.counterLate') }}</small>
             </span>
-            <span class="flex flex-col rounded-lg border border-line bg-panel px-2 py-2">
-              <b class="text-xl font-bold tabular-nums" :class="entry.followUp.alerts.blocked > 0 ? 'text-orange' : 'text-txt-hi'">{{ entry.followUp.alerts.blocked }}</b>
-              <small class="text-xs font-medium text-txt-mid">{{ t('followUp.counterBlocked') }}</small>
+            <span class="flex flex-col">
+              <b class="text-lg font-semibold tabular-nums" :class="entry.followUp.alerts.blocked > 0 ? 'text-orange' : 'text-txt-hi'">{{ entry.followUp.alerts.blocked }}</b>
+              <small class="text-xs text-txt-mid">{{ t('followUp.counterBlocked') }}</small>
             </span>
-            <span class="flex flex-col rounded-lg border border-line bg-panel px-2 py-2">
-              <b class="text-xl font-bold tabular-nums text-info">{{ entry.tally.open }}</b>
-              <small class="text-xs font-medium text-txt-mid">{{ t('followUp.counterOpen') }}</small>
+            <span class="flex flex-col">
+              <b class="text-lg font-semibold tabular-nums text-txt-hi">{{ entry.tally.open }}</b>
+              <small class="text-xs text-txt-mid">{{ t('followUp.counterOpen') }}</small>
             </span>
           </span>
           <span class="flex flex-col gap-1">
