@@ -994,6 +994,14 @@ export const PORTUGUESE: Message = {
     loading: 'A carregar o quadro…',
     minutes: '{count} min',
     money: '{amount} $',
+    usage: {
+      title: 'Consumo',
+      cost: 'Custo',
+      time: 'Tempo do agente',
+      tokens: 'Tokens',
+      input: 'Entrada',
+      output: 'Saída',
+    },
     status: {
       idle: 'Em espera',
       running: 'Sessão em curso',

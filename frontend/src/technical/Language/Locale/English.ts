@@ -984,6 +984,14 @@ export const ENGLISH = {
     loading: 'Loading the board…',
     minutes: '{count} min',
     money: '${amount}',
+    usage: {
+      title: 'Usage',
+      cost: 'Cost',
+      time: 'Agent time',
+      tokens: 'Tokens',
+      input: 'In',
+      output: 'Out',
+    },
     status: {
       idle: 'Waiting',
       running: 'Session running',

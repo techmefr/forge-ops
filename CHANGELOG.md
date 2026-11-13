@@ -6,6 +6,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Added
 
+- A usage card at the top of the forge card drawer: cost, tokens with their input and output split, and agent time. The board view of a card now carries `inputTokens` and `outputTokens`.
 - Several workflows per project (`GET`/`POST /api/projects/:id/workflows`, rename, duplicate, delete) instead of one list of columns. Each card shows a compact stepper of its workflow, a passed step is read-only history, and the current step is the conversation with the agent. A reply to a closed session resumes it, and a launch accepts a `feedback`.
 - A workflow without a Spec or Plan step no longer blocks on the checkpoints of the missing phases: the board writes a waiver proof for them.
 - A card of a workflow with only Human steps can be closed from its last step, without proofs or publication.

@@ -57,6 +57,8 @@ export type ForgeCardView = {
   claudeSessionId: string | null
   durationSeconds: number
   costUsd: number
+  inputTokens?: number
+  outputTokens?: number
   auto?: AutoCardView | null
 }
 

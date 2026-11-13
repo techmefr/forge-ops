@@ -30,6 +30,8 @@ type SessionRow = {
 type TotalsRow = {
   cost: number
   seconds: number
+  inputTokens: number
+  outputTokens: number
 }
 
 type PlacementRow = {
@@ -73,6 +75,8 @@ export function prepareForgeBoardStatements(db: Database.Database) {
     ),
     selectTotals: db.prepare<[number], TotalsRow>(
       `SELECT COALESCE(SUM(cost_usd), 0) AS cost,
+            COALESCE(SUM(input_tokens), 0) AS inputTokens,
+            COALESCE(SUM(output_tokens), 0) AS outputTokens,
             COALESCE(SUM(MAX(strftime('%s', COALESCE(idle_since, ended_at, 'now')) - strftime('%s', started_at) - wait_seconds, 0)), 0) AS seconds
        FROM agent_session WHERE story_id = ?`,
     ),

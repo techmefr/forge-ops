@@ -51,6 +51,8 @@ export function createForgeBoardView(
       claudeSessionId: latest?.claude_session_id ?? row.claude_session_id,
       durationSeconds: totals?.seconds ?? 0,
       costUsd: Number((totals?.cost ?? 0).toFixed(4)),
+      inputTokens: totals?.inputTokens ?? 0,
+      outputTokens: totals?.outputTokens ?? 0,
     }
     const auto = autoOf?.(view) ?? null
     return auto === null ? view : { ...view, auto }
