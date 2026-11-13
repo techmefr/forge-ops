@@ -100,3 +100,32 @@ describe("l'ecran de connexion saute le jeton en local quand l'origine est local
     expect(push).toHaveBeenCalledWith('/me')
   })
 })
+
+describe("l'ecran de connexion ne sonde les fournisseurs que s'ils servent", () => {
+  beforeEach(() => {
+    read.mockReset()
+    send.mockReset()
+    push.mockReset()
+    responses.clear()
+  })
+
+  it('ne lit pas les fournisseurs en mode local, avant que la session existe', async () => {
+    onPath('/api/board/mode', { mode: 'local', localTrusted: true })
+    send.mockResolvedValue({ expiresAt: new Date().toISOString() })
+
+    mounted()
+    await flushPromises()
+
+    expect(read).not.toHaveBeenCalledWith('/api/auth/oidc/providers')
+  })
+
+  it('lit les fournisseurs en mode hub pour afficher les boutons de connexion', async () => {
+    onPath('/api/board/mode', { mode: 'hub' })
+    onPath('/api/auth/oidc/providers', ['google'])
+
+    mounted()
+    await flushPromises()
+
+    expect(read).toHaveBeenCalledWith('/api/auth/oidc/providers')
+  })
+})
