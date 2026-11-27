@@ -96,5 +96,16 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/techmefr/forge-ops.git"
+  },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.1"
+    },
+    "editorconfig": {
+      "minimatch": "^11.0.1"
+    },
+    "glob": {
+      "minimatch": "^11.0.1"
+    }
   }
 }
